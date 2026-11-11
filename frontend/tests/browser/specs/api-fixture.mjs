@@ -295,7 +295,20 @@ export const test = base.extend({
           const messages = state.chatMessages.filter((row) => row.sequence > after).slice(0, limit);
           const next_after = messages.at(-1)?.sequence ?? after;
           return json(route, {conversation, messages, next_after, has_more: next_after < state.chatMessages.length, analysis: state.chatAnalysis,
-            features: state.chatDecision ? {chat_decisions: true} : undefined, execution_progress: state.chatDecision?.executionProgress});
+            features: state.chatDecision ? {chat_decisions: true, chat_material_bridge: !!state.materialBridge} : undefined, execution_progress: state.chatDecision?.executionProgress, investigation_progress: state.chatInvestigationProgress});
+        }
+        if (path === `${chatPath}/decision-materials` && role === 'support' && state.materialBridge) {
+          const bridge = state.materialBridge;
+          if (method === 'GET') return json(route, {issue_id: 'bridge-issue', case_id: 'bridge-case',
+            materials_version: bridge.version, items: bridge.items, next_after: null});
+          if (method === 'POST') {
+            bridge.posts.push({body, key: headers['idempotency-key']});
+            bridge.version++;
+            bridge.items = bridge.items.map((item) => item.attachment_id === body.attachment_id ?
+              {...item, material_id: 'material-1', confirmed_kind: body.kind} : item);
+            return json(route, {material: {id: 'material-1'}, materials_version: bridge.version,
+              source: {attachment_id: body.attachment_id}});
+          }
         }
         if (state.chatDecision && path.startsWith(`${chatPath}/decisions`)) {
           const statePath = path.slice(`${chatPath}/decisions`.length);
@@ -437,6 +450,15 @@ export const test = base.extend({
         }
         state.reconciled = true;
         return json(route, financialDetail(state).ledger[0]);
+      }
+      if (method === 'GET' && state.investigation && path.startsWith(`/api/cases/${originalCaseId}/runs`)) {
+        const runPath = `/api/cases/${originalCaseId}/runs`;
+        const run = {id: 'fixture-investigation', case_id: originalCaseId, thread_id: 'fixture-thread',
+          status: 'COMPLETED', mode: 'single', strategy: 'routed', case_version: 1, output: null,
+          created_at: createdAt, updated_at: createdAt};
+        if (path === runPath) return json(route, [run]);
+        if (path === `${runPath}/${run.id}`) return json(route, run);
+        if (path === `${runPath}/${run.id}/events`) return json(route, state.investigation);
       }
       if (method === 'GET' && (path === `/api/cases/${originalCaseId}` || (state.created && path === `/api/cases/${newCaseId}`))) {
         const current = path.endsWith(newCaseId) ? state.created : originalCase;

@@ -747,6 +747,26 @@ class BusinessService:
         expected_version: int,
         idempotency_key: str,
     ) -> dict:
+        return self._upload(
+            case_id,
+            user,
+            kind=kind,
+            content=content,
+            expected_version=expected_version,
+            idempotency_key=idempotency_key,
+        )
+
+    def _upload(
+        self,
+        case_id,
+        user,
+        *,
+        kind,
+        content,
+        expected_version,
+        idempotency_key,
+        chat_source=None,
+    ):
         _require_role(user, "customer", "support")
         if kind not in MATERIAL_KINDS:
             raise BusinessError("INVALID_MATERIAL_KIND", "请选择有效的材料类型。", 422)
@@ -757,11 +777,19 @@ class BusinessService:
         object_key = f"cases/{case_id}/{kind}/{checksum}"
         signature = digest([kind, checksum, expected_version])
         scope = f"upload:{case_id}"
+        if chat_source is not None:
+            _require_role(user, "support")
+            chat_source.verify_bytes(checksum, content_type, len(content))
+            scope, signature = chat_source.mutation_scope, chat_source.mutation_signature
         with Session(self.engine) as db, db.begin():
+            if chat_source is not None:
+                chat_source.lock(db)
             case, _ = self._case(db, case_id, user, lock=True)
             replay = self._replay(db, user, scope, idempotency_key, signature)
             if replay is not None:
                 return replay
+            if chat_source is not None:
+                chat_source.validate(db, case)
             existing = db.scalar(select(Material).where(Material.object_key == object_key))
             if existing is None:
                 self._editable(case)
@@ -782,10 +810,14 @@ class BusinessService:
         verify_object(self.storage.get(object_key, len(content)), len(content), checksum)
 
         with Session(self.engine) as db, db.begin():
+            if chat_source is not None:
+                chat_source.lock(db)
             case, order = self._case(db, case_id, user, lock=True)
             replay = self._replay(db, user, scope, idempotency_key, signature)
             if replay is not None:
                 return replay
+            if chat_source is not None:
+                chat_source.validate(db, case)
             existing = db.scalar(select(Material).where(Material.object_key == object_key))
             if existing is not None:
                 response = _material_json(existing)
@@ -818,6 +850,8 @@ class BusinessService:
                     },
                 )
                 response = _material_json(material)
+            if chat_source is not None:
+                response = chat_source.record(db, case, response)
             return self._remember(db, user, scope, idempotency_key, signature, response)
 
     def _get_material(self, case_id: str, material_id: str, user: UserContext) -> Material:

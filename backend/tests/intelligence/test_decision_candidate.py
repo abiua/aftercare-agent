@@ -1,6 +1,7 @@
 """P3 projection from actual persisted runs using a controlled business context."""
 
 import json
+from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
@@ -202,3 +203,196 @@ def test_eligible_legacy_graph_preserves_exact_money_and_trusted_refs(system):
     assert option["lines"][0]["amount_cents"] == 1300
     assert option["evidence_ids"] == ["fact", "policy"]
     assert candidate["checks"]["graph-option"]["status"] == "PASSED"
+
+
+@pytest.mark.parametrize("amount,expected", [(1300, "PASSED"), (1400, "BLOCKED")])
+def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
+    system, monkeypatch, amount, expected
+):
+    from types import SimpleNamespace
+
+    from langgraph.checkpoint.memory import InMemorySaver
+
+    from aftercare.intelligence.service import AgentService
+    from aftercare.investigation.contracts import Evidence, EvidenceRef, InvestigationInput
+    from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
+
+    def evidence(kind, ident, data, trust):
+        return Evidence(
+            ref=EvidenceRef(
+                source_kind=kind,
+                source_id=ident,
+                scope=("chat", "issue", "case-1"),
+                version_or_sha256="1",
+            ),
+            data=data,
+            trust=trust,
+        )
+
+    source = InvestigationInput(
+        conversation_id="chat",
+        issue_id="issue",
+        case_id="case-1",
+        order_id="order",
+        input_through_seq=2,
+        source_snapshot_sha256="a" * 64,
+        relevant_input_sha256="b" * 64,
+        messages=(),
+        evidence=(
+            evidence("ORDER_LINE", "L1", {"available_cents": 1300}, "VERIFIED_RECORD"),
+            evidence(
+                "POLICY",
+                "P1:1.0",
+                {"clause": test_intelligence.POLICY, "selected_for": ["product"]},
+                "POLICY",
+            ),
+        ),
+        eligibility={"status": "ELIGIBLE"},
+        policy_blockers=(),
+        business_versions={},
+        intent="damaged",
+    )
+    monkeypatch.setattr("aftercare.intelligence.service.build_input", lambda scope: source)
+    system.frozen = system.frozen.model_copy(
+        update={
+            "input_refs": tuple(
+                ref.model_copy(update={"id": mapping})
+                if (mapping := {"fact": "L1", "policy": "P1:1.0"}.get(ref.id))
+                else ref
+                for ref in system.frozen.input_refs
+            ),
+            "evidence_ids": ("L1", "P1:1.0", "observation"),
+        }
+    )
+    system.current = system.frozen
+    system.business.status = "ELIGIBLE"
+    system.decisions = DecisionService(
+        lambda *_: system.current,
+        lambda _db, _scope, option: system.business.validate_draft(
+            "case-1",
+            system.actor,
+            expected_version=1,
+            action=option.action,
+            lines=option.business_lines(),
+            policy_ids=option.policy_ids,
+        ),
+    )
+    registry = test_intelligence.registry(max_usd="0.1")
+    for spec in registry.models:
+        spec.data_scopes = ["customer_conversation"]
+        spec.input_usd_per_million = Decimal(1)
+        spec.output_usd_per_million = Decimal(1)
+    transcripts = []
+
+    def transport(_spec, messages, _tools, *_):
+        transcripts.append(messages)
+        usage = {"input_tokens": 100, "output_tokens": 100, "total_tokens": 200}
+        if len(transcripts) == 1:
+            return AIMessage(
+                content="",
+                usage_metadata=usage,
+                tool_calls=[
+                    {"name": "read_order_lines", "args": {"line_ids": ["L1"]}, "id": "line"},
+                    {
+                        "name": "read_policy_clause",
+                        "args": {"policy_id": "P1", "version": "1.0", "product_id": "product"},
+                        "id": "policy",
+                    },
+                ],
+            )
+        assert "1300" in messages[-2].content and "商品损坏" in messages[-1].content
+        return AIMessage(
+            content=json.dumps(
+                {
+                    "claims": [
+                        {
+                            "id": "c",
+                            "subject": "L1",
+                            "predicate": "eligible",
+                            "value": "材料已通过现有规则审查",
+                            "state": "SUPPORTED",
+                            "supporting_refs": ["L1", "P1:1.0"],
+                        }
+                    ],
+                    "options": [
+                        {
+                            "id": "refund",
+                            "action": "REFUND",
+                            "lines": [{"line_id": "L1", "amount_cents": amount}],
+                            "policy_ids": ["P1"],
+                            "evidence_ids": ["L1", "P1:1.0"],
+                            "rationale": "按剩余额度和适用条款提出。",
+                        }
+                    ],
+                }
+            ),
+            usage_metadata=usage,
+        )
+
+    system.service = AgentService(
+        system.engine,
+        SimpleNamespace(model_enabled=False, chat_investigation_enabled=True),
+        system.business,
+        InMemorySaver(),
+        model=ModelRunner(registry, transport=transport),
+        dispatch=lambda _: None,
+    )
+    run = _start(system, graph_profile=CHAT_GRAPH_PROFILE)
+    system.service.process(run["id"])
+    ref = _project(system, run)
+    with Session(system.engine) as db, db.begin():
+        decision = system.decisions.snapshot(db, system.actor, "chat", "issue", ref.id)
+        candidate = decision["candidate"]
+        assert candidate["graph_version"] == CHAT_GRAPH_PROFILE
+        option = candidate["options"][0]
+        assert option["lines"][0]["amount_cents"] == amount
+        assert option["evidence_ids"] == ["L1", "P1:1.0"]
+        assert decision["checks"]["refund"]["status"] == expected
+        assert bool(candidate["unresolved"]) == (expected == "BLOCKED")
+    assert len(transcripts) == 2
+
+
+def test_p4_refuses_unapproved_data_scope_before_model_transport(system, monkeypatch):
+    from types import SimpleNamespace
+
+    from langgraph.checkpoint.memory import InMemorySaver
+
+    from aftercare.intelligence.service import AgentService
+    from aftercare.investigation.contracts import InvestigationInput
+    from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
+
+    value = InvestigationInput(
+        conversation_id="chat",
+        issue_id="issue",
+        case_id="case-1",
+        order_id="order",
+        input_through_seq=2,
+        source_snapshot_sha256="a" * 64,
+        relevant_input_sha256="b" * 64,
+        messages=(),
+        evidence=(),
+        eligibility={"status": "ELIGIBLE"},
+        policy_blockers=(),
+        business_versions={},
+        intent="damaged",
+    )
+    monkeypatch.setattr("aftercare.intelligence.service.build_input", lambda _: value)
+    runner = ModelRunner(
+        test_intelligence.registry(max_usd="0.10"),
+        transport=lambda *_: pytest.fail("private chat reached disallowed provider"),
+    )
+    system.service = AgentService(
+        system.engine,
+        SimpleNamespace(model_enabled=False, chat_investigation_enabled=True),
+        system.business,
+        InMemorySaver(),
+        model=runner,
+        dispatch=lambda _: None,
+    )
+    run = _start(system, graph_profile=CHAT_GRAPH_PROFILE)
+    system.service.process(run["id"])
+    actual = system.service.get("case-1", run["id"], system.actor)
+    assert actual["reason"] == "NO_COMPATIBLE_MODEL"
+    rows = system.service.events("case-1", run["id"], system.actor, 0)
+    route = next(row["payload"] for row in rows if row["kind"] == "route")
+    assert set(route["excluded"].values()) == {"DATA_SCOPE_RESTRICTED"}

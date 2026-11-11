@@ -31,6 +31,9 @@ class Settings(BaseModel):
     container: bool = False
     chat_analysis_enabled: bool = False
     chat_decisions_enabled: bool = False
+    chat_investigation_enabled: bool = False
+    chat_investigation_issue_max_calls: int = Field(default=16, strict=True, ge=1, le=144)
+    chat_investigation_issue_max_microusd: int = Field(default=200_000, strict=True, ge=1, le=10_000_000)
     chat_vision_enabled: bool = False
     chat_vision_alias: Literal["economy", "analysis"] = "analysis"
     chat_analysis_max_calls: int = Field(default=2, strict=True, ge=1, le=6)

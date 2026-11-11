@@ -1,8 +1,9 @@
+import { ChatMaterialBridge } from './ChatMaterialBridge';
 import { ChatDecisions } from './ChatDecisions';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Checkbox, Input, Modal, Space, Tag } from 'antd';
 import { ApiError, errorMessage, segment, type Client } from './api';
-import { analysisStatus, CHAT_PAGE_SIZE, chatMessageBody, isCurrentEvidenceRequest, mergeChatAnalysis, mergeChatMessages, mergeExecutionProgress, validChatFiles, type ChatAttachment, type ChatCard, type ChatExecutionProgress, type ChatPage, type ChatUpdate, type Conversation, type OrderCandidate } from './chat';
+import { analysisStatus, CHAT_PAGE_SIZE, chatMessageBody, isCurrentEvidenceRequest, investigationStatus, mergeChatAnalysis, mergeChatMessages, mergeExecutionProgress, mergeInvestigationProgress, validChatFiles, type ChatAttachment, type ChatCard, type ChatExecutionProgress, type ChatPage, type ChatUpdate, type Conversation, type OrderCandidate } from './chat';
 import type { Items, User } from './contracts';
 import { useActions, useResource } from './hooks';
 import { Feedback, money, time } from './ui';
@@ -79,7 +80,7 @@ export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCa
 
 function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; id: string; user: User; drafts: Map<string, ComposeDraft>; refreshList: () => void; onCase: (id: string) => void}) {
   const base = `/conversations/${segment(id)}`;
-  const [state, setState] = useState<ChatUpdate & {analysisRead: ReturnType<typeof mergeChatAnalysis>; executionRead: ReturnType<typeof mergeExecutionProgress>}>();
+  const [state, setState] = useState<ChatUpdate & {analysisRead: ReturnType<typeof mergeChatAnalysis>; executionRead: ReturnType<typeof mergeExecutionProgress>; investigationRead: ReturnType<typeof mergeInvestigationProgress>}>();
   const [more, setMore] = useState(false);
   const [readError, setReadError] = useState('');
   const [reading, setReading] = useState(false);
@@ -104,6 +105,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
     features: !old || update.conversation.revision >= old.conversation.revision ? update.features : old.features,
     messages: mergeChatMessages(old?.messages ?? [], update.messages),
     executionRead: mergeExecutionProgress(old?.executionRead, update, request),
+    investigationRead: mergeInvestigationProgress(old?.investigationRead, update, request),
     analysisRead: mergeChatAnalysis(old?.analysisRead, {
       revision: update.conversation.revision, request, value: update.analysis,
     }),
@@ -193,7 +195,8 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
 
   const conversation = state?.conversation;
   const analysis = state?.analysisRead.value;
-  const statusText = analysisStatus(analysis);
+  const statusText = (user.role === 'customer' && !readError &&
+    investigationStatus(state?.investigationRead.value, analysis)) || analysisStatus(analysis);
   const progress = state?.executionRead.value;
   const attachments = new Map(state?.messages.flatMap((row) => row.attachments.map((attachment) =>
     [attachment.id, attachment.filename] as const)));
@@ -236,6 +239,11 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
         issueId={analysis?.issue_id} revision={conversation.revision} refreshChat={load} />}
     {conversation && !readError && progress?.case_id === conversation.active_case_id &&
       progress?.simulated === true && <ExecutionProgress progress={progress} />}
+    {user.role === 'support' && conversation?.active_case_id && !readError && state?.features?.chat_material_bridge === true &&
+      <ChatMaterialBridge key={`${conversation.active_case_id}:${analysis?.issue_id ?? ''}`} api={api} base={base}
+        caseId={conversation.active_case_id} onCase={onCase} photo={(attachment, onLoaded) =>
+          <ChatPhoto key={attachment.attachment_id} api={api} base={base} onLoaded={onLoaded}
+            attachment={{id: attachment.attachment_id, filename: attachments.get(attachment.attachment_id) ?? '聊天原图'}} />} />}
     {conversation && <div className="chat-compose">
       <Input.TextArea aria-label={user.role === 'support' ? '公开回复' : '描述售后问题'} autoSize={{minRows: 2, maxRows: 5}}
         value={text} maxLength={2000} showCount disabled={blocked || sending} onChange={(event) => save({...draft, text: event.target.value, error: ''})}
@@ -321,7 +329,7 @@ function OrderChoice({order, disabled, newIssue, choose}: {
   </div>;
 }
 
-function ChatPhoto({api, base, attachment}: {api: Client; base: string; attachment: ChatAttachment}) {
+function ChatPhoto({api, base, attachment, onLoaded}: {api: Client; base: string; attachment: Pick<ChatAttachment, 'id' | 'filename'>; onLoaded?: () => void}) {
   const [source, setSource] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -351,7 +359,7 @@ function ChatPhoto({api, base, attachment}: {api: Client; base: string; attachme
       }
     }
   }
-  return <div>{source ? <img src={source} alt={attachment.filename} /> : <Button loading={loading} onClick={() => void open()}>查看照片 · {attachment.filename}</Button>}
+  return <div>{source ? <img src={source} alt={attachment.filename} onLoad={onLoaded} /> : <Button loading={loading} onClick={() => void open()}>查看照片 · {attachment.filename}</Button>}
     <Feedback error={error} />
   </div>;
 }

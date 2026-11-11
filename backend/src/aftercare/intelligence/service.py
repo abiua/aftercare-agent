@@ -3,6 +3,7 @@
 import hashlib
 import json
 from contextlib import contextmanager
+from contextvars import Context
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from functools import partial
@@ -10,6 +11,7 @@ from uuid import uuid4
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.types import Command
+from langsmith import tracing_context
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
@@ -18,9 +20,11 @@ from aftercare.business.errors import BusinessError
 from aftercare.business.refund_lookup import resolve_refund_text, targeted_refund
 from aftercare.business.rules import digest
 from aftercare.db import User
+from aftercare.decisions.contracts import DecisionScope
 from aftercare.intelligence.decision_candidate import (
     DECISION_INPUT_EVENT,
     DECISION_READY_EVENT,
+    auto_turn_current,
     load_binding,
     make_binding,
 )
@@ -30,10 +34,26 @@ from aftercare.intelligence.models import (
     ModelFailure,
     ModelRunner,
     Registry,
+    _reserve_price,
     finish_transport_evidence,
 )
 from aftercare.intelligence.policies import MODEL_ID, PolicySearch, bge_encoder, document_key
 from aftercare.intelligence.tables import AgentRun, ModelAttempt, RunEvent, RunMutation
+from aftercare.investigation.graph import ARMS, CHAT_GRAPH_PROFILE, build_investigation_graph
+from aftercare.investigation.input import InputUnavailable, build_input
+from aftercare.investigation.issue_budget import (
+    IssueBudget,
+    IssueBudgetDenied,
+    admit_issue,
+    lock_issue,
+    to_microusd,
+)
+from aftercare.investigation.orchestration import (
+    INVESTIGATION_INPUT_TOKEN_LIMIT,
+    InvestigationContext,
+)
+from aftercare.investigation.routing import route_input, route_unavailable
+from aftercare.investigation.tools import InvestigationTools
 
 EVENT_PAGE_SIZE = 200
 CONTEXT_BINDING_VERSION = "agent-context-v1"
@@ -169,6 +189,34 @@ def _lease(engine, run_id):
                 conn.scalar(text("SELECT pg_advisory_unlock(:key)"), {"key": key})
 
 
+def _private_graph(function, *args, **kwargs):
+    def invoke():
+        with tracing_context(enabled=False, parent=False):
+            return function(*args, **kwargs)
+
+    return Context().run(invoke)
+
+
+def _public_output(output):
+    if output and output.get("graph_profile") == CHAT_GRAPH_PROFILE:
+        return {
+            key: value
+            for key, value in output.items()
+            if not key.startswith("investigation_") and key not in {"action", "lines", "policy_ids"}
+        }
+    return output
+
+
+def _event_payload(row, user):
+    if row.kind in {DECISION_INPUT_EVENT, DECISION_READY_EVENT}:
+        return {}
+    if row.kind.startswith("investigation_") and user.role not in {"support", "tester"}:
+        return {}
+    if row.kind == "status" and "output" in row.payload:
+        return {**row.payload, "output": _public_output(row.payload["output"])}
+    return row.payload
+
+
 def _serialize(run: AgentRun) -> dict:
     return {
         "id": run.id,
@@ -178,7 +226,7 @@ def _serialize(run: AgentRun) -> dict:
         "mode": run.mode,
         "strategy": run.strategy,
         "case_version": run.case_version,
-        "output": run.output,
+        "output": _public_output(run.output),
         "reason": run.reason,
         "cycle": run.cycle,
         "created_at": _iso(run.created_at),
@@ -215,8 +263,12 @@ class RunAudit:
         *,
         queue_admission=None,
         attempt_continuation=None,
+        spend_admission=None,
+        spend_scope=None,
     ):
         self.engine, self.run_id, self.cycle = engine, run.id, run.cycle
+        self.spend_admission = spend_admission
+        self.spend_scope = spend_scope
         self.deadline = run.deadline
         self.attempt_admission = attempt_admission
         self.attempt_continuation = attempt_continuation
@@ -365,23 +417,39 @@ class RunAudit:
         *,
         transport_evidence=None,
         base_registry_digest=None,
+        protected_attempts=0,
+        protected_cost=None,
     ):
         with Session(self.engine) as session, session.begin():
+            if self.spend_scope is not None:
+                lock_issue(session, *self.spend_scope)
             run = self._active(session)
             whole_run = registry.max_run_attempts is not None or registry.max_run_usd is not None
             attempts = list(session.scalars(self._attempts(whole_run=whole_run)))
             current = [attempt for attempt in attempts if attempt.cycle == self.cycle]
             remaining = _seconds(run.deadline)
-            if remaining <= 0 or len(current) >= registry.max_attempts:
+            if remaining <= 0 or len(current) + protected_attempts >= registry.max_attempts:
                 raise ModelFailure("MODEL_BUDGET_EXHAUSTED")
-            if registry.max_run_attempts is not None and len(attempts) >= registry.max_run_attempts:
+            if (
+                registry.max_run_attempts is not None
+                and len(attempts) + protected_attempts >= registry.max_run_attempts
+            ):
                 raise ModelFailure("MODEL_RUN_BUDGET_EXHAUSTED")
-            self._check_cost(current, reserve, registry.max_usd, "MODEL_COST_BUDGET_EXHAUSTED")
+            admission_reserve = (
+                reserve + protected_cost
+                if reserve is not None and protected_cost is not None
+                else reserve
+            )
             self._check_cost(
-                attempts, reserve, registry.max_run_usd, "MODEL_RUN_COST_BUDGET_EXHAUSTED"
+                current, admission_reserve, registry.max_usd, "MODEL_COST_BUDGET_EXHAUSTED"
+            )
+            self._check_cost(
+                attempts, admission_reserve, registry.max_run_usd, "MODEL_RUN_COST_BUDGET_EXHAUSTED"
             )
             if self.attempt_admission is not None and not self.attempt_admission(session):
                 raise ModelFailure("EXPERIMENT_CANCELLED")
+            if self.spend_admission is not None:
+                self.spend_admission(session, admission_reserve, protected_attempts)
             attempt = ModelAttempt(
                 run_id=run.id,
                 cycle=run.cycle,
@@ -514,6 +582,10 @@ class AgentService:
             if checkpointer is not None
             else {}
         )
+        self.investigation_enabled = getattr(settings, "chat_investigation_enabled", False)
+        self.investigation_issue_budget = IssueBudget.from_settings(settings)
+        if self.investigation_enabled and saver is not None:
+            self.graphs[CHAT_GRAPH_PROFILE] = build_investigation_graph(saver)
         self.model = model
         if model is None and settings.model_enabled:
             self.model = ModelRunner(Registry.read(settings.model_config_path))
@@ -601,14 +673,40 @@ class AgentService:
         message,
         decision_scope=None,
         decision_previous=None,
+        graph_profile=None,
+        investigation_arm="auto",
+        decision_turn_id=None,
     ):
         self._can_mutate(user)
         facts = self._context(case_id, user)
         if decision_previous is not None and decision_scope is None:
             raise RunError("DECISION_RUN_BINDING_INVALID", "会话候选运行缺少冻结输入。")
+        if graph_profile is not None and (
+            graph_profile != CHAT_GRAPH_PROFILE
+            or not self.investigation_enabled
+            or decision_scope is None
+            or investigation_arm not in ARMS
+            or (
+                decision_turn_id is not None
+                and (user.role != "customer" or investigation_arm != "auto")
+            )
+        ):
+            raise RunError("INVESTIGATION_PROFILE_UNAVAILABLE", "会话调查模式不可用。")
+        if graph_profile is None and (decision_turn_id is not None or investigation_arm != "auto"):
+            raise RunError("INVESTIGATION_PROFILE_UNAVAILABLE", "会话调查模式不可用。")
+        profile = (
+            {
+                "graph_profile": graph_profile,
+                "investigation_arm": investigation_arm,
+                "decision_turn_id": decision_turn_id,
+            }
+            if graph_profile is not None
+            else {}
+        )
         decision_request = (
             {
                 "scope": decision_scope.model_dump(mode="json"),
+                **profile,
                 "previous": decision_previous.model_dump(mode="json")
                 if decision_previous is not None
                 else None,
@@ -649,14 +747,33 @@ class AgentService:
                 if decision_scope is not None
                 else None
             )
+            if binding is not None:
+                binding.update(profile)
+                if decision_turn_id is not None and not auto_turn_current(
+                    session, decision_scope, user.user_id, decision_turn_id
+                ):
+                    raise RunError("INVESTIGATION_INPUT_STALE", "会话输入已更新。")
             active = session.scalar(
-                select(AgentRun.id).where(
+                select(AgentRun)
+                .where(
                     AgentRun.case_id == case_id,
                     AgentRun.status.in_(["QUEUED", "RUNNING", "WAITING_INPUT"]),
                 )
+                .with_for_update()
             )
+            if decision_turn_id is not None:
+                self._check_investigation_spend(session, decision_scope)
             if active:
-                raise RunError("CASE_RUN_ACTIVE", "该工单已有进行中的运行。")
+                previous_binding = load_binding(session, active) if decision_turn_id else None
+                previous_turn = (previous_binding or {}).get("decision_turn_id")
+                if (
+                    previous_turn is None
+                    or previous_turn == decision_turn_id
+                    or previous_binding["scope"]["issue_id"] != decision_scope.issue_id
+                    or auto_turn_current(session, decision_scope, active.owner_id, previous_turn)
+                ):
+                    raise RunError("CASE_RUN_ACTIVE", "该工单已有进行中的运行。")
+                _mark(session, active, "CANCELED", "INVESTIGATION_INPUT_SUPERSEDED")
             run_id = str(uuid4())
             run = AgentRun(
                 id=run_id,
@@ -689,6 +806,32 @@ class AgentService:
             )
         self._enqueue(run_id)
         return self.get(case_id, run_id, user)
+
+    @staticmethod
+    def _check_investigation_turn(session, scope, actor_id, turn_id):
+        if not auto_turn_current(session, scope, actor_id, turn_id):
+            raise ModelFailure("INVESTIGATION_INPUT_STALE")
+
+    @staticmethod
+    def _check_investigation_spend(session, scope):
+        uncertain = session.scalar(
+            select(ModelAttempt.run_id)
+            .join(AgentRun, AgentRun.id == ModelAttempt.run_id)
+            .join(RunEvent, RunEvent.run_id == AgentRun.id)
+            .where(
+                AgentRun.case_id == scope.case_id,
+                RunEvent.kind == DECISION_INPUT_EVENT,
+                RunEvent.payload["graph_profile"].as_string() == CHAT_GRAPH_PROFILE,
+                RunEvent.payload["scope"]["issue_id"].as_string() == scope.issue_id,
+                (
+                    ModelAttempt.status.in_(["STARTED", "UNKNOWN"])
+                    | ModelAttempt.estimated_cost_usd.is_(None)
+                ),
+            )
+            .limit(1)
+        )
+        if uncertain:
+            raise RunError("INVESTIGATION_SPEND_UNCERTAIN", "上次调查的模型费用仍待核对。")
 
     def transition(self, case_id, run_id, user, *, expected_version, idempotency_key, operation):
         facts = self._context(case_id, user)
@@ -779,9 +922,7 @@ class AgentService:
                 {
                     "seq": row.seq,
                     "kind": row.kind,
-                    "payload": {}
-                    if row.kind in {DECISION_INPUT_EVENT, DECISION_READY_EVENT}
-                    else row.payload,
+                    "payload": _event_payload(row, user),
                     "created_at": _iso(row.created_at),
                 }
                 for row in session.scalars(
@@ -918,12 +1059,18 @@ class AgentService:
         try:
             facts = _with_refund_lookup(self._context(run.case_id, user), run.message)
             self._check_version(facts, run.case_version)
-            graph = self.graphs[run.mode]
-            config = {"configurable": {"thread_id": run.thread_id}, "recursion_limit": 30}
-            snapshot = graph.get_state(config)
             context_digest = _context_digest(facts)
             with Session(self.engine) as session:
                 decision_input = load_binding(session, run)
+            binding = decision_input or {}
+            profile = binding.get("graph_profile")
+            if profile and (profile != CHAT_GRAPH_PROFILE or profile not in self.graphs):
+                raise ModelFailure("INVESTIGATION_PROFILE_UNAVAILABLE")
+            graph = self.graphs[profile or run.mode]
+            config = {"configurable": {"thread_id": run.thread_id}, "recursion_limit": 30}
+            snapshot = (
+                _private_graph(graph.get_state, config) if profile else graph.get_state(config)
+            )
             if decision_input is not None and decision_input["context_sha256"] != context_digest:
                 raise ModelFailure("DECISION_RUN_CONTEXT_CHANGED")
             lookup_targeted = targeted_refund(facts.get("refund_lookup"))
@@ -936,16 +1083,47 @@ class AgentService:
                 else CONTEXT_BINDING_VERSION,
                 policy_resolution=facts.get("policy_resolution"),
             )
+            scope = DecisionScope.model_validate(binding["scope"]) if profile else None
+            turn_id = binding.get("decision_turn_id")
+
+            def guard(session, callback):
+                if turn_id:
+                    self._check_investigation_turn(session, scope, run.owner_id, turn_id)
+                return callback(session) if callback is not None else True
+
+            with Session(self.engine) as session:
+                guard(session, None)
+
+            def spend(session, reserve, protected_attempts):
+                try:
+                    admit_issue(
+                        session,
+                        scope.conversation_id,
+                        scope.issue_id,
+                        self.investigation_issue_budget,
+                        to_microusd(reserve),
+                        protected_calls=protected_attempts,
+                    )
+                except IssueBudgetDenied as error:
+                    raise ModelFailure(str(error)) from None
+
             audit = RunAudit(
                 self.engine,
                 run,
-                self.attempt_admission,
+                partial(guard, callback=self.attempt_admission)
+                if turn_id
+                else self.attempt_admission,
                 self.provider_limiter,
                 queue_admission=self.queue_admission,
-                attempt_continuation=self.attempt_continuation,
+                attempt_continuation=partial(guard, callback=self.attempt_continuation)
+                if turn_id
+                else self.attempt_continuation,
+                spend_admission=spend if profile else None,
+                spend_scope=(scope.conversation_id, scope.issue_id) if profile else None,
             )
             if (
-                self.intent_probe is not None
+                not profile
+                and self.intent_probe is not None
                 and self.model is not None
                 and run.cycle == 0
                 and not lookup_targeted
@@ -970,14 +1148,17 @@ class AgentService:
                     expected_version=run.case_version,
                 ),
             )
+            if profile:
+                context = self._investigation_context(context, scope, binding["investigation_arm"])
+            invoke = partial(_private_graph, graph.invoke) if profile else graph.invoke
             if not snapshot.values:
-                state = graph.invoke({"cycle": run.cycle}, config, context=context)
+                state = invoke({"cycle": run.cycle}, config, context=context)
             elif snapshot.interrupts and snapshot.values.get("cycle") != run.cycle:
-                state = graph.invoke(Command(resume={"cycle": run.cycle}), config, context=context)
+                state = invoke(Command(resume={"cycle": run.cycle}), config, context=context)
             elif snapshot.interrupts or not snapshot.next:
                 state = snapshot.values
             else:
-                state = graph.invoke(None, config, context=context)
+                state = invoke(None, config, context=context)
             with Session(self.engine) as session:
                 user = self._actor(session, run)
                 self._can_mutate(user, run)
@@ -992,6 +1173,7 @@ class AgentService:
                 state.get("reason"),
                 state.get("output"),
                 decision_context=context_digest if decision_input is not None else None,
+                decision_guard=partial(guard, callback=None) if turn_id else None,
             )
         except QueueFenceLost:
             raise
@@ -1001,13 +1183,62 @@ class AgentService:
             self._finish(run, "FAILED", "RUN_INTERNAL_ERROR", None)
             raise
 
-    def _finish(self, run, status, reason, output, *, decision_context=None):
+    def _investigation_context(self, legacy, scope, arm):
+        try:
+            value = build_input(scope)
+            route = route_input(value)
+            investigation_tools = InvestigationTools(value, policy_search=legacy.search)
+        except InputUnavailable as error:
+            value, route, investigation_tools = None, route_unavailable(error), None
+        model, reserve = None, None
+        if legacy.model and route.path != "PROGRAM":
+            registry = legacy.model.registry
+            caps = [cap for cap in (registry.max_usd, registry.max_run_usd) if cap is not None]
+            if caps and min(caps) > 0:
+                model = legacy.model.with_evaluation_limits(calls=8, budget=min(caps))
+                costs = [
+                    _reserve_price(spec, INVESTIGATION_INPUT_TOKEN_LIMIT, 900)
+                    for spec in registry.models
+                    if "customer_conversation" in spec.data_scopes and spec.cache_write_ttl != "12h"
+                ]
+                priced = [cost for cost in costs if cost is not None]
+                if priced:
+                    reserve = 2 * max(priced)
+        return InvestigationContext(
+            value,
+            route,
+            model,
+            legacy.audit,
+            investigation_tools,
+            legacy.validate_draft,
+            legacy.strategy,
+            frozenset(scope.line_ids),
+            frozenset(
+                ref.id
+                for ref in scope.input_refs
+                if ref.kind in {"FACT", "POLICY"} and ref.id in scope.evidence_ids
+            ),
+            reserve,
+            arm,
+        )
+
+    def _finish(self, run, status, reason, output, *, decision_context=None, decision_guard=None):
         with Session(self.engine) as session, session.begin():
             _require_queue(session, self.queue_admission)
             current = session.get(AgentRun, run.id, with_for_update=True)
             if current.status == "RUNNING" and current.cycle == run.cycle:
                 if self.attempt_admission is not None and not self.attempt_admission(session):
                     status, reason, output = "CANCELED", "EXPERIMENT_CANCELLED", None
+                if decision_guard is not None:
+                    try:
+                        decision_guard(session)
+                    except ModelFailure as error:
+                        status, reason, output, decision_context = (
+                            "CANCELED",
+                            error.code,
+                            None,
+                            None,
+                        )
                 _mark(session, current, status, reason, output)
                 if decision_context is not None and status in {
                     "WAITING_INPUT",

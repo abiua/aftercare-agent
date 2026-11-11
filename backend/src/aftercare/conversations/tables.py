@@ -83,3 +83,46 @@ class DecisionProjection(Base):
     state: Mapped[str] = mapped_column(String(24))
     reason: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class InvestigationRequest(Base):
+    """Durable intent to start one automatic investigation for a P2 turn."""
+
+    __tablename__ = "chat_investigation_requests"
+
+    turn_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("chat_analysis_turns.id"), primary_key=True
+    )
+    conversation_id: Mapped[str] = mapped_column(String(36), ForeignKey(Conversation.id))
+    issue_id: Mapped[str] = mapped_column(String(36))
+    case_id: Mapped[str] = mapped_column(String(36), ForeignKey("business_cases.id"))
+    actor_id: Mapped[str] = mapped_column(String(36))
+    run_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("agent_runs.id"), unique=True)
+    scope: Mapped[dict | None] = mapped_column(JSON)
+    previous: Mapped[dict | None] = mapped_column(JSON)
+    state: Mapped[str] = mapped_column(String(24), index=True)
+    reason: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ChatMaterialSource(Base):
+    """Immutable provenance for an explicitly classified chat original."""
+
+    __tablename__ = "chat_material_sources"
+
+    case_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("business_cases.id"), primary_key=True
+    )
+    attachment_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey(Attachment.id), primary_key=True
+    )
+    material_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("business_materials.id"), index=True
+    )
+    conversation_id: Mapped[str] = mapped_column(String(36), ForeignKey(Conversation.id))
+    message_id: Mapped[str] = mapped_column(String(36), ForeignKey(Message.id))
+    issue_id: Mapped[str] = mapped_column(String(36))
+    kind: Mapped[str] = mapped_column(String(24))
+    sha256: Mapped[str] = mapped_column(String(64))
+    actor_id: Mapped[str] = mapped_column(String(36))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

@@ -1,17 +1,22 @@
 """Project a persisted legacy graph result into an immutable P3 candidate."""
 
+from pydantic import TypeAdapter
 from sqlalchemy import select
 
 from aftercare.business.errors import BusinessError
 from aftercare.business.rules import digest
+from aftercare.conversation_analysis.tables import ChatAnalysisTurn
+from aftercare.conversations.tables import Conversation
 from aftercare.db import User
 from aftercare.decisions.contracts import (
     Candidate,
+    CandidateOption,
     DecisionRef,
     DecisionScope,
     NonExecutingOption,
     Option,
 )
+from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
 
 from .tables import AgentRun, ModelAttempt, RunEvent
 
@@ -31,6 +36,12 @@ _REVIEW_REASONS = {
     "ROLE_CONFLICT": "图运行对事实或条款存在冲突，需由客服核对。",
     "DRAFT_RULE_CONFLICT": "建议未通过现行规则核对，需客服重新判断。",
     "UNRESOLVED_POLICY": "当前条款或版本无法确定，需客服核对。",
+    "POLICY_BLOCKED": "本案政策范围或有效版本仍待确认。",
+    "REFUND_LOOKUP": "退款执行编号需要澄清，当前不能定位原记录。",
+    "INVESTIGATION_ISSUE_CALL_LIMIT": "本事项模型调用已达上限，需要客服继续核对。",
+    "INVESTIGATION_ISSUE_COST_LIMIT": "本事项模型费用已达上限，需要客服继续核对。",
+    "INVESTIGATION_ISSUE_COST_UNKNOWN": "本事项存在尚未确认的模型费用。",
+    "INVESTIGATION_ISSUE_BUDGET_VIOLATION": "本事项有模型请求超出预留费用，需要人工核对。",
     "FACTS_CHANGED_DURING_RUN": "处理期间业务事实发生变化，需重新核对。",
 }
 
@@ -90,6 +101,37 @@ def load_binding(db, run):
     return binding
 
 
+def auto_turn_current(db, scope, actor_id, turn_id):
+    latest = (
+        select(ChatAnalysisTurn.id)
+        .where(ChatAnalysisTurn.conversation_id == scope.conversation_id)
+        .order_by(ChatAnalysisTurn.generation.desc())
+        .limit(1)
+        .correlate(None)
+        .scalar_subquery()
+    )
+    lines = db.scalar(
+        select(Conversation.line_ids)
+        .join(ChatAnalysisTurn, ChatAnalysisTurn.conversation_id == Conversation.id)
+        .where(
+            Conversation.id == scope.conversation_id,
+            ChatAnalysisTurn.id == turn_id,
+            ChatAnalysisTurn.id == latest,
+            ChatAnalysisTurn.actor_id == actor_id,
+            ChatAnalysisTurn.state == "PUBLISHED",
+            ChatAnalysisTurn.revision == Conversation.revision,
+            ChatAnalysisTurn.customer_id == scope.customer_id,
+            Conversation.status == "OPEN",
+            Conversation.require_new_case.is_(False),
+            Conversation.customer_id == scope.customer_id,
+            Conversation.active_case_id == scope.case_id,
+            Conversation.active_order_id == scope.order_id,
+            Conversation.analysis_issue_id == scope.issue_id,
+        )
+    )
+    return lines is not None and set(lines) == set(scope.line_ids)
+
+
 def _options(run, scope):
     out = run.output or {}
     trusted_evidence = tuple(
@@ -97,6 +139,11 @@ def _options(run, scope):
         for item in scope.input_refs
         if item.kind in {"FACT", "POLICY"} and item.id in scope.evidence_ids
     )
+    if out.get("graph_profile") == CHAT_GRAPH_PROFILE and out.get("investigation_options"):
+        options = TypeAdapter(tuple[CandidateOption, ...]).validate_python(
+            out["investigation_options"]
+        )
+        return options, tuple(out.get("investigation_unresolved", ()))
     if (
         run.status == "COMPLETED"
         and run.reason == "ELIGIBLE"
@@ -117,10 +164,19 @@ def _options(run, scope):
         ), ()
     kinds = out.get("missing_materials") or []
     missing = tuple(dict.fromkeys(_MATERIAL[kind] for kind in kinds if kind in _MATERIAL))
-    if run.status == "WAITING_INPUT" and run.reason == "WAITING_INPUT" and missing:
+    if missing and (
+        (run.status == "WAITING_INPUT" and run.reason == "WAITING_INPUT")
+        or (out.get("graph_profile") == CHAT_GRAPH_PROFILE and out.get("status") == "WAITING_INPUT")
+    ):
         action, reason = "REQUEST_EVIDENCE", "当前缺少对应订单行的必要材料。"
-    elif run.status == "COMPLETED" and run.reason == "INELIGIBLE":
+    elif run.status == "COMPLETED" and run.reason in {"INELIGIBLE", "RULE_INELIGIBLE"}:
         action, reason = "NOT_SUPPORTED", "现行规则未支持对这些订单行提供退款或换发。"
+    elif (
+        out.get("graph_profile") == CHAT_GRAPH_PROFILE
+        and run.reason == "REFUND_LOOKUP"
+        and run.status == "COMPLETED"
+    ):
+        action, reason = "NOT_SUPPORTED", "这是原退款记录查询，无需另行提出退款或换发方案。"
     else:
         action = "HUMAN_HANDOFF"
         reason = _REVIEW_REASONS.get(
@@ -138,7 +194,9 @@ def _options(run, scope):
             if action == "REQUEST_EVIDENCE"
             else (),
         ),
-    ), (reason,) if action == "HUMAN_HANDOFF" else ()
+    ), tuple(
+        dict.fromkeys([reason, *out.get("investigation_unresolved", [])])
+    ) if action == "HUMAN_HANDOFF" else ()
 
 
 def project_candidate(db, decisions, actor, run_id):
@@ -168,6 +226,9 @@ def project_candidate(db, decisions, actor, run_id):
     run = db.get(AgentRun, run_id, populate_existing=True, with_for_update={"read": True})
     if run is None or run.status not in _READY_STATES or load_binding(db, run) != binding:
         _fail("DECISION_RUN_NOT_READY")
+    turn_id = binding.get("decision_turn_id")
+    if turn_id and not auto_turn_current(db, scope, actor.user_id, turn_id):
+        _fail("INVESTIGATION_INPUT_STALE")
     observed = list(
         db.scalars(
             select(RunEvent)
@@ -212,8 +273,14 @@ def project_candidate(db, decisions, actor, run_id):
     options, unresolved = _options(run, scope)
     candidate = Candidate(
         run_id=run.id,
-        graph_version=f"existing-{run.mode}-v1",
-        route_version=f"existing-{run.strategy}" if attempts else "rules-only",
+        graph_version=binding.get("graph_profile") or f"existing-{run.mode}-v1",
+        route_version=(
+            binding["investigation_arm"]
+            if attempts and binding.get("graph_profile")
+            else f"existing-{run.strategy}"
+            if attempts
+            else "rules-only"
+        ),
         model_binding_sha256=digest(
             [
                 {

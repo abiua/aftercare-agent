@@ -19,6 +19,7 @@ from aftercare.decisions.tables import (
 
 from .tables import Attachment, Conversation, Message
 
+MAX_DECISION_INPUT_REFS = 250
 ACKNOWLEDGEMENT = re.compile(
     r"^(?:好(?:的|了)?|收到|知道了|明白了?|了解|谢谢(?:你|您)?|多谢|辛苦了|你好|您好|嗯|ok)[\s。！!，,]*$",
     re.IGNORECASE,
@@ -124,7 +125,7 @@ class ConversationDecisions:
                     Message.sequence.is_not(None),
                 )
                 .order_by(Message.sequence)
-                .limit(251)
+                .limit(MAX_DECISION_INPUT_REFS + 1)
             )
         )
         if not messages:
@@ -182,8 +183,25 @@ class ConversationDecisions:
             evidence.append(_ref("FACT", "case-facts", case.facts))
         policy_ref = _ref("POLICY", "effective-policy-snapshot", context["policy_resolution"])
         evidence.append(policy_ref)
+        dependencies = list(evidence)
+        if getattr(self.business.settings, "chat_investigation_enabled", False):
+            balances = {item["line_id"]: item for item in context["eligibility"]["lines"]}
+            evidence.extend(
+                _ref("FACT", item["line_id"], [item, balances[item["line_id"]]])
+                for item in context["order"]["items"]
+                if item["line_id"] in case.line_ids
+            )
+            evidence.extend(
+                _ref("POLICY", f"{item['id']}:{item['version']}", item)
+                for item in context["policy_resolution"]["documents"]
+            )
         refs = [*message_refs, *evidence]
-        if len(refs) > 250 or len(evidence) > 100:
+        if (
+            len(refs) > MAX_DECISION_INPUT_REFS
+            or len(evidence) > 100
+            or len({item["id"] for item in evidence}) != len(evidence)
+            or any(len(item["id"]) > 80 for item in evidence)
+        ):
             _fail("DECISION_INPUT_TOO_LARGE", 422)
         versions = dict(context["versions"])
         versions["ledger"] = digest(
@@ -281,7 +299,7 @@ class ConversationDecisions:
                 [
                     {key: value for key, value in versions.items() if key != "case"},
                     related,
-                    evidence,
+                    dependencies,
                 ]
             ),
             business_versions=versions,
@@ -360,8 +378,14 @@ class ConversationDecisions:
             return self.records.snapshot_payload(snapshot)
 
     def run(self, actor, ident, key, agent):
+        from aftercare.intelligence.tables import RunMutation
+
+        from .investigation_delivery import PROFILE, _covered
+        from .investigation_delivery import enabled as investigation_enabled
+
         route = f"chat:decision-run:{ident}"
         signature = digest({})
+        agent_key = digest([route, key])
         with Session(self.engine) as db, db.begin():
             row, issue_id = self._current(db, actor, ident, "support")
             frozen = self.business._replay(db, actor, route, key, signature)
@@ -369,23 +393,42 @@ class ConversationDecisions:
                 scope = self.resolve(db, actor, row.id, issue_id)
                 head = db.get(DecisionHead, (row.id, issue_id))
                 previous = self._snapshot_ref(db, head)
+                p4_enabled = investigation_enabled(self.business.settings)
+                if (
+                    p4_enabled
+                    and previous
+                    and _covered(
+                        db.get(DecisionSnapshot, previous.id), scope, self.business.clock()
+                    )
+                ):
+                    _fail("INVESTIGATION_ALREADY_COVERED")
                 frozen = {
                     "scope": scope.model_dump(mode="json"),
                     "previous": previous.model_dump(mode="json") if previous else None,
+                    "graph_profile": PROFILE if p4_enabled else None,
                 }
                 self.business._remember(db, actor, route, key, signature, frozen)
         scope = DecisionScope.model_validate(frozen["scope"])
         previous = DecisionRef.model_validate(frozen["previous"]) if frozen["previous"] else None
+        with Session(self.engine) as db:
+            started = db.get(RunMutation, (scope.case_id, actor.user_id, agent_key))
+            if started is not None:
+                return agent.get(scope.case_id, started.run_id, actor)
         return agent.start(
             scope.case_id,
             actor,
             expected_version=scope.business_versions["case"],
-            idempotency_key=digest([route, key]),
+            idempotency_key=agent_key,
             mode="single",
             strategy="routed",
             message=scope.frozen_context["legacy_agent_input"]["message"],
             decision_scope=scope,
             decision_previous=previous,
+            **(
+                {"graph_profile": frozen["graph_profile"], "investigation_arm": "auto"}
+                if frozen.get("graph_profile")
+                else {}
+            ),
         )
 
     def review(self, actor, ident, ref, review, *, key, expected_review_id, evidence_gaps, chat):

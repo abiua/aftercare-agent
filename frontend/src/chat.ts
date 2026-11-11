@@ -27,7 +27,8 @@ export type ChatExecutionProgress = {
   amount_cents: number; lines: {line_id: string; amount_cents?: number; quantity?: number}[];
   simulated: boolean; receipt_confirmed: boolean; updated_at: string;
 };
-export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; analysis?: ChatAnalysis; features?: {chat_decisions?: boolean}; execution_progress?: ChatExecutionProgress | null};
+export type ChatInvestigationProgress = {state: 'QUEUED' | 'CHECKING' | 'PENDING_SUPPORT' | 'NEEDS_SUPPORT'};
+export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; analysis?: ChatAnalysis; features?: {chat_decisions?: boolean; chat_material_bridge?: boolean}; execution_progress?: ChatExecutionProgress | null; investigation_progress?: ChatInvestigationProgress | null};
 export type ChatPage = ChatUpdate & {has_more: boolean; next_after: number};
 
 export const CHAT_PAGE_SIZE = 50;
@@ -43,6 +44,24 @@ export function mergeExecutionProgress(previous: ExecutionRead | undefined, upda
     return {...previous, revision};
   }
   return incoming;
+}
+
+type InvestigationRead = {revision: number; request: number; value?: ChatInvestigationProgress | null};
+export function mergeInvestigationProgress(previous: InvestigationRead | undefined, update: ChatUpdate, request: number): InvestigationRead {
+  const {revision} = update.conversation;
+  if (previous && (revision < previous.revision || (revision === previous.revision && request < previous.request))) return previous;
+  if (previous && revision === previous.revision && update.investigation_progress === undefined) return previous;
+  return {revision, request, value: update.investigation_progress};
+}
+
+export function investigationStatus(progress: ChatInvestigationProgress | null | undefined, analysis: ChatAnalysis | undefined) {
+  switch (progress?.state) {
+    case 'QUEUED': return analysis?.state === 'WAITING_CUSTOMER' ? '' : '已排队核对售后事项。';
+    case 'CHECKING': return analysis?.state === 'WAITING_CUSTOMER' ? '' : '正在核对售后事项。';
+    case 'PENDING_SUPPORT': return '已整理好调查结果，等待客服核对。';
+    case 'NEEDS_SUPPORT': return '当前无法完成自动核对，请联系人工客服。';
+    default: return '';
+  }
 }
 
 type AnalysisRead = {revision: number; request: number; value?: ChatAnalysis};

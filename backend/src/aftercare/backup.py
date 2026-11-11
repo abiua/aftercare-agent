@@ -54,6 +54,8 @@ CHAT_DECISION_TABLES = frozenset({
     "chat_decision_heads", "chat_decision_snapshots", "chat_support_decisions",
     "chat_decision_offers", "chat_customer_decisions", "chat_decision_projections",
 })
+CHAT_INVESTIGATION_TABLE = "chat_investigation_requests"
+CHAT_MATERIAL_SOURCE_TABLE = "chat_material_sources"
 CHAT_KEY = r"conversations/[A-Za-z0-9_-]{1,36}/[A-Za-z0-9_-]{1,36}/[0-5]-"
 MATERIAL_KEY = r"cases/[A-Za-z0-9_-]{1,36}/(?:ITEM|PARCEL|WRONG_ITEM|LABEL)/"
 ISOLATED_TABLES = frozenset(
@@ -97,6 +99,7 @@ PUBLIC_TABLES = (
     | CHAT_TABLES
     | CHAT_ANALYSIS_TABLES
     | CHAT_DECISION_TABLES
+    | {CHAT_INVESTIGATION_TABLE, CHAT_MATERIAL_SOURCE_TABLE}
     | {
         "eval_imports",
         EVALUATION_PROGRESS_TABLE,
@@ -191,6 +194,13 @@ class BackupManifest(PrivateRecord):
         present_decisions = decision_keys & self.database.keys()
         if present_decisions and (present_decisions != decision_keys or not present_analysis):
             raise ValueError("Incomplete conversation decision schema")
+        if f"public.{CHAT_INVESTIGATION_TABLE}" in self.database and not present_decisions:
+            raise ValueError("Incomplete conversation investigation schema")
+        if (
+            f"public.{CHAT_MATERIAL_SOURCE_TABLE}" in self.database
+            and f"public.{CHAT_INVESTIGATION_TABLE}" not in self.database
+        ):
+            raise ValueError("Incomplete conversation material source schema")
         expected_public = {f"public.{table}" for table in REQUIRED_PUBLIC_TABLES}
         if not expected_public <= self.database.keys():
             raise ValueError("Missing database fingerprint")
@@ -366,6 +376,13 @@ def _managed_tables(connection) -> list[tuple[str, str]]:
     present_decisions = {table for schema, table in managed if schema == "public"} & CHAT_DECISION_TABLES
     if present_decisions and (present_decisions != CHAT_DECISION_TABLES or not present_analysis):
         raise BackupError("CHAT_DECISION_SCHEMA_INCOMPLETE")
+    if ("public", CHAT_INVESTIGATION_TABLE) in managed and not present_decisions:
+        raise BackupError("CHAT_INVESTIGATION_SCHEMA_INCOMPLETE")
+    if (
+        ("public", CHAT_MATERIAL_SOURCE_TABLE) in managed
+        and ("public", CHAT_INVESTIGATION_TABLE) not in managed
+    ):
+        raise BackupError("CHAT_MATERIAL_SOURCE_SCHEMA_INCOMPLETE")
     if not REQUIRED_PUBLIC_TABLES <= {table for schema, table in managed if schema == "public"}:
         raise BackupError("BACKUP_REQUIRED_TABLES_MISSING")
     return managed

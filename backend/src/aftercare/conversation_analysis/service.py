@@ -76,8 +76,9 @@ class TurnLease:
 
 
 class AnalysisService:
-    def __init__(self, engine, limits: AnalysisLimits, *, clock=now):
+    def __init__(self, engine, limits: AnalysisLimits, *, clock=now, issue_budget=None):
         self.engine, self.limits, self.clock = engine, limits, clock
+        self.issue_budget = issue_budget
 
     @staticmethod
     def _latest(db, conversation_id):
@@ -342,6 +343,23 @@ class AnalysisService:
         ):
             _fail("ANALYSIS_BUDGET_EXCEEDED")
         with Session(self.engine) as db, db.begin():
+            # Read the lock identity without holding a row lock. The active
+            # check below revalidates generation, scope and owner under row locks.
+            if self.issue_budget is not None:
+                from aftercare.investigation.issue_budget import (
+                    IssueBudgetDenied,
+                    admit_issue,
+                    lock_issue,
+                )
+
+                identity = db.execute(
+                    select(Conversation.id, Conversation.analysis_issue_id)
+                    .join(ChatAnalysisTurn, ChatAnalysisTurn.conversation_id == Conversation.id)
+                    .where(ChatAnalysisTurn.id == turn_id)
+                ).one_or_none()
+                if identity is None or identity.analysis_issue_id is None:
+                    _fail("ANALYSIS_STALE")
+                lock_issue(db, *identity)
             conversation, turn = self._active(db, turn_id, token)
             if not turn.vision_input or turn.vision_input["logical_id"] != model_evidence.get(
                 "logical_id"
@@ -366,6 +384,14 @@ class AnalysisService:
                 or charged + reserve_microusd > self.limits.max_microusd
             ):
                 _fail("ANALYSIS_BUDGET_EXCEEDED")
+            if self.issue_budget is not None:
+                if identity.analysis_issue_id != conversation.analysis_issue_id:
+                    _fail("ANALYSIS_STALE")
+                try:
+                    admit_issue(db, *identity, self.issue_budget, reserve_microusd)
+                except IssueBudgetDenied as error:
+                    _fail(str(error))
+                model_evidence = {**model_evidence, "issue_id": identity.analysis_issue_id}
             stamp = self.clock()
             remaining = (utc(turn.lease_until) - stamp).total_seconds()
             if remaining <= 0:

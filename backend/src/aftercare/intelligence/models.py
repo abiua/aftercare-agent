@@ -252,6 +252,8 @@ def eligible_models(registry: Registry, task: TaskSpec) -> tuple[list[ModelSpec]
             reason = "PROVIDER_LIMIT_UNCONFIGURED"
         elif task.data_scope not in spec.data_scopes:
             reason = "DATA_SCOPE_RESTRICTED"
+        elif task.data_scope == "customer_conversation" and spec.cache_write_ttl == "12h":
+            reason = "CONVERSATION_RETENTION_RESTRICTED"
         elif task.image_count and not spec.vision:
             reason = "VISION_UNSUPPORTED"
         elif (
@@ -312,6 +314,24 @@ def _client(spec: ModelSpec, tools: list[dict], timeout: float, output: int):
     return client.bind_tools(tools) if tools else client
 
 
+def _private_transport(spec, messages, tools, timeout, output):
+    # The low-level provider generation path does not install a callback manager.
+    from langsmith import tracing_context
+
+    def generate_private():
+        with tracing_context(enabled=False, parent=False):
+            client = _client(spec, [], timeout, output)
+            kwargs = client.bind_tools(tools).kwargs if tools else {}
+            generation = client._generate(messages, run_manager=None, **kwargs).generations[0]
+            message = generation.message
+            for key in ("finish_reason", "status"):
+                if key in (generation.generation_info or {}):
+                    message.response_metadata.setdefault(key, generation.generation_info[key])
+            return message
+
+    return Context().run(generate_private)
+
+
 def _transport(
     spec: ModelSpec,
     messages: list[BaseMessage],
@@ -325,21 +345,7 @@ def _transport(
         if isinstance(message.content, list)
         for block in message.content
     ):
-        # invoke() configures inherited and global LangChain callbacks. The low-level
-        # provider generation path takes no callback manager and runs in a clean context.
-        from langsmith import tracing_context
-
-        def generate_private():
-            with tracing_context(enabled=False, parent=False):
-                client = _client(spec, [], timeout, output)
-                generation = client._generate(messages, run_manager=None).generations[0]
-                message = generation.message
-                for key in ("finish_reason", "status"):
-                    if key in (generation.generation_info or {}):
-                        message.response_metadata.setdefault(key, generation.generation_info[key])
-                return message
-
-        return Context().run(generate_private)
+        return _private_transport(spec, messages, tools, timeout, output)
     return _client(spec, tools, timeout, output).invoke(messages)
 
 
@@ -555,7 +561,9 @@ class ModelRunner:
             preferred,
             prompt_tokens,
             tools=bool(tools) or any(isinstance(message, ToolMessage) for message in messages),
-            streaming=registry.native_streaming and not vision,
+            streaming=registry.native_streaming
+            and not vision
+            and data_scope != "customer_conversation",
             data_scope=data_scope,
             image_count=images,
         )
@@ -682,14 +690,20 @@ class ModelRunner:
                     min(registry.timeout_seconds, remaining),
                     task.output_reserve,
                 )
-                response = transport(*args, emit) if native_streaming else transport(*args)
+                if default and data_scope == "customer_conversation":
+                    response = _private_transport(*args)
+                else:
+                    response = transport(*args, emit) if native_streaming else transport(*args)
                 if default and isinstance(response, AIMessage):
                     transport_evidence = {**transport_evidence, "response": "SDK_RETURNED"}
                 usage = response.usage_metadata
                 if usage:
                     price = _estimated_price(selected, usage)
-                if vision and price is not None and reserve is not None and price > reserve:
-                    raise ModelFailure("VISION_ESTIMATE_EXCEEDED")
+                if price is not None and reserve is not None and price > reserve:
+                    if vision:
+                        raise ModelFailure("VISION_ESTIMATE_EXCEEDED")
+                    if data_scope == "customer_conversation":
+                        raise ModelFailure("INVESTIGATION_ESTIMATE_EXCEEDED")
                 if response.response_metadata.get("status") in {
                     "incomplete",
                     "failed",

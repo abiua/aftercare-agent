@@ -6,6 +6,8 @@ import type { CaseDetail, Mode, Run, RunEvent, RunOutput, Runtime, Strategy, Use
 import { recoveryReason } from './evaluationMessages';
 import { useActions, useEventRefresh, useResource, useStream } from './hooks';
 import type { SseFrame } from './sse';
+import { InvestigationTrace } from './InvestigationTrace';
+import { isInvestigationEvent } from './investigationTraceData';
 import { RefundLookupOutcome } from './RefundLookupPanel';
 import { readRefundLookup } from './refundLookup';
 import { describeRunCitations } from './runCitations';
@@ -48,7 +50,7 @@ export function RunPanel({api, detail, runtime, base, user, refreshCase, canOper
         value: run.id, label: `${time(run.created_at)} · ${label(run.mode)} · ${label(run.status)}`,
       }))} />
       <RunDetails key={current.id} api={api} route={route} initialRun={current} caseDetail={detail} canRun={canRun && canOperate}
-        allowDraft={user.role === 'support'} refreshRuns={refreshRuns} refreshCase={refreshCase}
+        showInvestigation={canRun} allowDraft={user.role === 'support'} refreshRuns={refreshRuns} refreshCase={refreshCase}
         onDraft={onDraft} onCommand={(type) => setCommand({type, version: detail.case.version})} />
     </> : <Placeholder text={runs.loading ? '正在读取运行记录' : '暂无助手运行记录'} />}
     {command && <RunEditor api={api} route={route} runId={current?.id} command={command} runtime={runtime}
@@ -57,8 +59,8 @@ export function RunPanel({api, detail, runtime, base, user, refreshCase, canOper
   </div>;
 }
 
-function RunDetails({api, route, initialRun, caseDetail, canRun, allowDraft, refreshRuns, refreshCase, onCommand, onDraft}: {
-  api: Client; route: string; initialRun: Run; caseDetail: CaseDetail; canRun: boolean; allowDraft: boolean;
+function RunDetails({api, route, initialRun, caseDetail, canRun, allowDraft, showInvestigation, refreshRuns, refreshCase, onCommand, onDraft}: {
+  api: Client; route: string; initialRun: Run; caseDetail: CaseDetail; canRun: boolean; allowDraft: boolean; showInvestigation: boolean;
   refreshRuns: () => void; refreshCase: () => void; onCommand: (type: 'resume' | 'cancel') => void; onDraft: (output: RunOutput) => void;
 }) {
   const path = `${route}/${segment(initialRun.id)}`;
@@ -100,7 +102,8 @@ function RunDetails({api, route, initialRun, caseDetail, canRun, allowDraft, ref
 
   if (runResource.error) return <Feedback error={runResource.error} />;
   const events = mergeRunEvents(history.value ?? [], incoming);
-  const timeline = events.filter((event) => event.kind !== 'model_draft_delta');
+  const timeline = events.filter((event) => !['model_draft_delta', 'decision_input', 'decision_ready'].includes(event.kind) &&
+    !isInvestigationEvent(event));
   const drafts = run.status === 'RUNNING' && (stream === 'connected' || stream === 'reconnecting') ? provisionalDrafts(events) : [];
   const output = run.output;
   const lookup = readRefundLookup(output?.refund_lookup);
@@ -151,6 +154,7 @@ function RunDetails({api, route, initialRun, caseDetail, canRun, allowDraft, ref
         <Evidence title="草案与引用明细"><Json value={output} /></Evidence>
       </div>
     </Card>}
+    {showInvestigation && <InvestigationTrace events={events} />}
     <div className="section-row"><h3>协作轨迹</h3><span className="muted">{timeline.length} 条事件</span></div>
     <Feedback error={history.error} />
     {timeline.length ? <Timeline items={timeline.map((event) => ({

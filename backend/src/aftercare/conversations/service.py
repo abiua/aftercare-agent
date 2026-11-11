@@ -162,7 +162,7 @@ class ConversationService:
         if snapshot := chat_analysis.snapshot(self.analysis, db, row):
             result["analysis"] = snapshot
         if self.decisions_enabled:
-            result["features"] = {"chat_decisions": True}
+            result["features"] = {"chat_decisions": True, "chat_material_bridge": True}
         return result
 
     def create(self, user, key):
@@ -216,11 +216,145 @@ class ConversationService:
             result = self._response(db, row, page)
             if self.decisions_enabled:
                 result["execution_progress"] = self._execution_progress(db, row)
+            from .investigation_delivery import enabled as investigation_enabled
+
+            if user.role == "customer" and investigation_enabled(self.business.settings):
+                result["investigation_progress"] = self._investigation_progress(db, row)
             return {
                 **result,
                 "has_more": len(rows) > limit,
                 "next_after": page[-1].sequence if page else after,
             }
+
+    def _investigation_progress(self, db, row):
+        from aftercare.conversation_analysis.service import _scope as analysis_scope
+        from aftercare.conversation_analysis.tables import ChatAnalysisTurn
+        from aftercare.db import User
+        from aftercare.decisions.tables import DecisionHead, DecisionSnapshot
+        from aftercare.intelligence.decision_candidate import DECISION_READY_EVENT, load_binding
+        from aftercare.intelligence.tables import AgentRun, RunEvent
+
+        from .tables import DecisionProjection, InvestigationRequest
+
+        if (
+            row.status != "OPEN"
+            or row.require_new_case
+            or not row.active_case_id
+            or not row.analysis_issue_id
+        ):
+            return None
+        case = db.get(Case, row.active_case_id)
+        if case is None or (
+            case.customer_id,
+            case.order_id,
+            case.decision_conversation_id,
+            case.decision_issue_id,
+        ) != (row.customer_id, row.active_order_id, row.id, row.analysis_issue_id):
+            return None
+        if case.status in {"EXECUTION_PENDING", "RESOLVED", "EXECUTION_FAILED"}:
+            return None
+        head = db.get(DecisionHead, (row.id, row.analysis_issue_id))
+        if head and (head.offer_id or head.review_id):
+            return None
+        turn = db.scalar(
+            select(ChatAnalysisTurn)
+            .where(ChatAnalysisTurn.conversation_id == row.id)
+            .order_by(ChatAnalysisTurn.generation.desc())
+            .limit(1)
+        )
+        if turn is None or (turn.state, turn.revision, turn.customer_id, turn.scope_sha256) != (
+            "PUBLISHED",
+            row.revision,
+            row.customer_id,
+            analysis_scope(row),
+        ):
+            return None
+        request = db.get(InvestigationRequest, turn.id)
+        if request is None or (
+            request.conversation_id,
+            request.issue_id,
+            request.case_id,
+            request.actor_id,
+        ) != (row.id, row.analysis_issue_id, row.active_case_id, turn.actor_id):
+            return None
+        owner = db.get(User, request.actor_id)
+        if (
+            owner is None
+            or not owner.enabled
+            or owner.role != "customer"
+            or owner.customer_id != row.customer_id
+        ):
+            return None
+        scope = request.scope
+        lines = scope.get("line_ids") if isinstance(scope, dict) else None
+        if (
+            not isinstance(scope, dict)
+            or digest(
+                [
+                    scope.get("customer_id"),
+                    scope.get("order_id"),
+                    scope.get("case_id"),
+                    sorted(lines)
+                    if isinstance(lines, list) and all(isinstance(line, str) for line in lines)
+                    else None,
+                ]
+            )
+            != turn.scope_sha256
+            or (scope.get("conversation_id"), scope.get("issue_id"))
+            != (row.id, row.analysis_issue_id)
+        ):
+            return (
+                {"state": "NEEDS_SUPPORT"} if request.state == "BLOCKED" and scope is None else None
+            )
+        if request.state == "PENDING":
+            return {"state": "QUEUED"}
+        if request.state == "BLOCKED":
+            return {"state": "NEEDS_SUPPORT"}
+        if request.state != "STARTED" or not request.run_id:
+            return None
+        run = db.get(AgentRun, request.run_id)
+        if run is None or run.owner_id != request.actor_id or run.case_id != request.case_id:
+            return None
+        try:
+            binding = load_binding(db, run)
+        except BusinessError:
+            return None
+        if (
+            not binding
+            or binding.get("decision_turn_id") != turn.id
+            or binding.get("scope") != scope
+        ):
+            return None
+        projection = db.get(DecisionProjection, run.id)
+        if projection and projection.state == "PUBLISHED":
+            if not head or not projection.snapshot_id or head.snapshot_id != projection.snapshot_id:
+                return None
+            snapshot = db.get(DecisionSnapshot, projection.snapshot_id)
+            if snapshot is None or (
+                snapshot.conversation_id,
+                snapshot.issue_id,
+                snapshot.run_id,
+            ) != (row.id, row.analysis_issue_id, run.id):
+                return None
+            return {
+                "state": "PENDING_SUPPORT"
+                if utc(snapshot.expires_at) > utc(self.business.clock())
+                else "NEEDS_SUPPORT"
+            }
+        if (projection and projection.state == "BLOCKED") or run.status in {"FAILED", "CANCELED"}:
+            return {"state": "NEEDS_SUPPORT"}
+        if run.status == "QUEUED":
+            return {"state": "QUEUED"}
+        if run.status == "RUNNING":
+            return {"state": "CHECKING"}
+        if run.status in {"WAITING_INPUT", "COMPLETED", "NEEDS_REVIEW"}:
+            ready = db.scalar(
+                select(RunEvent.seq)
+                .where(RunEvent.run_id == run.id, RunEvent.kind == DECISION_READY_EVENT)
+                .limit(1)
+            )
+            return {"state": "CHECKING" if ready is not None else "NEEDS_SUPPORT"}
+        return None
 
     @staticmethod
     def _execution_progress(db, row):

@@ -11,6 +11,7 @@ const messages: Record<string, string> = {
   NETWORK_ERROR: '服务暂时无法连接，请稍后重试。',
   INVALID_REFUND_EXECUTION_ID: '请输入一个完整的退款执行编号。',
   REFUND_LOOKUP_INTENT_REQUIRED: '请在退款进度工单中查询指定退款。',
+  CHAT_MATERIAL_SCOPE_CHANGED: '当前售后事项已更新，请刷新后重新核对聊天照片。',
   DECISION_INPUT_REQUIRED: '请先让客户确认订单和商品，并关联当前售后事项。',
   DECISION_STALE: '本次售后信息已更新，请重新核对候选方案。',
   DECISION_REVIEW_STALE: '客服复核记录已更新，请查看当前版本。',

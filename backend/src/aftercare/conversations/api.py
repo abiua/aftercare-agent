@@ -21,7 +21,7 @@ BODY_MAX = MAX_BYTES + 64 * 1024
 class ConversationRoute(BusinessRoute):
     def get_route_handler(self):
         handler = super().get_route_handler()
-        if "/decisions" in self.path:
+        if "/decisions" in self.path or "/decision-materials" in self.path:
 
             async def private(request: Request):
                 try:
@@ -172,6 +172,50 @@ class ReviewDecision(Empty):
 class RespondDecision(Empty):
     ref: DecisionRef
     response: CustomerResponse
+
+
+class ConfirmDecisionMaterial(Empty):
+    attachment_id: UUID
+    expected_issue_id: UUID
+    expected_case_id: UUID
+    expected_materials_version: Annotated[int, Field(strict=True, ge=0, le=2_147_483_647)]
+    kind: Literal["ITEM", "PARCEL", "WRONG_ITEM", "LABEL"]
+
+
+@router.get("/{conversation_id}/decision-materials")
+def decision_material_candidates(
+    conversation_id: UUID,
+    service: Service,
+    user: Actor,
+    after: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=50)] = 50,
+):
+    from .materials import candidates
+
+    return candidates(service.business, user, str(conversation_id), after=after, limit=limit)
+
+
+@router.post("/{conversation_id}/decision-materials")
+def confirm_decision_material(
+    conversation_id: UUID,
+    body: ConfirmDecisionMaterial,
+    service: Service,
+    user: Actor,
+    key: Key,
+):
+    from .materials import confirm
+
+    return confirm(
+        service.business,
+        user,
+        str(conversation_id),
+        attachment_id=str(body.attachment_id),
+        kind=body.kind,
+        case_id=str(body.expected_case_id),
+        issue_id=str(body.expected_issue_id),
+        version=body.expected_materials_version,
+        key=key,
+    )
 
 
 @router.get("/{conversation_id}/decisions")

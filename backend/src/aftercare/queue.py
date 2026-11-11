@@ -73,6 +73,38 @@ def make_queue(profile):
         finally:
             engine.dispose()
 
+    if getattr(settings, "chat_investigation_enabled", False):
+        app.conf.beat_schedule["scan-chat-investigation"] = {
+            "task": "aftercare.chat_investigation_sweep", "schedule": 2.0,
+        }
+
+    @app.task(name="aftercare.chat_investigation_sweep", shared=False)
+    def sweep_investigation():
+        from aftercare.business.service import BusinessService
+        from aftercare.conversations.investigation_delivery import enabled, pending
+        from aftercare.db import guarded_engine
+
+        current = load_settings(profile)
+        if not enabled(current):
+            return
+        engine = guarded_engine(current)
+        try:
+            for turn_id in pending(BusinessService(engine, current)):
+                app.send_task("aftercare.chat_investigation_start", args=[turn_id])
+        finally:
+            engine.dispose()
+
+    @app.task(name="aftercare.chat_investigation_start", shared=False)
+    def start_investigation(turn_id):
+        from aftercare.conversations.investigation_delivery import enabled, process
+        from aftercare.runtime import open_runtime
+
+        if not enabled(load_settings(profile)):
+            return
+        with open_runtime(profile) as (current, _, business, agent):
+            if enabled(current):
+                process(business, agent, turn_id)
+
     @app.task(name="aftercare.project_chat_decision", shared=False)
     def project_chat_decision(run_id):
         from aftercare.business.service import BusinessService

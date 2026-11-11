@@ -33,6 +33,10 @@ DAMAGE_FINDINGS = {"POSSIBLE_CRACK", "POSSIBLE_DENT", "POSSIBLE_TEAR", "POSSIBLE
 ANALYSIS_LIMIT_ERRORS = {
     "ANALYSIS_BUDGET_EXCEEDED",
     "ANALYSIS_BUDGET_VIOLATION",
+    "INVESTIGATION_ISSUE_CALL_LIMIT",
+    "INVESTIGATION_ISSUE_COST_LIMIT",
+    "INVESTIGATION_ISSUE_COST_UNKNOWN",
+    "INVESTIGATION_ISSUE_BUDGET_VIOLATION",
     "MODEL_COST_BUDGET_EXHAUSTED",
     "MODEL_RUN_COST_BUDGET_EXHAUSTED",
 }
@@ -45,7 +49,14 @@ def scheduler(engine, settings, *, clock=None):
         max_calls=settings.chat_analysis_max_calls,
         max_microusd=settings.chat_analysis_max_microusd,
     )
-    return AnalysisService(engine, limits, **({"clock": clock} if clock else {}))
+    from aftercare.investigation.issue_budget import IssueBudget
+
+    return AnalysisService(
+        engine,
+        limits,
+        issue_budget=IssueBudget.from_settings(settings),
+        **({"clock": clock} if clock else {}),
+    )
 
 
 def _id():
@@ -247,6 +258,19 @@ def _handoff(chat, db, row, binding, *, code="HUMAN_HANDOFF", message=None):
 def _text_reply(chat, db, row, binding):
     if not row.active_order_id:
         return
+    if getattr(chat.business.settings, "chat_investigation_enabled", False):
+        from .decisions import _relevant
+
+        latest = db.scalar(
+            select(Message.text).where(
+                Message.conversation_id == row.id,
+                Message.analysis_issue_id == row.analysis_issue_id,
+                Message.role == "customer",
+                Message.sequence == binding["input_through_seq"],
+            )
+        )
+        if latest is not None and not _relevant(latest):
+            return
     case = db.get(Case, row.active_case_id) if row.active_case_id else None
     intent = case.intent if case else None
     if intent is None:
