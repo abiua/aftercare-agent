@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { compareLeftId, compareRightId, financialCaseId, financialExecutionId, newCaseId, originalCaseId, signIn, test, tokens } from './api-fixture.mjs';
+import { compareLeftId, compareRightId, financialCaseId, financialExecutionId, originalCaseId, signIn, test, tokens } from './api-fixture.mjs';
 
 test('fixture: rejects invalid login and shows support-only workbench entry', async ({page, fixtureApi}) => {
   await page.goto('/');
@@ -16,43 +16,13 @@ test('fixture: rejects invalid login and shows support-only workbench entry', as
   expect(fixtureApi.calls.filter((item) => item.path.startsWith('/api/intake/'))).toEqual([]);
 });
 
-test('fixture: clarifies customer order and intent, then retries the confirmed request with one key', async ({page, fixtureApi}) => {
+test('fixture: customer deep links keep the legacy ownership boundary', async ({page, fixtureApi}) => {
   await signIn(page, 'customer');
   await expect(page.getByRole('button', {name: '测试与评测'})).toHaveCount(0);
-  await page.getByRole('button', {name: '描述问题发起售后'}).click();
-  const dialog = page.getByRole('dialog');
-  const message = '收到之后发现有问题，想处理一下。';
-  await dialog.getByLabel('遇到了什么问题').fill(message);
-  await dialog.getByRole('button', {name: '识别售后需求'}).click();
-  await expect(dialog.getByText('请选择需要售后的订单。')).toBeVisible();
-  await expect(dialog.getByText('按规则识别', {exact: true})).toBeVisible();
-  await expect(dialog.getByRole('button', {name: '确认并建单'})).toHaveCount(0);
-  await expect(dialog.getByRole('button', {name: '请模型帮我判断'})).toHaveCount(0);
-  expect(fixtureApi.confirmed).toHaveLength(0);
-  const first = fixtureApi.calls.find((item) => item.path === '/api/intake/preview');
-  expect(first.body).toEqual({message, classifier: 'rules'});
-  expect(first.key).toBeUndefined();
-
-  await dialog.locator('#intake-order').click();
-  await page.getByText('A1001 · 示例外套 · 已签收', {exact: true}).click();
-  await dialog.locator('#intake-intent').click();
-  await page.locator('.ant-select-dropdown:visible').getByText('商品破损', {exact: true}).click();
-  await dialog.getByRole('button', {name: '核对订单和售后类型'}).click();
-  await expect(dialog.getByText('确认提交信息')).toBeVisible();
-  await expect(dialog.getByText('根据你的选择', {exact: true})).toBeVisible();
-  await dialog.getByRole('button', {name: '确认并建单'}).click();
-  await expect(dialog.getByText(/沿用上一次请求编号/)).toBeVisible();
-  await dialog.getByRole('button', {name: '确认并建单'}).click();
-  await expect(page).toHaveURL(new RegExp(`case=${newCaseId}`));
-  await expect(page.getByText('工单 FIXTURE-NEW-CASE', {exact: true})).toBeVisible();
-  expect(fixtureApi.confirmed).toHaveLength(2);
-  expect(fixtureApi.confirmed[0].body).toEqual({message, order_id: 'A1001', intent: 'damaged', expected_version: 3, confirmed: true});
-  expect(fixtureApi.confirmed[0].key).toMatch(/^[a-f0-9-]{36}$/);
-  expect(fixtureApi.confirmed[1]).toEqual(fixtureApi.confirmed[0]);
-
   await page.goto('/?case=fixture-case-other');
   await expect(page.getByText('记录不存在，或当前身份无权查看。', {exact: true})).toBeVisible();
   await expect(page.getByRole('button', {name: '上传照片'})).toHaveCount(0);
+  expect(fixtureApi.calls.some((call) => call.path === '/api/cases/fixture-case-other' && call.role === 'customer')).toBe(true);
 });
 
 test('mock upload: customer constructs multipart material request in the browser', async ({page, fixtureApi}) => {

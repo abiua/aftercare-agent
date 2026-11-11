@@ -322,7 +322,9 @@ def test_formal_migration_is_additive_and_blocks_unmarking_private_experiments()
     config.set_main_option("script_location", str(ROOT / "backend/migrations"))
     scripts = ScriptDirectory.from_config(config)
     revision = scripts.get_revision("20261110_eval_formal")
-    assert scripts.get_current_head() == revision.revision
+    assert revision.revision in {
+        item.revision for item in scripts.walk_revisions(head=scripts.get_current_head())
+    }
     assert revision.down_revision == "20261110_eval_progress"
     output = io.StringIO()
     context = MigrationContext.configure(

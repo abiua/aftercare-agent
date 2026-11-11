@@ -4,6 +4,7 @@ import { ApartmentOutlined, ExperimentOutlined, LogoutOutlined, SafetyCertificat
 import { client, errorMessage } from './api';
 import type { Runtime, User } from './contracts';
 import { useResource } from './hooks';
+import { CustomerChat } from './CustomerChat';
 import { Workbench } from './Workbench';
 import { Evaluation } from './Evaluation';
 import { Evidence, Feedback, Json, roles } from './ui';
@@ -50,6 +51,7 @@ export function App() {
     sessionStorage.removeItem(storageKey);
     const url = new URL(window.location.href);
     url.searchParams.delete('case');
+    url.searchParams.delete('conversation');
     history.replaceState(null, '', url);
     setToken('');
     setUser(undefined);
@@ -89,14 +91,33 @@ function Brand() {
 }
 
 function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: User; logout: () => void}) {
-  const [view, setView] = useState(user.role === 'tester' ? 'evaluation' : 'workbench');
-  const runtime = useResource<Runtime>(api, '/runtime');
+  const canChat = user.role === 'customer' || user.role === 'support';
+  const [view, setView] = useState(() => {
+    const query = new URLSearchParams(location.search);
+    if (query.has('case')) return 'workbench';
+    if (canChat && (user.role === 'customer' || query.has('conversation'))) return 'chat';
+    return user.role === 'tester' ? 'evaluation' : 'workbench';
+  });
+  function openChat() {
+    const url = new URL(location.href);
+    url.searchParams.delete('case');
+    history.replaceState(null, '', url);
+    setView('chat');
+  }
+  function openCase(id: string) {
+    const url = new URL(location.href);
+    url.searchParams.set('case', id);
+    history.replaceState(null, '', url);
+    setView('workbench');
+  }
+  const runtime = useResource<Runtime>(api, user.role === 'customer' ? null : '/runtime');
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="topbar-inner">
           <Brand />
           <nav aria-label="主导航">
+            {canChat && <Button type="text" className={view === 'chat' ? 'nav-active' : ''} onClick={openChat}>{user.role === 'customer' ? '售后聊天' : '客户对话'}</Button>}
             <Button type="text" className={view === 'workbench' ? 'nav-active' : ''} onClick={() => setView('workbench')}>订单与工单</Button>
             {user.role === 'tester' && <Button type="text" icon={<ExperimentOutlined />} className={view === 'evaluation' ? 'nav-active' : ''} onClick={() => setView('evaluation')}>测试与评测</Button>}
           </nav>
@@ -107,9 +128,9 @@ function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: U
         </div>
       </header>
       <main className="page">
-        {runtime.value?.mode === 'offline' && <Alert className="runtime-banner" type="info" showIcon title="当前环境使用离线策略，款项与库存操作均为模拟。" />}
-        {runtime.value?.mode === 'live' && <Alert className="runtime-banner" type="warning" showIcon title="当前环境可调用真实模型。款项与库存操作均为模拟。" />}
-        {view === 'workbench' ? <Workbench api={api} user={user} runtime={runtime.value} /> : <Evaluation api={api} runtime={runtime.value} />}
+        {user.role !== 'customer' && runtime.value?.mode === 'offline' && <Alert className="runtime-banner" type="info" showIcon title="当前环境使用离线策略，款项与库存操作均为模拟。" />}
+        {user.role !== 'customer' && runtime.value?.mode === 'live' && <Alert className="runtime-banner" type="warning" showIcon title="当前环境可调用真实模型。款项与库存操作均为模拟。" />}
+        {view === 'chat' ? <CustomerChat api={api} user={user} onCase={openCase} /> : view === 'workbench' ? <Workbench api={api} user={user} runtime={runtime.value} /> : <Evaluation api={api} runtime={runtime.value} />}
         <footer className="footer"><span>售后协作台 · 操作记录可追溯</span>{user.role !== 'customer' && runtime.value && <Evidence title="运行环境"><Json value={runtime.value} /></Evidence>}</footer>
       </main>
     </div>

@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI
 
 from aftercare.auth import UserContext, current_user
+from aftercare.conversations.service import ConversationService
 from aftercare.evaluation.service import EvaluationService, require_current_code
 from aftercare.runtime import open_runtime
 
@@ -23,6 +24,7 @@ def create_app(profile=None, *, dispatch=None):
             app.state.settings = settings
             app.state.engine = engine
             app.state.business = business
+            app.state.conversations = ConversationService(business)
             app.state.agent = agent
             app.state.intake_classifier = None
             if agent.model is not None and agent.model.registry.provider_limits:
@@ -80,10 +82,12 @@ def create_app(profile=None, *, dispatch=None):
                 "persistent_checkpoints": True, "simulated_payments": True}}
 
     from aftercare.business.api import router as business_router
+    from aftercare.conversations.api import router as conversations_router
     from aftercare.intelligence.api import router as agent_router
     from aftercare.evaluation.api import router as evaluation_router
     from aftercare.intake import router as intake_router
     app.include_router(business_router, prefix="/api")
+    app.include_router(conversations_router, prefix="/api")
     app.include_router(agent_router, prefix="/api")
     app.include_router(evaluation_router, prefix="/api")
     app.include_router(intake_router, prefix="/api")

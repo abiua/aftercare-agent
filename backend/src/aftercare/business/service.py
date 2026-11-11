@@ -382,36 +382,57 @@ class BusinessService:
             claimed = sorted(available if line_ids is None else line_ids)
             if not claimed or not set(claimed) <= available:
                 raise BusinessError("INVALID_LINES", "所选商品不在订单内。", 422)
-            scope_hash = digest(claimed)
-            row = db.scalar(
-                select(Case).where(
-                    Case.order_id == order.id,
-                    Case.intent == intent,
-                    Case.scope_hash == scope_hash,
-                )
+            row = self._create_case_for_order(
+                db, user, order, intent, description, claimed, expected_version
             )
-            if row is None:
-                _version(order.version, expected_version)
-                row = Case(
-                    id=_id(),
-                    ticket_id=_id(),
-                    order_id=order.id,
-                    customer_id=order.customer_id,
-                    intent=intent,
-                    description=description,
-                    scope_hash=scope_hash,
-                    line_ids=claimed,
-                    status="OPEN",
-                    version=1,
-                    materials_version=0,
-                    facts_version=0,
-                    facts={},
-                    created_at=self.clock(),
-                )
-                db.add(row)
-                db.flush()
-                self._event(db, row, "CASE_CREATED", user, {"intent": intent}, initial=True)
             return self._remember(db, user, scope, idempotency_key, signature, _case_json(row))
+
+    def _create_case_for_order(
+        self,
+        db,
+        user,
+        order,
+        intent,
+        description,
+        claimed,
+        expected_version,
+        *,
+        allow_existing=True,
+        allow_closed=True,
+    ):
+        """Caller holds the order lock and has validated customer and order-line scope."""
+        scope_hash = digest(claimed)
+        row = db.scalar(
+            select(Case).where(
+                Case.order_id == order.id, Case.intent == intent, Case.scope_hash == scope_hash
+            )
+        )
+        if row is not None:
+            if not allow_existing or not allow_closed and row.status in {"RESOLVED", "CLOSED"}:
+                raise BusinessError("CASE_SCOPE_EXISTS", "该商品已有同类工单，请由客服核对。")
+            return row
+        if expected_version is not None:
+            _version(order.version, expected_version)
+        row = Case(
+            id=_id(),
+            ticket_id=_id(),
+            order_id=order.id,
+            customer_id=order.customer_id,
+            intent=intent,
+            description=description,
+            scope_hash=scope_hash,
+            line_ids=claimed,
+            status="OPEN",
+            version=1,
+            materials_version=0,
+            facts_version=0,
+            facts={},
+            created_at=self.clock(),
+        )
+        db.add(row)
+        db.flush()
+        self._event(db, row, "CASE_CREATED", user, {"intent": intent}, initial=True)
+        return row
 
     @staticmethod
     def _policy_catalogue(db: Session, at: datetime) -> list[dict]:

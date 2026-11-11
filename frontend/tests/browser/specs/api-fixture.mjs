@@ -1,5 +1,8 @@
 import { expect, test as base } from '@playwright/test';
 
+export const chatId = '00000000-0000-4000-8000-000000000001';
+const chatPath = `/api/conversations/${chatId}`;
+const chatPhoto = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a3FYAAAAASUVORK5CYII=', 'base64');
 const createdAt = '2026-11-10T04:00:00Z';
 export const originalCaseId = 'fixture-case-own';
 export const newCaseId = 'fixture-case-created';
@@ -243,7 +246,17 @@ export const test = base.extend({
     const {promise: heldProgress, resolve: releaseProgress} = Promise.withResolvers();
     const {promise: heldRefundLookup, resolve: releaseRefundLookup} = Promise.withResolvers();
     const state = {releaseRefundLookup, refundLookupCalls: [], releaseProgress, progressStreams: [], progressProbes: [], progressReads: 0, releaseScenario, calls: [], confirmed: [], uploads: [], executions: [], created: undefined, releaseExecution,
-      reviewHistory: [], reviewCalls: [], reviewConflict: false};
+      reviewHistory: [], reviewCalls: [], reviewConflict: false, chatPosts: [], chatMessages: [], chatCreated: false,
+      chatContext: [], chatAbortFirst: false, chatDetails: []};
+    const conversation = {id: chatId, customer_id: 'C-FIXTURE', status: 'OPEN', revision: 1,
+      created_at: createdAt, updated_at: createdAt, active_order_id: null, active_case_id: null};
+    const replies = new Map();
+    function message(role, text, attachments = [], cards = []) {
+      const sequence = state.chatMessages.length + 1;
+      const row = {id: `message-${sequence}`, conversation_id: chatId, sequence, role, text, created_at: createdAt, attachments, cards};
+      state.chatMessages.push(row);
+      return row;
+    }
     const unexpected = [];
     await context.route('**/*', async (route) => {
       const request = route.request();
@@ -265,6 +278,61 @@ export const test = base.extend({
       if (!role) return denied(route, 401, 'AUTH_REQUIRED', '凭据失效。');
       if (method === 'GET' && path === '/api/me') return json(route, users[role]);
       if (method === 'GET' && path === '/api/runtime') return json(route, {mode: 'offline', models: [], features: {}});
+      if (path.startsWith('/api/conversations')) {
+        if (!['customer', 'support'].includes(role)) return denied(route, 403, 'FORBIDDEN', '无权查看。');
+        if (path === '/api/conversations') {
+          if (method === 'GET') return json(route, {items: state.chatCreated ? [conversation] : []});
+          if (role !== 'customer') return denied(route, 403, 'FORBIDDEN', '无权创建。');
+          state.chatCreated = true;
+          return json(route, conversation, 201);
+        }
+        if (path === chatPath && method === 'GET' && state.chatCreated) {
+          const after = Number(url.searchParams.get('after') ?? 0);
+          const limit = Number(url.searchParams.get('limit') ?? 50);
+          state.chatDetails.push(after);
+          const messages = state.chatMessages.filter((row) => row.sequence > after).slice(0, limit);
+          const next_after = messages.at(-1)?.sequence ?? after;
+          return json(route, {conversation, messages, next_after, has_more: next_after < state.chatMessages.length});
+        }
+        if (path === `${chatPath}/messages` && method === 'POST' && state.chatCreated) {
+          const raw = request.postDataBuffer().toString('utf8');
+          const boundary = headers['content-type'].split('boundary=')[1];
+          const parts = raw.split(`--${boundary}`);
+          const text = parts.find((part) => part.includes('name="text"')).split('\r\n\r\n')[1].trim();
+          const id = parts.find((part) => part.includes('name="client_message_id"')).split('\r\n\r\n')[1].trim();
+          const names = [...raw.matchAll(/name="files"; filename="([^"]+)"/g)].map((match) => match[1]);
+          state.chatPosts.push({id, key: headers['idempotency-key'], role, text, names});
+          if (!replies.has(id)) {
+            const attachments = names.map((filename, index) => ({id: `photo-${index}`, filename, size: chatPhoto.length,
+              sha256: 'a'.repeat(64), content_type: 'image/png', content_path: `${chatPath}/attachments/photo-${index}/content`}));
+            const messages = [message(role, text, attachments)];
+            conversation.revision += 1;
+            if (role === 'support') conversation.status = 'HUMAN_HANDOFF';
+            else if (attachments.length) messages.push(message('assistant', '已收到照片。'));
+            else messages.push(message('assistant', '请先确认要处理的订单。', [],
+              [{type: 'order_candidates', data: {orders, new_issue: !!conversation.active_order_id}}]));
+            replies.set(id, messages);
+          }
+          if (state.chatAbortFirst && state.chatPosts.length === 1) return route.abort();
+          return json(route, {conversation, messages: replies.get(id)}, 201);
+        }
+        if (path === `${chatPath}/context` && method === 'POST' && role === 'customer') {
+          state.chatContext.push(body);
+          conversation.revision += 1;
+          conversation.active_order_id = body.order_id;
+          return json(route, {conversation, messages: [message('assistant', '这笔订单的退款账本中未查到执行记录。', [],
+            [{type: 'status', data: {code: 'REFUND_NOT_FOUND', refunds: []}}, {type: 'status', data: {code: 'ORDER_CONFIRMED'}}])]});
+        }
+        if (path === `${chatPath}/handoff` && method === 'POST') {
+          conversation.revision += 1;
+          conversation.status = 'HUMAN_HANDOFF';
+          return json(route, {conversation, messages: [message('assistant', '已转客服处理。')]});
+        }
+        if (path.startsWith(`${chatPath}/attachments/`) && method === 'GET') {
+          return route.fulfill({status: 200, contentType: 'image/png', body: chatPhoto});
+        }
+        return denied(route, 404, 'NOT_FOUND', '对话不存在。');
+      }
       if (method === 'GET' && path === '/api/orders') return json(route, {items: orders});
       if (method === 'GET' && path === '/api/cases') return json(route, {items: state.created ? [state.created, originalCase] : [originalCase]});
       if (method === 'GET' && path === '/api/cases/fixture-case-other') return denied(route, 404, 'NOT_FOUND', '工单不存在。');

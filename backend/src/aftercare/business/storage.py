@@ -21,6 +21,8 @@ class ObjectStore(Protocol):
     def get(self, key: str, expected_size: int) -> bytes: ...
     def presign(self, key: str, content_type: str) -> str: ...
 
+    def delete(self, key: str) -> None: ...
+
 
 def validate_image(data: bytes) -> tuple[str, str]:
     if len(data) > MAX_BYTES:
@@ -132,6 +134,12 @@ class S3ObjectStore:
             raise BusinessError("OBJECT_STORE_UNAVAILABLE", "材料暂时无法读取。", 503) from None
         except BotoCoreError:
             raise BusinessError("OBJECT_STORE_UNAVAILABLE", "材料暂时无法读取。", 503) from None
+
+    def delete(self, key: str) -> None:
+        try:
+            self.client.delete_object(Bucket=self.bucket, Key=key)
+        except (BotoCoreError, ClientError):
+            raise BusinessError("OBJECT_STORE_UNAVAILABLE", "暂存照片暂时无法清理。", 503) from None
 
     def presign(self, key: str, content_type: str) -> str:
         try:

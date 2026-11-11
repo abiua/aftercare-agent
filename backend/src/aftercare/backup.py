@@ -48,6 +48,8 @@ FINGERPRINT_TABLES = (
     "checkpoint_writes",
 )
 EVALUATION_SCHEMA = r"eval_[0-9a-f]{32}"
+CHAT_TABLES = frozenset({"chat_conversations", "chat_messages", "chat_attachments", "chat_case_links"})
+CHAT_KEY = r"conversations/[A-Za-z0-9_-]{1,36}/[A-Za-z0-9_-]{1,36}/[0-5]-"
 MATERIAL_KEY = r"cases/[A-Za-z0-9_-]{1,36}/(?:ITEM|PARCEL|WRONG_ITEM|LABEL)/"
 ISOLATED_TABLES = frozenset(
     {
@@ -87,6 +89,7 @@ V2_ADDED_PUBLIC_FINGERPRINTS = frozenset(
 PUBLIC_TABLES = (
     REQUIRED_PUBLIC_TABLES
     | V2_ADDED_PUBLIC_FINGERPRINTS
+    | CHAT_TABLES
     | {
         "eval_imports",
         EVALUATION_PROGRESS_TABLE,
@@ -126,11 +129,15 @@ class MaterialRecord(PrivateRecord):
     @model_validator(mode="after")
     def check_key(self):
         if not re.fullmatch(
-            rf"(?:evaluation/{EVALUATION_SCHEMA}/)?{MATERIAL_KEY}{self.sha256}",
+            rf"(?:(?:evaluation/{EVALUATION_SCHEMA}/)?{MATERIAL_KEY}|{CHAT_KEY}){self.sha256}",
             self.key,
         ):
             raise ValueError("Unexpected material object key")
         return self
+
+    @property
+    def table_name(self) -> str:
+        return "chat_attachments" if self.key.startswith("conversations/") else "business_materials"
 
     @property
     def schema_name(self) -> str:
@@ -156,16 +163,19 @@ class BackupManifest(PrivateRecord):
     def check_manifest(self):
         if len({item.key for item in self.materials}) != len(self.materials):
             raise ValueError("Duplicate material key")
-        counts = Counter(item.schema_name for item in self.materials)
+        counts = Counter((item.schema_name, item.table_name) for item in self.materials)
         if self.format == V1_FORMAT:
             if set(self.database) != set(FINGERPRINT_TABLES):
                 raise ValueError("Missing database fingerprint")
-            if set(counts) - {"public"} or self.database["business_materials"].rows != len(
+            if set(counts) - {("public", "business_materials")} or self.database["business_materials"].rows != len(
                 self.materials
             ):
                 raise ValueError("Material count does not match database")
             return self
 
+        present_chat = {f"public.{table}" for table in CHAT_TABLES} & self.database.keys()
+        if present_chat and present_chat != {f"public.{table}" for table in CHAT_TABLES}:
+            raise ValueError("Incomplete conversation schema")
         expected_public = {f"public.{table}" for table in REQUIRED_PUBLIC_TABLES}
         if not expected_public <= self.database.keys():
             raise ValueError("Missing database fingerprint")
@@ -178,9 +188,9 @@ class BackupManifest(PrivateRecord):
                 _qualified(schema, table)
             except BackupError:
                 raise ValueError("Unexpected database fingerprint") from None
-            if table == "business_materials":
-                material_tables.add(schema)
-                if fingerprint.rows != counts[schema]:
+            if table in {"business_materials", "chat_attachments"}:
+                material_tables.add((schema, table))
+                if fingerprint.rows != counts[(schema, table)]:
                     raise ValueError("Material count does not match database")
         if set(counts) - material_tables:
             raise ValueError("Material has no database fingerprint")
@@ -332,6 +342,9 @@ def _managed_tables(connection) -> list[tuple[str, str]]:
             and table in ISOLATED_TABLES
         ):
             managed.append((schema, table))
+    present_chat = {table for schema, table in managed if schema == "public"} & CHAT_TABLES
+    if present_chat and present_chat != CHAT_TABLES:
+        raise BackupError("CHAT_SCHEMA_INCOMPLETE")
     if not REQUIRED_PUBLIC_TABLES <= {table for schema, table in managed if schema == "public"}:
         raise BackupError("BACKUP_REQUIRED_TABLES_MISSING")
     return managed
@@ -339,6 +352,13 @@ def _managed_tables(connection) -> list[tuple[str, str]]:
 
 def _fingerprints(connection, *, format=FORMAT) -> dict[str, TableFingerprint]:
     legacy = format == V1_FORMAT
+    if legacy:
+        has_chat = connection.execute(text(
+            "SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_tables "
+            "WHERE schemaname='public' AND tablename = ANY(:tables))"
+        ), {"tables": sorted(CHAT_TABLES)}).scalar_one()
+        if has_chat:
+            raise BackupError("LEGACY_BACKUP_CONTAINS_CHAT")
     managed = (
         [("public", table) for table in FINGERPRINT_TABLES]
         if legacy
@@ -375,20 +395,38 @@ def _materials(connection, *, format=FORMAT) -> list[MaterialRecord]:
     managed = (
         [("public", "business_materials")] if format == V1_FORMAT else _managed_tables(connection)
     )
+    if ("public", "chat_messages") in managed:
+        pending = connection.execute(text(
+            'SELECT EXISTS (SELECT 1 FROM "public"."chat_messages" WHERE sequence IS NULL AND discarded_at IS NULL)'
+        )).scalar_one()
+        if pending:
+            raise BackupError("CHAT_UPLOADS_PENDING")
     materials = []
     for schema, table in managed:
-        if table != "business_materials":
+        if table not in {"business_materials", "chat_attachments"}:
             continue
         identifier = _qualified(schema, table)
-        rows = connection.execute(
-            text(
-                "SELECT object_key AS key, sha256, size, content_type "
-                f"FROM {identifier} ORDER BY object_key"
-            )
-        ).mappings()
-        for row in rows:
+        sql = (
+            "SELECT a.object_key AS key, a.sha256, a.size, a.content_type, "
+            "a.message_id, a.position, m.conversation_id "
+            f"FROM {identifier} a JOIN public.chat_messages m ON m.id = a.message_id "
+            "ORDER BY a.object_key"
+            if table == "chat_attachments" else
+            "SELECT object_key AS key, sha256, size, content_type "
+            f"FROM {identifier} ORDER BY object_key"
+        )
+        rows = connection.execute(text(sql)).mappings()
+        for raw in rows:
+            row = dict(raw)
+            if table == "chat_attachments":
+                conversation = row.pop("conversation_id")
+                message = row.pop("message_id")
+                position = row.pop("position")
+                expected = f"conversations/{conversation}/{message}/{position}-{row['sha256']}"
+                if row["key"] != expected:
+                    raise BackupError("CHAT_ATTACHMENT_SCOPE_MISMATCH")
             material = MaterialRecord(**row)
-            if material.schema_name != "public":
+            if material.schema_name != "public" or material.table_name != table:
                 raise BackupError("UNEXPECTED_DATABASE_MATERIAL_KEY")
             key = material.key if schema == "public" else f"evaluation/{schema}/{material.key}"
             materials.append(MaterialRecord(**{**row, "key": key}))

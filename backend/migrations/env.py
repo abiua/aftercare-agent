@@ -5,6 +5,7 @@ from sqlalchemy import text
 from aftercare.config import load_settings
 from aftercare.db import Base, guarded_engine
 import aftercare.business.models  # noqa: F401
+import aftercare.conversations.tables  # noqa: F401
 import aftercare.intelligence.tables  # noqa: F401
 import aftercare.intelligence.policies  # noqa: F401
 import aftercare.evaluation.tables  # noqa: F401

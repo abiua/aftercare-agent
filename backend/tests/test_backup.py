@@ -78,6 +78,7 @@ def package(tmp_path, monkeypatch):
         f"public.{table}": backup.TableFingerprint(rows=1, sha256=sha)
         for table in backup.PUBLIC_TABLES
     }
+    fingerprints["public.chat_attachments"] = backup.TableFingerprint(rows=0, sha256=sha)
     for table in ("business_materials", "agent_model_attempts"):
         fingerprints[f"{EVAL_SCHEMA}.{table}"] = backup.TableFingerprint(rows=1, sha256=sha)
     FakeStore.contents = {("aftercare-private", row.key): CONTENT for row in (material, scoped)}
@@ -387,6 +388,10 @@ def test_schema_catalog_filters_identifiers_and_prefixes_evaluation_materials():
             return rows
         if "pg_catalog.pg_attribute" in sql:
             return SimpleNamespace(scalar_one=lambda: True)
+        if 'FROM "public"."chat_messages" WHERE sequence IS NULL' in sql:
+            return SimpleNamespace(scalar_one=lambda: False)
+        if "SELECT a.object_key" in sql and 'FROM "public"."chat_attachments"' in sql:
+            return SimpleNamespace(mappings=list)
         if "SELECT object_key" in sql:
             return SimpleNamespace(
                 mappings=lambda: [
@@ -499,3 +504,77 @@ def test_v2_fingerprints_accept_both_complete_schema_shapes(
         assert ("public.eval_progress_events" in found) is has_progress_table
         experiment = next(sql for sql in queries if 'FROM "public"."eval_experiments"' in sql)
         assert "to_jsonb(t)" in experiment
+
+
+def test_chat_attachments_have_separate_fingerprint_counts(package):
+    _, manifest, material = package
+    value = manifest.model_dump()
+    chat = {**material.model_dump(), "key": f"conversations/conv-1/message-1/0-{material.sha256}"}
+    value["materials"].append(chat)
+    value["database"]["public.chat_attachments"]["rows"] = 1
+    rebuilt = backup.BackupManifest.model_validate(value)
+    assert rebuilt.materials[-1].table_name == "chat_attachments"
+    value["database"]["public.chat_attachments"]["rows"] = 0
+    with pytest.raises(ValueError, match="Material count"):
+        backup.BackupManifest.model_validate(value)
+    del value["database"]["public.chat_attachments"]
+    with pytest.raises(ValueError, match="Incomplete conversation schema"):
+        backup.BackupManifest.model_validate(value)
+
+
+@pytest.mark.parametrize("key", [
+    "conversations/../msg/0-", "conversations/c/msg/6-", "conversations/c/msg/-1-",
+    "evaluation/eval_" + "2" * 32 + "/conversations/c/msg/0-",
+])
+def test_chat_attachment_key_rejects_traversal_and_unowned_scopes(key):
+    with pytest.raises(ValueError, match="Unexpected material object key"):
+        backup.MaterialRecord(key=key + "a" * 64, sha256="a" * 64, size=1, content_type="image/png")
+
+
+def test_backup_refuses_incomplete_chat_upload_snapshot(monkeypatch):
+    monkeypatch.setattr(backup, "_managed_tables", lambda conn: [("public", "chat_messages")])
+    connection = SimpleNamespace(execute=lambda query: SimpleNamespace(scalar_one=lambda: True))
+    with pytest.raises(backup.BackupError, match="CHAT_UPLOADS_PENDING"):
+        backup._materials(connection)
+
+
+def test_backup_enumerates_verified_chat_object(monkeypatch):
+    sha = hashlib.sha256(CONTENT).hexdigest()
+    row = {"key": f"conversations/c/m/0-{sha}", "sha256": sha,
+           "size": len(CONTENT), "content_type": "image/png",
+           "message_id": "m", "conversation_id": "c", "position": 0}
+    monkeypatch.setattr(backup, "_managed_tables", lambda conn: [
+        ("public", "chat_messages"), ("public", "chat_attachments")])
+    def execute(query):
+        if "SELECT EXISTS" in str(query):
+            return SimpleNamespace(scalar_one=lambda: False)
+        return SimpleNamespace(mappings=lambda: [row])
+    assert [r.key for r in backup._materials(SimpleNamespace(execute=execute))] == [row["key"]]
+
+
+def test_backup_rejects_partial_conversation_schema(package):
+    _, manifest, _ = package
+    value = manifest.model_dump()
+    del value["database"]["public.chat_messages"]
+    with pytest.raises(ValueError, match="Incomplete conversation schema"):
+        backup.BackupManifest.model_validate(value)
+    catalog = [("public", t) for t in backup.REQUIRED_PUBLIC_TABLES | {"chat_attachments"}]
+    with pytest.raises(backup.BackupError, match="CHAT_SCHEMA_INCOMPLETE"):
+        backup._managed_tables(SimpleNamespace(execute=lambda *args: catalog))
+
+
+def test_backup_rejects_misbound_conversation_object(monkeypatch):
+    sha = "a" * 64
+    row = {"key": f"conversations/other/m/0-{sha}", "sha256": sha,
+           "size": 1, "content_type": "image/png", "message_id": "m",
+           "conversation_id": "c", "position": 0}
+    monkeypatch.setattr(backup, "_managed_tables", lambda conn: [("public", "chat_attachments")])
+    conn = SimpleNamespace(execute=lambda query: SimpleNamespace(mappings=lambda: [row]))
+    with pytest.raises(backup.BackupError, match="CHAT_ATTACHMENT_SCOPE_MISMATCH"):
+        backup._materials(conn)
+
+
+def test_legacy_fingerprint_rejects_archive_containing_chat():
+    conn = SimpleNamespace(execute=lambda *args: SimpleNamespace(scalar_one=lambda: True))
+    with pytest.raises(backup.BackupError, match="LEGACY_BACKUP_CONTAINS_CHAT"):
+        backup._fingerprints(conn, format=backup.V1_FORMAT)

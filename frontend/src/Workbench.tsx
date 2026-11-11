@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Form, Input, Modal, Select, Space, Table, Tag } from 'antd';
-import { CommentOutlined, InboxOutlined, PlusOutlined, ProfileOutlined } from '@ant-design/icons';
+import { InboxOutlined, PlusOutlined, ProfileOutlined } from '@ant-design/icons';
 import { segment, type Client } from './api';
-import type { Case, IntakeCapabilities, Intent, Items, Order, Runtime, User } from './contracts';
+import type { Case, Intent, Items, Order, Runtime, User } from './contracts';
 import { useActions, useResource } from './hooks';
 import { CaseWorkspace } from './CaseWorkspace';
-import { CustomerIntake } from './CustomerIntake';
 import { OrderFacts, productName } from './OrderFacts';
 import { Feedback, intents, label, money, Placeholder, Reload, Status, time } from './ui';
 
@@ -26,13 +25,10 @@ export function Workbench({api, user, runtime}: {api: Client; user: User; runtim
   const [view, setView] = useState<'cases' | 'orders'>('cases');
   const [order, setOrder] = useState<Order>();
   const [create, setCreate] = useState<string>();
-  const [intake, setIntake] = useState(false);
   const [search, setSearch] = useState('');
   const cases = useResource<Items<Case>>(api, '/cases?limit=300');
   const orders = useResource<Items<Order>>(api, '/orders?limit=300');
-  const canCreate = user.role === 'customer' || user.role === 'support';
-  const capabilities = useResource<IntakeCapabilities>(api, user.role === 'customer' ? '/intake/capabilities' : null);
-  const canUseIntake = user.role === 'customer' && capabilities.value?.rules === true;
+  const canCreate = user.role === 'support';
   const caseRows = cases.value?.items ?? [];
   const orderRows = orders.value?.items ?? [];
 
@@ -45,8 +41,7 @@ export function Workbench({api, user, runtime}: {api: Client; user: User; runtim
     <section className="hero">
       <div><div className="eyebrow">售后服务 / 工作台</div><h1>订单与工单</h1><p>查看订单、跟进处理进度并处理待办事项。</p></div>
       {canCreate && <Space wrap>
-        {canUseIntake && <Button type="primary" size="large" icon={<CommentOutlined />} onClick={() => setIntake(true)}>描述问题发起售后</Button>}
-        <Button type={canUseIntake ? 'default' : 'primary'} size="large" icon={<PlusOutlined />} onClick={() => setCreate('')}>新建售后工单</Button>
+        <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreate('')}>新建售后工单</Button>
       </Space>}
     </section>
     <div className="stat-grid">
@@ -87,9 +82,6 @@ export function Workbench({api, user, runtime}: {api: Client; user: User; runtim
     <Modal title="订单详情" open={!!order} footer={null} onCancel={() => setOrder(undefined)}>
       {order && <OrderDetail api={api} fallback={order} />}
     </Modal>
-    {intake && canUseIntake && <CustomerIntake api={api} orders={orderRows} modelAvailable={capabilities.value?.model === true}
-      close={() => setIntake(false)} onStructured={(description) => {setIntake(false); setCreate(description);}}
-      onCreated={(id) => {setIntake(false); navigate(id);}} />}
     {create !== undefined && <CreateCase api={api} orders={orderRows} description={create} close={() => setCreate(undefined)}
       onCreated={(id) => {setCreate(undefined); navigate(id);}} />}
   </div>;
