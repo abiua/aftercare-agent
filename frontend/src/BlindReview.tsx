@@ -104,9 +104,27 @@ function FactSummary({fact}: {fact: BlindInput['facts'][number]}) {
   </p>;
   if (fact.kind === 'OBSERVATION' && typeof data.summary === 'string') return <p>{data.summary}</p>;
   if (fact.kind === 'MATERIAL' && typeof data.kind === 'string') return <p>{label(data.kind)}</p>;
-  if (fact.kind === 'REVIEW') return <p>材料审核{typeof data.decision === 'string' ? label(data.decision) : '结果未登记'}
-    {typeof data.effective === 'boolean' && (data.effective ? ' · 当前有效' : ' · 当前已失效')}
-    {typeof data.created_at === 'string' && ` · ${time(data.created_at)}`}</p>;
+  if (fact.kind === 'REVIEW') {
+    const findings = {
+      VISIBLE_DAMAGE: '可见破损', NO_VISIBLE_DAMAGE: '未观察到可见破损', UNCERTAIN: '无法判断',
+    };
+    const observations = Array.isArray(data.observations) ? data.observations.flatMap((item) => {
+      if (item?.source !== 'HUMAN_MATERIAL_REVIEW' || typeof item.material_id !== 'string' ||
+        typeof item.finding !== 'string' || !Object.hasOwn(findings, item.finding)) return [];
+      return [<li key={item.material_id}>
+        材料 {item.material_id} · {findings[item.finding as keyof typeof findings]}
+        {typeof item.line_id === 'string' && ` · 商品行 ${item.line_id}`}
+        {typeof item.affected_quantity === 'number' && ` · 该商品行受影响总数 ${item.affected_quantity} 件`}
+      </li>];
+    }) : [];
+    return <>
+      <p>材料审核{typeof data.decision === 'string' ? label(data.decision) : '结果未登记'}
+        {typeof data.effective === 'boolean' && (data.effective ? ' · 当前有效' : ' · 当前已失效')}
+        {typeof data.created_at === 'string' && ` · ${time(data.created_at)}`}</p>
+      {observations.length > 0 && <><p>人工记录的照片观察</p>
+        <ul>{observations}</ul></>}
+    </>;
+  }
   if (fact.kind === 'EXECUTION' && typeof data.status === 'string') return <p>{label(data.status)}
     {typeof data.amount_cents === 'number' && ` · ${money(data.amount_cents)}`}</p>;
   if (fact.kind === 'CONDITION' && typeof data.value === 'string') return <p>{label(data.value)}</p>;

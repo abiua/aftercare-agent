@@ -158,8 +158,9 @@ def _fact_data(kind, ident, data, line_ids):
 
 
 def _frozen_public(scope):
-    value = build_input(scope)
     data = scope.frozen_context
+    evidence_projection = (data or {}).get("evidence_projection")
+    value = build_input(scope, evidence_projection=evidence_projection)
     facts = []
     for row in value.evidence:
         kind, ident = row.ref.source_kind, row.ref.source_id
@@ -168,26 +169,28 @@ def _frozen_public(scope):
             facts.append(
                 {"id": f"{kind}:{ident}", "kind": kind, "trust": row.trust, "data": selected}
             )
+    observations = {
+        row.ref.source_id: row.data["observations"]
+        for row in value.evidence
+        if row.ref.source_kind == "REVIEW" and "observations" in row.data
+    }
     for review in data["reviews"]:
+        review_facts = _selected(
+            review, ("decision", "material_ids", "materials_version", "created_at", "effective")
+        )
+        if review["id"] in observations:
+            review_facts["observations"] = observations[review["id"]]
         facts.append(
             {
                 "id": f"REVIEW:{review['id']}",
                 "kind": "REVIEW",
                 "trust": "VERIFIED_RECORD",
-                "data": _selected(
-                    review,
-                    (
-                        "decision",
-                        "material_ids",
-                        "materials_version",
-                        "created_at",
-                        "effective",
-                    ),
-                ),
+                "data": review_facts,
             }
         )
     return BlindInput.model_validate(
         {
+            **({"schema_version": "chat-blind-input-v2"} if evidence_projection else {}),
             "intent": value.intent,
             "messages": data["messages"],
             "images": [

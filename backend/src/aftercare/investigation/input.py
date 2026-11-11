@@ -16,6 +16,7 @@ from .contracts import (
     InvestigationInput,
     account_order_ownership,
 )
+from .material_observations import HUMAN_MATERIAL_PROJECTION_V1, validate_review_observations
 
 MAX_TEXT_BYTES = 24_000
 MAX_EVIDENCE_BYTES = 196_608
@@ -44,20 +45,25 @@ def _fields(row, names):
     return {key: row[key] for key in names if key in row}
 
 
-def build_input(scope: DecisionScope) -> InvestigationInput:
+def build_input(scope: DecisionScope, *, evidence_projection=None) -> InvestigationInput:
     """Validate the frozen document again because its nested values are mutable."""
     if scope.frozen_context is None:
         raise InputUnavailable("INVESTIGATION_SNAPSHOT_REQUIRED")
     try:
         scope = DecisionScope.model_validate(scope.model_dump(mode="json"))
-        return _project(scope)
+        stored_projection = scope.frozen_context.get("evidence_projection")
+        if stored_projection not in (None, HUMAN_MATERIAL_PROJECTION_V1):
+            raise InputUnavailable("INVESTIGATION_EVIDENCE_PROJECTION_UNSUPPORTED")
+        if stored_projection != evidence_projection:
+            raise InputUnavailable("INVESTIGATION_EVIDENCE_PROJECTION_MISMATCH")
+        return _project(scope, stored_projection)
     except InputUnavailable:
         raise
     except (KeyError, TypeError, ValueError, AttributeError):
         raise InputUnavailable("INVESTIGATION_SNAPSHOT_INVALID") from None
 
 
-def _project(scope):
+def _project(scope, evidence_projection):
     data = scope.frozen_context
     case, order = data["case"], data["order"]
     if (
@@ -163,10 +169,32 @@ def _project(scope):
             committed=item,
         )
     for item in data["reviews"]:
+        observations = None
+        if "observations" in item:
+            if evidence_projection != HUMAN_MATERIAL_PROJECTION_V1:
+                raise InputUnavailable("INVESTIGATION_EVIDENCE_PROJECTION_MISMATCH")
+            try:
+                observations = validate_review_observations(
+                    item,
+                    {row["id"]: row for row in data["materials"]},
+                    {row["id"]: row for row in data["attachments"]},
+                    {
+                        row["line_id"]: row["quantity"]
+                        for row in order["items"]
+                        if row["line_id"] in scope.line_ids
+                    },
+                    case["materials_version"],
+                )
+            except (KeyError, TypeError, ValueError):
+                raise InputUnavailable(
+                    "INVESTIGATION_HUMAN_MATERIAL_OBSERVATIONS_INVALID"
+                ) from None
         if item["effective"]:
             projection = _fields(
                 item, ("materials_version", "material_ids", "decision", "created_at")
             )
+            if observations is not None:
+                projection["observations"] = observations
             add(
                 "REVIEW",
                 item["id"],
@@ -324,6 +352,7 @@ def _project(scope):
             scope.dependency_sha256,
             [row.model_dump(mode="json") for row in messages],
             payload,
+            *([evidence_projection] if evidence_projection else []),
             *(
                 [
                     {

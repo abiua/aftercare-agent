@@ -22,8 +22,12 @@ from aftercare.investigation.catalogue import (
     exact_policy_refs_match,
 )
 from aftercare.investigation.contracts import ORDER_OWNERSHIP_REF, account_order_ownership
+from aftercare.investigation.material_observations import (
+    HUMAN_MATERIAL_PROJECTION_V1,
+    validate_review_observations,
+)
 
-from .tables import Attachment, Conversation, Message
+from .tables import Attachment, ChatMaterialSource, Conversation, Message
 
 MAX_DECISION_INPUT_REFS = 250
 ACKNOWLEDGEMENT = re.compile(
@@ -86,8 +90,81 @@ def _ref(kind, ident, value):
     return {"kind": kind, "id": ident, "sha256": digest(value)}
 
 
+def _freeze_human_reviews(db, row, case, context, attachments, messages):
+    reviews = []
+    materials = {item["id"]: item for item in context["materials"]}
+    original = {
+        item.id: {
+            "message_id": item.message_id,
+            "sha256": item.sha256,
+            "size": item.size,
+            "content_type": item.content_type,
+        }
+        for item in attachments
+    }
+    active_messages = {item.id for item in messages if item.discarded_at is None}
+    quantities = {
+        item["line_id"]: item["quantity"]
+        for item in context["order"]["items"]
+        if item["line_id"] in case.line_ids
+    }
+    for item in context["reviews"]:
+        review = dict(item)
+        observations = review.pop("observations", None)
+        if observations is not None and review["effective"]:
+            try:
+                ids = {entry["material_id"] for entry in observations}
+                sources = {ident: [] for ident in ids}
+                for source in db.scalars(
+                    select(ChatMaterialSource)
+                    .where(ChatMaterialSource.material_id.in_(ids))
+                    .order_by(ChatMaterialSource.attachment_id)
+                ):
+                    attachment = original.get(source.attachment_id)
+                    material = materials[source.material_id]
+                    if (
+                        (source.case_id, source.conversation_id, source.issue_id)
+                        != (case.id, row.id, row.analysis_issue_id)
+                        or attachment is None
+                        or source.message_id not in active_messages
+                        or (source.message_id, source.sha256)
+                        != (attachment["message_id"], attachment["sha256"])
+                        or (source.kind, source.sha256) != (material["kind"], material["sha256"])
+                    ):
+                        raise ValueError("INVALID_HUMAN_MATERIAL_SOURCE")
+                    sources[source.material_id].append(
+                        {
+                            "attachment_id": source.attachment_id,
+                            "message_id": source.message_id,
+                            "sha256": source.sha256,
+                        }
+                    )
+                review["observations"] = [
+                    {
+                        **entry,
+                        "material_sha256": materials[entry["material_id"]]["sha256"],
+                        "original_attachments": sources[entry["material_id"]],
+                    }
+                    for entry in observations
+                ]
+                review["observations"] = validate_review_observations(
+                    review,
+                    materials,
+                    original,
+                    quantities,
+                    case.materials_version,
+                )
+            except (KeyError, TypeError, ValueError):
+                _fail("DECISION_HUMAN_MATERIAL_OBSERVATIONS_INVALID", 422)
+        reviews.append(review)
+    return reviews
+
+
 class ConversationDecisions:
-    def __init__(self, business):
+    def __init__(self, business, *, evidence_projection=None):
+        if evidence_projection not in (None, HUMAN_MATERIAL_PROJECTION_V1):
+            raise ValueError("DECISION_EVIDENCE_PROJECTION_UNSUPPORTED")
+        self.evidence_projection = evidence_projection
         self.business = business
         self.engine = business.engine
         self.records = DecisionService(self.resolve, self.validate, clock=business.clock)
@@ -121,11 +198,17 @@ class ConversationDecisions:
         from aftercare.conversation_analysis.tables import ChatAnalysisTurn, Observation
 
         raw_catalogue = None
+        review_options = {"include_review_observations": True} if self.evidence_projection else {}
         if getattr(self.business.settings, "chat_investigation_enabled", False):
             decision_at = self.business.clock()
             documents = self.business._all_policy_versions(db)
             context = self.business._context(
-                db, case, order, policy_documents=documents, decision_at=decision_at
+                db,
+                case,
+                order,
+                policy_documents=documents,
+                decision_at=decision_at,
+                **review_options,
             )
             ids = {
                 item["product_id"]
@@ -141,7 +224,7 @@ class ConversationDecisions:
             except ValueError as error:
                 _fail(str(error), 422)
         else:
-            context = self.business._context(db, case, order)
+            context = self.business._context(db, case, order, **review_options)
         messages = list(
             db.scalars(
                 select(Message)
@@ -192,6 +275,11 @@ class ConversationDecisions:
                 .limit(101)
             )
         )
+        reviews = (
+            _freeze_human_reviews(db, row, case, context, attachments, messages)
+            if self.evidence_projection
+            else context["reviews"]
+        )
         message_refs = [_ref("MESSAGE", item.id, [item.sequence, item.text]) for item in messages]
         evidence = [
             *[
@@ -217,7 +305,7 @@ class ConversationDecisions:
                 for item in observation_rows
             ],
             *[_ref("FACT", item["id"], item) for item in context["materials"]],
-            *[_ref("FACT", item["id"], item) for item in context["reviews"] if item["effective"]],
+            *[_ref("FACT", item["id"], item) for item in reviews if item["effective"]],
         ]
         if case.facts:
             evidence.append(_ref("FACT", "case-facts", case.facts))
@@ -321,7 +409,12 @@ class ConversationDecisions:
             "facts": case.facts,
             **({"authenticated_order_ownership": ownership} if ownership is not None else {}),
             "materials": context["materials"],
-            "reviews": context["reviews"],
+            "reviews": reviews,
+            **(
+                {"evidence_projection": self.evidence_projection}
+                if self.evidence_projection
+                else {}
+            ),
             "policies": context["policy_resolution"],
             **({"policy_catalogue": raw_catalogue} if raw_catalogue is not None else {}),
             "eligibility": context["eligibility"],

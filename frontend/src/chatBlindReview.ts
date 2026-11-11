@@ -9,7 +9,7 @@ export type BlindImage = {id: string; message_id: string; sha256: string; size: 
 type BlindFact = {id: string; kind: string; trust?: "VERIFIED_RECORD" | "UNVERIFIED_OBSERVATION"; data: Record<string, unknown>};
 type BlindPolicy = {id: string; version: string; title: string; text: string; parameters: Record<string, unknown>; conditions: Record<string, unknown>};
 export type BlindInput = {
-  schema_version: 'chat-blind-input-v1'; intent: string;
+  schema_version: 'chat-blind-input-v1' | 'chat-blind-input-v2'; intent: string;
   messages: {id: string; sequence: number; text: string}[];
   images: BlindImage[]; facts: BlindFact[]; policies: BlindPolicy[];
   policy_coverage: 'SCOPED_ONLY' | 'COMPLETE_CATALOGUE'; policy_context: Record<string, unknown> | null;

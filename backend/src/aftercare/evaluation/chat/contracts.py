@@ -50,7 +50,7 @@ class FrozenPolicy(Contract):
 
 
 class BlindInput(Contract):
-    schema_version: Literal["chat-blind-input-v1"] = "chat-blind-input-v1"
+    schema_version: Literal["chat-blind-input-v1", "chat-blind-input-v2"] = "chat-blind-input-v1"
     intent: Key
     messages: Annotated[list[FrozenMessage], Field(min_length=1, max_length=250)]
     images: Annotated[list[FrozenImage], Field(max_length=100)]

@@ -83,6 +83,26 @@ test('fixture: seal before explicit reveal, reopen immutable initial, and label 
   expect(state.task.initial.payload.notes).toBe('原图证据仍需核对。');
 });
 
+test('fixture: v2 blind review presents structured human material observations', async ({page, fixtureApi}) => {
+  const state = seed(fixtureApi);
+  state.task.input.schema_version = 'chat-blind-input-v2';
+  state.task.input.facts[1].data.observations = [
+    {source: 'HUMAN_MATERIAL_REVIEW', material_id: 'material-1', finding: 'VISIBLE_DAMAGE',
+      line_id: 'L01', affected_quantity: 2, material_sha256: 'b'.repeat(64),
+      original_attachments: [{attachment_id: 'image-1', message_id: 'm1', sha256: 'b'.repeat(64)}]},
+    {source: 'HUMAN_MATERIAL_REVIEW', material_id: 'material-2', finding: 'UNCERTAIN',
+      material_sha256: 'c'.repeat(64), original_attachments: []},
+  ];
+  await signIn(page, 'tester', '/?eval=blind');
+  await open(page);
+  await expect(page.getByText('人工记录的照片观察')).toBeVisible();
+  await expect(page.getByRole('listitem').filter({hasText: 'material-1'})).toContainText(
+    '可见破损 · 商品行 L01 · 该商品行受影响总数 2 件');
+  await expect(page.getByRole('listitem').filter({hasText: 'material-2'})).toContainText('无法判断');
+  await expect(page.getByText('已揭示的候选')).toHaveCount(0);
+  expect(state.posts).toHaveLength(0);
+});
+
 test('fixture: independent refund range uses exact cents and stale seal cannot reveal', async ({page, fixtureApi}) => {
   const state = seed(fixtureApi);
   state.task.input.policy_coverage = 'COMPLETE_CATALOGUE';
