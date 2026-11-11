@@ -42,7 +42,7 @@ def _safe_worker_code(value):
     return None
 
 
-def _controlled_transport(calls):
+def _controlled_transport(calls, *, paired_recheck_fixture=False):
     from langchain_core.messages import AIMessage, ToolMessage
 
     complex_fact_drafts = 0
@@ -124,8 +124,11 @@ def _controlled_transport(calls):
             if not complex_case:
                 return reply({"claims": [claim(fact_id, line_id, actual)]})
             # Manifest orders STAGED before MULTI. Only the latter receives an injected mismatch.
-            complex_fact_drafts += 1
-            value = "TEST-PARCEL-A17" if complex_fact_drafts == 2 else actual
+            if paired_recheck_fixture:
+                value = "TEST-PARCEL-A17"
+            else:
+                complex_fact_drafts += 1
+                value = "TEST-PARCEL-A17" if complex_fact_drafts == 2 else actual
             return reply(
                 {
                     "claims": [

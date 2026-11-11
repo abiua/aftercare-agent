@@ -36,3 +36,9 @@
 入口为 `ChatEvaluationRunner(..., recheck_ablation=True)`，复用现有测试运行器及SQLite/owned PG接口；实际已运行SQLite，PG消融仍未运行。清单协议为 `chat-eval-multi-recheck-ablation-v1`，包含两个独立arm和协议绑定的行ID。仅显式具备能力的test服务可执行，默认服务、非test服务以及付费运行器拒绝该模式。
 
 图测试已验证：补查前独立角色仍并行；关闭组保存合法补查的目标角色、工具、主张及原因，无补查或第二轮核验，转人工且无可执行方案。真实本地runner与AgentService验证无补查案例的两臂冻结输入、预算、候选和程序检查一致，各5次受控尝试；重放不增加尝试。失去实验能力后恢复持久化运行，在读取检查点或调用模型前拒绝。root相关39项检查通过；这是机制和隔离证据，不是纠错收益。
+
+## 真实 PostgreSQL 受控验收
+
+`reports/chat-p5-pg-recheck-ablation-20261111.json` PASSED（计划b2be5820…1c98）。复用5200原两个冻结源，独立campaign `chat-p5-pg-recheck-ablation-v1` 创建两案四臂。22次fixture transport尝试、真实供应方调用0；普通案5/5次且无补查，复杂案完整组7次并执行一次局部补查及第二轮核验，关闭组5次并以INVESTIGATION_RECHECK_SUPPRESSED转人工。旧源回读、9张指定public表前后摘要一致，重放无新增尝试。未升级原API镜像。
+
+独立只读复核 `reports/chat-p5-pg-recheck-ablation-native-readback-20261111.json` PASSED：普通两臂快照的options和unresolved完全一致；复杂两臂首轮fact/policy/verify-0的输入、提示摘要、工具集合、主张及评估一致。关闭组只有HUMAN_HANDOFF，无可执行方案；临时容器已移除。当前控制模型将两臂初始错误主张固定在同一phase，原三臂fixture默认行为保持。以上证明机制和隔离，尚不证明真实模型收益或独立正确率。
