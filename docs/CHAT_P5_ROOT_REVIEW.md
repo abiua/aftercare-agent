@@ -96,3 +96,8 @@ root与独立代理审查未发现阻断；root联合运行登记/备份66项通
 `reports/chat-p5-pg-backup-restore-20261111.json` 实际通过：5200源导出后恢复到不同物理PG测试实例，537表指纹、12个eval schema、24聊天原图+24业务材料对象逐字节一致，完整owner声明与原清单绑定，原生运行/P3/checkpoint及UNKNOWN空运行保留；源导出前/归档/结束后指纹一致。恢复结果明确REQUIRES_NEW_ATTESTATION，S3 sentinel/owner授权对象未转移。root逐一检查6个临时容器/网络/卷已不存在，私有归档保留 `.runtime/chat-backup-restore-1a7lwbd6`。
 
 报告旧通用production_core列表含“authenticated conversation attachment service with owner/foreign readback”，该描述不适用于本次eval schema分支：本次验证的是记录/原图字节，不是恢复后评审登录授权。原报告保留，脚本已按模式修正后续报告描述。旧5197的人审权限/浏览器备份证据仍仅适用于其原范围。
+
+
+真实跨schema登记 `reports/chat-p5-pg-registration-20261111.json` 已通过：复用5200原案例，每例3份原生P3投影到同一初判任务；普通任务ed151253-0fea-46ab-9f5c-6234fe403926完成控制UNDETERMINED初判/揭示/标签，复杂任务c2428b2e-00cc-441b-9064-a6c8dad6db8b登记后BLIND供浏览器验收。仅public盲审tasks+2、initial/exposure/labels各+1、eval_mutations+3，原source/arm全表及48对象字节不变，没有模型或财务写。控制初判不是独立人工金标。
+
+root对冻结2988bbb源码完整非PG回归987通过、2可选跳过、40 PG未选，日志 `.runtime/chat-p5-registration-frozen-regression.log`。随后f637f22新增只读登记必须require_existing源的保护，12项定向通过。真实登记使用该版本固定镜像22ca76e1…e07a；旧API仍原镜像。
