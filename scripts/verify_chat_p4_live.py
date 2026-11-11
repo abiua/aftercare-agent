@@ -28,6 +28,8 @@ GATE = Path(__file__).with_name("chat_p4_wire_gate") / "sitecustomize.py"
 ADMISSION = ROOT / ".runtime" / "chat-p4-text-live-admission.json"
 LIMIT, OUTPUT, CAP = 8, 900, Decimal("0.40")
 URL = "http://127.0.0.1:5195"
+PROMPTS = {"compact-v2": "compact-v2", "catalogue-v3": "compact-v3"}
+CATALOGUE_VERSION = "ac-investigation-policy-catalogue-v1"
 
 
 def _uuid(value):
@@ -58,7 +60,7 @@ def _stack(context=p4.PROTOCOLS["original"]):
     return state, stack, config
 
 
-def _read_audit(stack, case_id, old_run_id, conversation_id, run_id=None):
+def _read_audit(stack, case_id, old_run_id, conversation_id, run_id=None, *, catalogue=False):
     return stack.json_exec(
         "P4_LIVE_READ_ONLY",
         owned_container(stack, "api"),
@@ -82,6 +84,22 @@ with Session(engine) as db, db.begin():
     scope = DecisionScope.model_validate(binding["scope"])
     assert scope.case_id == {case_id!r} and scope.conversation_id == {conversation_id!r}
     selected = {run_id!r}
+    catalogue_fields = {{}}
+    if {catalogue!r}:
+        value = build_input(scope)
+        selected_binding = db.scalar(select(RunEvent).where(
+            RunEvent.run_id == selected, RunEvent.kind == "decision_input"
+        )) if selected else None
+        selected_input = selected_binding.payload if selected_binding else {{}}
+        catalogue_fields = {{
+            "catalogue_version": value.policy_catalogue_version,
+            "bound_catalogue_version": binding.get("investigation_policy_catalogue_version"),
+            "catalogue_sha256": value.policy_context.get("catalogue_sha256"),
+            "selected_bound_catalogue_version": selected_input.get("investigation_policy_catalogue_version"),
+            "selected_relevant_input_sha256": build_input(
+                DecisionScope.model_validate(selected_input["scope"])
+            ).relevant_input_sha256 if selected_input else None,
+        }}
     attempts = list(db.scalars(select(ModelAttempt).order_by(ModelAttempt.started_at)))
     print(json.dumps({{
         "relevant_input_sha256": build_input(scope).relevant_input_sha256,
@@ -89,6 +107,7 @@ with Session(engine) as db, db.begin():
         "issue_id": scope.issue_id,
         "old_run_reason": old.reason,
         "prompt_version": binding.get("investigation_prompt_version"),
+        **catalogue_fields,
         "case_runs": list(db.scalars(select(AgentRun.id).where(AgentRun.case_id == scope.case_id).order_by(AgentRun.created_at))),
         "active_count": len(list(db.scalars(select(AgentRun.id).where(AgentRun.status.in_(["QUEUED", "RUNNING", "WAITING_INPUT"]))))),
         "other_attempt_count": sum(row.run_id != selected for row in attempts),
@@ -113,6 +132,8 @@ engine.dispose()
 
 def _plan(offline_path, protocol="original"):
     context = p4.PROTOCOLS[protocol]
+    catalogue = protocol == "catalogue-v3"
+    output = 1800 if catalogue else OUTPUT
     url = f"http://127.0.0.1:{context.port}"
     state, stack, config = _stack(context)
     raw = offline_path.read_bytes()
@@ -129,7 +150,7 @@ def _plan(offline_path, protocol="original"):
     case_id, conversation_id, old_run = map(
         _uuid, (scenario["case_id"], scenario["conversation_id"], scenario["staff_run_id"])
     )
-    baseline = _read_audit(stack, case_id, old_run, conversation_id)
+    baseline = _read_audit(stack, case_id, old_run, conversation_id, catalogue=catalogue)
     require(
         not any(
             baseline[key]
@@ -149,20 +170,45 @@ def _plan(offline_path, protocol="original"):
         for item in scenario["materials"]
     ]
     require(baseline["originals"] == originals, "P4_ORIGINAL_PROVENANCE_CHANGED")
-    if protocol == "compact-v2":
+    if protocol in PROMPTS:
         require(
             scenario["staff_selected_path"] == "SINGLE"
-            and baseline["prompt_version"] == "compact-v2"
+            and baseline["prompt_version"] == PROMPTS[protocol]
             and config.get("chat_investigation_issue_max_microusd", 200_000) == 200_000,
             "P4_COMPACT_SCOPE_OR_BUDGET_MISMATCH",
         )
     else:
         baseline.pop("prompt_version")
-    spec = _configuration()["gpt-6.1-terra"]
-    reserve = models._reserve_price(spec, spec.context_tokens, OUTPUT)
+    source_spec = _configuration()["gpt-6.1-terra"]
+    spec = source_spec
+    if catalogue:
+        require(
+            evidence["plan"]["source_revision"] == context.revision
+            and state.get("profile", "app") == "app"
+            and baseline["catalogue_version"]
+            == baseline["bound_catalogue_version"]
+            == CATALOGUE_VERSION
+            and isinstance(baseline["catalogue_sha256"], str)
+            and len(baseline["catalogue_sha256"]) == 64
+            and source_spec.output_tokens == OUTPUT,
+            "P4_CATALOGUE_SOURCE_MISMATCH",
+        )
+        spec = models.ModelSpec.model_validate(
+            {
+                **source_spec.model_dump(mode="json"),
+                "alias": "analysis",
+                "data_scopes": ["customer_conversation"],
+                "vision": False,
+                "vision_checked_at": None,
+                "vision_compatibility_version": None,
+                "vision_input_tokens_per_image": None,
+                "output_tokens": output,
+            }
+        )
+    reserve = models._reserve_price(spec, spec.context_tokens, output)
     require(
         spec.compatibility == "VERIFIED"
-        and spec.output_tokens >= OUTPUT
+        and spec.output_tokens >= output
         and spec.tool_calls
         and spec.cache_write_ttl != "12h"
         and reserve is not None
@@ -201,21 +247,28 @@ def _plan(offline_path, protocol="original"):
         "source_offline_report_sha256": hashlib.sha256(raw).hexdigest(),
         "relevant_input_sha256": baseline["relevant_input_sha256"],
         "issue_id": baseline["issue_id"],
-        "source_spec_sha256": models.digest(spec.model_dump(mode="json")),
+        "source_spec_sha256": models.digest(source_spec.model_dump(mode="json")),
         "maximum_provider_posts": LIMIT,
         "model": spec.model,
         "fixed_registry_alias": "analysis",
         "maximum_estimated_usd": str(CAP),
         "estimated_full_context_per_post_usd": str(reserve),
         "estimated_total_at_maximum_posts_usd": str(reserve * LIMIT),
-        "output_tokens": OUTPUT,
+        "output_tokens": output,
         "issue_limit_microusd": config.get("chat_investigation_issue_max_microusd", 200000),
         "issue_limit_calls": config.get("chat_investigation_issue_max_calls", 16),
         "wire_guard_sha256": hashlib.sha256(GATE.read_bytes()).hexdigest(),
         "local_embedding_revision": REVISION,
     }
-    if protocol == "compact-v2":
+    if protocol != "original":
         plan["protocol"] = protocol
+    if catalogue:
+        plan.update(
+            source_revision=context.revision,
+            derived_spec_sha256=models.digest(spec.model_dump(mode="json")),
+            policy_catalogue_version=CATALOGUE_VERSION,
+            policy_catalogue_sha256=baseline["catalogue_sha256"],
+        )
     return plan, spec, state, stack
 
 
@@ -248,7 +301,7 @@ def _exercise(stack, plan, report, report_path):
         )
         eligibility = p3._case(support, plan["case_id"])["eligibility"]
         require(eligibility["status"] == "ELIGIBLE", "P4_MATERIAL_REVIEW_REQUIRED")
-        if plan.get("protocol") == "compact-v2":
+        if plan.get("protocol") in PROMPTS:
             report["eligible_scope"] = {
                 "lines": eligibility["lines"],
                 "policies_by_action": eligibility["policy_ids_by_action"],
@@ -268,7 +321,7 @@ def _exercise(stack, plan, report, report_path):
             row["payload"] for row in trace if row["kind"] == "investigation_tool"
         ]
         report["route"] = p4._route(trace)
-        if plan.get("protocol") == "compact-v2":
+        if plan.get("protocol") in PROMPTS:
             report["prompt_budget"] = [
                 row["payload"] for row in trace if row["kind"] == "investigation_prompt_budget"
             ]
@@ -290,7 +343,7 @@ def _exercise(stack, plan, report, report_path):
                         "graph_version": snapshot["candidate"]["graph_version"],
                         "unresolved": snapshot["candidate"]["unresolved"],
                     }
-                    if plan.get("protocol") == "compact-v2"
+                    if plan.get("protocol") in PROMPTS
                     else {}
                 ),
             }
@@ -302,6 +355,7 @@ def _exercise(stack, plan, report, report_path):
 
 
 def _execute(state, stack, spec, plan, report, report_path, context=p4.PROTOCOLS["original"]):
+    catalogue = plan.get("protocol") == "catalogue-v3"
     worker = owned_container(stack, "worker")
     net, egress = (f"{stack.prefix}-{name}" for name in ("net", "ingress"))
     require(
@@ -336,7 +390,9 @@ def _execute(state, stack, spec, plan, report, report_path, context=p4.PROTOCOLS
         total = plan["estimated_total_at_maximum_posts_usd"]
         registry = models.Registry.model_validate(
             {
-                "version": "ac-p4-isolated-synthetic-terra-text",
+                "version": "ac-p4-isolated-synthetic-terra-text-catalogue-v3"
+                if catalogue
+                else "ac-p4-isolated-synthetic-terra-text",
                 "models": [model],
                 "allowed_providers": ["openai"],
                 "native_streaming": False,
@@ -346,6 +402,13 @@ def _execute(state, stack, spec, plan, report, report_path, context=p4.PROTOCOLS
                 "max_run_usd": total,
             }
         )
+        if catalogue:
+            registered = registry.models[0]
+            require(
+                models.digest(registered.model_dump(mode="json")) == plan["derived_spec_sha256"]
+                and registered.output_tokens == plan["output_tokens"],
+                "P4_DERIVED_SPEC_CHANGED",
+            )
         _one_file(runtime / "local.json", json.dumps(_private_json(stack.runtime / "local.json")))
         _one_file(runtime / "models.json", registry.model_dump_json())
         key = _private_json(ROOT / ".runtime" / "model-secret.json")["api_key"]
@@ -454,9 +517,10 @@ def _execute(state, stack, spec, plan, report, report_path, context=p4.PROTOCOLS
                 plan["old_run_id"],
                 plan["conversation_id"],
                 report.get("run_id"),
+                catalogue=catalogue,
             )
     rows, admissions = report["audit"]["attempts"], report["wire"]
-    compact = plan.get("protocol") == "compact-v2"
+    compact = plan.get("protocol") in PROMPTS
     acceptable_status = {"SUCCEEDED", "FAILED"} if compact else {"SUCCEEDED"}
 
     require(
@@ -489,10 +553,22 @@ def _execute(state, stack, spec, plan, report, report_path, context=p4.PROTOCOLS
         estimated <= Decimal(plan["estimated_total_at_maximum_posts_usd"]),
         "P4_ACTUAL_ESTIMATE_EXCEEDS_RESERVATION",
     )
+    if catalogue:
+        require(
+            estimated <= Decimal(plan["issue_limit_microusd"]) / 1_000_000
+            and report["audit"]["selected_bound_catalogue_version"]
+            == plan["policy_catalogue_version"]
+            and report["audit"]["selected_relevant_input_sha256"] == plan["relevant_input_sha256"]
+            and all(row["output_tokens"] == plan["output_tokens"] for row in admissions)
+            and all(row["transport"]["max_output_tokens"] == plan["output_tokens"] for row in rows),
+            "P4_CATALOGUE_RUNTIME_BINDING_MISMATCH",
+        )
 
 
 def _business_result(report):
     candidate = report.get("candidate") or {}
+    protocol = report.get("plan", {}).get("protocol", "compact-v2")
+    prompt = PROMPTS[protocol]
     rows = report["audit"]["attempts"]
     tool_refs = {
         ref["source_id"] for tool in report["tool_trace"] for ref in tool.get("evidence_refs", [])
@@ -526,6 +602,13 @@ def _business_result(report):
         and bool(option["evidence_ids"])
         and set(option["evidence_ids"]) <= tool_refs
         and bool(option["lines"])
+        and (
+            protocol != "catalogue-v3"
+            or all(
+                any(ref.startswith(f"{policy}:") for ref in option["evidence_ids"])
+                for policy in option["policy_ids"]
+            )
+        )
     ]
     if (
         report["run"] == {"status": "COMPLETED", "reason": "ELIGIBLE"}
@@ -535,9 +618,9 @@ def _business_result(report):
         and passed
         and report["route"].get("selected_path") == "SINGLE"
         and len(rows) >= 2
-        and all(row["logical_id"].startswith("p4:compact-v2:") for row in rows)
+        and all(row["logical_id"].startswith(f"p4:{prompt}:") for row in rows)
         and any(
-            row["prompt_version"] == "compact-v2"
+            row["prompt_version"] == prompt
             and row["round"] >= 1
             and row["limit"] == 24_576
             and row["preflight"] in {"FIT", "FIT_WITHOUT_TOOLS"}
@@ -573,8 +656,8 @@ def main():
 def _run(args):
     context = p4.PROTOCOLS[args.protocol]
     admission = (
-        ROOT / ".runtime" / "chat-p4-compact-v2-live-admission.json"
-        if args.protocol == "compact-v2"
+        ROOT / ".runtime" / f"chat-p4-{args.protocol}-live-admission.json"
+        if args.protocol in PROMPTS
         else ADMISSION
     )
     require(not admission.exists(), "P4_PROTOCOL_ALREADY_ADMITTED")
@@ -589,7 +672,7 @@ def _run(args):
         return 0
     require(signature == args.expected_plan_sha256, "P4_APPROVED_PLAN_CHANGED")
     report = {"status": "IN_PROGRESS", "plan_sha256": signature, "plan": plan}
-    if args.protocol == "compact-v2":
+    if args.protocol in PROMPTS:
         report.update(
             compatibility="NOT_ESTABLISHED", business_candidate={"status": "NOT_ESTABLISHED"}
         )
@@ -602,7 +685,7 @@ def _run(args):
         finally:
             os.close(parent)
         _execute(state, stack, spec, plan, report, args.report, context)
-        if args.protocol == "compact-v2":
+        if args.protocol in PROMPTS:
             report["compatibility"] = "PASSED"
             report["business_candidate"] = _business_result(report)
             require(

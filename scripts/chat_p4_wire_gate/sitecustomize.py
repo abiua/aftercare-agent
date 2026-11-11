@@ -11,6 +11,9 @@ from openai import _base_client
 
 STATE = Path("/p4-wire")
 PLAN = json.loads((STATE / "plan.json").read_text())
+PROTOCOL = PLAN.get("protocol", "original")
+OUTPUT_CAPS = {"original": 900, "compact-v2": 900, "catalogue-v3": 1800}
+PROMPTS = {"compact-v2": "compact-v2", "catalogue-v3": "compact-v3"}
 URL = "https://api.openai.com/v1/responses"
 SEND, HANDLE = httpx.Client.send, httpx.HTTPTransport.handle_request
 ALLOWED = {
@@ -96,11 +99,16 @@ def _handle(transport, request):
     ]
     if len(views) != 1 or views[0].get("input_digest") != PLAN["relevant_input_sha256"]:
         raise RuntimeError("P4_WIRE_SCOPE_REJECTED")
-    if PLAN.get("protocol") == "compact-v2" and (
-        views[0].get("evidence_encoding") != "compact-v2"
+    if PROTOCOL in PROMPTS and (
+        views[0].get("evidence_encoding") != PROMPTS[PROTOCOL]
         or views[0].get("scope") != [PLAN["conversation_id"], PLAN["issue_id"], PLAN["case_id"]]
     ):
         raise RuntimeError("P4_WIRE_COMPACT_ENCODING_REQUIRED")
+    if PROTOCOL == "catalogue-v3" and (
+        views[0].get("policy_context", {}).get("catalogue_sha256")
+        != PLAN["policy_catalogue_sha256"]
+    ):
+        raise RuntimeError("P4_WIRE_CATALOGUE_BINDING_REQUIRED")
     for row in [*objects, *_objects(views)]:
         scope = row.get("scope")
         if isinstance(scope, list) and (
@@ -141,6 +149,12 @@ def _handle(transport, request):
     return response
 
 
+if (
+    PROTOCOL not in OUTPUT_CAPS
+    or type(PLAN["output_tokens"]) is not int
+    or PLAN["output_tokens"] != OUTPUT_CAPS[PROTOCOL]
+):
+    raise RuntimeError("P4_WIRE_PLAN_OUTPUT_REJECTED")
 if getattr(_base_client, "httpx2", None) is not httpx:
     raise RuntimeError("P4_UNVERIFIED_SDK_HTTP_TRANSPORT")
 httpx.Client.send = _send

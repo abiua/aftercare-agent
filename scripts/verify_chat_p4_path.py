@@ -39,6 +39,14 @@ PROTOCOLS = {
         backend="aftercare-backend:chat-p4-compact-20261111",
         frontend="aftercare-frontend:chat-p4-compact-20261111",
     ),
+    "catalogue-v3": SimpleNamespace(
+        state=ROOT / ".runtime" / "offline-browser-demo-p4-catalogue-v3.json",
+        port=5198,
+        object_port=58360,
+        backend="aftercare-backend:chat-p5-20261111",
+        frontend="aftercare-frontend:chat-p5-20261111",
+        revision="84121cbddc31fc529ad19c52046ffd4025b2c1d3",
+    ),
 }
 READY_CHECKS = [
     "ORIGINAL_CHAT_ATTACHMENT_PROVENANCE",
@@ -405,8 +413,10 @@ def main():
         IMAGES={tag: value[7:] for tag, value in images.items()},
     ):
         frozen = plan(images)
-    if args.protocol == "compact-v2":
-        frozen["protocol"] = "compact-v2"
+    if args.protocol != "original":
+        frozen["protocol"] = args.protocol
+    if args.protocol == "catalogue-v3":
+        frozen["source_revision"] = context.revision
     if not images:
         print(json.dumps({"status": "UNPINNED_PREFLIGHT_ONLY", "plan": frozen}, indent=2))
         return 0

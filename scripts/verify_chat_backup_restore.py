@@ -7,21 +7,28 @@ import re
 import stat
 import subprocess
 import tempfile
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from hashlib import sha256
 from pathlib import Path
 from unittest.mock import patch
+from uuid import UUID
 
 from aftercare import backup
-from aftercare.auth import UserContext
+from aftercare.auth import UserContext, token_hash
 from aftercare.business.errors import BusinessError
+from aftercare.business.rules import digest
 from aftercare.business.service import BusinessService
 from aftercare.business.storage import S3ObjectStore
 from aftercare.config import TARGETS, Settings
 from aftercare.conversations.service import ConversationService
+from aftercare.db import User
+from aftercare.decisions.tables import DecisionSnapshot
+from aftercare.evaluation.chat.service import BlindReviewService
+from aftercare.evaluation.chat.tables import BlindExposure, BlindLabels, BlindTask
 from offline_demo import STATE, lifecycle_lock, restore, status
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, select, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.orm import Session
 from verify_fresh_bootstrap import IMAGES, FreshStack, VerificationError, private_write, require
 
 BRIDGE = """
@@ -39,7 +46,7 @@ async def copy(reader, writer):
 
 async def handle(reader, writer):
     try:
-        upstream, peer = await asyncio.open_connection('pg-app', 5432)
+        upstream, peer = await asyncio.open_connection('SOURCE_PG_ALIAS', 5432)
     except OSError:
         writer.close()
         return
@@ -156,34 +163,44 @@ class IsolatedTopology:
     """Adapt only the fixed local routes, retaining independent identities on each DB path."""
 
     def __init__(self, source, target, containers):
-        self.settings = {"app": source, "test": target}
+        self.settings = {"source": source, "target": target}
+        self.cli_slot = None
         self.containers = containers
         self.identities = {}
 
+    @contextmanager
+    def route_cli(self, slot):
+        previous = self.cli_slot
+        self.cli_slot = slot
+        try:
+            yield
+        finally:
+            self.cli_slot = previous
+
     def engine(self, settings, *, test_only=False):
+        routes = [slot for slot, expected in self.settings.items() if settings == expected]
+        require(len(routes) == 1, "ENGINE_ROUTE_REJECTED")
+        slot = routes[0]
         profile = settings.profile
-        expected = self.settings[profile]
-        require(
-            settings == expected and (not test_only or profile == "test"), "ENGINE_ROUTE_REJECTED"
-        )
+        require(not test_only or (slot == "target" and profile == "test"), "ENGINE_ROUTE_REJECTED")
         engine = create_engine(
-            expected.database_url,
+            settings.database_url,
             pool_pre_ping=True,
             hide_parameters=True,
             connect_args={
                 "connect_timeout": 5,
-                **({"options": "-c default_transaction_read_only=on"} if profile == "app" else {}),
+                **({"options": "-c default_transaction_read_only=on"} if slot == "source" else {}),
             },
         )
         try:
-            with engine.connect() as connection:
+            with engine.connect() as connection, self.route_cli(slot):
                 identity = backup._identity(connection)
                 _, database, user, cluster = TARGETS[profile]
                 require(
                     (identity[0], identity[2], identity[3]) == (cluster, database, user),
                     "DB_IDENTITY_REJECTED",
                 )
-                existing = self.identities.setdefault(profile, identity)
+                existing = self.identities.setdefault(slot, identity)
                 require(existing == identity, "DB_SYSTEM_ID_CHANGED")
                 backup._verify_container(profile, identity)
         except BaseException:
@@ -192,22 +209,25 @@ class IsolatedTopology:
         return engine
 
     def pg_cli(self, profile, command, database, *options, stdin=None, stdout=None):
-        stack, container = self.containers[profile]
+        slot = self.cli_slot
+        require(
+            slot in self.settings and self.settings[slot].profile == profile,
+            "PG_CLI_ROUTE_REJECTED",
+        )
+        stack, container = self.containers[slot]
         _, origin, username, _ = TARGETS[profile]
         require(stack.owned("container", container), "PG_CLI_CONTAINER_NOT_OWNED")
-        allowed = database == origin or (profile == "test" and self._restore_name(database))
-        require(allowed, "PG_CLI_DATABASE_REJECTED")
+        restored = slot == "target" and self._restore_name(database)
         require(
-            (command == "psql" and database == origin)
-            or (command == "psql" and profile == "test")
-            or (command == "pg_dump" and profile == "app" and database == origin)
-            or (command == "pg_restore" and profile == "test" and self._restore_name(database)),
+            (command == "psql" and (database == origin or restored))
+            or (command == "pg_dump" and slot == "source" and database == origin)
+            or (command == "pg_restore" and restored),
             "PG_CLI_COMMAND_REJECTED",
         )
         if command == "psql":
             require(
-                tuple(options[:5]) == ("-XAt", "-v", "ON_ERROR_STOP=1", "-c", options[-1])
-                and len(options) == 5
+                len(options) == 5
+                and tuple(options[:4]) == ("-XAt", "-v", "ON_ERROR_STOP=1", "-c")
                 and "pg_control_system()" in options[-1],
                 "PG_CLI_IDENTITY_ONLY",
             )
@@ -244,7 +264,7 @@ class IsolatedTopology:
         return isinstance(name, str) and re.fullmatch(r"ac_restore_[0-9a-f]{32}", name)
 
     def source_guard(self, settings):
-        require(settings == self.settings["app"], "BACKUP_SOURCE_ROUTE_REJECTED")
+        require(settings == self.settings["source"], "BACKUP_SOURCE_ROUTE_REJECTED")
         require(
             re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", settings.object_bucket),
             "SOURCE_BUCKET_REJECTED",
@@ -252,14 +272,14 @@ class IsolatedTopology:
 
     def restore_db(self, settings, name):
         require(
-            settings == self.settings["test"] and self._restore_name(name),
+            settings == self.settings["target"] and self._restore_name(name),
             "RESTORE_DB_ROUTE_REJECTED",
         )
         return make_url(settings.database_url).set(database=name)
 
     def restore_bucket(self, settings, name):
         require(
-            settings == self.settings["test"]
+            settings == self.settings["target"]
             and name != settings.object_bucket
             and re.fullmatch(r"ac-restore-[0-9a-f]{32}", name),
             "RESTORE_BUCKET_ROUTE_REJECTED",
@@ -377,7 +397,196 @@ def _verify_material_sources(rows, business, chat, source_store, archive_dir, ma
     return evidence
 
 
-def restore_readback(topology, target, archive_dir, manifest, result, *, require_material_sources):
+def _p5_evidence(path, browser_path, state_path, state):
+    require(
+        state_path.name == "offline-browser-demo-p5.json"
+        and state["url"] == "http://127.0.0.1:5197"
+        and state.get("profile") == "test",
+        "P5_OWNED_TEST_SOURCE_REQUIRED",
+    )
+    report = private_json(path)
+    require(
+        report["status"] == "PASSED"
+        and report["isolated_url"] == state["url"]
+        and report["plan"]["profile"] == "test"
+        and report["plan"]["human_judgments"] == 0
+        and report["plan"]["browser_task_final_stage"] == "BLIND",
+        "P5_CONTROLLED_HTTP_EVIDENCE_REQUIRED",
+    )
+    task_ids = {role: str(UUID(report[f"{role}_task_id"])) for role in ("fixture", "browser")}
+    require(len(set(task_ids.values())) == 2, "P5_DISTINCT_FIXTURE_TASKS_REQUIRED")
+    info = browser_path.lstat()
+    require(
+        stat.S_ISREG(info.st_mode) and info.st_uid == os.getuid() and info.st_mode & 0o022 == 0,
+        "P5_BROWSER_REPORT_FILE_REJECTED",
+    )
+    browser = json.loads(browser_path.read_text())
+    require(
+        browser["outcome"] == "PASS"
+        and browser["evidence_kind"] == "native_browser_offline_control"
+        and browser["independent_human_judgment"] is False
+        and browser["gold_label"] is False
+        and browser["app_profile"] == "test"
+        and browser["origin"] == state["url"]
+        and browser["task"]["id"] == task_ids["browser"]
+        and browser["final"]["full_navigation_and_reopen_verified"] is True
+        and browser["final"]["initial_immutable"] is True,
+        "P5_CONTROLLED_BROWSER_EVIDENCE_REQUIRED",
+    )
+    hashes = {
+        "fixture": report["database_audit"]["hashes"],
+        "browser": [
+            browser["final"][f"{stage}_sha256"] for stage in ("initial", "exposure", "labels")
+        ],
+    }
+    require(
+        all(
+            len(values) == 3 and all(re.fullmatch(r"[0-9a-f]{64}", x) for x in values)
+            for values in hashes.values()
+        ),
+        "P5_REPORT_STAGE_HASHES_INVALID",
+    )
+    return {
+        role: {
+            "task_id": task_id,
+            "snapshot_id": str(UUID(report["sources"][role]["snapshot_id"])),
+            "images": report["sources"][role]["original_images"],
+            "stage_hashes": hashes[role],
+            "input_sha256": browser["blind_state"]["input_sha256"] if role == "browser" else None,
+        }
+        for role, task_id in task_ids.items()
+    }
+
+
+def _require_not_found(operation, *args):
+    try:
+        operation(*args)
+    except BusinessError as error:
+        require(error.status == 404, "P5_RESTORED_AUTH_MISMATCH")
+    else:
+        raise VerificationError("P5_RESTORED_AUTH_MISMATCH")
+
+
+def _verify_blind_reviews(engine, business, source_store, archive_dir, manifest, evidence, tester):
+    service = BlindReviewService(business)
+    reviewer = UserContext(user_id=tester["user_id"], role="tester")
+    with Session(engine) as db, db.begin():
+        db.execute(text("SET TRANSACTION READ ONLY"))
+        user = db.get_one(User, reviewer.user_id)
+        require(
+            user.enabled
+            and user.role == "tester"
+            and user.token_hash == token_hash(tester["token"]),
+            "P5_RESTORED_TESTER_CREDENTIAL_MISMATCH",
+        )
+        other = db.scalar(
+            select(User).where(
+                User.role == "tester",
+                User.enabled.is_(True),
+                User.id != reviewer.user_id,
+            )
+        )
+        require(other is not None, "P5_RESTORED_UNASSIGNED_TESTER_REQUIRED")
+        foreign = UserContext(user_id=other.id, role="tester")
+    expected_ids = {item["task_id"] for item in evidence.values()}
+    require(
+        {item["id"] for item in service.list(reviewer)["items"]} == expected_ids
+        and service.list(foreign)["items"] == [],
+        "P5_RESTORED_TASK_LIST_MISMATCH",
+    )
+    archived = {item.key: item for item in manifest.materials}
+    verified = {}
+    for role, expected in evidence.items():
+        task_id = expected["task_id"]
+        detail = service.get(reviewer, task_id)
+        _require_not_found(service.get, foreign, task_id)
+        require(
+            detail["status"] == "LABELED"
+            and detail["version"] == 4
+            and detail["input"]["policy_coverage"] == "COMPLETE_CATALOGUE"
+            and detail["input_sha256"] == digest(detail["input"]),
+            "P5_RESTORED_TASK_STATE_MISMATCH",
+        )
+        initial, exposure, labels = (detail[key] for key in ("initial", "exposure", "labels"))
+        require(
+            initial["sha256"] == digest([detail["input_sha256"], initial["payload"]])
+            and exposure["sha256"]
+            == digest([task_id, initial["sha256"], digest(exposure["candidates"])])
+            and labels["sha256"] == digest([exposure["sha256"], labels["payload"]])
+            and initial["created_at"] <= exposure["created_at"] <= labels["created_at"]
+            and {row["candidate_id"] for row in labels["payload"]["items"]}
+            == {row["id"] for row in exposure["candidates"]},
+            "P5_RESTORED_STAGE_CHAIN_MISMATCH",
+        )
+        hashes = [item["sha256"] for item in (initial, exposure, labels)]
+        require(hashes == expected["stage_hashes"], "P5_RESTORED_REPORT_STAGE_HASH_MISMATCH")
+        if expected["input_sha256"] is not None:
+            require(
+                detail["input_sha256"] == expected["input_sha256"],
+                "P5_RESTORED_BROWSER_INPUT_HASH_MISMATCH",
+            )
+        with Session(engine) as db, db.begin():
+            db.execute(text("SET TRANSACTION READ ONLY"))
+            task = db.get_one(BlindTask, task_id)
+            snapshot = db.get_one(DecisionSnapshot, expected["snapshot_id"])
+            row = db.get_one(BlindExposure, task_id)
+            label_row = db.get_one(BlindLabels, task_id)
+            require(
+                task.reviewer_id == reviewer.user_id
+                and task.source_sha256 == digest([snapshot.input["input_sha256"], snapshot.id])
+                and row.initial_sha256 == initial["sha256"]
+                and row.candidates_sha256 == digest(exposure["candidates"])
+                and label_row.exposure_sha256 == exposure["sha256"],
+                "P5_RESTORED_SNAPSHOT_BINDING_MISMATCH",
+            )
+            keys = task.image_objects
+        expected_images = {item["id"]: item for item in expected["images"]}
+        require(
+            len(expected_images) == 2 and set(keys) == expected_images.keys(),
+            "P5_RESTORED_PHOTO_SCOPE_MISMATCH",
+        )
+        photos = []
+        for image in detail["input"]["images"]:
+            image_id = image["id"]
+            record = archived[keys[image_id]]
+            data, kind = service.image(reviewer, task_id, image_id)
+            _require_not_found(service.image, foreign, task_id, image_id)
+            original = (archive_dir / backup.OBJECTS / record.sha256).read_bytes()
+            require(
+                record.table_name == "chat_attachments"
+                and data == original == source_store.get(record.key, record.size)
+                and sha256(data).hexdigest() == record.sha256 == expected_images[image_id]["sha256"]
+                and len(data) == record.size == expected_images[image_id]["size"]
+                and kind == record.content_type,
+                "P5_RESTORED_ORIGINAL_BYTES_MISMATCH",
+            )
+            photos.append({"id": image_id, "sha256": record.sha256, "bytes": len(data)})
+        require(
+            {item["id"] for item in photos} == expected_images.keys(),
+            "P5_RESTORED_IMAGES_INCOMPLETE",
+        )
+        verified[role] = {
+            "task_id": task_id,
+            "stage": detail["status"],
+            "input_sha256": detail["input_sha256"],
+            "stage_hashes": hashes,
+            "original_images": photos,
+            "foreign_task_and_image_read": 404,
+        }
+    return verified
+
+
+def restore_readback(
+    topology,
+    target,
+    archive_dir,
+    manifest,
+    result,
+    *,
+    require_material_sources,
+    p5=None,
+    tester=None,
+):
     engine = backup.restored_engine(target, result["database"])
     try:
         with engine.connect() as connection, connection.begin():
@@ -385,10 +594,10 @@ def restore_readback(topology, target, archive_dir, manifest, result, *, require
             require(
                 backup._identity(connection)
                 == (
-                    topology.identities["test"][0],
-                    topology.identities["test"][1],
+                    topology.identities["target"][0],
+                    topology.identities["target"][1],
                     result["database"],
-                    topology.identities["test"][3],
+                    topology.identities["target"][3],
                 ),
                 "RESTORE_READBACK_WRONG_SYSTEM",
             )
@@ -430,6 +639,7 @@ def restore_readback(topology, target, archive_dir, manifest, result, *, require
                     ),
                     "SCOPED_MATERIAL_SOURCE_PAIR_REQUIRED",
                 )
+            if require_material_sources or p5:
                 connection.execute(text("SET LOCAL TIME ZONE 'UTC'"))
                 require(
                     backup._fingerprints(connection) == manifest.database,
@@ -475,9 +685,20 @@ def restore_readback(topology, target, archive_dir, manifest, result, *, require
                 rows,
                 business,
                 service,
-                S3ObjectStore(topology.settings["app"]),
+                S3ObjectStore(topology.settings["source"]),
                 archive_dir,
                 manifest,
+            )
+            readback["restored_database_fingerprints_match_archive"] = True
+        if p5:
+            readback["blind_reviews"] = _verify_blind_reviews(
+                engine,
+                business,
+                S3ObjectStore(topology.settings["source"]),
+                archive_dir,
+                manifest,
+                p5,
+                tester,
             )
             readback["restored_database_fingerprints_match_archive"] = True
         return readback
@@ -485,8 +706,27 @@ def restore_readback(topology, target, archive_dir, manifest, result, *, require
         engine.dispose()
 
 
-def execute(report, state_path=STATE, *, require_material_sources=False):
+def execute(
+    report,
+    state_path=STATE,
+    *,
+    require_material_sources=False,
+    p5_http_report=None,
+    p5_browser_report=None,
+):
     state, source, names = source_resources(state_path)
+    source_profile = state.get("profile", "app")
+    require(source_profile in TARGETS, "SOURCE_PROFILE_REJECTED")
+    p5 = (
+        _p5_evidence(p5_http_report, p5_browser_report, state_path, state)
+        if p5_http_report
+        else None
+    )
+    tester = (
+        next(row for row in private_json(source.credentials_path) if row["role"] == "tester")
+        if p5
+        else None
+    )
     directory = Path(tempfile.mkdtemp(prefix="chat-backup-restore-", dir=state_path.parent))
     stack = FreshStack(directory)
     report.update(
@@ -495,6 +735,7 @@ def execute(report, state_path=STATE, *, require_material_sources=False):
             "private_run_directory": str(directory),
             "source_ready": True,
             "source_url": state["url"],
+            "source_profile": source_profile,
             "source_backend_image_id": names["backend_image_id"],
         }
     )
@@ -525,17 +766,17 @@ def execute(report, state_path=STATE, *, require_material_sources=False):
                 "--entrypoint",
                 "python",
             ),
-            ("-c", BRIDGE),
+            ("-c", BRIDGE.replace("SOURCE_PG_ALIAS", f"pg-{source_profile}")),
         )
         stack.docker("BRIDGE_NETWORK", "network", "connect", names["net"], bridge)
         source_pg_port = published_port(stack, bridge, 15432)
         source_s3_port = published_port(source, names["objects"], 8333)
-        source_values = private_json(source.runtime / "local.json")["app"]
+        source_values = private_json(source.runtime / "local.json")[source_profile]
         require(
             source_values["object_presign_endpoint"] == f"http://127.0.0.1:{source_s3_port}",
             "SOURCE_OBJECT_BINDING_MISMATCH",
         )
-        src = settings_for(source_values, "app", source_pg_port, source_s3_port)
+        src = settings_for(source_values, source_profile, source_pg_port, source_s3_port)
         net = stack.create("network", "restore-net")
         pg_volume = stack.create("volume", "restore-pg-data")
         s3_volume = stack.create("volume", "restore-s3-data")
@@ -601,7 +842,7 @@ def execute(report, state_path=STATE, *, require_material_sources=False):
             published_port(stack, objects, 8333),
         )
         topology = IsolatedTopology(
-            src, target, {"app": (source, names["pg"]), "test": (stack, pg)}
+            src, target, {"source": (source, names["pg"]), "target": (stack, pg)}
         )
         archive = directory / "archive"
         with ExitStack() as contexts:
@@ -610,11 +851,12 @@ def execute(report, state_path=STATE, *, require_material_sources=False):
             for settings in (src, target):
                 topology.engine(settings).dispose()
             require(
-                topology.identities["app"][1] != topology.identities["test"][1],
+                topology.identities["source"][1] != topology.identities["target"][1],
                 "SOURCE_AND_DESTINATION_SAME_SYSTEM",
             )
-            if require_material_sources:
+            if require_material_sources or p5:
                 before = source_fingerprints(topology, src)
+            if require_material_sources:
                 required = (
                     backup.CHAT_TABLES
                     | backup.CHAT_ANALYSIS_TABLES
@@ -627,12 +869,24 @@ def execute(report, state_path=STATE, *, require_material_sources=False):
                     and before[f"public.{backup.CHAT_INVESTIGATION_TABLE}"].rows >= 1,
                     "P4_SOURCE_EVIDENCE_REQUIRED",
                 )
+            if p5:
+                require(
+                    len(before) == 57
+                    and all(
+                        before.get(f"public.{table}") and before[f"public.{table}"].rows == 2
+                        for table in backup.CHAT_BLIND_REVIEW_TABLES
+                    ),
+                    "P5_SOURCE_FINGERPRINT_OR_STAGE_COUNT_MISMATCH",
+                )
             report["stage"] = "ARCHIVING"
-            manifest = backup.create_backup(src, archive)
+            with topology.route_cli("source"):
+                manifest = backup.create_backup(src, archive)
             require(backup.verify_backup(archive) == manifest, "ARCHIVE_VERIFICATION_MISMATCH")
-            if require_material_sources:
+            if require_material_sources or p5:
                 require(manifest.database == before, "SOURCE_CHANGED_BEFORE_ARCHIVE")
             tables = required if require_material_sources else backup.CHAT_TABLES
+            if p5:
+                tables = tables | backup.CHAT_BLIND_REVIEW_TABLES
             report["archive"] = {
                 "format": manifest.format,
                 "sha256": manifest.archive_sha256,
@@ -647,7 +901,8 @@ def execute(report, state_path=STATE, *, require_material_sources=False):
                 },
             }
             report["stage"] = "RESTORING"
-            result = backup.restore_backup(target, archive)
+            with topology.route_cli("target"):
+                result = backup.restore_backup(target, archive)
             require(result["status"] == "RESTORE_VERIFIED", "RESTORE_STATUS_MISMATCH")
             report["restore"] = {
                 "status": result["status"],
@@ -664,15 +919,22 @@ def execute(report, state_path=STATE, *, require_material_sources=False):
                 manifest,
                 result,
                 require_material_sources=require_material_sources,
+                p5=p5,
+                tester=tester,
             )
-            if require_material_sources:
+            if require_material_sources or p5:
                 require(
                     source_fingerprints(topology, src) == before, "SOURCE_CHANGED_AFTER_RESTORE"
                 )
                 report["source_unchanged"] = {
                     "before_archive_after_database_fingerprints_match": True,
                     "fingerprinted_tables": len(before),
-                    "original_and_typed_source_bytes_match_archived_snapshot": True,
+                    **(
+                        {"original_and_typed_source_bytes_match_archived_snapshot": True}
+                        if require_material_sources
+                        else {}
+                    ),
+                    **({"four_blind_review_source_originals_match_archive": True} if p5 else {}),
                 }
         require(status(state)["healthy_now"], "SOURCE_READINESS_CHANGED")
         report.update(status="PASSED", stage="COMPLETE", source_ready_after=True)
@@ -698,9 +960,15 @@ def main():
     parser.add_argument("--output", type=Path)
     parser.add_argument("--source-state", type=Path, default=STATE)
     parser.add_argument("--require-material-sources", action="store_true")
+    parser.add_argument("--p5-http-report", type=Path)
+    parser.add_argument("--p5-browser-report", type=Path)
     args = parser.parse_args()
+    if bool(args.p5_http_report) != bool(args.p5_browser_report):
+        parser.error("P5 verification requires both --p5-http-report and --p5-browser-report")
     if not args.execute:
         state, _, _ = source_resources(args.source_state)
+        if args.p5_http_report:
+            _p5_evidence(args.p5_http_report, args.p5_browser_report, args.source_state, state)
         print(json.dumps({"status": "READY", "source": state["url"], "writes": 0}))
         return
     if args.output is None:
@@ -734,6 +1002,8 @@ def main():
                     report,
                     args.source_state,
                     require_material_sources=args.require_material_sources,
+                    p5_http_report=args.p5_http_report,
+                    p5_browser_report=args.p5_browser_report,
                 )
         except BlockingIOError:
             report.update(status="FAILED", failure_code="DEMO_LIFECYCLE_BUSY")
