@@ -6,6 +6,8 @@
 
 ## 体验与运行
 
+需要零模型费用的独立浏览器演示时，可按[演示启动说明](docs/DEMO_WALKTHROUGH.md#独立离线演示环境)运行 `python3 scripts/offline_demo.py start`。此命令使用独立资源，不修改下面的已有体验栈。
+
 本机现有体验栈在 <http://127.0.0.1:5186>，已启用真实模型和本地混合检索。退款和库存操作均为模拟。登录使用本机 `.runtime/users-app.json` 中对应客户、客服、审批人或测试员的 `token`。测试工作台使用 <http://127.0.0.1:5187> 及其对应的 `.runtime/users-test.json`。凭据文件仅保存在本机。
 
 维护现有体验栈时，使用操作手册中的 live overlay 和镜像覆盖命令。2026-11-10 场景指标验收时，体验栈前端为 `financial`，后端为 `context`。测试工作台 `5187` 已提供场景指标和贡献案例下钻，静态入口为 `index-BGOLR24m.js`。已有对应端口监听时，请复用现有服务。[现有栈维护](docs/OPERATIONS.md#维护本机现有体验栈)
