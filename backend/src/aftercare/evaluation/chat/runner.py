@@ -1,9 +1,14 @@
 """Run paired chat investigations via the existing AgentService worker core."""
 
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from functools import partial
+from hashlib import sha256
+from pathlib import Path
+from re import fullmatch
+from sys import modules
 
 from sqlalchemy import create_engine, func, insert, select
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
@@ -492,9 +497,7 @@ class ChatEvaluationRunner:
     """Explicit local test seam. No settings or credential discovery."""
 
     def __init__(self, model: ModelRunner, checkpointer, *, calls: int, budget: Decimal):
-        self.model = model.with_evaluation_limits(calls=calls, budget=budget)
-        self.checkpointer = checkpointer
-        registry = self.model.registry
+        registry = model.registry
         if (
             len(registry.models) != 1
             or registry.native_streaming
@@ -502,6 +505,86 @@ class ChatEvaluationRunner:
             or model.transport is _DEFAULT_SYNC_TRANSPORT
         ):
             raise ValueError("CHAT_EVAL_FIXED_MODEL_REQUIRED")
+        self._paid_scope = None
+        self._wire_row = None
+        self._configure(model, checkpointer, calls, budget)
+
+    @staticmethod
+    def _pinned_gate_file(module, name, files):
+        expected = Path("/p4-gate") / name
+        if getattr(module, "__file__", None) != str(expected):
+            return False
+        try:
+            return sha256(expected.read_bytes()).hexdigest() == files.get(name)
+        except OSError:
+            return False
+
+    @classmethod
+    def _admitted_paid_text(cls, model, *, approval_sha256, scope_sha256):
+        from langchain_openai._compat import httpx
+
+        gate = modules.get("sitecustomize")
+        plan = getattr(gate, "PLAN", None)
+        gate_policy = getattr(gate, "p5_policy", None)
+        if (
+            not isinstance(plan, dict)
+            or getattr(gate, "READY", False) is not True
+            or getattr(gate, "PROTOCOL", None) != "p5-paid-text-v1"
+            or plan.get("protocol") != "p5-paid-text-v1"
+            or plan.get("campaign") != "chat-p5-paid-terra-ordinary-v1"
+            or getattr(gate, "STATE", None) != Path("/p4-wire")
+            or gate_policy is not modules.get("p5_policy")
+            or not callable(getattr(gate_policy, "active_row", None))
+            or not callable(getattr(gate, "_write", None))
+            or not cls._pinned_gate_file(gate, "sitecustomize.py", plan.get("files", {}))
+            or not cls._pinned_gate_file(gate_policy, "p5_policy.py", plan.get("files", {}))
+            or getattr(gate, "_send", None) is getattr(gate, "SEND", None)
+            or getattr(gate, "_handle", None) is getattr(gate, "HANDLE", None)
+            or httpx.Client.send is not getattr(gate, "_send", None)
+            or httpx.HTTPTransport.handle_request is not getattr(gate, "_handle", None)
+            or digest(plan) != approval_sha256
+            or plan.get("scope_sha256") != scope_sha256
+            or plan.get("registry_sha256") != model.base_registry_digest
+        ):
+            raise ValueError("CHAT_EVAL_PAID_GATE_REQUIRED")
+        registry = model.registry
+        spec = registry.models[0] if len(registry.models) == 1 else None
+        if (
+            not all(
+                isinstance(value, str) and fullmatch(r"[a-f0-9]{64}", value)
+                for value in (approval_sha256, scope_sha256)
+            )
+            or spec is None
+            or registry.native_streaming
+            or model.transport is not _DEFAULT_SYNC_TRANSPORT
+            or spec.provider != "openai"
+            or spec.model != "gpt-6.1-terra"
+            or spec.alias != "analysis"
+            or spec.endpoint.rstrip("/") != "https://api.openai.com/v1"
+            or spec.interface != "responses"
+            or spec.compatibility != "VERIFIED"
+            or not spec.tool_calls
+            or spec.vision
+            or spec.context_tokens != 32000
+            or spec.output_tokens != P4_OUTPUT_RESERVE
+            or spec.data_scopes != ["customer_conversation"]
+        ):
+            raise ValueError("CHAT_EVAL_PAID_ADMISSION_INVALID")
+        runner = cls.__new__(cls)
+        runner._paid_scope = scope_sha256
+        runner._paid_campaign = plan["campaign"]
+        runner._wire_row = partial(gate_policy.active_row, gate.STATE, plan, gate._write)
+        runner._configure(model, None, 8, Decimal("0.40"))
+        runner.controls.update(
+            evidence_grade="REAL_PROVIDER_TEXT_ONLY",
+            approved_plan_sha256=approval_sha256,
+        )
+        return runner
+
+    def _configure(self, model, checkpointer, calls, budget):
+        self.model = model.with_evaluation_limits(calls=calls, budget=budget)
+        self.checkpointer = checkpointer
+        registry = self.model.registry
         self.controls = {
             "evidence_grade": "CONTROLLED_WORKER_CORE",
             "model": registry.models[0].model,
@@ -527,6 +610,15 @@ class ChatEvaluationRunner:
         return self._run(manifest, campaign, cases, _SQLiteBackend(self.checkpointer))
 
     def _run(self, manifest, campaign, cases, backend):
+        if self._paid_scope is not None:
+            from .pg_runtime import _PgRuntime
+
+            if (
+                not isinstance(backend, _PgRuntime)
+                or campaign != self._paid_campaign
+                or backend.campaign != campaign
+            ):
+                raise ValueError("CHAT_EVAL_PAID_RUNTIME_REQUIRED")
         with manifest.lock():
             backend.fence()
             keys = [(case.repetition, case.case_id) for case in cases]
@@ -536,9 +628,19 @@ class ChatEvaluationRunner:
             records = [sources[(case.repetition, case.case_id)].record for case in cases]
             if len({digest(record["issue_budget"]) for record in records}) > 1:
                 raise ValueError("CHAT_EVAL_ISSUE_BUDGET_MISMATCH")
+            backend_controls = backend.control_fields()
+            if self._paid_scope is not None and (
+                backend_controls.get("storage_topology") != "OWNED_POSTGRESQL_S3"
+                or len(records) != 1
+                or records[0]["scope_sha256"] != self._paid_scope
+                or records[0]["case_id"] != "DAMAGE-ORDINARY"
+                or records[0]["repetition"] != 1
+                or records[0]["issue_budget"] != {"calls": 8, "microusd": 400_000}
+            ):
+                raise ValueError("CHAT_EVAL_PAID_FROZEN_INPUT_MISMATCH")
             controls = {
                 **self.controls,
-                **backend.control_fields(),
+                **backend_controls,
                 "tools": sorted(
                     {
                         item["function"]["name"]
@@ -558,7 +660,8 @@ class ChatEvaluationRunner:
                 source = sources[(row["repetition"], row["case_id"])]
                 receipt = manifest.result(row)
                 if receipt is None:
-                    receipt = self._run_row(manifest, row, source, backend)
+                    with self._wire_row(row) if self._wire_row else nullcontext():
+                        receipt = self._run_row(manifest, row, source, backend)
                     manifest.finish(row, receipt)
                     receipt = manifest.result(row)
                 results.append(receipt)

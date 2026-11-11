@@ -1,11 +1,14 @@
 """Paired execution through isolated local databases and the real worker core."""
 
+import importlib.util
 import json
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from functools import wraps
+from functools import partial, wraps
+from pathlib import Path
 from threading import Lock
+from uuid import NAMESPACE_URL, uuid5
 
 import pytest
 from langchain_core.messages import ToolMessage
@@ -20,11 +23,16 @@ from test_conversations import client as _client
 from test_conversations import send
 from test_conversations import system as _system
 
-from aftercare.business.rules import utc
+from aftercare.business.rules import digest, utc
 from aftercare.conversations.tables import Conversation
 from aftercare.decisions.tables import DecisionSnapshot
-from aftercare.evaluation.chat.manifest import ARMS, Manifest, bound_rows
-from aftercare.evaluation.chat.runner import ChatEvaluationRunner, FrozenCase, _elapsed
+from aftercare.evaluation.chat.manifest import ARMS, PROTOCOL, Manifest, bound_rows
+from aftercare.evaluation.chat.runner import (
+    ChatEvaluationRunner,
+    FrozenCase,
+    _elapsed,
+    _freeze_case,
+)
 from aftercare.evaluation.runner import _namespace
 from aftercare.intelligence.models import ModelRunner, Registry
 from aftercare.intelligence.service import AgentService, RunAudit
@@ -124,6 +132,90 @@ def _controlled_transport(context, calls):
     return transport
 
 
+def _gated_controlled_run(runner, manifest, case, directory):
+    """Send actual runner messages through Responses serialization and the pure P5 gate."""
+    from langchain_openai import ChatOpenAI
+
+    path = Path(__file__).resolve().parents[3] / "scripts/chat_p4_wire_gate/p5_policy.py"
+    module_spec = importlib.util.spec_from_file_location("runner_p5_wire_policy", path)
+    gate = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(gate)
+    directory.mkdir()
+    (directory / "lock").touch()
+    campaign = "paired-fixture"
+    frozen = _freeze_case(case).record
+    plan = {
+        "wire_rows": [
+            {
+                "id": str(
+                    uuid5(
+                        NAMESPACE_URL,
+                        digest([PROTOCOL, campaign, case.repetition, case.case_id, arm]),
+                    )
+                ),
+                "arm": arm,
+            }
+            for arm in ARMS
+        ],
+        "scope_sha256": frozen["scope_sha256"],
+        "model": "gpt-6.1-terra",
+        "output_tokens": 1800,
+        "per_post_reserved_microusd": 49_000,
+    }
+    client = ChatOpenAI(model=plan["model"], api_key="unused-fixture", use_responses_api=True)
+
+    def write(path, record):
+        with path.open("x") as output:
+            json.dump(record, output)
+
+    original = runner.model.transport
+
+    def gated(spec, messages, tools, timeout, output):
+        payload = client._get_request_payload(messages)
+        initial = next(item for item in payload["input"] if item.get("role") == "user")
+        view = json.loads(initial["content"])["frozen_input"]
+        assert view["input_digest"] == frozen["relevant_input_sha256"]
+        role, recheck = gate.request_role(payload["input"], view, frozen["catalogue_sha256"])
+        index, row = gate.admit(
+            directory,
+            plan,
+            write,
+            json.dumps(payload).encode(),
+            [item["function"]["name"] for item in tools],
+            role=role,
+            recheck=recheck,
+        )
+        write(
+            directory / f"response-{index:02}.json",
+            {
+                "row_id": row,
+                "call_index": index,
+                "http_status": 200,
+            },
+        )
+        return original(spec, messages, tools, timeout, output)
+
+    runner.model.transport = gated
+    runner._wire_row = partial(gate.active_row, directory, plan, write)
+    try:
+        result = runner.run(manifest, campaign, [case])
+    finally:
+        runner.model.transport = original
+        runner._wire_row = None
+    admission = [json.loads(path.read_bytes()) for path in directory.glob("admission-*.json")]
+    assert {(row["arm"], row["phase_family"]) for row in admission} == {
+        ("strong_single", "single"),
+        ("single_staged", "staged-fact"),
+        ("single_staged", "staged-policy"),
+        ("single_staged", "verify-0"),
+        ("multi", "fact"),
+        ("multi", "policy"),
+        ("multi", "verify"),
+        ("multi", "recheck"),
+    }
+    return result
+
+
 @pytest.mark.parametrize("eligible", [True, False])
 def test_frozen_scope_across_arms_and_interruption_is_not_resent(
     configured, tmp_path, monkeypatch, eligible
@@ -205,7 +297,11 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
     )
     runner = ChatEvaluationRunner(model, InMemorySaver(), calls=8, budget=Decimal("0.10"))
     manifest = Manifest(tmp_path / "paired")
-    result = runner.run(manifest, "paired-fixture", [case])
+    result = (
+        _gated_controlled_run(runner, manifest, case, tmp_path / "wire")
+        if eligible
+        else runner.run(manifest, "paired-fixture", [case])
+    )
     rows = result["rows"]
     assert [row["arm"] for row in rows] == list(ARMS)
     assert [row["route"] for row in rows] == (
