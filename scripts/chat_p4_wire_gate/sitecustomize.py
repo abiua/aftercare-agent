@@ -96,6 +96,11 @@ def _handle(transport, request):
     ]
     if len(views) != 1 or views[0].get("input_digest") != PLAN["relevant_input_sha256"]:
         raise RuntimeError("P4_WIRE_SCOPE_REJECTED")
+    if PLAN.get("protocol") == "compact-v2" and (
+        views[0].get("evidence_encoding") != "compact-v2"
+        or views[0].get("scope") != [PLAN["conversation_id"], PLAN["issue_id"], PLAN["case_id"]]
+    ):
+        raise RuntimeError("P4_WIRE_COMPACT_ENCODING_REQUIRED")
     for row in [*objects, *_objects(views)]:
         scope = row.get("scope")
         if isinstance(scope, list) and (

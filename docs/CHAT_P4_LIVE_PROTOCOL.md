@@ -29,3 +29,19 @@
 此验收覆盖合成事项在人工材料确认后的真实文字工具链。视觉质量、多架构质量差异和生产支付均有独立的验收范围。
 
 如果主验收进程被强制终止，先用 P4 离线状态文件中的 run ID 和资源标签确认归属，再停止并移除本次登记的 p4-paid-worker、移除其私有运行目录中的 model-secret.json，并恢复本栈原 worker。保留 admission 和 p4-text-wire，供核对已放行次数及未知响应。其他栈的 worker、密钥和数据库不在清理范围内。
+
+## compact-v2 复验
+
+原 5195 报告和执行记录保留。复验通过固定的 compact-v2 协议使用 5196 和对象端口 58358，运行已冻结的 930a162 镜像。离线路径与真实模型路径共用该协议选择。
+
+    export PYTHONPATH=backend/src
+    PYTHON="$HOME/.cache/aftercare-agent/backend-venv/bin/python"
+    "$PYTHON" scripts/verify_chat_p4_path.py --protocol compact-v2 --backend-image-id sha256:14a93ee24066e3d3d0ffac7aad42fd102580c222aab11833a5c3d870c0dfd4cf --frontend-image-id sha256:931caa17b56da6222d5fa020f41bc8401e32e0ec21e5416326a12dfef2ad3e20
+
+验收操作者审阅预检后，给同一命令追加 --execute、--expected-plan-sha256 及 --report reports/chat-p4-compact-offline-20261111.json。该离线报告成功后再运行：
+
+    "$PYTHON" scripts/verify_chat_p4_live.py --protocol compact-v2 --offline-report reports/chat-p4-compact-offline-20261111.json
+
+真实复验的执行入口使用上述命令和 --execute、--expected-plan-sha256 及 --report reports/chat-p4-compact-text-live-20261111.json。它沿用最多 8 次 POST、每次最多 900 输出、整上下文估算总额不超过 0.40 美元和 0.20 美元的事项估算上限。仅验证同一合成事项的文字和工具链。出站门要求 compact-v2 格式及精确事项范围。
+
+复验报告分别记录兼容性和业务候选。业务通过需要真实后续轮次、可追溯的工具证据、处于已核实范围的金额或数量，以及客服候选对应的程序校验通过。转人工、提示超限、带未解决项的候选和待执行的支付均不计入业务通过。

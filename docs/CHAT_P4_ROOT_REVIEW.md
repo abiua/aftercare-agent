@@ -56,3 +56,12 @@ root 审查并接收 compact-v2：把重复事项范围与证据身份编码集�
 实际5195冻结样本与原三工具批次的受控复现保留17条记录，第二轮含工具定义估算21,106；此为注入传输验证，不是第二轮真实模型成功。详情 `CHAT_P4_PROMPT_LIMIT_DIAGNOSIS.md`。root 完整非PG回归934通过、2跳过、39未选，日志 `.runtime/chat-p4-compact-root-regression-corrected.log`。首轮误用 `not postgres` 而非本仓库 `not pg`，额外选中PG项并在旧测试环境 `test_queue_pg` 初次GET因缺聊天列失败（尚未进入该测试POST）；日志 `.runtime/chat-p4-compact-root-regression.log` 保留，未迁移或修改旧环境来掩盖失败。
 
 客服原因码已补中文说明，保留展开的原始代码。前端47项纯测试、lint与构建通过；这份修改尚未部署或浏览器复验。P5差距及首条切片见 `CHAT_P5_GAP_PLAN.md`，评测改造仍在开发，未计完成。
+
+
+## compact-v2 实际复验：输入修复成立，业务仍失败
+
+冻结930a162已通过托管检查42970507518；从该提交归档构建的新隔离5196完成离线路径，报告 `reports/chat-p4-compact-offline-20261111.json`。原5195与首次结果不变。
+
+`reports/chat-p4-compact-text-live-20261111.json` 按独立有界协议执行4次实际HTTP200，估算费用0.01614765美元。三轮输入估算12446/20524/21833均低于24576，说明原输入膨胀故障已在真实调用中消除。第二轮出现一次INVALID_MODEL_OUTPUT，现有有界修复尝试成功；最终轮900输出达到本次协议上限，记录MODEL_INCOMPLETE，运行NEEDS_REVIEW。兼容性PASSED、业务候选FAILED，无可执行候选、公开客户方案或执行。不得将其计成真实决策成功。
+
+root独立核对临时付费容器不存在、临时模型密钥副本不存在、离线worker运行。原始attempt与失败报告保留，不自动再次调用；继续核对实际输出预算、错误工具参数和完整方案所需字段。P5盲审API和页面已进入开发，尚未经root完整审查与实际端到端验收。

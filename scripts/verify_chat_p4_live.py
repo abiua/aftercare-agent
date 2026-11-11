@@ -34,10 +34,13 @@ def _uuid(value):
     return str(UUID(value))
 
 
-def _stack():
-    with patch.object(offline_demo, "STATE", p4.STATE):
-        state = _private_json(p4.STATE)
-        require(state["status"] == "READY" and state["url"] == URL, "P4_ISOLATED_OFFLINE_REQUIRED")
+def _stack(context=p4.PROTOCOLS["original"]):
+    with patch.object(offline_demo, "STATE", context.state):
+        state = _private_json(context.state)
+        require(
+            state["status"] == "READY" and state["url"] == f"http://127.0.0.1:{context.port}",
+            "P4_ISOLATED_OFFLINE_REQUIRED",
+        )
         require(offline_demo.status(state)["healthy_now"], "P4_OFFLINE_UNHEALTHY")
         stack = offline_demo.restore(state)
     stack.prefix = f"aftercare-fresh-{stack.run_id}"
@@ -85,6 +88,7 @@ with Session(engine) as db, db.begin():
         "scope_sha256": scope.input_sha256,
         "issue_id": scope.issue_id,
         "old_run_reason": old.reason,
+        "prompt_version": binding.get("investigation_prompt_version"),
         "case_runs": list(db.scalars(select(AgentRun.id).where(AgentRun.case_id == scope.case_id).order_by(AgentRun.created_at))),
         "active_count": len(list(db.scalars(select(AgentRun.id).where(AgentRun.status.in_(["QUEUED", "RUNNING", "WAITING_INPUT"]))))),
         "other_attempt_count": sum(row.run_id != selected for row in attempts),
@@ -107,14 +111,17 @@ engine.dispose()
     )
 
 
-def _plan(offline_path):
-    state, stack, config = _stack()
+def _plan(offline_path, protocol="original"):
+    context = p4.PROTOCOLS[protocol]
+    url = f"http://127.0.0.1:{context.port}"
+    state, stack, config = _stack(context)
     raw = offline_path.read_bytes()
     evidence = json.loads(raw)
     scenario = evidence["scenario"]
     require(
         evidence["status"] == "PASSED"
-        and evidence["isolated_url"] == URL
+        and evidence["isolated_url"] == url
+        and evidence["plan"].get("protocol", "original") == protocol
         and scenario["stage"] == "verified"
         and scenario["staff_selected_path"] in {"SINGLE", "MULTI"},
         "P4_OFFLINE_EVIDENCE_REQUIRED",
@@ -142,6 +149,15 @@ def _plan(offline_path):
         for item in scenario["materials"]
     ]
     require(baseline["originals"] == originals, "P4_ORIGINAL_PROVENANCE_CHANGED")
+    if protocol == "compact-v2":
+        require(
+            scenario["staff_selected_path"] == "SINGLE"
+            and baseline["prompt_version"] == "compact-v2"
+            and config.get("chat_investigation_issue_max_microusd", 200_000) == 200_000,
+            "P4_COMPACT_SCOPE_OR_BUDGET_MISMATCH",
+        )
+    else:
+        baseline.pop("prompt_version")
     spec = _configuration()["gpt-6.1-terra"]
     reserve = models._reserve_price(spec, spec.context_tokens, OUTPUT)
     require(
@@ -154,7 +170,7 @@ def _plan(offline_path):
         and EMBEDDING.is_dir(),
         "P4_PROVIDER_SCOPE_UNAVAILABLE",
     )
-    image = evidence["plan"]["images"][p4.BACKEND]
+    image = evidence["plan"]["images"][context.backend]
     require(
         isinstance(image, str)
         and len(image) == 71
@@ -177,7 +193,7 @@ def _plan(offline_path):
         "scope": "ISOLATED_SYNTHETIC_P4_TEXT_AFTER_HUMAN_MATERIAL_REVIEW",
         "stack_id": stack.run_id,
         "backend_image_id": image,
-        "url": URL,
+        "url": url,
         "case_id": case_id,
         "conversation_id": conversation_id,
         "old_run_id": old_run,
@@ -198,6 +214,8 @@ def _plan(offline_path):
         "wire_guard_sha256": hashlib.sha256(GATE.read_bytes()).hexdigest(),
         "local_embedding_revision": REVISION,
     }
+    if protocol == "compact-v2":
+        plan["protocol"] = protocol
     return plan, spec, state, stack
 
 
@@ -207,7 +225,7 @@ def _exercise(stack, plan, report, report_path):
         clients = {
             role: managers.enter_context(
                 httpx.Client(
-                    base_url=f"{URL}/api/",
+                    base_url=f"{plan['url']}/api/",
                     headers={"Authorization": f"Bearer {credentials[role]['token']}"},
                     timeout=10,
                     trust_env=False,
@@ -228,10 +246,13 @@ def _exercise(stack, plan, report, report_path):
             ),
             "P4_PRIOR_HANDOFF_REQUIRED",
         )
-        require(
-            p3._case(support, plan["case_id"])["eligibility"]["status"] == "ELIGIBLE",
-            "P4_MATERIAL_REVIEW_REQUIRED",
-        )
+        eligibility = p3._case(support, plan["case_id"])["eligibility"]
+        require(eligibility["status"] == "ELIGIBLE", "P4_MATERIAL_REVIEW_REQUIRED")
+        if plan.get("protocol") == "compact-v2":
+            report["eligible_scope"] = {
+                "lines": eligibility["lines"],
+                "policies_by_action": eligibility["policy_ids_by_action"],
+            }
         report["request_ids"] = {}
         key = p3._key(report, "p4_single_compatibility_run")
         _save(report_path, report)
@@ -247,6 +268,10 @@ def _exercise(stack, plan, report, report_path):
             row["payload"] for row in trace if row["kind"] == "investigation_tool"
         ]
         report["route"] = p4._route(trace)
+        if plan.get("protocol") == "compact-v2":
+            report["prompt_budget"] = [
+                row["payload"] for row in trace if row["kind"] == "investigation_prompt_budget"
+            ]
         if settled["status"] in {"COMPLETED", "NEEDS_REVIEW"}:
             detail = _wait(
                 support,
@@ -260,6 +285,14 @@ def _exercise(stack, plan, report, report_path):
                 "origin": snapshot["origin"],
                 "options": snapshot["candidate"]["options"],
                 "checks": snapshot["checks"],
+                **(
+                    {
+                        "graph_version": snapshot["candidate"]["graph_version"],
+                        "unresolved": snapshot["candidate"]["unresolved"],
+                    }
+                    if plan.get("protocol") == "compact-v2"
+                    else {}
+                ),
             }
         require(read(customer, base + "/offer")["offer"] is None, "P4_CUSTOMER_OFFER_UNEXPECTED")
         require(
@@ -268,7 +301,7 @@ def _exercise(stack, plan, report, report_path):
         )
 
 
-def _execute(state, stack, spec, plan, report, report_path):
+def _execute(state, stack, spec, plan, report, report_path, context=p4.PROTOCOLS["original"]):
     worker = owned_container(stack, "worker")
     net, egress = (f"{stack.prefix}-{name}" for name in ("net", "ingress"))
     require(
@@ -322,7 +355,7 @@ def _execute(state, stack, spec, plan, report, report_path):
         offline_stopped = True
         stack.docker("STOP_OWN_OFFLINE_WORKER", "stop", worker)
         state["resources"] = [*stack.resources, ("container", paid)]
-        with patch.object(offline_demo, "STATE", p4.STATE):
+        with patch.object(offline_demo, "STATE", context.state):
             offline_demo.save(state)
         report["worker_swap"] = "OWNED_PAID_WORKER_REGISTERED"
         _save(report_path, report)
@@ -404,7 +437,7 @@ def _execute(state, stack, spec, plan, report, report_path):
                 state["resources"] = [
                     entry for entry in stack.resources if entry != ("container", paid)
                 ]
-                with patch.object(offline_demo, "STATE", p4.STATE):
+                with patch.object(offline_demo, "STATE", context.state):
                     offline_demo.save(state)
             report["wire"] = [
                 {
@@ -423,6 +456,9 @@ def _execute(state, stack, spec, plan, report, report_path):
                 report.get("run_id"),
             )
     rows, admissions = report["audit"]["attempts"], report["wire"]
+    compact = plan.get("protocol") == "compact-v2"
+    acceptable_status = {"SUCCEEDED", "FAILED"} if compact else {"SUCCEEDED"}
+
     require(
         report["paid_worker_removed"]
         and report["private_worker_key_removed"]
@@ -430,7 +466,7 @@ def _execute(state, stack, spec, plan, report, report_path):
         and 0 < len(rows) == len(admissions) <= LIMIT
         and all(row["response"] and row["response"]["http_status"] == 200 for row in admissions)
         and all(
-            row["status"] == "SUCCEEDED"
+            row["status"] in acceptable_status
             and row["alias"] == "analysis"
             and row["model"] == plan["model"]
             and row["usage"]
@@ -438,6 +474,7 @@ def _execute(state, stack, spec, plan, report, report_path):
             and row["transport"]["path"] == "DEFAULT_SYNC"
             for row in rows
         )
+        and any(row["status"] == "SUCCEEDED" for row in rows)
         and report["tool_trace"]
         and report.get("candidate")
         and not any(
@@ -454,8 +491,70 @@ def _execute(state, stack, spec, plan, report, report_path):
     )
 
 
+def _business_result(report):
+    candidate = report.get("candidate") or {}
+    rows = report["audit"]["attempts"]
+    tool_refs = {
+        ref["source_id"] for tool in report["tool_trace"] for ref in tool.get("evidence_refs", [])
+    }
+    eligible = {row["line_id"]: row for row in report["eligible_scope"]["lines"]}
+    policies_by_action = report["eligible_scope"]["policies_by_action"]
+
+    def grounded(option):
+        action = option["action"]
+        if action not in {"REFUND", "REPLACE"} or not option["lines"] or not option["policy_ids"]:
+            return False
+        if not set(option["policy_ids"]) <= set(policies_by_action.get(action, [])):
+            return False
+        measure, maximum = (
+            ("amount_cents", "available_cents")
+            if action == "REFUND"
+            else ("quantity", "replace_available_quantity")
+        )
+        return all(
+            (scope := eligible.get(line["line_id"])) is not None
+            and type(line.get(measure)) is int
+            and 0 < line[measure] <= (scope.get(maximum) or 0)
+            for line in option["lines"]
+        )
+
+    passed = [
+        option["id"]
+        for option in candidate.get("options", [])
+        if grounded(option)
+        and candidate["checks"].get(option["id"], {}).get("status") == "PASSED"
+        and bool(option["evidence_ids"])
+        and set(option["evidence_ids"]) <= tool_refs
+        and bool(option["lines"])
+    ]
+    if (
+        report["run"] == {"status": "COMPLETED", "reason": "ELIGIBLE"}
+        and candidate.get("origin") == "AGENT"
+        and candidate.get("graph_version") == "chat-investigation-v1"
+        and candidate.get("unresolved") == []
+        and passed
+        and report["route"].get("selected_path") == "SINGLE"
+        and len(rows) >= 2
+        and all(row["logical_id"].startswith("p4:compact-v2:") for row in rows)
+        and any(
+            row["prompt_version"] == "compact-v2"
+            and row["round"] >= 1
+            and row["limit"] == 24_576
+            and row["preflight"] in {"FIT", "FIT_WITHOUT_TOOLS"}
+            for row in report["prompt_budget"]
+        )
+    ):
+        return {"status": "PASSED", "program_passed_option_ids": passed}
+    return {
+        "status": "FAILED",
+        "reason": report["run"]["reason"],
+        "program_passed_option_ids": passed,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--protocol", choices=p4.PROTOCOLS, default="original")
     parser.add_argument("--offline-report", type=Path, required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--expected-plan-sha256")
@@ -465,14 +564,21 @@ def main():
         parser.error("--execute requires --expected-plan-sha256 and a new --report")
     # Validate the private state before creating its sibling lock, then read it
     # again under the lock as part of the plan.
-    _private_json(p4.STATE)
-    with offline_demo.lifecycle_lock(p4.STATE, shared=not args.execute):
+    context = p4.PROTOCOLS[args.protocol]
+    _private_json(context.state)
+    with offline_demo.lifecycle_lock(context.state, shared=not args.execute):
         return _run(args)
 
 
 def _run(args):
-    require(not ADMISSION.exists(), "P4_PROTOCOL_ALREADY_ADMITTED")
-    plan, spec, state, stack = _plan(args.offline_report)
+    context = p4.PROTOCOLS[args.protocol]
+    admission = (
+        ROOT / ".runtime" / "chat-p4-compact-v2-live-admission.json"
+        if args.protocol == "compact-v2"
+        else ADMISSION
+    )
+    require(not admission.exists(), "P4_PROTOCOL_ALREADY_ADMITTED")
+    plan, spec, state, stack = _plan(args.offline_report, args.protocol)
     signature = models.digest(plan)
     if not args.execute:
         print(
@@ -483,15 +589,26 @@ def _run(args):
         return 0
     require(signature == args.expected_plan_sha256, "P4_APPROVED_PLAN_CHANGED")
     report = {"status": "IN_PROGRESS", "plan_sha256": signature, "plan": plan}
+    if args.protocol == "compact-v2":
+        report.update(
+            compatibility="NOT_ESTABLISHED", business_candidate={"status": "NOT_ESTABLISHED"}
+        )
     _one_file(args.report, json.dumps(report))
     try:
-        _one_file(ADMISSION, json.dumps({"plan_sha256": signature, "stack_id": stack.run_id}))
-        parent = os.open(ADMISSION.parent, os.O_RDONLY | os.O_DIRECTORY)
+        _one_file(admission, json.dumps({"plan_sha256": signature, "stack_id": stack.run_id}))
+        parent = os.open(admission.parent, os.O_RDONLY | os.O_DIRECTORY)
         try:
             os.fsync(parent)
         finally:
             os.close(parent)
-        _execute(state, stack, spec, plan, report, args.report)
+        _execute(state, stack, spec, plan, report, args.report, context)
+        if args.protocol == "compact-v2":
+            report["compatibility"] = "PASSED"
+            report["business_candidate"] = _business_result(report)
+            require(
+                report["business_candidate"]["status"] == "PASSED",
+                "P4_BUSINESS_CANDIDATE_NOT_PASSED",
+            )
         report["status"] = "PASSED"
     except VerificationError as error:
         report.update(status="FAILED", failure_code=str(error))

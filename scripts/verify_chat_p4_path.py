@@ -24,6 +24,22 @@ STATE = ROOT / ".runtime" / "offline-browser-demo-p4.json"
 PORT, OBJECT_PORT = 5195, 58357
 BACKEND = "aftercare-backend:chat-p4-offline-20261111"
 FRONTEND = "aftercare-frontend:chat-p4-offline-20261111"
+PROTOCOLS = {
+    "original": SimpleNamespace(
+        state=STATE,
+        port=PORT,
+        object_port=OBJECT_PORT,
+        backend=BACKEND,
+        frontend=FRONTEND,
+    ),
+    "compact-v2": SimpleNamespace(
+        state=ROOT / ".runtime" / "offline-browser-demo-p4-compact-v2.json",
+        port=5196,
+        object_port=58358,
+        backend="aftercare-backend:chat-p4-compact-20261111",
+        frontend="aftercare-frontend:chat-p4-compact-20261111",
+    ),
+}
 READY_CHECKS = [
     "ORIGINAL_CHAT_ATTACHMENT_PROVENANCE",
     "AUTO_PROGRAM_NO_MODEL_ATTEMPT",
@@ -282,19 +298,19 @@ engine.dispose()
     )
 
 
-def _execute(report):
-    with patch.multiple(offline_demo, STATE=STATE, FreshStack=P4Stack):
+def _execute(report, context=PROTOCOLS["original"]):
+    with patch.multiple(offline_demo, STATE=context.state, FreshStack=P4Stack):
         offline_demo.start(
             SimpleNamespace(
-                port=PORT,
-                object_port=OBJECT_PORT,
-                backend_image=report["plan"]["images"][BACKEND],
-                frontend_image=report["plan"]["images"][FRONTEND],
+                port=context.port,
+                object_port=context.object_port,
+                backend_image=report["plan"]["images"][context.backend],
+                frontend_image=report["plan"]["images"][context.frontend],
             )
         )
-        state = _private_json(STATE)
+        state = _private_json(context.state)
         stack = offline_demo.restore(state)
-    require(state["url"] == f"http://127.0.0.1:{PORT}", "P4_LOOPBACK_REQUIRED")
+    require(state["url"] == f"http://127.0.0.1:{context.port}", "P4_LOOPBACK_REQUIRED")
     report["isolated_url"] = state["url"]
     config = _private_json(stack.runtime / "local.json")["app"]
     require(
@@ -318,7 +334,7 @@ def _execute(report):
             item = credentials[role]
             client = resources.enter_context(
                 httpx.Client(
-                    base_url=f"http://127.0.0.1:{PORT}/api/",
+                    base_url=f"http://127.0.0.1:{context.port}/api/",
                     trust_env=False,
                     timeout=10,
                     headers={"Authorization": f"Bearer {item['token']}"},
@@ -365,28 +381,32 @@ def _execute(report):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--protocol", choices=PROTOCOLS, default="original")
     parser.add_argument("--backend-image-id")
     parser.add_argument("--frontend-image-id")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--expected-plan-sha256")
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
+    context = PROTOCOLS[args.protocol]
     ids = (args.backend_image_id, args.frontend_image_id)
     if any(ids) and not all(value and re.fullmatch(r"sha256:[0-9a-f]{64}", value) for value in ids):
         parser.error("supply both full immutable sha256 image IDs")
-    images = dict(zip((BACKEND, FRONTEND), ids, strict=True)) if all(ids) else {}
+    images = dict(zip((context.backend, context.frontend), ids, strict=True)) if all(ids) else {}
     if args.execute and (not images or not args.expected_plan_sha256 or args.report is None):
         parser.error(
             "--execute requires pinned images, the exact preflight digest and a new report path"
         )
     with patch.multiple(
         p3,
-        STATE=STATE,
-        PORT=PORT,
-        OBJECT_PORT=OBJECT_PORT,
+        STATE=context.state,
+        PORT=context.port,
+        OBJECT_PORT=context.object_port,
         IMAGES={tag: value[7:] for tag, value in images.items()},
     ):
         frozen = plan(images)
+    if args.protocol == "compact-v2":
+        frozen["protocol"] = "compact-v2"
     if not images:
         print(json.dumps({"status": "UNPINNED_PREFLIGHT_ONLY", "plan": frozen}, indent=2))
         return 0
@@ -406,8 +426,8 @@ def main():
         stream.flush()
         os.fsync(stream.fileno())
     try:
-        with offline_demo.lifecycle_lock(STATE):
-            _execute(report)
+        with offline_demo.lifecycle_lock(context.state):
+            _execute(report, context)
         report["status"] = "PASSED"
     except VerificationError as error:
         report.update(status="FAILED", failure_code=str(error))
