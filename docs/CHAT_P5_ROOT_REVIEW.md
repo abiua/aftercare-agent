@@ -142,3 +142,9 @@ root核对专用p5-paid-text容器已移除、临时凭据副本已清除；独�
 验收脚本a3887a4在新5201/58363栈315cfced887148e3b4221b777887e929运行，计划8872af5b…8539；原报告 `reports/material-review-migration-20261111.json` 为FAILED/LEGACY_FIXTURE，原因TWO_CUSTOMERS_SUPPORT_AND_TESTER_REQUIRED。实际凭据仅一个customer及support/approver/tester各一，缺的是异客户账号。失败发生在登录身份读取阶段、创建旧工单之前，尚未执行迁移；不会重置原栈或覆盖失败报告。下一步恢复协议须核验实际旧镜像/物理数据库身份、零业务记录及原报告摘要，再登记独立第二客户测试账号后继续。账号凭据只留本机私有文件。
 
 09029ba托管检查42989840392、诊断修复1ceb243检查42989619940及v6的adcfd28检查42987443601均成功，仍不替代实际升级/模型质量验收。
+
+同栈恢复a533a41通过实际零业务记录/旧版本核验后登记一个隔离异客户测试账号，未改变原凭据。`reports/material-review-migration-recovered-20261111.json` 仍为FAILED，但已取得独立迁移证据：public升级到20261111_material_review_obs、旧审核新增列为SQL NULL、92表指纹与6个原对象保持，旧eval完整不变并克隆到新schema后观察仍为NULL。随后启动应用时因offline_demo.restore未恢复FreshStack.run所需prefix/label而AttributeError；新API尚未创建，仅本次PG/S3/Redis存活。不得把此报告称完整通过；后续只恢复应用与HTTP验收，不重复升级，原两次失败报告保留。
+
+## 版本化人工观察投影准备
+
+e907a46增加双显式启用的human-material-observations-v1：仅当前有效审核的结构化观察可进入冻结证据，校验当前事项商品行、材料版本、原图SHA及聊天关联；原备注和审核员身份不进入模型/盲态投影。新盲审v2直接展示人工观察，旧v1继续可读。现有compact-v6默认拒绝新投影，尚未启用到生产聊天或付费评测。root定向11项和冻结非PG回归1021通过、2可选跳过、40PG未选（`.runtime/human-observation-frozen-regression.log`）；前端受控盲审5项通过。独立审查还要求无观察时新投影也改变依赖摘要，防止复用旧候选，该边界正在补齐。实际新输入、模型语义与普通/复杂闭环仍需统一版本后验收。
