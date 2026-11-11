@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+.DS_Store
+
+.runtime/
+backend/.venv/
+frontend/node_modules/
+frontend/dist/
+models/
+
+# Local caches, captures and execution evidence stay on this machine.
+.pytest_cache/
+.ruff_cache/
+**/node_modules/
+**/test-results/
+**/playwright-report/
+reports/
+*.sqlite
+*.sqlite3
+*.db
+*.pem
+*.key
+**/.mypy_cache/

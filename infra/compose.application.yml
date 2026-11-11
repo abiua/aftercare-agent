@@ -1,0 +1,205 @@
+# Use with infra/compose.yml. The host and container entry points use the
+# same project services and volumes, so run one application stack per profile.
+x-backend: &backend
+  image: aftercare-backend:local
+  build:
+    context: ..
+    dockerfile: infra/Dockerfile.backend
+  user: "${AFTERCARE_UID:-1000}:${AFTERCARE_GID:-1000}"
+  volumes:
+    - ../.runtime/local.json:/workspace/.runtime/local.json:ro
+  restart: unless-stopped
+
+x-app-env: &app-env
+  AFTERCARE_CONTAINER: "1"
+  AFTERCARE_PROFILE: app
+
+x-test-env: &test-env
+  AFTERCARE_CONTAINER: "1"
+  AFTERCARE_PROFILE: test
+
+x-init: &init
+  <<: *backend
+  restart: "no"
+  volumes:
+    - ../.runtime:/workspace/.runtime
+  command:
+    - /bin/sh
+    - -ec
+    - |
+      python - <<'PY'
+      import os
+      import time
+      from botocore.exceptions import EndpointConnectionError
+      from aftercare.business.storage import S3ObjectStore
+      from aftercare.config import load_settings
+
+      store = S3ObjectStore(load_settings(os.environ["AFTERCARE_PROFILE"]))
+      for attempt in range(30):
+          try:
+              store.ensure_bucket()
+              break
+          except EndpointConnectionError:
+              if attempt == 29:
+                  raise
+              time.sleep(1)
+      PY
+      alembic upgrade head
+      python -m aftercare.manage bootstrap --profile "$${AFTERCARE_PROFILE}"
+
+x-worker: &worker
+  <<: *backend
+  command: [celery, -A, aftercare.worker, worker, --loglevel=INFO, --concurrency=1, '--hostname=aftercare-worker@%h']
+  healthcheck:
+    test: [CMD-SHELL, 'celery -A aftercare.worker inspect --timeout 3 --destination "aftercare-worker@$${HOSTNAME}" ping']
+    interval: 15s
+    timeout: 10s
+    retries: 6
+    start_period: 15s
+  stop_grace_period: 75s
+
+x-beat: &beat
+  <<: *backend
+  command: [celery, -A, aftercare.worker, beat, --loglevel=INFO, --schedule=/tmp/aftercare-beat]
+
+x-api: &api
+  <<: *backend
+  healthcheck:
+    test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/readyz', timeout=4).close()"]
+    interval: 5s
+    timeout: 5s
+    retries: 12
+    start_period: 10s
+
+x-frontend: &frontend
+  image: aftercare-frontend:local
+  build:
+    context: ..
+    dockerfile: infra/Dockerfile.frontend
+  restart: unless-stopped
+  healthcheck:
+    test: [CMD, wget, -q, -T, '4', -O, /dev/null, 'http://127.0.0.1:8080/api/readyz']
+    interval: 10s
+    timeout: 5s
+    retries: 6
+
+x-redis-health: &redis-health
+  test: [CMD, redis-cli, ping]
+  interval: 3s
+  timeout: 3s
+  retries: 20
+
+services:
+  pg-app:
+    networks: [app-net]
+  redis-app:
+    networks: [app-net]
+    healthcheck: *redis-health
+  objects-app:
+    networks: [app-net]
+
+  pg-test:
+    networks: [test-net]
+  redis-test:
+    networks: [test-net]
+    healthcheck: *redis-health
+  objects-test:
+    networks: [test-net]
+
+  init-app:
+    <<: *init
+    profiles: [app]
+    networks: [app-net]
+    environment: *app-env
+    depends_on:
+      pg-app: {condition: service_healthy}
+      objects-app: {condition: service_started}
+
+  init-test:
+    <<: *init
+    profiles: [test]
+    networks: [test-net]
+    environment: *test-env
+    depends_on:
+      pg-test: {condition: service_healthy}
+      objects-test: {condition: service_started}
+
+  api-app:
+    <<: *api
+    profiles: [app]
+    networks: [app-net]
+    environment: *app-env
+    ports: ['127.0.0.1:8020:8000']
+    depends_on:
+      init-app: {condition: service_completed_successfully}
+      redis-app: {condition: service_healthy}
+
+  api-test:
+    <<: *api
+    profiles: [test]
+    networks: [test-net]
+    environment: *test-env
+    ports: ['127.0.0.1:8022:8000']
+    depends_on:
+      init-test: {condition: service_completed_successfully}
+      redis-test: {condition: service_healthy}
+
+  worker-app:
+    <<: *worker
+    profiles: [app]
+    networks: [app-net]
+    environment: *app-env
+    depends_on:
+      init-app: {condition: service_completed_successfully}
+      redis-app: {condition: service_healthy}
+
+  worker-test:
+    <<: *worker
+    profiles: [test]
+    networks: [test-net]
+    environment: *test-env
+    depends_on:
+      init-test: {condition: service_completed_successfully}
+      redis-test: {condition: service_healthy}
+
+  beat-app:
+    <<: *beat
+    profiles: [app]
+    networks: [app-net]
+    environment: *app-env
+    depends_on:
+      worker-app: {condition: service_healthy}
+
+  beat-test:
+    <<: *beat
+    profiles: [test]
+    networks: [test-net]
+    environment: *test-env
+    depends_on:
+      worker-test: {condition: service_healthy}
+
+  frontend-app:
+    <<: *frontend
+    profiles: [app]
+    networks: [app-net]
+    ports: ['127.0.0.1:5186:8080']
+    environment:
+      AFTERCARE_UPSTREAM: api-app:8000
+      NGINX_ENVSUBST_FILTER: '^AFTERCARE_UPSTREAM$'
+    depends_on:
+      api-app: {condition: service_healthy}
+
+  frontend-test:
+    <<: *frontend
+    profiles: [test]
+    networks: [test-net]
+    ports: ['127.0.0.1:5187:8080']
+    environment:
+      AFTERCARE_UPSTREAM: api-test:8000
+      NGINX_ENVSUBST_FILTER: '^AFTERCARE_UPSTREAM$'
+    depends_on:
+      api-test: {condition: service_healthy}
+
+networks:
+  app-net:
+  test-net:

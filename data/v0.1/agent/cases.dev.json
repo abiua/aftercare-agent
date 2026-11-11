@@ -1,0 +1,3344 @@
+[
+  {
+    "actor_customer_id": "C073",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "status": "UNSHIPPED",
+        "type": "FULFILLMENT_RESULT"
+      },
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-001",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T23:00:00+08:00",
+        "customer_id": "C073",
+        "delivered_at": null,
+        "discount_cents": 800,
+        "id": "O0001",
+        "items": [
+          {
+            "discount_cents": 800,
+            "line_id": "L01",
+            "paid_cents": 15000,
+            "payable_cents": 15000,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 15800
+          }
+        ],
+        "paid_at": "2026-11-09T23:15:00+08:00",
+        "paid_cents": 15000,
+        "payable_cents": 15000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "PAID",
+        "subtotal_cents": 15800
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-001",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE001",
+    "order_id": "O0001",
+    "split": "dev",
+    "utterances": [
+      "我下单后买重了，仓库还没发的话帮我撤掉。"
+    ]
+  },
+  {
+    "actor_customer_id": "C001",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNSHIPPED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T22:00:00+08:00",
+        "customer_id": "C055",
+        "delivered_at": null,
+        "discount_cents": 6,
+        "id": "O0002",
+        "items": [
+          {
+            "discount_cents": 6,
+            "line_id": "L01",
+            "paid_cents": 12056,
+            "payable_cents": 12056,
+            "product_id": "P003",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12062
+          }
+        ],
+        "paid_at": "2026-11-09T22:15:00+08:00",
+        "paid_cents": 12056,
+        "payable_cents": 12056,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "PAID",
+        "subtotal_cents": 12062
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P003",
+          "name": "无线鼠标",
+          "returnable": true,
+          "unit_price_cents": 12900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-002",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE002",
+    "order_id": "O0002",
+    "split": "dev",
+    "utterances": [
+      "订单号发你了，想取消。",
+      "我爸买的，他让我帮忙操作。"
+    ]
+  },
+  {
+    "actor_customer_id": "C067",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNSHIPPED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T21:00:00+08:00",
+        "customer_id": "C067",
+        "delivered_at": null,
+        "discount_cents": 9,
+        "id": "O0003",
+        "items": [
+          {
+            "discount_cents": 9,
+            "line_id": "L01",
+            "paid_cents": 0,
+            "payable_cents": 12084,
+            "product_id": "P004",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12093
+          }
+        ],
+        "paid_at": null,
+        "paid_cents": 0,
+        "payable_cents": 12084,
+        "payment_status": "UNPAID",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "UNPAID",
+        "subtotal_cents": 12093
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P004",
+          "name": "移动电源",
+          "returnable": true,
+          "unit_price_cents": 15900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-003",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE003",
+    "order_id": "O0003",
+    "split": "dev",
+    "utterances": [
+      "这个订单我不想要了，把钱退回付款卡吧。"
+    ]
+  },
+  {
+    "actor_customer_id": "C019",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNSHIPPED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T20:00:00+08:00",
+        "customer_id": "C019",
+        "delivered_at": null,
+        "discount_cents": 12,
+        "id": "O0004",
+        "items": [
+          {
+            "discount_cents": 12,
+            "line_id": "L01",
+            "paid_cents": 12112,
+            "payable_cents": 12112,
+            "product_id": "P005",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12124
+          }
+        ],
+        "paid_at": "2026-11-09T20:15:00+08:00",
+        "paid_cents": 12112,
+        "payable_cents": 12112,
+        "payment_status": "UNKNOWN",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "PAID",
+        "subtotal_cents": 12124
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P005",
+          "name": "降噪耳机",
+          "returnable": true,
+          "unit_price_cents": 89900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-004",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE004",
+    "order_id": "O0004",
+    "split": "dev",
+    "utterances": [
+      "扣款页面转了半天，我现在想取消。先看看钱到没到账。"
+    ]
+  },
+  {
+    "actor_customer_id": "C001",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-06T07:00:00+08:00",
+        "customer_id": "C043",
+        "delivered_at": "2026-11-09T07:00:00+08:00",
+        "discount_cents": 15,
+        "id": "O0005",
+        "items": [
+          {
+            "discount_cents": 15,
+            "line_id": "L01",
+            "paid_cents": 12140,
+            "payable_cents": 12140,
+            "product_id": "P006",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12155
+          }
+        ],
+        "paid_at": "2026-11-06T07:15:00+08:00",
+        "paid_cents": 12140,
+        "payable_cents": 12140,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-07T07:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12155
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P006",
+          "name": "便携投影仪",
+          "returnable": true,
+          "unit_price_cents": 169900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-005",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "PASSED",
+        "receipt_status": "RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-09T07:00:00+08:00",
+        "id": "SC-S005",
+        "order_id": "O0005",
+        "shipped_at": "2026-11-07T07:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-005"
+      }
+    },
+    "id": "CASE005",
+    "order_id": "O0005",
+    "split": "dev",
+    "utterances": [
+      "我帮同学代购的，商品型号我知道，给我看看这笔退货。"
+    ]
+  },
+  {
+    "actor_customer_id": "C092",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "PENDING",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T18:00:00+08:00",
+        "customer_id": "C092",
+        "delivered_at": null,
+        "discount_cents": 18,
+        "id": "O0006",
+        "items": [
+          {
+            "discount_cents": 18,
+            "line_id": "L01",
+            "paid_cents": 12168,
+            "payable_cents": 12168,
+            "product_id": "P007",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12186
+          }
+        ],
+        "paid_at": "2026-11-09T18:15:00+08:00",
+        "paid_cents": 12168,
+        "payable_cents": 12168,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "PAID",
+        "subtotal_cents": 12186
+      },
+      "products": [
+        {
+          "category": "小家电",
+          "id": "P007",
+          "name": "电热水壶",
+          "returnable": true,
+          "unit_price_cents": 21900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-006",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE006",
+    "order_id": "O0006",
+    "split": "dev",
+    "utterances": [
+      "地址选错了，麻烦取消，仓库还没回我。"
+    ]
+  },
+  {
+    "actor_customer_id": "C047",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "status": "SHIPPED",
+        "type": "FULFILLMENT_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T17:00:00+08:00",
+        "customer_id": "C047",
+        "delivered_at": null,
+        "discount_cents": 21,
+        "id": "O0007",
+        "items": [
+          {
+            "discount_cents": 21,
+            "line_id": "L01",
+            "paid_cents": 12196,
+            "payable_cents": 12196,
+            "product_id": "P008",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12217
+          }
+        ],
+        "paid_at": "2026-11-09T17:15:00+08:00",
+        "paid_cents": 12196,
+        "payable_cents": 12196,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "PAID",
+        "subtotal_cents": 12217
+      },
+      "products": [
+        {
+          "category": "小家电",
+          "id": "P008",
+          "name": "空气炸锅",
+          "returnable": true,
+          "unit_price_cents": 49900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-007",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE007",
+    "order_id": "O0007",
+    "split": "dev",
+    "utterances": [
+      "页面还是待发货，刚才快递短信又来了，能取消吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C071",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "status": "UNSHIPPED",
+        "type": "FULFILLMENT_RESULT"
+      },
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-008",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T16:00:00+08:00",
+        "customer_id": "C071",
+        "delivered_at": null,
+        "discount_cents": 2000,
+        "id": "O0008",
+        "items": [
+          {
+            "discount_cents": 2000,
+            "line_id": "L01",
+            "paid_cents": 50000,
+            "payable_cents": 50000,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 52000
+          }
+        ],
+        "paid_at": "2026-11-09T16:15:00+08:00",
+        "paid_cents": 50000,
+        "payable_cents": 50000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "PAID",
+        "subtotal_cents": 52000
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-008",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE008",
+    "order_id": "O0008",
+    "split": "dev",
+    "utterances": [
+      "这单实付五百整，仓库还没出库，请全退。"
+    ]
+  },
+  {
+    "actor_customer_id": "C003",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "status": "UNSHIPPED",
+        "type": "FULFILLMENT_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T15:00:00+08:00",
+        "customer_id": "C003",
+        "delivered_at": null,
+        "discount_cents": 0,
+        "id": "O0009",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 50001,
+            "payable_cents": 50001,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 50001
+          }
+        ],
+        "paid_at": "2026-11-09T15:15:00+08:00",
+        "paid_cents": 50001,
+        "payable_cents": 50001,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "PAID",
+        "subtotal_cents": 50001
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-009",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE009",
+    "order_id": "O0009",
+    "split": "dev",
+    "utterances": [
+      "这单还没发，我看到实付五百元零一分，想取消退实付。"
+    ]
+  },
+  {
+    "actor_customer_id": "C017",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "status": "UNSHIPPED",
+        "type": "FULFILLMENT_RESULT"
+      },
+      {
+        "at": "2026-11-10T12:00:02+08:00",
+        "status": "APPROVED",
+        "type": "APPROVAL_RESULT"
+      },
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-010",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T14:00:00+08:00",
+        "customer_id": "C017",
+        "delivered_at": null,
+        "discount_cents": 1800,
+        "id": "O0010",
+        "items": [
+          {
+            "discount_cents": 1800,
+            "line_id": "L01",
+            "paid_cents": 72000,
+            "payable_cents": 72000,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 73800
+          }
+        ],
+        "paid_at": "2026-11-09T14:15:00+08:00",
+        "paid_cents": 72000,
+        "payable_cents": 72000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "PAID",
+        "subtotal_cents": 73800
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-010",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE010",
+    "order_id": "O0010",
+    "split": "dev",
+    "utterances": [
+      "客服说取消退款已经批了，仓库也说还在货架上。"
+    ]
+  },
+  {
+    "actor_customer_id": "C085",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T13:00:00+08:00",
+        "customer_id": "C085",
+        "delivered_at": null,
+        "discount_cents": 33,
+        "id": "O0011",
+        "items": [
+          {
+            "discount_cents": 33,
+            "line_id": "L01",
+            "paid_cents": 12308,
+            "payable_cents": 12308,
+            "product_id": "P012",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12341
+          }
+        ],
+        "paid_at": "2026-11-09T13:15:00+08:00",
+        "paid_cents": 12308,
+        "payable_cents": 12308,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-09T17:00:00+08:00",
+        "status": "SHIPPED",
+        "subtotal_cents": 12341
+      },
+      "products": [
+        {
+          "category": "家居",
+          "id": "P012",
+          "name": "手冲咖啡壶",
+          "returnable": true,
+          "unit_price_cents": 11900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-011",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": null,
+        "id": "SC-S011",
+        "order_id": "O0011",
+        "shipped_at": "2026-11-09T17:00:00+08:00",
+        "status": "IN_TRANSIT",
+        "tracking_number": "SC-TRACK-011"
+      }
+    },
+    "id": "CASE011",
+    "order_id": "O0011",
+    "split": "dev",
+    "utterances": [
+      "快递刚揽收，我临时用不上了，能帮忙拦一下吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C011",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "status": "CONFIRMED",
+        "type": "INTERCEPTION_RESULT"
+      },
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-012",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T12:00:00+08:00",
+        "customer_id": "C011",
+        "delivered_at": null,
+        "discount_cents": 700,
+        "id": "O0012",
+        "items": [
+          {
+            "discount_cents": 700,
+            "line_id": "L01",
+            "paid_cents": 30000,
+            "payable_cents": 30000,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 30700
+          }
+        ],
+        "paid_at": "2026-11-09T12:15:00+08:00",
+        "paid_cents": 30000,
+        "payable_cents": 30000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-09T16:00:00+08:00",
+        "status": "SHIPPED",
+        "subtotal_cents": 30700
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-012",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": null,
+        "id": "SC-S012",
+        "order_id": "O0012",
+        "shipped_at": "2026-11-09T16:00:00+08:00",
+        "status": "IN_TRANSIT",
+        "tracking_number": "SC-TRACK-012"
+      }
+    },
+    "id": "CASE012",
+    "order_id": "O0012",
+    "split": "dev",
+    "utterances": [
+      "承运商说包裹已折返，帮我核实后撤销这单。"
+    ]
+  },
+  {
+    "actor_customer_id": "C086",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "status": "FAILED",
+        "type": "INTERCEPTION_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T11:00:00+08:00",
+        "customer_id": "C086",
+        "delivered_at": null,
+        "discount_cents": 39,
+        "id": "O0013",
+        "items": [
+          {
+            "discount_cents": 39,
+            "line_id": "L01",
+            "paid_cents": 12364,
+            "payable_cents": 12364,
+            "product_id": "P014",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12403
+          }
+        ],
+        "paid_at": "2026-11-09T11:15:00+08:00",
+        "paid_cents": 12364,
+        "payable_cents": 12364,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-09T15:00:00+08:00",
+        "status": "SHIPPED",
+        "subtotal_cents": 12403
+      },
+      "products": [
+        {
+          "category": "家居",
+          "id": "P014",
+          "name": "陶瓷马克杯",
+          "returnable": true,
+          "unit_price_cents": 3900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-013",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": null,
+        "id": "SC-S013",
+        "order_id": "O0013",
+        "shipped_at": "2026-11-09T15:00:00+08:00",
+        "status": "IN_TRANSIT",
+        "tracking_number": "SC-TRACK-013"
+      }
+    },
+    "id": "CASE013",
+    "order_id": "O0013",
+    "split": "dev",
+    "utterances": [
+      "这是快送件，显示无法拦截。还能直接退钱吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C079",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "status": "PENDING",
+        "type": "INTERCEPTION_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-09T10:00:00+08:00",
+        "customer_id": "C079",
+        "delivered_at": null,
+        "discount_cents": 42,
+        "id": "O0014",
+        "items": [
+          {
+            "discount_cents": 42,
+            "line_id": "L01",
+            "paid_cents": 12392,
+            "payable_cents": 12392,
+            "product_id": "P015",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12434
+          }
+        ],
+        "paid_at": "2026-11-09T10:15:00+08:00",
+        "paid_cents": 12392,
+        "payable_cents": 12392,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-09T14:00:00+08:00",
+        "status": "SHIPPED",
+        "subtotal_cents": 12434
+      },
+      "products": [
+        {
+          "category": "家居",
+          "id": "P015",
+          "name": "防滑衣架套装",
+          "returnable": true,
+          "unit_price_cents": 2590,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-014",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": null,
+        "id": "SC-S014",
+        "order_id": "O0014",
+        "shipped_at": "2026-11-09T14:00:00+08:00",
+        "status": "IN_TRANSIT",
+        "tracking_number": "SC-TRACK-014"
+      }
+    },
+    "id": "CASE014",
+    "order_id": "O0014",
+    "split": "dev",
+    "utterances": [
+      "快递说工单已受理，我想问下现在能取消了吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C037",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-07T09:00:00+08:00",
+        "customer_id": "C037",
+        "delivered_at": "2026-11-10T09:00:00+08:00",
+        "discount_cents": 45,
+        "id": "O0015",
+        "items": [
+          {
+            "discount_cents": 45,
+            "line_id": "L01",
+            "paid_cents": 12420,
+            "payable_cents": 12420,
+            "product_id": "P016",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12465
+          }
+        ],
+        "paid_at": "2026-11-07T09:15:00+08:00",
+        "paid_cents": 12420,
+        "payable_cents": 12420,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-08T09:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12465
+      },
+      "products": [
+        {
+          "category": "家居",
+          "id": "P016",
+          "name": "折叠收纳箱",
+          "returnable": true,
+          "unit_price_cents": 5390,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-015",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-10T09:00:00+08:00",
+        "id": "SC-S015",
+        "order_id": "O0015",
+        "shipped_at": "2026-11-08T09:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-015"
+      }
+    },
+    "id": "CASE015",
+    "order_id": "O0015",
+    "split": "dev",
+    "utterances": [
+      "货早上已经签收，我现在还能让仓库取消发货吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C010",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T20:00:00+08:00",
+        "customer_id": "C010",
+        "delivered_at": "2026-11-08T20:00:00+08:00",
+        "discount_cents": 48,
+        "id": "O0016",
+        "items": [
+          {
+            "discount_cents": 48,
+            "line_id": "L01",
+            "paid_cents": 12448,
+            "payable_cents": 12448,
+            "product_id": "P017",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12496
+          }
+        ],
+        "paid_at": "2026-11-05T20:15:00+08:00",
+        "paid_cents": 12448,
+        "payable_cents": 12448,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T20:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12496
+      },
+      "products": [
+        {
+          "category": "家居",
+          "id": "P017",
+          "name": "棉质床单",
+          "returnable": true,
+          "unit_price_cents": 16900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-016",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T20:00:00+08:00",
+        "id": "SC-S016",
+        "order_id": "O0016",
+        "shipped_at": "2026-11-06T20:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-016"
+      }
+    },
+    "id": "CASE016",
+    "order_id": "O0016",
+    "split": "dev",
+    "utterances": [
+      "前天收到后试了一下，尺寸不合适，打算周末寄回去。"
+    ]
+  },
+  {
+    "actor_customer_id": "C031",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T19:00:00+08:00",
+        "customer_id": "C031",
+        "delivered_at": "2026-11-08T19:00:00+08:00",
+        "discount_cents": 51,
+        "id": "O0017",
+        "items": [
+          {
+            "discount_cents": 51,
+            "line_id": "L01",
+            "paid_cents": 12476,
+            "payable_cents": 12476,
+            "product_id": "P018",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12527
+          }
+        ],
+        "paid_at": "2026-11-05T19:15:00+08:00",
+        "paid_cents": 12476,
+        "payable_cents": 12476,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T19:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12527
+      },
+      "products": [
+        {
+          "category": "运动",
+          "id": "P018",
+          "name": "训练背包",
+          "returnable": true,
+          "unit_price_cents": 29900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-017",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "PENDING",
+        "receipt_status": "RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T19:00:00+08:00",
+        "id": "SC-S017",
+        "order_id": "O0017",
+        "shipped_at": "2026-11-06T19:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-017"
+      }
+    },
+    "id": "CASE017",
+    "order_id": "O0017",
+    "split": "dev",
+    "utterances": [
+      "退件物流显示仓库签收了，多久能出质检结果？"
+    ]
+  },
+  {
+    "actor_customer_id": "C056",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-018",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T18:00:00+08:00",
+        "customer_id": "C056",
+        "delivered_at": "2026-11-08T18:00:00+08:00",
+        "discount_cents": 800,
+        "id": "O0018",
+        "items": [
+          {
+            "discount_cents": 800,
+            "line_id": "L01",
+            "paid_cents": 25000,
+            "payable_cents": 25000,
+            "product_id": "P001",
+            "quantity": 2,
+            "refunded_cents": 0,
+            "unit_price_cents": 12900
+          }
+        ],
+        "paid_at": "2026-11-05T18:15:00+08:00",
+        "paid_cents": 25000,
+        "payable_cents": 25000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T18:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 25800
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-018",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "PASSED",
+        "receipt_status": "RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T18:00:00+08:00",
+        "id": "SC-S018",
+        "order_id": "O0018",
+        "shipped_at": "2026-11-06T18:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-018"
+      }
+    },
+    "id": "CASE018",
+    "order_id": "O0018",
+    "split": "dev",
+    "utterances": [
+      "退回去的两个同款都验收通过了，什么时候退款？"
+    ]
+  },
+  {
+    "actor_customer_id": "C088",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-10-31T12:00:00+08:00",
+        "customer_id": "C088",
+        "delivered_at": "2026-11-03T12:00:00+08:00",
+        "discount_cents": 57,
+        "id": "O0019",
+        "items": [
+          {
+            "discount_cents": 57,
+            "line_id": "L01",
+            "paid_cents": 12532,
+            "payable_cents": 12532,
+            "product_id": "P020",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12589
+          }
+        ],
+        "paid_at": "2026-10-31T12:15:00+08:00",
+        "paid_cents": 12532,
+        "payable_cents": 12532,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-01T12:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12589
+      },
+      "products": [
+        {
+          "category": "运动",
+          "id": "P020",
+          "name": "运动水杯",
+          "returnable": true,
+          "unit_price_cents": 6500,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-019",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-03T12:00:00+08:00",
+        "id": "SC-S019",
+        "order_id": "O0019",
+        "shipped_at": "2026-11-01T12:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-019"
+      }
+    },
+    "id": "CASE019",
+    "order_id": "O0019",
+    "split": "dev",
+    "utterances": [
+      "上周这个点签收的，今天刚找到入口，想退这件。"
+    ]
+  },
+  {
+    "actor_customer_id": "C043",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-10-31T11:00:00+08:00",
+        "customer_id": "C043",
+        "delivered_at": "2026-11-03T11:00:00+08:00",
+        "discount_cents": 60,
+        "id": "O0020",
+        "items": [
+          {
+            "discount_cents": 60,
+            "line_id": "L01",
+            "paid_cents": 12560,
+            "payable_cents": 12560,
+            "product_id": "P021",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12620
+          }
+        ],
+        "paid_at": "2026-10-31T11:15:00+08:00",
+        "paid_cents": 12560,
+        "payable_cents": 12560,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-01T11:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12620
+      },
+      "products": [
+        {
+          "category": "服饰",
+          "id": "P021",
+          "name": "速干短袖",
+          "returnable": true,
+          "unit_price_cents": 9900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-020",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-03T11:00:00+08:00",
+        "id": "SC-S020",
+        "order_id": "O0020",
+        "shipped_at": "2026-11-01T11:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-020"
+      }
+    },
+    "id": "CASE020",
+    "order_id": "O0020",
+    "split": "dev",
+    "utterances": [
+      "上周比现在早一小时就签收了，我没拆，能退吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C049",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T15:00:00+08:00",
+        "customer_id": "C049",
+        "delivered_at": "2026-11-08T15:00:00+08:00",
+        "discount_cents": 63,
+        "id": "O0021",
+        "items": [
+          {
+            "discount_cents": 63,
+            "line_id": "L01",
+            "paid_cents": 12588,
+            "payable_cents": 12588,
+            "product_id": "P022",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12651
+          }
+        ],
+        "paid_at": "2026-11-05T15:15:00+08:00",
+        "paid_cents": 12588,
+        "payable_cents": 12588,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T15:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12651
+      },
+      "products": [
+        {
+          "category": "服饰",
+          "id": "P022",
+          "name": "连帽卫衣",
+          "returnable": true,
+          "unit_price_cents": 23900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-021",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T15:00:00+08:00",
+        "id": "SC-S021",
+        "order_id": "O0021",
+        "shipped_at": "2026-11-06T15:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-021"
+      }
+    },
+    "id": "CASE021",
+    "order_id": "O0021",
+    "split": "dev",
+    "utterances": [
+      "拆出来边角碎了，我先来登记，手边还没照片。"
+    ]
+  },
+  {
+    "actor_customer_id": "C078",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [
+        {
+          "id": "item-1",
+          "kind": "ITEM",
+          "line_id": "L01"
+        }
+      ],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T14:00:00+08:00",
+        "customer_id": "C078",
+        "delivered_at": "2026-11-08T14:00:00+08:00",
+        "discount_cents": 66,
+        "id": "O0022",
+        "items": [
+          {
+            "discount_cents": 66,
+            "line_id": "L01",
+            "paid_cents": 12616,
+            "payable_cents": 12616,
+            "product_id": "P023",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12682
+          }
+        ],
+        "paid_at": "2026-11-05T14:15:00+08:00",
+        "paid_cents": 12616,
+        "payable_cents": 12616,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T14:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12682
+      },
+      "products": [
+        {
+          "category": "服饰",
+          "id": "P023",
+          "name": "防晒外套",
+          "returnable": true,
+          "unit_price_cents": 35900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-022",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T14:00:00+08:00",
+        "id": "SC-S022",
+        "order_id": "O0022",
+        "shipped_at": "2026-11-06T14:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-022"
+      }
+    },
+    "id": "CASE022",
+    "order_id": "O0022",
+    "split": "dev",
+    "utterances": [
+      "裂纹拍清楚了，外箱还在驿站，只有商品照。"
+    ]
+  },
+  {
+    "actor_customer_id": "C026",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [
+        {
+          "id": "parcel-1",
+          "kind": "PARCEL",
+          "line_id": null
+        }
+      ],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T13:00:00+08:00",
+        "customer_id": "C026",
+        "delivered_at": "2026-11-08T13:00:00+08:00",
+        "discount_cents": 69,
+        "id": "O0023",
+        "items": [
+          {
+            "discount_cents": 69,
+            "line_id": "L01",
+            "paid_cents": 12644,
+            "payable_cents": 12644,
+            "product_id": "P024",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12713
+          }
+        ],
+        "paid_at": "2026-11-05T13:15:00+08:00",
+        "paid_cents": 12644,
+        "payable_cents": 12644,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T13:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12713
+      },
+      "products": [
+        {
+          "category": "服饰",
+          "id": "P024",
+          "name": "棉质长裤",
+          "returnable": true,
+          "unit_price_cents": 18900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-023",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T13:00:00+08:00",
+        "id": "SC-S023",
+        "order_id": "O0023",
+        "shipped_at": "2026-11-06T13:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-023"
+      }
+    },
+    "id": "CASE023",
+    "order_id": "O0023",
+    "split": "dev",
+    "utterances": [
+      "箱子压塌了，我传的是箱照，里面的破损还没拍。"
+    ]
+  },
+  {
+    "actor_customer_id": "C039",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [
+        {
+          "id": "item-1",
+          "kind": "ITEM",
+          "line_id": "L01"
+        },
+        {
+          "id": "parcel-1",
+          "kind": "PARCEL",
+          "line_id": null
+        }
+      ],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T12:00:00+08:00",
+        "customer_id": "C039",
+        "delivered_at": "2026-11-08T12:00:00+08:00",
+        "discount_cents": 72,
+        "id": "O0024",
+        "items": [
+          {
+            "discount_cents": 72,
+            "line_id": "L01",
+            "paid_cents": 12672,
+            "payable_cents": 12672,
+            "product_id": "P025",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12744
+          }
+        ],
+        "paid_at": "2026-11-05T12:15:00+08:00",
+        "paid_cents": 12672,
+        "payable_cents": 12672,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T12:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12744
+      },
+      "products": [
+        {
+          "category": "文具",
+          "id": "P025",
+          "name": "中性笔套装",
+          "returnable": true,
+          "unit_price_cents": 1990,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-024",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T12:00:00+08:00",
+        "id": "SC-S024",
+        "order_id": "O0024",
+        "shipped_at": "2026-11-06T12:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-024"
+      }
+    },
+    "id": "CASE024",
+    "order_id": "O0024",
+    "split": "dev",
+    "utterances": [
+      "裂纹和外箱都分别拍了，请登记损坏。"
+    ]
+  },
+  {
+    "actor_customer_id": "C081",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "attachment": {
+          "id": "parcel-1",
+          "kind": "PARCEL",
+          "line_id": null
+        },
+        "message": "现在把外箱照也补上。",
+        "type": "ATTACHMENT_ADDED"
+      },
+      {
+        "at": "2026-11-10T12:00:02+08:00",
+        "status": "PASSED",
+        "type": "DAMAGE_REVIEW_RESULT"
+      },
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-025",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [
+        {
+          "id": "item-1",
+          "kind": "ITEM",
+          "line_id": "L01"
+        }
+      ],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T11:00:00+08:00",
+        "customer_id": "C081",
+        "delivered_at": "2026-11-08T11:00:00+08:00",
+        "discount_cents": 800,
+        "id": "O0025",
+        "items": [
+          {
+            "discount_cents": 800,
+            "line_id": "L01",
+            "paid_cents": 18000,
+            "payable_cents": 18000,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 18800
+          }
+        ],
+        "paid_at": "2026-11-05T11:15:00+08:00",
+        "paid_cents": 18000,
+        "payable_cents": 18000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T11:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 18800
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-025",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T11:00:00+08:00",
+        "id": "SC-S025",
+        "order_id": "O0025",
+        "shipped_at": "2026-11-06T11:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-025"
+      }
+    },
+    "id": "CASE025",
+    "order_id": "O0025",
+    "split": "dev",
+    "utterances": [
+      "磕碰细节我先拍了一张。",
+      "外箱还在驿站，我等会儿补一张。"
+    ]
+  },
+  {
+    "actor_customer_id": "C062",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-026",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T10:00:00+08:00",
+        "customer_id": "C062",
+        "delivered_at": "2026-11-08T10:00:00+08:00",
+        "discount_cents": 3000,
+        "id": "O0026",
+        "items": [
+          {
+            "discount_cents": 1400,
+            "line_id": "L01",
+            "paid_cents": 16600,
+            "payable_cents": 16600,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 18000
+          },
+          {
+            "discount_cents": 1600,
+            "line_id": "L02",
+            "paid_cents": 20400,
+            "payable_cents": 20400,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 22000
+          }
+        ],
+        "paid_at": "2026-11-05T10:15:00+08:00",
+        "paid_cents": 37000,
+        "payable_cents": 37000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T10:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 40000
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        },
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-026",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": {
+        "approved_at": "2026-11-10T11:33:00+08:00",
+        "id": "sc-resolution-026",
+        "line_ids": [
+          "L01"
+        ],
+        "status": "APPROVED",
+        "type": "MERCHANT_CONCESSION"
+      },
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T10:00:00+08:00",
+        "id": "SC-S026",
+        "order_id": "O0026",
+        "shipped_at": "2026-11-06T10:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-026"
+      }
+    },
+    "id": "CASE026",
+    "order_id": "O0026",
+    "split": "dev",
+    "utterances": [
+      "两件用了同一张优惠券，只退第一行，第二行我要留。"
+    ]
+  },
+  {
+    "actor_customer_id": "C040",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-027",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T09:00:00+08:00",
+        "customer_id": "C040",
+        "delivered_at": "2026-11-08T09:00:00+08:00",
+        "discount_cents": 2000,
+        "id": "O0027",
+        "items": [
+          {
+            "discount_cents": 2000,
+            "line_id": "L01",
+            "paid_cents": 24000,
+            "payable_cents": 24000,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 4000,
+            "unit_price_cents": 26000
+          },
+          {
+            "discount_cents": 0,
+            "line_id": "L02",
+            "paid_cents": 8000,
+            "payable_cents": 8000,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 8000
+          }
+        ],
+        "paid_at": "2026-11-05T09:15:00+08:00",
+        "paid_cents": 32000,
+        "payable_cents": 32000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 4000,
+        "shipped_at": "2026-11-06T09:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 34000
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        },
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [
+        {
+          "amount_cents": 4000,
+          "created_at": "2026-11-10T11:33:00+08:00",
+          "idempotency_key": "sc-earlier-027",
+          "line_amounts_cents": {
+            "L01": 4000
+          },
+          "status": "SUCCEEDED"
+        }
+      ],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-027",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": {
+        "approved_at": "2026-11-10T11:32:00+08:00",
+        "id": "sc-resolution-027",
+        "line_ids": [
+          "L01"
+        ],
+        "status": "APPROVED",
+        "type": "MERCHANT_CONCESSION"
+      },
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T09:00:00+08:00",
+        "id": "SC-S027",
+        "order_id": "O0027",
+        "shipped_at": "2026-11-06T09:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-027"
+      }
+    },
+    "id": "CASE027",
+    "order_id": "O0027",
+    "split": "dev",
+    "utterances": [
+      "第一行上次只退了部分，这次只结清它的余额。"
+    ]
+  },
+  {
+    "actor_customer_id": "C079",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T08:00:00+08:00",
+        "customer_id": "C079",
+        "delivered_at": "2026-11-08T08:00:00+08:00",
+        "discount_cents": 700,
+        "id": "O0028",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 19000,
+            "payable_cents": 19000,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 19000
+          },
+          {
+            "discount_cents": 700,
+            "line_id": "L02",
+            "paid_cents": 11300,
+            "payable_cents": 11300,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12000
+          }
+        ],
+        "paid_at": "2026-11-05T08:15:00+08:00",
+        "paid_cents": 30300,
+        "payable_cents": 30300,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T08:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 31000
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        },
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-028",
+        "line_ids": [
+          "L02"
+        ],
+        "refund_cents": 12000
+      },
+      "resolution": {
+        "approved_at": "2026-11-10T11:31:00+08:00",
+        "id": "sc-resolution-028",
+        "line_ids": [
+          "L02"
+        ],
+        "status": "APPROVED",
+        "type": "MERCHANT_CONCESSION"
+      },
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T08:00:00+08:00",
+        "id": "SC-S028",
+        "order_id": "O0028",
+        "shipped_at": "2026-11-06T08:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-028"
+      }
+    },
+    "id": "CASE028",
+    "order_id": "O0028",
+    "split": "dev",
+    "utterances": [
+      "第二行我指定退一百二十元，先别帮我改金额。"
+    ]
+  },
+  {
+    "actor_customer_id": "C099",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T07:00:00+08:00",
+        "customer_id": "C099",
+        "delivered_at": "2026-11-08T07:00:00+08:00",
+        "discount_cents": 1000,
+        "id": "O0029",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 15000,
+            "payable_cents": 15000,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 15000
+          },
+          {
+            "discount_cents": 1000,
+            "line_id": "L02",
+            "paid_cents": 51000,
+            "payable_cents": 51000,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 52000
+          }
+        ],
+        "paid_at": "2026-11-05T07:15:00+08:00",
+        "paid_cents": 66000,
+        "payable_cents": 66000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T07:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 67000
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        },
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-029",
+        "line_ids": [
+          "L02"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T07:00:00+08:00",
+        "id": "SC-S029",
+        "order_id": "O0029",
+        "shipped_at": "2026-11-06T07:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-029"
+      }
+    },
+    "id": "CASE029",
+    "order_id": "O0029",
+    "split": "dev",
+    "utterances": [
+      "我只想退其中一个配件的钱。商家说还没同意补偿。"
+    ]
+  },
+  {
+    "actor_customer_id": "C057",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:02+08:00",
+        "status": "APPROVED",
+        "type": "APPROVAL_RESULT"
+      },
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-030",
+        "status": "SUCCEEDED",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T06:00:00+08:00",
+        "customer_id": "C057",
+        "delivered_at": "2026-11-08T06:00:00+08:00",
+        "discount_cents": 3000,
+        "id": "O0030",
+        "items": [
+          {
+            "discount_cents": 3000,
+            "line_id": "L01",
+            "paid_cents": 55000,
+            "payable_cents": 55000,
+            "product_id": "P001",
+            "quantity": 2,
+            "refunded_cents": 0,
+            "unit_price_cents": 29000
+          },
+          {
+            "discount_cents": 0,
+            "line_id": "L02",
+            "paid_cents": 9000,
+            "payable_cents": 9000,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 9000
+          }
+        ],
+        "paid_at": "2026-11-05T06:15:00+08:00",
+        "paid_cents": 64000,
+        "payable_cents": 64000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T06:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 67000
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        },
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-030",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": {
+        "approved_at": "2026-11-10T11:29:00+08:00",
+        "id": "sc-resolution-030",
+        "line_ids": [
+          "L01"
+        ],
+        "status": "APPROVED",
+        "type": "MERCHANT_CONCESSION"
+      },
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T06:00:00+08:00",
+        "id": "SC-S030",
+        "order_id": "O0030",
+        "shipped_at": "2026-11-06T06:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-030"
+      }
+    },
+    "id": "CASE030",
+    "order_id": "O0030",
+    "split": "dev",
+    "utterances": [
+      "同意按两件的折后价退第一行，客服确认额度批下来了。"
+    ]
+  },
+  {
+    "actor_customer_id": "C070",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T05:00:00+08:00",
+        "customer_id": "C070",
+        "delivered_at": "2026-11-08T05:00:00+08:00",
+        "discount_cents": 0,
+        "id": "O0031",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 17700,
+            "payable_cents": 17700,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 4200,
+            "unit_price_cents": 17700
+          }
+        ],
+        "paid_at": "2026-11-05T05:15:00+08:00",
+        "paid_cents": 17700,
+        "payable_cents": 17700,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 4200,
+        "shipped_at": "2026-11-06T05:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 17700
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [
+        {
+          "amount_cents": 4200,
+          "created_at": "2026-11-10T11:29:00+08:00",
+          "idempotency_key": "sc-refund-031",
+          "line_amounts_cents": {
+            "L01": 4200
+          },
+          "status": "SUCCEEDED"
+        }
+      ],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-031",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T05:00:00+08:00",
+        "id": "SC-S031",
+        "order_id": "O0031",
+        "shipped_at": "2026-11-06T05:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-031"
+      }
+    },
+    "id": "CASE031",
+    "order_id": "O0031",
+    "split": "dev",
+    "utterances": [
+      "刚才那笔退了一部分，我点了两次，帮我查原退款。"
+    ]
+  },
+  {
+    "actor_customer_id": "C020",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T04:00:00+08:00",
+        "customer_id": "C020",
+        "delivered_at": "2026-11-08T04:00:00+08:00",
+        "discount_cents": 96,
+        "id": "O0032",
+        "items": [
+          {
+            "discount_cents": 96,
+            "line_id": "L01",
+            "paid_cents": 12896,
+            "payable_cents": 12896,
+            "product_id": "P007",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 12992
+          }
+        ],
+        "paid_at": "2026-11-05T04:15:00+08:00",
+        "paid_cents": 12896,
+        "payable_cents": 12896,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T04:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 12992
+      },
+      "products": [
+        {
+          "category": "小家电",
+          "id": "P007",
+          "name": "电热水壶",
+          "returnable": true,
+          "unit_price_cents": 21900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [
+        {
+          "amount_cents": 7300,
+          "created_at": "2026-11-10T11:28:00+08:00",
+          "idempotency_key": "sc-refund-032",
+          "line_amounts_cents": {
+            "L01": 7300
+          },
+          "status": "FAILED"
+        }
+      ],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-032",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T04:00:00+08:00",
+        "id": "SC-S032",
+        "order_id": "O0032",
+        "shipped_at": "2026-11-06T04:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-032"
+      }
+    },
+    "id": "CASE032",
+    "order_id": "O0032",
+    "split": "dev",
+    "utterances": [
+      "刚才失败那单有结果了吗？我从同一个入口返回来看。"
+    ]
+  },
+  {
+    "actor_customer_id": "C057",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:04+08:00",
+        "idempotency_key": "sc-refund-033",
+        "status": "TIMEOUT",
+        "type": "REFUND_CALL_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T03:00:00+08:00",
+        "customer_id": "C057",
+        "delivered_at": "2026-11-08T03:00:00+08:00",
+        "discount_cents": 300,
+        "id": "O0033",
+        "items": [
+          {
+            "discount_cents": 300,
+            "line_id": "L01",
+            "paid_cents": 9500,
+            "payable_cents": 9500,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 9800
+          },
+          {
+            "discount_cents": 0,
+            "line_id": "L02",
+            "paid_cents": 4600,
+            "payable_cents": 4600,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 4600
+          }
+        ],
+        "paid_at": "2026-11-05T03:15:00+08:00",
+        "paid_cents": 14100,
+        "payable_cents": 14100,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T03:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 14400
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        },
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-033",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": {
+        "approved_at": "2026-11-10T11:26:00+08:00",
+        "id": "sc-resolution-033",
+        "line_ids": [
+          "L01"
+        ],
+        "status": "APPROVED",
+        "type": "MERCHANT_CONCESSION"
+      },
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T03:00:00+08:00",
+        "id": "SC-S033",
+        "order_id": "O0033",
+        "shipped_at": "2026-11-06T03:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-033"
+      }
+    },
+    "id": "CASE033",
+    "order_id": "O0033",
+    "split": "dev",
+    "utterances": [
+      "商家已经同意补偿第一行，麻烦提交退款。我这边页面一直转圈。"
+    ]
+  },
+  {
+    "actor_customer_id": "C058",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "idempotency_key": "sc-refund-034",
+        "status": "SUCCEEDED",
+        "type": "REFUND_QUERY_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-05T02:00:00+08:00",
+        "customer_id": "C058",
+        "delivered_at": "2026-11-08T02:00:00+08:00",
+        "discount_cents": 400,
+        "id": "O0034",
+        "items": [
+          {
+            "discount_cents": 400,
+            "line_id": "L01",
+            "paid_cents": 15000,
+            "payable_cents": 15000,
+            "product_id": "P002",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 15400
+          }
+        ],
+        "paid_at": "2026-11-05T02:15:00+08:00",
+        "paid_cents": 15000,
+        "payable_cents": 15000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-06T02:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 15400
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P002",
+          "name": "机械键盘",
+          "returnable": true,
+          "unit_price_cents": 45900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [
+        {
+          "amount_cents": 15000,
+          "created_at": "2026-11-10T11:26:00+08:00",
+          "idempotency_key": "sc-refund-034",
+          "line_amounts_cents": {
+            "L01": 15000
+          },
+          "status": "UNKNOWN"
+        }
+      ],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-034",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-08T02:00:00+08:00",
+        "id": "SC-S034",
+        "order_id": "O0034",
+        "shipped_at": "2026-11-06T02:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-034"
+      }
+    },
+    "id": "CASE034",
+    "order_id": "O0034",
+    "split": "dev",
+    "utterances": [
+      "上次已经提交过，余额没动，帮我用原申请单查一次。"
+    ]
+  },
+  {
+    "actor_customer_id": "C087",
+    "events": [
+      {
+        "at": "2026-11-10T12:00:01+08:00",
+        "idempotency_key": "sc-refund-035",
+        "status": "PENDING",
+        "type": "REFUND_QUERY_RESULT"
+      }
+    ],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": "2026-11-08T15:00:00+08:00",
+        "created_at": "2026-11-08T13:00:00+08:00",
+        "customer_id": "C087",
+        "delivered_at": null,
+        "discount_cents": 900,
+        "id": "O0035",
+        "items": [
+          {
+            "discount_cents": 900,
+            "line_id": "L01",
+            "paid_cents": 24000,
+            "payable_cents": 24000,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 24900
+          }
+        ],
+        "paid_at": "2026-11-08T13:15:00+08:00",
+        "paid_cents": 24000,
+        "payable_cents": 24000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": null,
+        "status": "CANCELLED",
+        "subtotal_cents": 24900
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [
+        {
+          "amount_cents": 24000,
+          "created_at": "2026-11-10T11:25:00+08:00",
+          "idempotency_key": "sc-refund-035",
+          "line_amounts_cents": {
+            "L01": 24000
+          },
+          "status": "UNKNOWN"
+        }
+      ],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-035",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": null
+    },
+    "id": "CASE035",
+    "order_id": "O0035",
+    "split": "dev",
+    "utterances": [
+      "上一笔撤单退款提交超时了，现在到账没？"
+    ]
+  },
+  {
+    "actor_customer_id": "C094",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-09-08T12:00:00+08:00",
+        "customer_id": "C094",
+        "delivered_at": "2026-09-11T12:00:00+08:00",
+        "discount_cents": 0,
+        "id": "O0036",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 32000,
+            "payable_cents": 32000,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 32000
+          }
+        ],
+        "paid_at": "2026-09-08T12:15:00+08:00",
+        "paid_cents": 32000,
+        "payable_cents": 32000,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-09-09T12:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 32000
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-036",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-09-11T12:00:00+08:00",
+        "id": "SC-S036",
+        "order_id": "O0036",
+        "shipped_at": "2026-09-09T12:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-036"
+      }
+    },
+    "id": "CASE036",
+    "order_id": "O0036",
+    "split": "dev",
+    "utterances": [
+      "签收两个月就开不了机了，能登记保修吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C088",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2025-11-06T12:00:00+08:00",
+        "customer_id": "C088",
+        "delivered_at": "2025-11-09T12:00:00+08:00",
+        "discount_cents": 0,
+        "id": "O0037",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 34500,
+            "payable_cents": 34500,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 34500
+          }
+        ],
+        "paid_at": "2025-11-06T12:15:00+08:00",
+        "paid_cents": 34500,
+        "payable_cents": 34500,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2025-11-07T12:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 34500
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-037",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2025-11-09T12:00:00+08:00",
+        "id": "SC-S037",
+        "order_id": "O0037",
+        "shipped_at": "2025-11-07T12:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-037"
+      }
+    },
+    "id": "CASE037",
+    "order_id": "O0037",
+    "split": "dev",
+    "utterances": [
+      "这件买了一年多，现在按键坏了，查下还能保吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C065",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-10-31T12:00:00+08:00",
+        "customer_id": "C065",
+        "delivered_at": "2026-11-03T12:00:00+08:00",
+        "discount_cents": 0,
+        "id": "O0038",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 1100,
+            "payable_cents": 1100,
+            "product_id": "P012",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 1100
+          }
+        ],
+        "paid_at": "2026-10-31T12:15:00+08:00",
+        "paid_cents": 1100,
+        "payable_cents": 1100,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-01T12:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 1100
+      },
+      "products": [
+        {
+          "category": "家居",
+          "id": "P012",
+          "name": "手冲咖啡壶",
+          "returnable": true,
+          "unit_price_cents": 11900,
+          "warranty_days": 0
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-038",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2026-11-03T12:00:00+08:00",
+        "id": "SC-S038",
+        "order_id": "O0038",
+        "shipped_at": "2026-11-01T12:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-038"
+      }
+    },
+    "id": "CASE038",
+    "order_id": "O0038",
+    "split": "dev",
+    "utterances": [
+      "这件小东西用了一周就断了，订单上有质保吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C042",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2025-11-07T13:00:00+08:00",
+        "customer_id": "C042",
+        "delivered_at": "2025-11-10T13:00:00+08:00",
+        "discount_cents": 0,
+        "id": "O0039",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 36100,
+            "payable_cents": 36100,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 36100
+          }
+        ],
+        "paid_at": "2025-11-07T13:15:00+08:00",
+        "paid_cents": 36100,
+        "payable_cents": 36100,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2025-11-08T13:00:00+08:00",
+        "status": "DELIVERED",
+        "subtotal_cents": 36100
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-039",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": "2025-11-10T13:00:00+08:00",
+        "id": "SC-S039",
+        "order_id": "O0039",
+        "shipped_at": "2025-11-08T13:00:00+08:00",
+        "status": "DELIVERED",
+        "tracking_number": "SC-TRACK-039"
+      }
+    },
+    "id": "CASE039",
+    "order_id": "O0039",
+    "split": "dev",
+    "utterances": [
+      "明天保修就结束，今天还能登记维修吗？"
+    ]
+  },
+  {
+    "actor_customer_id": "C095",
+    "events": [],
+    "fixture": {
+      "as_of": "2026-11-10T12:00:00+08:00",
+      "attachments": [],
+      "fulfillment_status": "UNVERIFIED",
+      "order": {
+        "cancelled_at": null,
+        "created_at": "2026-11-08T08:00:00+08:00",
+        "customer_id": "C095",
+        "delivered_at": null,
+        "discount_cents": 0,
+        "id": "O0040",
+        "items": [
+          {
+            "discount_cents": 0,
+            "line_id": "L01",
+            "paid_cents": 38700,
+            "payable_cents": 38700,
+            "product_id": "P001",
+            "quantity": 1,
+            "refunded_cents": 0,
+            "unit_price_cents": 38700
+          }
+        ],
+        "paid_at": "2026-11-08T08:15:00+08:00",
+        "paid_cents": 38700,
+        "payable_cents": 38700,
+        "payment_status": "CONFIRMED",
+        "refunded_cents": 0,
+        "shipped_at": "2026-11-08T12:00:00+08:00",
+        "status": "SHIPPED",
+        "subtotal_cents": 38700
+      },
+      "products": [
+        {
+          "category": "数码",
+          "id": "P001",
+          "name": "蓝牙耳机",
+          "returnable": true,
+          "unit_price_cents": 19900,
+          "warranty_days": 365
+        }
+      ],
+      "refund_ledger": [],
+      "request": {
+        "fee_cents": 0,
+        "idempotency_key": "sc-refund-040",
+        "line_ids": [
+          "L01"
+        ],
+        "refund_cents": null
+      },
+      "resolution": null,
+      "return": {
+        "inspection_status": "NOT_STARTED",
+        "receipt_status": "NOT_RECEIVED"
+      },
+      "shipment": {
+        "carrier": "模拟快递",
+        "delivered_at": null,
+        "id": "SC-S040",
+        "order_id": "O0040",
+        "shipped_at": "2026-11-08T12:00:00+08:00",
+        "status": "IN_TRANSIT",
+        "tracking_number": "SC-TRACK-040"
+      }
+    },
+    "id": "CASE040",
+    "order_id": "O0040",
+    "split": "dev",
+    "utterances": [
+      "还没收到包裹，能先走保修申请吗？"
+    ]
+  }
+]

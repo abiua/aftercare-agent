@@ -1,0 +1,35 @@
+# Optional third Compose file for the app profile. Mount existing private
+# files without copying their contents into Compose or the image.
+x-live-env: &live-env
+  AFTERCARE_CONTAINER_MODEL_MODE: live-hybrid
+  AFTERCARE_EMBEDDING_REVISION: "${AFTERCARE_EMBEDDING_REVISION:?Set the local BGE snapshot revision}"
+  HF_HUB_OFFLINE: "1"
+  TRANSFORMERS_OFFLINE: "1"
+
+x-live-mounts: &live-mounts
+  - type: bind
+    source: ../.runtime/models.json
+    target: /workspace/.runtime/models.json
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ../.runtime/model-secret.json
+    target: /workspace/.runtime/model-secret.json
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: bind
+    source: "${AFTERCARE_EMBEDDING_DIR:?Set the local BGE snapshot directory}"
+    target: "/workspace/models/${AFTERCARE_EMBEDDING_REVISION:?Set the local BGE snapshot revision}"
+    read_only: true
+    bind:
+      create_host_path: false
+
+services:
+  api-app:
+    environment: *live-env
+    volumes: *live-mounts
+  worker-app:
+    environment: *live-env
+    volumes: *live-mounts

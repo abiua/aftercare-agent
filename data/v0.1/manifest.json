@@ -1,0 +1,51 @@
+{
+  "agent_inputs": [
+    "agent/business.json",
+    "agent/cases.dev.json",
+    "agent/cases.test.json"
+  ],
+  "as_of": "2026-11-10T12:00:00+08:00",
+  "case_counts": {
+    "cases": 60,
+    "dev": 40,
+    "oracle_review": "SYNTHETIC_NOT_HUMAN_REVIEWED",
+    "test": 20
+  },
+  "counts": {
+    "customers": 100,
+    "orders": 300,
+    "policies": 12,
+    "products": 30,
+    "shipments": 210
+  },
+  "files": {
+    "agent/business.json": {
+      "bytes": 358845,
+      "sha256": "869df87d59dd5c6c5d4a130ec0fcbd900e5c309efd30c27979353d705bc2562c"
+    },
+    "agent/cases.dev.json": {
+      "bytes": 89620,
+      "sha256": "c69199adc45de2d69399c7920841cd2e9d4bdb333d99ec12ec78d46a30739179"
+    },
+    "agent/cases.test.json": {
+      "bytes": 51457,
+      "sha256": "4a482f1e168daf96bd87d9529be3a78e521e9910817da783d29c1143272eaa1c"
+    },
+    "evaluation/private/answers.dev.json": {
+      "bytes": 27183,
+      "sha256": "465303a97952bfd1a5464f557428fc35f62ceb1321ebd85fd9de5634a90cb890"
+    },
+    "evaluation/private/answers.test.json": {
+      "bytes": 14785,
+      "sha256": "18d6f3ae5cb18afd1e152bdeb9c81ad9ac4a92b124049c5822130fb29cc048f6"
+    },
+    "evaluation/private/case_index.json": {
+      "bytes": 14718,
+      "sha256": "37b05cc34b5d884c28d670d8df5741a1e26e1b5b9e800ac193c43c381351ae95"
+    }
+  },
+  "human_reviewed": false,
+  "schema_version": "aftercare-data-v0.1",
+  "seed": 42,
+  "synthetic": true
+}

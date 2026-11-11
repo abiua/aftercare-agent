@@ -1,0 +1,8 @@
+[project]
+name = "aftercare-simulated-data"
+version = "0.1.0"
+description = "Reproducible synthetic after-sales cases; no real customer or payment data"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100

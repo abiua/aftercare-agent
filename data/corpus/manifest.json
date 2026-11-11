@@ -1,0 +1,85 @@
+{
+  "corpus_version": "public-expressions-0.1",
+  "input_kind": "public_hybrid_synthetic",
+  "derived_license": "CDLA-Sharing-1.0",
+  "source_attribution": "Bitext retail/eCommerce LLM chatbot training dataset by Bitext",
+  "structure_reference_attribution": "tau2-bench by Sierra Research",
+  "sources": [
+    {
+      "path": "raw/bitext/ecommerce.csv",
+      "source_url": "https://huggingface.co/datasets/bitext/Bitext-retail-ecommerce-llm-chatbot-training-dataset/resolve/12dd624ddcd3057382b2faad661bcda1fa869491/bitext-retail-ecommerce-llm-chatbot-training-dataset.csv",
+      "revision": "12dd624ddcd3057382b2faad661bcda1fa869491",
+      "sha256": "13a988266fed4e2b2c1ff947a89ef220ce09b5b13ac83c4a1496c0d7b81e8127",
+      "size_bytes": 42624013,
+      "license": "CDLA-Sharing-1.0",
+      "use": "expression_text"
+    },
+    {
+      "path": "raw/bitext/README.upstream.md",
+      "source_url": "https://huggingface.co/datasets/bitext/Bitext-retail-ecommerce-llm-chatbot-training-dataset/resolve/12dd624ddcd3057382b2faad661bcda1fa869491/README.md",
+      "revision": "12dd624ddcd3057382b2faad661bcda1fa869491",
+      "sha256": "7d86648704deb3cbe9171a0d0596ca8030e999691f9f05346038c80e699f17d0",
+      "size_bytes": 10100,
+      "license": "CDLA-Sharing-1.0",
+      "use": "source_documentation"
+    },
+    {
+      "path": "licenses/CDLA-Sharing-1.0.html",
+      "source_url": "https://cdla.dev/sharing-1-0/",
+      "revision": null,
+      "sha256": "890dbaabe54229f86728c6450e2961eeb8c16aab9431580e3c84098c34eb38f4",
+      "size_bytes": 156071,
+      "license": "CDLA-Sharing-1.0",
+      "use": "license_archive",
+      "archived_as": "licenses/CDLA-Sharing-1.0.html"
+    },
+    {
+      "path": "raw/tau2_retail/tasks.json",
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/data/tau2/domains/retail/tasks.json",
+      "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754",
+      "sha256": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+      "size_bytes": 345982,
+      "license": "MIT",
+      "use": "structure_reference"
+    },
+    {
+      "path": "raw/tau2_retail/split_tasks.json",
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/data/tau2/domains/retail/split_tasks.json",
+      "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754",
+      "sha256": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20",
+      "size_bytes": 3263,
+      "license": "MIT",
+      "use": "structure_reference"
+    },
+    {
+      "path": "raw/tau2_retail/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/LICENSE",
+      "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754",
+      "sha256": "e67c5aa0074dfcaefd3c3a1aedb94cb539234aecd15d5a972574e3200e6252fe",
+      "size_bytes": 1072,
+      "license": "MIT",
+      "use": "license_archive",
+      "archived_as": "licenses/tau2-MIT.txt"
+    },
+    {
+      "path": "raw/tau2_retail/README.upstream.md",
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/README.md",
+      "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754",
+      "sha256": "7ae047a745ef93b311edb0da5d74fbc2bd784a35ce285a73ab3af8b6aed3e34b",
+      "size_bytes": 14718,
+      "license": "MIT",
+      "use": "source_documentation"
+    }
+  ],
+  "split_by_family": {
+    "damage-received-product": "dev",
+    "damage-parcel": "validation",
+    "damage-in-transit": "holdout",
+    "wrong-delivery-mismatch": "dev",
+    "wrong-direct-report": "validation",
+    "wrong-attribute-mismatch": "holdout",
+    "refund-check": "dev",
+    "refund-information": "validation",
+    "refund-track": "holdout"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "artifacts": {
+    "agent/cases.dev.json": "af6691a9adc6740695aafc5e0340539754301d7959fd23bc5d92d8f62efa02b7",
+    "agent/cases.holdout.json": "a00477064c37612adba9b3816798f167ca3aa8242ac358f6fe63f201c8bd463d",
+    "agent/cases.regression.json": "3d3f14dadbb979d284d6b123e177bd62df8dca11b9888b6cdcdd507d9f286e48",
+    "agent/cases.validation.json": "50d539a644b10f7fa03ad7d34b0ee3c90108a443911046940823a43520e8de35",
+    "evaluation/private/references.json": "86e12f12f073e87e670849e75e9b81562e78bd027869e1bc77c1af3964276db4"
+  },
+  "as_of": "2026-11-10T04:00:00+00:00",
+  "core_count": 120,
+  "core_family_count": 24,
+  "dataset_version": "ac-eval-0.2",
+  "event_counts_by_operation": {
+    "approve": 7,
+    "create_case": 144,
+    "execute": 5,
+    "fault": 4,
+    "parallel_execute": 1,
+    "propose": 14,
+    "read": 1,
+    "reconcile": 2,
+    "repeat_event": 1,
+    "resume": 31,
+    "review": 81,
+    "start": 126,
+    "upload": 175
+  },
+  "human_review_count": 0,
+  "regression_count": 24,
+  "source": {
+    "path": "data/v0.1/agent/business.json",
+    "sha256": "869df87d59dd5c6c5d4a130ec0fcbd900e5c309efd30c27979353d705bc2562c"
+  },
+  "split_counts_by_intent": {
+    "dev": {
+      "damaged": 20,
+      "refund_status": 20,
+      "wrong_item": 20
+    },
+    "holdout": {
+      "damaged": 10,
+      "refund_status": 10,
+      "wrong_item": 10
+    },
+    "regression": {
+      "damaged": 19,
+      "refund_status": 1,
+      "wrong_item": 4
+    },
+    "validation": {
+      "damaged": 10,
+      "refund_status": 10,
+      "wrong_item": 10
+    }
+  },
+  "synthetic_only": true
+}

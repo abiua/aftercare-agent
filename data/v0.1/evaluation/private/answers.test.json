@@ -1,0 +1,603 @@
+[
+  {
+    "case_id": "CASE041",
+    "coverage": "foreign_order_unknown_refund_precedence",
+    "expected_actions": [
+      "DENY_ACCESS"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "ACCESS_DENIED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND",
+      "DISCLOSE_ORDER",
+      "RETURN_EXISTING_RESULT"
+    ],
+    "policy_ids": [
+      "POL01",
+      "POL12"
+    ],
+    "reason": "所有人校验先于退款对账，重复提交也不能触发查询。"
+  },
+  {
+    "case_id": "CASE042",
+    "coverage": "passed_return_unknown_original_payment",
+    "expected_actions": [
+      "VERIFY_PAYMENT"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "PAYMENT_VERIFICATION_PENDING"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL02",
+      "POL05",
+      "POL07"
+    ],
+    "reason": "退件条件已满足，原支付仍待确认。"
+  },
+  {
+    "case_id": "CASE043",
+    "coverage": "approved_amount_with_fulfillment_race",
+    "expected_actions": [
+      "CHECK_FULFILLMENT",
+      "REQUEST_INTERCEPTION"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "order_status": "SHIPPED",
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "INTERCEPTION_PENDING"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND",
+      "CANCEL_ORDER"
+    ],
+    "policy_ids": [
+      "POL03",
+      "POL04",
+      "POL10"
+    ],
+    "reason": "金额审批不能替代仓库复查与拦截。"
+  },
+  {
+    "case_id": "CASE044",
+    "coverage": "pending_high_value_multi_line_cancel",
+    "expected_actions": [
+      "CHECK_FULFILLMENT",
+      "REQUEST_POLICY_APPROVAL"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "order_status": "PAID",
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "proposed_refund_cents": 62000,
+      "status": "APPROVAL_PENDING"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND",
+      "CANCEL_ORDER"
+    ],
+    "policy_ids": [
+      "POL03",
+      "POL09",
+      "POL10"
+    ],
+    "reason": "两行净额合计 62000 分，人工仍未批准。"
+  },
+  {
+    "case_id": "CASE045",
+    "coverage": "confirmed_interception_approved_multi_line_discount",
+    "expected_actions": [
+      "REQUEST_INTERCEPTION",
+      "REQUEST_POLICY_APPROVAL",
+      "CANCEL_ORDER",
+      "EXECUTE_REFUND"
+    ],
+    "expected_final_state": {
+      "line_refunds": {
+        "L01": 60000,
+        "L02": 12000
+      },
+      "new_refund_cents": 72000,
+      "order_refunded_cents": 72000,
+      "order_status": "CANCELLED",
+      "payment_calls": {
+        "execute_refund": 1,
+        "query_refund": 0
+      },
+      "status": "REFUNDED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL04",
+      "POL09",
+      "POL10"
+    ],
+    "reason": "拦截确认且退款已获批，退款为两行净额 60000 加 12000 分。"
+  },
+  {
+    "case_id": "CASE046",
+    "coverage": "failed_interception_despite_approval",
+    "expected_actions": [
+      "REQUEST_INTERCEPTION",
+      "REPORT_INTERCEPTION_FAILED"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "order_status": "SHIPPED",
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "INTERCEPTION_FAILED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND",
+      "CANCEL_ORDER"
+    ],
+    "policy_ids": [
+      "POL04",
+      "POL10"
+    ],
+    "reason": "虽有金额审批，承运商未能拦回。"
+  },
+  {
+    "case_id": "CASE047",
+    "coverage": "window_endpoint_mixed_item_returnability",
+    "expected_actions": [
+      "REQUEST_RETURN_LINE_CORRECTION"
+    ],
+    "expected_final_state": {
+      "eligible_line_ids": [
+        "L01"
+      ],
+      "ineligible_line_ids": [
+        "L02"
+      ],
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "RETURN_LINE_CORRECTION_PENDING"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL05"
+    ],
+    "reason": "168 小时整仍在期限内，组合申请中仅第一行符合退货资格。"
+  },
+  {
+    "case_id": "CASE048",
+    "coverage": "return_requested_before_boundary_inspected_later",
+    "expected_actions": [
+      "OPEN_RETURN",
+      "EXECUTE_REFUND"
+    ],
+    "expected_final_state": {
+      "line_refunds": {
+        "L01": 19000
+      },
+      "new_refund_cents": 19000,
+      "order_refunded_cents": 19000,
+      "payment_calls": {
+        "execute_refund": 1,
+        "query_refund": 0
+      },
+      "status": "REFUNDED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL05",
+      "POL07",
+      "POL09",
+      "POL10"
+    ],
+    "reason": "申请时尚差一秒到期，后续收件与质检完成，可退 19000 分。"
+  },
+  {
+    "case_id": "CASE049",
+    "coverage": "late_request_despite_return_receipt_and_inspection",
+    "expected_actions": [
+      "DENY_RETURN_WINDOW"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "RETURN_WINDOW_EXPIRED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND",
+      "OPEN_RETURN"
+    ],
+    "policy_ids": [
+      "POL05",
+      "POL07"
+    ],
+    "reason": "申请超过 168 小时一秒，既有质检记录不能放宽申请时限。"
+  },
+  {
+    "case_id": "CASE050",
+    "coverage": "received_return_with_failed_inspection",
+    "expected_actions": [
+      "DENY_RETURN_INSPECTION"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "RETURN_INSPECTION_FAILED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL05",
+      "POL07"
+    ],
+    "reason": "已收到退件但验货未通过。"
+  },
+  {
+    "case_id": "CASE051",
+    "coverage": "approved_damage_review_high_value_approval_pending",
+    "expected_actions": [
+      "REQUEST_DAMAGE_REVIEW",
+      "REQUEST_POLICY_APPROVAL"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "proposed_refund_cents": 63500,
+      "status": "APPROVAL_PENDING"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL06",
+      "POL09",
+      "POL10"
+    ],
+    "reason": "损坏核验通过，可退 63500 分，尚待金额审批。"
+  },
+  {
+    "case_id": "CASE052",
+    "coverage": "parcel_duplicates_and_wrong_item_photo",
+    "expected_actions": [
+      "REQUEST_EVIDENCE"
+    ],
+    "expected_final_state": {
+      "evidence_line_ids": [
+        "L02"
+      ],
+      "missing_evidence": [
+        "ITEM"
+      ],
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "EVIDENCE_PENDING"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL06"
+    ],
+    "reason": "多张包裹照及第一行商品照无法补齐第二行的商品照。"
+  },
+  {
+    "case_id": "CASE053",
+    "coverage": "complete_damage_metadata_failed_review",
+    "expected_actions": [
+      "REQUEST_DAMAGE_REVIEW",
+      "DENY_DAMAGE_REVIEW"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "DAMAGE_REVIEW_FAILED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL06"
+    ],
+    "reason": "附件元数据齐全，外部模拟核验明确失败。"
+  },
+  {
+    "case_id": "CASE054",
+    "coverage": "multi_line_prior_refund_fee_exclusion_at_exact_threshold",
+    "expected_actions": [
+      "EXCLUDE_NON_ITEM_FEE",
+      "EXECUTE_REFUND"
+    ],
+    "expected_final_state": {
+      "excluded_fee_cents": 1200,
+      "line_refunds": {
+        "L01": 26000,
+        "L02": 24000
+      },
+      "new_refund_cents": 50000,
+      "order_refunded_cents": 57000,
+      "payment_calls": {
+        "execute_refund": 1,
+        "query_refund": 0
+      },
+      "policy_approval_required": false,
+      "status": "REFUNDED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "QUERY_ORIGINAL_REFUND",
+      "REQUEST_POLICY_APPROVAL"
+    ],
+    "policy_ids": [
+      "POL09",
+      "POL10"
+    ],
+    "reason": "已同意剔除运费。两行余额为 26000 和 24000 分，合计 50000 分。"
+  },
+  {
+    "case_id": "CASE055",
+    "coverage": "discounted_line_one_cent_over_threshold_approval_denied",
+    "expected_actions": [
+      "REQUEST_POLICY_APPROVAL",
+      "REPORT_APPROVAL_DENIED"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "policy_approval_required": true,
+      "proposed_refund_cents": 50001,
+      "status": "APPROVAL_DENIED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL09",
+      "POL10"
+    ],
+    "reason": "第二行折后金额 50001 分，人工已拒绝。"
+  },
+  {
+    "case_id": "CASE056",
+    "coverage": "new_key_with_zero_selected_line_balance",
+    "expected_actions": [
+      "DENY_NO_REFUND_BALANCE"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 10000,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "proposed_refund_cents": 0,
+      "status": "NO_REFUND_BALANCE"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL08",
+      "POL09"
+    ],
+    "reason": "选中的第一行余额为零。第二行余额不属于该请求。"
+  },
+  {
+    "case_id": "CASE057",
+    "coverage": "known_cancel_refund_duplicate_event",
+    "expected_actions": [
+      "RETURN_EXISTING_RESULT"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 17000,
+      "order_status": "CANCELLED",
+      "original_refund_status": "SUCCEEDED",
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "REFUND_ALREADY_SUCCEEDED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND"
+    ],
+    "policy_ids": [
+      "POL08"
+    ],
+    "reason": "整单已退款 17000 分，同键重放只返回原账本。"
+  },
+  {
+    "case_id": "CASE058",
+    "coverage": "unknown_query_not_found",
+    "expected_actions": [
+      "QUERY_ORIGINAL_REFUND",
+      "ESCALATE_RECONCILIATION"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "original_refund_status": "UNKNOWN",
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 1
+      },
+      "status": "REFUND_UNKNOWN"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND"
+    ],
+    "policy_ids": [
+      "POL12"
+    ],
+    "reason": "按原键暂未查到记录，不能据此认定未扣款，交人工对账。"
+  },
+  {
+    "case_id": "CASE059",
+    "coverage": "new_timeout_replay_then_success_with_prior_partial",
+    "expected_actions": [
+      "EXECUTE_REFUND",
+      "QUEUE_RECONCILIATION",
+      "QUERY_ORIGINAL_REFUND",
+      "RECORD_REFUND_RESULT"
+    ],
+    "expected_final_state": {
+      "line_refunds": {
+        "L02": 25000
+      },
+      "new_refund_cents": 25000,
+      "order_refunded_cents": 26000,
+      "original_refund_status": "SUCCEEDED",
+      "payment_calls": {
+        "execute_refund": 1,
+        "query_refund": 1
+      },
+      "status": "REFUNDED"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND"
+    ],
+    "policy_ids": [
+      "POL08",
+      "POL09",
+      "POL12"
+    ],
+    "reason": "第二行余额 25000 分，首次执行超时后，同键重放只核对，查成功后补记一次。"
+  },
+  {
+    "case_id": "CASE060",
+    "coverage": "nonreturnable_item_at_last_warranty_second",
+    "expected_actions": [
+      "REQUEST_WARRANTY_REVIEW"
+    ],
+    "expected_final_state": {
+      "new_refund_cents": 0,
+      "order_refunded_cents": 0,
+      "payment_calls": {
+        "execute_refund": 0,
+        "query_refund": 0
+      },
+      "status": "WARRANTY_REVIEW_PENDING"
+    },
+    "forbidden_actions": [
+      "BLIND_REFUND_RETRY",
+      "OVER_REFUND",
+      "EXECUTE_REFUND",
+      "QUERY_ORIGINAL_REFUND",
+      "OPEN_RETURN"
+    ],
+    "policy_ids": [
+      "POL05",
+      "POL11"
+    ],
+    "reason": "定制件不参加普通退货，仍可在 365 天质保期限内进入服务审核。"
+  }
+]

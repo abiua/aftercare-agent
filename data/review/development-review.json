@@ -1,0 +1,1689 @@
+{
+  "version": "aftercare-development-review-v1",
+  "split": "dev",
+  "purpose": "DEVELOPMENT_SAMPLE_REVIEW",
+  "source_business_data": "SIMULATED",
+  "human_review_status": "PENDING",
+  "entries": [
+    {
+      "review_id": "DEV-HR-01",
+      "label": "货损",
+      "intent": "damaged",
+      "provenance": {
+        "report": "reports/compact-multi-recheck.json",
+        "report_sha256": "08ca1e1bdbd12b8680aee3de2dc36e198d8f5ec84ee95a37ef48a72063e8ba34",
+        "experiment_id": "a3d70bd3-eb7d-460f-bf18-ca1052458ed6",
+        "result_id": "29d8a83d-bef4-4f7c-9d4f-c5edac896bd4",
+        "dataset_case_id": "AC02-C001",
+        "repetition": 1,
+        "business_case_id": "5261bd20-f868-41b8-bbe4-35c3c565ab42",
+        "run_id": "ffdbd191-1ce8-4e03-bbdf-16fff5a6d101",
+        "thread_id": "5261bd20-f868-41b8-bbe4-35c3c565ab42:ffdbd191-1ce8-4e03-bbdf-16fff5a6d101",
+        "config": {
+          "source": "live",
+          "split": "dev",
+          "mode": "multi",
+          "strategy": "routed",
+          "dataset_id": "v0.2"
+        },
+        "observed_source": "live_provider"
+      },
+      "user_input": {
+        "text": "拆到第三层泡沫才看到防晒外套断了一截，第一次找你们，还没来得及拍照。",
+        "path": "data/v0.2/agent/cases.dev.json",
+        "field": "message",
+        "matches_report_case_description": true
+      },
+      "business_facts": {
+        "source_selector": "actual.final_business",
+        "case": {
+          "status": "HUMAN_REVIEW",
+          "line_ids": [
+            "L01"
+          ],
+          "materials_version": 2,
+          "version": 4
+        },
+        "order": {
+          "id": "AC02-C001-O",
+          "status": "DELIVERED",
+          "delivered_at": "2026-11-09T04:00:00+00:00",
+          "paid_at": "2026-11-04T04:21:00+00:00",
+          "payment_status": "CONFIRMED",
+          "paid_cents": 67683,
+          "refunded_cents": 0,
+          "items": [
+            {
+              "discount_cents": 0,
+              "line_id": "L01",
+              "paid_cents": 35900,
+              "payable_cents": 35900,
+              "product_id": "AC02-C001-P1",
+              "quantity": 1,
+              "refunded_cents": 0,
+              "unit_price_cents": 35900
+            },
+            {
+              "discount_cents": 17,
+              "line_id": "L02",
+              "paid_cents": 31783,
+              "payable_cents": 31783,
+              "product_id": "AC02-C001-P2",
+              "quantity": 2,
+              "refunded_cents": 0,
+              "unit_price_cents": 15900
+            }
+          ],
+          "products": [
+            {
+              "category": "服饰",
+              "id": "AC02-C001-P1",
+              "name": "防晒外套",
+              "returnable": true,
+              "unit_price_cents": 35900,
+              "warranty_days": 0
+            },
+            {
+              "category": "数码",
+              "id": "AC02-C001-P2",
+              "name": "移动电源",
+              "returnable": true,
+              "unit_price_cents": 15900,
+              "warranty_days": 365
+            }
+          ]
+        },
+        "facts": {},
+        "materials": [
+          {
+            "id": "e6f5b455-2124-4d4c-b77b-c4b197afd48a",
+            "kind": "PARCEL",
+            "sha256": "d76555149404c29e98a7fd318099a37a384f894c0517ae950b7153e6be4ac04b",
+            "content_type": "image/png",
+            "size": 74,
+            "created_at": "2026-11-10T04:00:00+00:00"
+          },
+          {
+            "id": "eab20c87-fbd5-4c4b-a234-3716ef1c872c",
+            "kind": "ITEM",
+            "sha256": "a995d70bd2f329658a868981ce3d36d75cf8b5eb45ffeefae4a051835a4ae616",
+            "content_type": "image/png",
+            "size": 74,
+            "created_at": "2026-11-10T04:00:00+00:00"
+          }
+        ],
+        "reviews": [
+          {
+            "id": "5ee50486-143c-4256-b33d-37afcff88bb5",
+            "materials_version": 2,
+            "material_ids": [
+              "e6f5b455-2124-4d4c-b77b-c4b197afd48a",
+              "eab20c87-fbd5-4c4b-a234-3716ef1c872c"
+            ],
+            "decision": "APPROVED",
+            "notes": "本次模拟材料人工核对为通过。",
+            "reviewer_id": "eval-support",
+            "created_at": "2026-11-10T04:00:00+00:00",
+            "effective": true
+          }
+        ],
+        "ledger": [],
+        "eligibility": {
+          "status": "ELIGIBLE",
+          "reason": "可以提交当前版本的人工审批方案。",
+          "reason_code": null,
+          "policy_ids_by_action": {
+            "REFUND": [
+              "POL01",
+              "POL02",
+              "POL06",
+              "POL09",
+              "POL10",
+              "POL14"
+            ]
+          },
+          "policy_ids": [
+            "POL01",
+            "POL02",
+            "POL06",
+            "POL09",
+            "POL10",
+            "POL14"
+          ],
+          "missing_materials": [],
+          "available_cents": 35900,
+          "lines": [
+            {
+              "line_id": "L01",
+              "product_id": "AC02-C001-P1",
+              "available_cents": 35900,
+              "replace_available_quantity": 1
+            }
+          ],
+          "actions": [
+            "REFUND"
+          ]
+        },
+        "proposals": [],
+        "approvals": [],
+        "material_review_scope": "SCRIPTED_EVALUATION_BUSINESS_STEP"
+      },
+      "policy_context": {
+        "source_selector": "actual.final_business.policies filtered to rule eligibility IDs and published citations",
+        "clauses": [
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL01",
+            "parameters": {
+              "owner_only": true
+            },
+            "text": "只允许已核验的订单所属客户查询订单详情或提交售后。",
+            "title": "本人订单",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL02",
+            "parameters": {
+              "required_payment_status": "CONFIRMED",
+              "requires_paid_at": true
+            },
+            "text": "退款须有已确认的支付状态、付款时间和大于零的实际付款金额。",
+            "title": "实付核验",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL06",
+            "parameters": {
+              "required_photo_kinds": [
+                "ITEM",
+                "PARCEL"
+              ]
+            },
+            "text": "损坏售后需提供商品损坏照和外包裹照。资料未齐时记录缺项并请求补充。",
+            "title": "损坏补证",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL09",
+            "parameters": {
+              "cap": "ITEM_REMAINING_PAID",
+              "include_fees": false,
+              "requires_approved_resolution": true
+            },
+            "text": "部分退款须先有独立核准的售后处置或商家补偿决定。每行退款金额以该行实付减历史已退款为上限，合计还须在订单剩余实付以内。部分退款只计商品金额。明确请求超出上限时说明可退金额，并请客户确认更正金额。",
+            "title": "部分退款金额",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL10",
+            "parameters": {
+              "approval_threshold_cents": 50000,
+              "operator": "gt"
+            },
+            "text": "单笔退款拟退金额超过50000分时，提交前须获得人工审批。",
+            "title": "高额退款审批",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL14",
+            "parameters": {
+              "allowed_action": "REFUND",
+              "requires_material_review": true
+            },
+            "text": "损坏材料经人工审核确认后，可提交该订单行的商品退款处置方案。退款仍须核实实付及余额并经财务审批。",
+            "title": "损坏处置",
+            "version": "1.0"
+          }
+        ],
+        "citation_applicability_machine_audit": [
+          {
+            "key": "POL02@1.0",
+            "applicable": true
+          },
+          {
+            "key": "POL06@1.0",
+            "applicable": true
+          },
+          {
+            "key": "POL09@1.0",
+            "applicable": true
+          },
+          {
+            "key": "POL14@1.0",
+            "applicable": true
+          }
+        ]
+      },
+      "model_role_outputs": [
+        {
+          "trace_seq": 30,
+          "role": "coordinator",
+          "stage": "finish",
+          "cycle": 2,
+          "rework": 0,
+          "intent": "damaged",
+          "citation_ids": [],
+          "action": null,
+          "lines": [],
+          "notes": "客户称防晒外套拆包后发现断裂，尚未拍照。系统显示订单已送达、支付已确认；材料记录含包裹和商品，材料版本为2；人工审批状态为已批准，但当前工单执行账本未找到记录，不能据此判断退款已申请、失败或到账。建议核对现有材料是否能清楚展示损坏，必要时请客户补拍，并确认期望的处理方式及具体金额。",
+          "conflicts": []
+        },
+        {
+          "trace_seq": 70,
+          "role": "policy",
+          "stage": "finish",
+          "cycle": 2,
+          "rework": 0,
+          "intent": "damaged",
+          "citation_ids": [
+            "POL06",
+            "POL14",
+            "POL09",
+            "POL02"
+          ],
+          "action": null,
+          "lines": [],
+          "notes": "按损坏售后核对。系统显示订单已送达、支付已确认，实付67683分，付款时间为2026-11-04T04:21:00+00:00；材料版本2已有PARCEL、ITEM，缺项为空，审核状态为APPROVED。客户称尚未拍照，仅作为待核对陈述，不据此覆盖系统材料状态或认定冲突。L01可退上限35900分并非已核准或明确拟退金额；当前未明确退款金额或换货数量，故不生成处置明细。现有审核状态不能据此认定财务审批完成。当前工单执行账本为空，系统内未找到执行记录，不能认定已申请、执行失败或外部到账。",
+          "conflicts": []
+        },
+        {
+          "trace_seq": 111,
+          "role": "verifier",
+          "stage": "finish",
+          "cycle": 2,
+          "rework": 0,
+          "intent": "damaged",
+          "citation_ids": [
+            "POL06",
+            "POL14",
+            "POL09",
+            "POL02"
+          ],
+          "action": null,
+          "lines": [],
+          "notes": "待人工确认草案。系统记录订单已送达、支付已确认，实付67683分；材料版本2包含PARCEL、ITEM，审核标记为APPROVED，无缺失材料。客户称首次联系且尚未拍照，与系统材料记录的对应关系待核实，不构成已核验数据间冲突。系统资格允许提交退款方案，L01可退上限35900分，但上限不等于拟退金额；尚无明确退款金额，故不列执行方案。当前工单执行账本为空，系统内未找到执行记录，不能推断已申请、失败或到账。现有资格说明及材料审核标记不等同于独立处置决定或财务审批记录，相关证据待确认。当前工单读取权限及订单归属匹配不替代买家外部身份核验。",
+          "conflicts": []
+        }
+      ],
+      "model_attempts": [
+        {
+          "cycle": 2,
+          "logical_id": "coordinator:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-terra"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "coordinator:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-terra"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "policy:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "policy:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "verifier:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "verifier:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        }
+      ],
+      "published_application_steps": [
+        {
+          "script_event_id": "e02",
+          "id": "ffdbd191-1ce8-4e03-bbdf-16fff5a6d101",
+          "thread_id": "5261bd20-f868-41b8-bbe4-35c3c565ab42:ffdbd191-1ce8-4e03-bbdf-16fff5a6d101",
+          "cycle": 0,
+          "case_version": 1,
+          "status": "WAITING_INPUT",
+          "reason": "WAITING_INPUT",
+          "output": {
+            "action": null,
+            "lines": [],
+            "policy_ids": [
+              "POL01",
+              "POL02",
+              "POL06",
+              "POL09",
+              "POL10",
+              "POL14"
+            ],
+            "citations": [],
+            "missing_materials": [
+              "ITEM",
+              "PARCEL"
+            ],
+            "notes": "请补齐所列材料后继续。",
+            "reason": "WAITING_INPUT",
+            "ledger": [],
+            "historical_refunded_cents": null
+          }
+        },
+        {
+          "script_event_id": "e05",
+          "id": "ffdbd191-1ce8-4e03-bbdf-16fff5a6d101",
+          "thread_id": "5261bd20-f868-41b8-bbe4-35c3c565ab42:ffdbd191-1ce8-4e03-bbdf-16fff5a6d101",
+          "cycle": 1,
+          "case_version": 3,
+          "status": "WAITING_INPUT",
+          "reason": "MATERIAL_REVIEW_REQUIRED",
+          "output": {
+            "action": null,
+            "lines": [],
+            "policy_ids": [
+              "POL01",
+              "POL02",
+              "POL06",
+              "POL09",
+              "POL10",
+              "POL14"
+            ],
+            "citations": [],
+            "missing_materials": [],
+            "notes": "材料已补齐，请客服登记人工审核后继续。",
+            "reason": "MATERIAL_REVIEW_REQUIRED",
+            "ledger": [],
+            "historical_refunded_cents": null
+          }
+        },
+        {
+          "script_event_id": "e07",
+          "id": "ffdbd191-1ce8-4e03-bbdf-16fff5a6d101",
+          "thread_id": "5261bd20-f868-41b8-bbe4-35c3c565ab42:ffdbd191-1ce8-4e03-bbdf-16fff5a6d101",
+          "cycle": 2,
+          "case_version": 4,
+          "status": "COMPLETED",
+          "reason": "ELIGIBLE",
+          "output": {
+            "action": null,
+            "lines": [],
+            "policy_ids": [
+              "POL01",
+              "POL02",
+              "POL06",
+              "POL09",
+              "POL10",
+              "POL14"
+            ],
+            "citations": [
+              {
+                "id": "POL06",
+                "version": "1.0",
+                "quote": "损坏售后需提供商品损坏照和外包裹照。资料未齐时记录缺项并请求补充。"
+              },
+              {
+                "id": "POL14",
+                "version": "1.0",
+                "quote": "损坏材料经人工审核确认后，可提交该订单行的商品退款处置方案。退款仍须核实实付及余额并经财务审批。"
+              },
+              {
+                "id": "POL09",
+                "version": "1.0",
+                "quote": "部分退款须先有独立核准的售后处置或商家补偿决定。每行退款金额以该行实付减历史已退款为上限，合计还须在订单剩余实付以内。部分退款只计商品金额。"
+              },
+              {
+                "id": "POL02",
+                "version": "1.0",
+                "quote": "退款须有已确认的支付状态、付款时间和大于零的实际付款金额。"
+              }
+            ],
+            "missing_materials": [],
+            "notes": "已核验业务条件，请客服确认具体处理方式、商品和金额。",
+            "reason": "ELIGIBLE",
+            "ledger": [],
+            "historical_refunded_cents": null
+          }
+        }
+      ],
+      "program_verdict": {
+        "status": "NEEDS_REVIEW",
+        "machine_status": "NEEDS_REVIEW",
+        "failure_reason": "HUMAN_REFERENCE_PENDING",
+        "check_counts": {
+          "PASS": 10
+        },
+        "checks": [
+          {
+            "severity": "normal",
+            "equals": "WAITING_INPUT",
+            "event_id": "e02",
+            "path": "status",
+            "observed": "WAITING_INPUT",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "WAITING_INPUT",
+            "event_id": "e02",
+            "path": "reason",
+            "observed": "WAITING_INPUT",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": [
+              "ITEM",
+              "PARCEL"
+            ],
+            "event_id": "e02",
+            "path": "output.missing_materials",
+            "observed": [
+              "ITEM",
+              "PARCEL"
+            ],
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": null,
+            "event_id": "e02",
+            "path": "output.action",
+            "observed": null,
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "WAITING_INPUT",
+            "event_id": "e05",
+            "path": "status",
+            "observed": "WAITING_INPUT",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "MATERIAL_REVIEW_REQUIRED",
+            "event_id": "e05",
+            "path": "reason",
+            "observed": "MATERIAL_REVIEW_REQUIRED",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": [],
+            "event_id": "e05",
+            "path": "output.missing_materials",
+            "observed": [],
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": null,
+            "event_id": "e05",
+            "path": "output.action",
+            "observed": null,
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "COMPLETED",
+            "event_id": "e07",
+            "path": "status",
+            "observed": "COMPLETED",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "ELIGIBLE",
+            "event_id": "e07",
+            "path": "reason",
+            "observed": "ELIGIBLE",
+            "status": "PASS"
+          }
+        ]
+      },
+      "human_review": {
+        "status": "PENDING",
+        "facts": "PENDING",
+        "citations": "PENDING",
+        "handling": "PENDING",
+        "overall": "PENDING",
+        "reviewer": "PENDING",
+        "reviewed_at": "PENDING",
+        "rationale": "PENDING"
+      }
+    },
+    {
+      "review_id": "DEV-HR-02",
+      "label": "错发",
+      "intent": "wrong_item",
+      "provenance": {
+        "report": "reports/comparison-single-analysis.json",
+        "report_sha256": "1afc9b0c1b47e35645170f2ff2268d536d8deea9902b95c41b402691e77e5fd5",
+        "experiment_id": "a7cfe8e9-d3da-4abb-9765-207c24d427e5",
+        "result_id": "e841d8ca-0cd0-470d-b646-ccb91e269f78",
+        "dataset_case_id": "AC02-C041",
+        "repetition": 1,
+        "business_case_id": "adef71b9-4aca-4078-bb80-6fb52e65fa1b",
+        "run_id": "9f70af0a-fa87-4252-b7d4-84524c85bac6",
+        "thread_id": "adef71b9-4aca-4078-bb80-6fb52e65fa1b:9f70af0a-fa87-4252-b7d4-84524c85bac6",
+        "config": {
+          "source": "live",
+          "split": "dev",
+          "mode": "single",
+          "strategy": "analysis",
+          "dataset_id": "v0.2"
+        },
+        "observed_source": "live_provider"
+      },
+      "user_input": {
+        "text": "单上写降噪耳机，我拆出来的是另一个牌子。需要拍哪几张？",
+        "path": "data/v0.2/agent/cases.dev.json",
+        "field": "message",
+        "matches_report_case_description": true
+      },
+      "business_facts": {
+        "source_selector": "actual.final_business",
+        "case": {
+          "status": "OPEN",
+          "line_ids": [
+            "L01"
+          ],
+          "materials_version": 0,
+          "version": 1
+        },
+        "order": {
+          "id": "AC02-C041-O",
+          "status": "DELIVERED",
+          "delivered_at": "2026-11-09T04:00:00+00:00",
+          "paid_at": "2026-11-04T04:21:00+00:00",
+          "payment_status": "CONFIRMED",
+          "paid_cents": 100663,
+          "refunded_cents": 0,
+          "items": [
+            {
+              "discount_cents": 0,
+              "line_id": "L01",
+              "paid_cents": 89900,
+              "payable_cents": 89900,
+              "product_id": "AC02-C041-P1",
+              "quantity": 1,
+              "refunded_cents": 0,
+              "unit_price_cents": 89900
+            },
+            {
+              "discount_cents": 17,
+              "line_id": "L02",
+              "paid_cents": 10763,
+              "payable_cents": 10763,
+              "product_id": "AC02-C041-P2",
+              "quantity": 2,
+              "refunded_cents": 0,
+              "unit_price_cents": 5390
+            }
+          ],
+          "products": [
+            {
+              "category": "数码",
+              "id": "AC02-C041-P1",
+              "name": "降噪耳机",
+              "returnable": true,
+              "unit_price_cents": 89900,
+              "warranty_days": 365
+            },
+            {
+              "category": "家居",
+              "id": "AC02-C041-P2",
+              "name": "折叠收纳箱",
+              "returnable": true,
+              "unit_price_cents": 5390,
+              "warranty_days": 0
+            }
+          ]
+        },
+        "facts": {},
+        "materials": [],
+        "reviews": [],
+        "ledger": [],
+        "eligibility": {
+          "status": "WAITING_INPUT",
+          "reason": "请补充所需照片。",
+          "reason_code": null,
+          "policy_ids_by_action": {},
+          "policy_ids": [
+            "POL01",
+            "POL13"
+          ],
+          "missing_materials": [
+            "WRONG_ITEM",
+            "LABEL"
+          ],
+          "available_cents": 89900,
+          "lines": [
+            {
+              "line_id": "L01",
+              "product_id": "AC02-C041-P1",
+              "available_cents": 89900,
+              "replace_available_quantity": 1
+            }
+          ],
+          "actions": []
+        },
+        "proposals": [],
+        "approvals": [],
+        "material_review_scope": "SCRIPTED_EVALUATION_BUSINESS_STEP"
+      },
+      "policy_context": {
+        "source_selector": "actual.final_business.policies filtered to rule eligibility IDs and published citations",
+        "clauses": [
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL01",
+            "parameters": {
+              "owner_only": true
+            },
+            "text": "只允许已核验的订单所属客户查询订单详情或提交售后。",
+            "title": "本人订单",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL13",
+            "parameters": {
+              "required_photo_kinds": [
+                "WRONG_ITEM",
+                "LABEL"
+              ]
+            },
+            "text": "签收后发现错发时提交实物照和包裹标签照。人工审核确认错发后，按原商品可用库存审核换发；退款按已付款且有核准的处置方案办理。",
+            "title": "错发举证与换发",
+            "version": "1.0"
+          }
+        ],
+        "citation_applicability_machine_audit": null
+      },
+      "model_role_outputs": [
+        {
+          "trace_seq": 11,
+          "role": "single",
+          "stage": "finish",
+          "cycle": 0,
+          "rework": 0,
+          "intent": "wrong_item",
+          "citation_ids": [],
+          "action": null,
+          "notes": "待人工确认草案：请先补充实收错货照片和标签照片。系统当前状态为等待补充材料，缺少材料项为 WRONG_ITEM、LABEL，目前尚无已提交材料。未读取到具体拍摄要求的政策原文，因此标签类型、拍摄张数及清晰度要求仍待确认。系统内未找到本工单执行记录。",
+          "conflicts": []
+        }
+      ],
+      "model_attempts": [
+        {
+          "cycle": 0,
+          "logical_id": "single:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 0,
+          "logical_id": "single:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        }
+      ],
+      "published_application_steps": [
+        {
+          "script_event_id": "e02",
+          "id": "9f70af0a-fa87-4252-b7d4-84524c85bac6",
+          "thread_id": "adef71b9-4aca-4078-bb80-6fb52e65fa1b:9f70af0a-fa87-4252-b7d4-84524c85bac6",
+          "cycle": 0,
+          "case_version": 1,
+          "status": "WAITING_INPUT",
+          "reason": "WAITING_INPUT",
+          "output": {
+            "action": null,
+            "lines": [],
+            "policy_ids": [
+              "POL01",
+              "POL13"
+            ],
+            "citations": [],
+            "missing_materials": [
+              "WRONG_ITEM",
+              "LABEL"
+            ],
+            "notes": "请补齐所列材料后继续。",
+            "reason": "WAITING_INPUT",
+            "ledger": [],
+            "historical_refunded_cents": null
+          }
+        }
+      ],
+      "program_verdict": {
+        "status": "NEEDS_REVIEW",
+        "machine_status": "NEEDS_REVIEW",
+        "failure_reason": "HUMAN_REFERENCE_PENDING",
+        "check_counts": {
+          "PASS": 4
+        },
+        "checks": [
+          {
+            "equals": "WAITING_INPUT",
+            "event_id": "e02",
+            "path": "status",
+            "observed": "WAITING_INPUT",
+            "status": "PASS"
+          },
+          {
+            "equals": "WAITING_INPUT",
+            "event_id": "e02",
+            "path": "reason",
+            "observed": "WAITING_INPUT",
+            "status": "PASS"
+          },
+          {
+            "equals": [
+              "WRONG_ITEM",
+              "LABEL"
+            ],
+            "event_id": "e02",
+            "path": "output.missing_materials",
+            "observed": [
+              "WRONG_ITEM",
+              "LABEL"
+            ],
+            "status": "PASS"
+          },
+          {
+            "equals": null,
+            "event_id": "e02",
+            "path": "output.action",
+            "observed": null,
+            "status": "PASS"
+          }
+        ]
+      },
+      "human_review": {
+        "status": "PENDING",
+        "facts": "PENDING",
+        "citations": "PENDING",
+        "handling": "PENDING",
+        "overall": "PENDING",
+        "reviewer": "PENDING",
+        "reviewed_at": "PENDING",
+        "rationale": "PENDING"
+      }
+    },
+    {
+      "review_id": "DEV-HR-03",
+      "label": "退款进度",
+      "intent": "refund_status",
+      "provenance": {
+        "report": "reports/live-recheck.json",
+        "report_sha256": "5bef510ef8d1f63e9c2cb6d587b4a9894fbd23ff8fbef06317f2664f7ae6f8e4",
+        "experiment_id": "2887c15b-0911-42b8-be1a-cf3021ef222e",
+        "result_id": "c7cfe436-69f8-423f-b8c8-53f877b5222e",
+        "dataset_case_id": "AC02-C081",
+        "repetition": 1,
+        "business_case_id": "2a978d3f-e0d2-4871-ae41-5570a84c3c7a",
+        "run_id": "c2a81a9d-ca8d-43eb-a1ac-f129849e81a4",
+        "thread_id": "2a978d3f-e0d2-4871-ae41-5570a84c3c7a:c2a81a9d-ca8d-43eb-a1ac-f129849e81a4",
+        "config": {
+          "source": "live",
+          "split": "dev",
+          "mode": "multi",
+          "strategy": "routed",
+          "dataset_id": "v0.2"
+        },
+        "observed_source": "live_provider"
+      },
+      "user_input": {
+        "text": "上周问过能否退款，今天只想查有没有正式处理记录。",
+        "path": "data/v0.2/agent/cases.dev.json",
+        "field": "message",
+        "matches_report_case_description": true
+      },
+      "business_facts": {
+        "source_selector": "actual.final_business",
+        "case": {
+          "status": "OPEN",
+          "line_ids": [
+            "L01"
+          ],
+          "materials_version": 0,
+          "version": 1
+        },
+        "order": {
+          "id": "AC02-C081-O",
+          "status": "DELIVERED",
+          "delivered_at": "2026-11-09T04:00:00+00:00",
+          "paid_at": "2026-11-04T04:21:00+00:00",
+          "payment_status": "CONFIRMED",
+          "paid_cents": 67683,
+          "refunded_cents": 0,
+          "items": [
+            {
+              "discount_cents": 0,
+              "line_id": "L01",
+              "paid_cents": 35900,
+              "payable_cents": 35900,
+              "product_id": "AC02-C081-P1",
+              "quantity": 1,
+              "refunded_cents": 0,
+              "unit_price_cents": 35900
+            },
+            {
+              "discount_cents": 17,
+              "line_id": "L02",
+              "paid_cents": 31783,
+              "payable_cents": 31783,
+              "product_id": "AC02-C081-P2",
+              "quantity": 2,
+              "refunded_cents": 0,
+              "unit_price_cents": 15900
+            }
+          ],
+          "products": [
+            {
+              "category": "服饰",
+              "id": "AC02-C081-P1",
+              "name": "防晒外套",
+              "returnable": true,
+              "unit_price_cents": 35900,
+              "warranty_days": 0
+            },
+            {
+              "category": "数码",
+              "id": "AC02-C081-P2",
+              "name": "移动电源",
+              "returnable": true,
+              "unit_price_cents": 15900,
+              "warranty_days": 365
+            }
+          ]
+        },
+        "facts": {},
+        "materials": [],
+        "reviews": [],
+        "ledger": [],
+        "eligibility": {
+          "status": "STATUS_ONLY",
+          "reason": "按原执行记录查询，未知结果仍待核对。",
+          "reason_code": null,
+          "policy_ids_by_action": {},
+          "policy_ids": [
+            "POL01",
+            "POL08",
+            "POL12"
+          ],
+          "missing_materials": [],
+          "available_cents": 35900,
+          "lines": [
+            {
+              "line_id": "L01",
+              "product_id": "AC02-C081-P1",
+              "available_cents": 35900,
+              "replace_available_quantity": 1
+            }
+          ],
+          "actions": []
+        },
+        "proposals": [],
+        "approvals": [],
+        "material_review_scope": "SCRIPTED_EVALUATION_BUSINESS_STEP"
+      },
+      "policy_context": {
+        "source_selector": "actual.final_business.policies filtered to rule eligibility IDs and published citations",
+        "clauses": [
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL01",
+            "parameters": {
+              "owner_only": true
+            },
+            "text": "只允许已核验的订单所属客户查询订单详情或提交售后。",
+            "title": "本人订单",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL08",
+            "parameters": {
+              "execute_again": false,
+              "reuse_existing": true
+            },
+            "text": "同一退款请求已有处理记录时返回该记录，复用原有流程。",
+            "title": "重复退款",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL12",
+            "parameters": {
+              "allow_blind_retry": false,
+              "reconcile_by": "idempotency_key"
+            },
+            "text": "退款执行超时或结果未知时，用原幂等键核对外部结果。确认结果前保持待核对状态。",
+            "title": "退款执行结果未知",
+            "version": "1.0"
+          }
+        ],
+        "citation_applicability_machine_audit": null
+      },
+      "model_role_outputs": [
+        {
+          "trace_seq": 11,
+          "role": "coordinator",
+          "stage": "finish",
+          "cycle": 0,
+          "rework": 0,
+          "intent": "refund_status",
+          "citation_ids": [],
+          "action": null,
+          "notes": "系统订单退款执行账本未找到执行记录，审核记录为空。尚不能据此判断是否申请、处理失败或外部到账；建议继续核对其他正式处理记录及原执行记录。",
+          "conflicts": []
+        },
+        {
+          "trace_seq": 21,
+          "role": "policy",
+          "stage": "finish",
+          "cycle": 0,
+          "rework": 0,
+          "intent": "refund_status",
+          "citation_ids": [
+            "POL08",
+            "POL12",
+            "POL01"
+          ],
+          "action": null,
+          "notes": "本次仅查询正式处理记录，不发起退款。已核验本工单只读权限；订单退款执行账本未找到执行记录，审核记录为空。该结果仅覆盖订单退款执行账本及所返回的审核记录，不能据此判断是否曾申请、是否处理失败或是否外部到账，其他正式处理记录尚待核对。POL08以已有处理记录为前提，当前未发现该记录；POL12以执行超时或结果未知为前提，当前无证据确认该情形，资格字段中的查询说明不代表执行记录存在。POL01要求核验订单所属客户，现有工单读取权限不等同于该身份已核验。",
+          "conflicts": []
+        },
+        {
+          "trace_seq": 30,
+          "role": "verifier",
+          "stage": "finish",
+          "cycle": 0,
+          "rework": 0,
+          "intent": "refund_status",
+          "citation_ids": [
+            "POL08",
+            "POL12",
+            "POL01"
+          ],
+          "action": null,
+          "notes": "待人工确认草案：本次仅查询正式处理记录，不发起退款。已核验当前工单只读权限；系统在订单退款执行账本内未找到执行记录，返回的审核记录为空。此结果不能证明是否曾申请退款、是否处理失败或是否外部到账；其他正式处理记录尚待核对。资格字段中的查询说明不代表原执行记录存在，也不足以认定执行结果未知。POL08、POL12的适用前提目前均无记录支持。工单读取权限不等同于买家外部身份已核验，后者尚缺证据。",
+          "conflicts": []
+        }
+      ],
+      "model_attempts": [
+        {
+          "cycle": 0,
+          "logical_id": "coordinator:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-terra"
+        },
+        {
+          "cycle": 0,
+          "logical_id": "coordinator:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-terra"
+        },
+        {
+          "cycle": 0,
+          "logical_id": "policy:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 0,
+          "logical_id": "policy:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 0,
+          "logical_id": "verifier:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 0,
+          "logical_id": "verifier:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        }
+      ],
+      "published_application_steps": [
+        {
+          "script_event_id": "e02",
+          "id": "c2a81a9d-ca8d-43eb-a1ac-f129849e81a4",
+          "thread_id": "2a978d3f-e0d2-4871-ae41-5570a84c3c7a:c2a81a9d-ca8d-43eb-a1ac-f129849e81a4",
+          "cycle": 0,
+          "case_version": 1,
+          "status": "COMPLETED",
+          "reason": "STATUS_ONLY",
+          "output": {
+            "action": null,
+            "lines": [],
+            "policy_ids": [
+              "POL01",
+              "POL08",
+              "POL12"
+            ],
+            "citations": [
+              {
+                "id": "POL08",
+                "version": "1.0",
+                "quote": "同一退款请求已有处理记录时返回该记录，复用原有流程。"
+              },
+              {
+                "id": "POL12",
+                "version": "1.0",
+                "quote": "退款执行超时或结果未知时，用原幂等键核对外部结果。确认结果前保持待核对状态。"
+              },
+              {
+                "id": "POL01",
+                "version": "1.0",
+                "quote": "只允许已核验的订单所属客户查询订单详情或提交售后。"
+              }
+            ],
+            "missing_materials": [],
+            "notes": "退款进度仅根据当前模拟账本反馈。",
+            "reason": "STATUS_ONLY",
+            "ledger": [],
+            "historical_refunded_cents": 0
+          }
+        }
+      ],
+      "program_verdict": {
+        "status": "NEEDS_REVIEW",
+        "machine_status": "NEEDS_REVIEW",
+        "failure_reason": "HUMAN_REFERENCE_PENDING",
+        "check_counts": {
+          "PASS": 5
+        },
+        "checks": [
+          {
+            "equals": "COMPLETED",
+            "event_id": "e02",
+            "path": "status",
+            "observed": "COMPLETED",
+            "status": "PASS"
+          },
+          {
+            "equals": "STATUS_ONLY",
+            "event_id": "e02",
+            "path": "reason",
+            "observed": "STATUS_ONLY",
+            "status": "PASS"
+          },
+          {
+            "equals": null,
+            "event_id": "e02",
+            "path": "output.action",
+            "observed": null,
+            "status": "PASS"
+          },
+          {
+            "equals": 0,
+            "event_id": "e02",
+            "path": "output.historical_refunded_cents",
+            "observed": 0,
+            "status": "PASS"
+          },
+          {
+            "equals": [],
+            "event_id": "e02",
+            "path": "output.ledger",
+            "observed": [],
+            "status": "PASS"
+          }
+        ]
+      },
+      "human_review": {
+        "status": "PENDING",
+        "facts": "PENDING",
+        "citations": "PENDING",
+        "handling": "PENDING",
+        "overall": "PENDING",
+        "reviewer": "PENDING",
+        "reviewed_at": "PENDING",
+        "rationale": "PENDING"
+      }
+    },
+    {
+      "review_id": "DEV-HR-04",
+      "label": "货损预算失败复现",
+      "intent": "damaged",
+      "provenance": {
+        "report": "reports/post-upgrade-c001-multi-routed.json",
+        "report_sha256": "ec7409406c4be2188627d4ef41868183bc1f72d31c8fa9581cae184784aaea7e",
+        "experiment_id": "2fbaf231-fa2c-4fa2-bb5c-938340852fdc",
+        "result_id": "2bc1eb52-4b4f-478e-ae3b-557f62b685e3",
+        "dataset_case_id": "AC02-C001",
+        "repetition": 1,
+        "business_case_id": "358bfad9-be12-499d-a9b2-a6d65c1938ac",
+        "run_id": "90631124-45dd-457b-9840-485977d121d7",
+        "thread_id": "358bfad9-be12-499d-a9b2-a6d65c1938ac:90631124-45dd-457b-9840-485977d121d7",
+        "config": {
+          "source": "live",
+          "split": "dev",
+          "mode": "multi",
+          "strategy": "routed",
+          "dataset_id": "v0.2"
+        },
+        "observed_source": "live_provider"
+      },
+      "user_input": {
+        "text": "拆到第三层泡沫才看到防晒外套断了一截，第一次找你们，还没来得及拍照。",
+        "path": "data/v0.2/agent/cases.dev.json",
+        "field": "message",
+        "matches_report_case_description": true
+      },
+      "business_facts": {
+        "source_selector": "actual.final_business",
+        "case": {
+          "status": "HUMAN_REVIEW",
+          "line_ids": [
+            "L01"
+          ],
+          "materials_version": 2,
+          "version": 4
+        },
+        "order": {
+          "id": "AC02-C001-O",
+          "status": "DELIVERED",
+          "delivered_at": "2026-11-09T04:00:00+00:00",
+          "paid_at": "2026-11-04T04:21:00+00:00",
+          "payment_status": "CONFIRMED",
+          "paid_cents": 67683,
+          "refunded_cents": 0,
+          "items": [
+            {
+              "discount_cents": 0,
+              "line_id": "L01",
+              "paid_cents": 35900,
+              "payable_cents": 35900,
+              "product_id": "AC02-C001-P1",
+              "quantity": 1,
+              "refunded_cents": 0,
+              "unit_price_cents": 35900
+            },
+            {
+              "discount_cents": 17,
+              "line_id": "L02",
+              "paid_cents": 31783,
+              "payable_cents": 31783,
+              "product_id": "AC02-C001-P2",
+              "quantity": 2,
+              "refunded_cents": 0,
+              "unit_price_cents": 15900
+            }
+          ],
+          "products": [
+            {
+              "category": "服饰",
+              "id": "AC02-C001-P1",
+              "name": "防晒外套",
+              "returnable": true,
+              "unit_price_cents": 35900,
+              "warranty_days": 0
+            },
+            {
+              "category": "数码",
+              "id": "AC02-C001-P2",
+              "name": "移动电源",
+              "returnable": true,
+              "unit_price_cents": 15900,
+              "warranty_days": 365
+            }
+          ]
+        },
+        "facts": {},
+        "materials": [
+          {
+            "id": "1b4f0b53-94d3-4c8c-b98d-dab999fb8d75",
+            "kind": "ITEM",
+            "sha256": "a995d70bd2f329658a868981ce3d36d75cf8b5eb45ffeefae4a051835a4ae616",
+            "content_type": "image/png",
+            "size": 74,
+            "created_at": "2026-11-10T04:00:00+00:00"
+          },
+          {
+            "id": "b915ec4a-cb7f-4c36-8237-86d6c05528ee",
+            "kind": "PARCEL",
+            "sha256": "d76555149404c29e98a7fd318099a37a384f894c0517ae950b7153e6be4ac04b",
+            "content_type": "image/png",
+            "size": 74,
+            "created_at": "2026-11-10T04:00:00+00:00"
+          }
+        ],
+        "reviews": [
+          {
+            "id": "6bc1488d-735f-4edf-bd44-f2262d146dbe",
+            "materials_version": 2,
+            "material_ids": [
+              "1b4f0b53-94d3-4c8c-b98d-dab999fb8d75",
+              "b915ec4a-cb7f-4c36-8237-86d6c05528ee"
+            ],
+            "decision": "APPROVED",
+            "notes": "本次模拟材料人工核对为通过。",
+            "reviewer_id": "eval-support",
+            "created_at": "2026-11-10T04:00:00+00:00",
+            "effective": true
+          }
+        ],
+        "ledger": [],
+        "eligibility": {
+          "status": "ELIGIBLE",
+          "reason": "可以提交当前版本的人工审批方案。",
+          "reason_code": null,
+          "policy_ids_by_action": {
+            "REFUND": [
+              "POL01",
+              "POL02",
+              "POL06",
+              "POL09",
+              "POL10",
+              "POL14"
+            ]
+          },
+          "policy_ids": [
+            "POL01",
+            "POL02",
+            "POL06",
+            "POL09",
+            "POL10",
+            "POL14"
+          ],
+          "missing_materials": [],
+          "available_cents": 35900,
+          "lines": [
+            {
+              "line_id": "L01",
+              "product_id": "AC02-C001-P1",
+              "available_cents": 35900,
+              "replace_available_quantity": 1
+            }
+          ],
+          "actions": [
+            "REFUND"
+          ]
+        },
+        "proposals": [],
+        "approvals": [],
+        "material_review_scope": "SCRIPTED_EVALUATION_BUSINESS_STEP"
+      },
+      "policy_context": {
+        "source_selector": "actual.final_business.policies filtered to rule eligibility IDs and published citations",
+        "clauses": [
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL01",
+            "parameters": {
+              "owner_only": true
+            },
+            "text": "只允许已核验的订单所属客户查询订单详情或提交售后。",
+            "title": "本人订单",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL02",
+            "parameters": {
+              "required_payment_status": "CONFIRMED",
+              "requires_paid_at": true
+            },
+            "text": "退款须有已确认的支付状态、付款时间和大于零的实际付款金额。",
+            "title": "实付核验",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL06",
+            "parameters": {
+              "required_photo_kinds": [
+                "ITEM",
+                "PARCEL"
+              ]
+            },
+            "text": "损坏售后需提供商品损坏照和外包裹照。资料未齐时记录缺项并请求补充。",
+            "title": "损坏补证",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL09",
+            "parameters": {
+              "cap": "ITEM_REMAINING_PAID",
+              "include_fees": false,
+              "requires_approved_resolution": true
+            },
+            "text": "部分退款须先有独立核准的售后处置或商家补偿决定。每行退款金额以该行实付减历史已退款为上限，合计还须在订单剩余实付以内。部分退款只计商品金额。明确请求超出上限时说明可退金额，并请客户确认更正金额。",
+            "title": "部分退款金额",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL10",
+            "parameters": {
+              "approval_threshold_cents": 50000,
+              "operator": "gt"
+            },
+            "text": "单笔退款拟退金额超过50000分时，提交前须获得人工审批。",
+            "title": "高额退款审批",
+            "version": "1.0"
+          },
+          {
+            "effective_at": "2026-01-01T00:00:00+08:00",
+            "id": "POL14",
+            "parameters": {
+              "allowed_action": "REFUND",
+              "requires_material_review": true
+            },
+            "text": "损坏材料经人工审核确认后，可提交该订单行的商品退款处置方案。退款仍须核实实付及余额并经财务审批。",
+            "title": "损坏处置",
+            "version": "1.0"
+          }
+        ],
+        "citation_applicability_machine_audit": []
+      },
+      "model_role_outputs": [
+        {
+          "trace_seq": 31,
+          "role": "coordinator",
+          "stage": "finish",
+          "cycle": 2,
+          "rework": 0,
+          "intent": "damaged",
+          "citation_ids": [],
+          "action": null,
+          "lines": [],
+          "notes": "买家称防晒外套断损，尚未拍照。系统显示订单已送达，材料记录为ITEM和PARCEL，当前无缺失材料；资格状态为可提交人工审批方案，可用退款额度为35900分。系统有APPROVED审核记录，但审核对象和范围未明确；本工单执行账本未找到记录。建议补充断损照片、确认受损件数及期望处理方式，并核实审核范围和适用政策。尚无明确退款金额或换货数量。",
+          "conflicts": []
+        },
+        {
+          "trace_seq": 79,
+          "role": "policy",
+          "stage": "finish",
+          "cycle": 2,
+          "rework": 0,
+          "intent": "damaged",
+          "citation_ids": [
+            "POL01",
+            "POL02",
+            "POL06",
+            "POL14",
+            "POL09",
+            "POL10"
+          ],
+          "action": null,
+          "lines": [],
+          "notes": "客户称商品断损、首次联系且尚未拍照。系统显示订单已送达、支付已确认，实付67683分；当前材料版本为2，记录含ITEM、PARCEL，缺失材料为空。客户陈述与材料内容需进一步核对，不据此认定系统材料缺失。资格为可提交当前版本人工审批方案，仅支持退款；L01可用退款额度35900分，不代表拟退金额。系统有APPROVED审核记录，但未明确审核对象、范围及是否覆盖当前材料，不能据此认定损坏处置或财务审批已完成。本工单执行账本未找到记录，不能推断已申请、失败或到账。需核实材料具体内容及审核范围，确认受损件数、客户处理意愿和明确退款金额；若缺少政策要求的照片再请求补充。当前无明确处置金额或数量，action留空。高额审批条款仅在拟退金额超过50000分时适用，当前未触发该条件。",
+          "conflicts": []
+        }
+      ],
+      "model_attempts": [
+        {
+          "cycle": 2,
+          "logical_id": "coordinator:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-terra"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "coordinator:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-terra"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "policy:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "policy:0:1",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        },
+        {
+          "cycle": 2,
+          "logical_id": "verifier:0:0",
+          "ordinal": 1,
+          "status": "SUCCEEDED",
+          "code": null,
+          "model": "gpt-6.1-sol"
+        }
+      ],
+      "published_application_steps": [
+        {
+          "script_event_id": "e02",
+          "id": "90631124-45dd-457b-9840-485977d121d7",
+          "thread_id": "358bfad9-be12-499d-a9b2-a6d65c1938ac:90631124-45dd-457b-9840-485977d121d7",
+          "cycle": 0,
+          "case_version": 1,
+          "status": "WAITING_INPUT",
+          "reason": "WAITING_INPUT",
+          "output": {
+            "action": null,
+            "lines": [],
+            "policy_ids": [
+              "POL01",
+              "POL02",
+              "POL06",
+              "POL09",
+              "POL10",
+              "POL14"
+            ],
+            "citations": [],
+            "missing_materials": [
+              "ITEM",
+              "PARCEL"
+            ],
+            "notes": "请补齐所列材料后继续。",
+            "reason": "WAITING_INPUT",
+            "ledger": [],
+            "historical_refunded_cents": null
+          }
+        },
+        {
+          "script_event_id": "e05",
+          "id": "90631124-45dd-457b-9840-485977d121d7",
+          "thread_id": "358bfad9-be12-499d-a9b2-a6d65c1938ac:90631124-45dd-457b-9840-485977d121d7",
+          "cycle": 1,
+          "case_version": 3,
+          "status": "WAITING_INPUT",
+          "reason": "MATERIAL_REVIEW_REQUIRED",
+          "output": {
+            "action": null,
+            "lines": [],
+            "policy_ids": [
+              "POL01",
+              "POL02",
+              "POL06",
+              "POL09",
+              "POL10",
+              "POL14"
+            ],
+            "citations": [],
+            "missing_materials": [],
+            "notes": "材料已补齐，请客服登记人工审核后继续。",
+            "reason": "MATERIAL_REVIEW_REQUIRED",
+            "ledger": [],
+            "historical_refunded_cents": null
+          }
+        },
+        {
+          "script_event_id": "e07",
+          "id": "90631124-45dd-457b-9840-485977d121d7",
+          "thread_id": "358bfad9-be12-499d-a9b2-a6d65c1938ac:90631124-45dd-457b-9840-485977d121d7",
+          "cycle": 2,
+          "case_version": 4,
+          "status": "NEEDS_REVIEW",
+          "reason": "MODEL_COST_BUDGET_EXHAUSTED",
+          "output": null
+        }
+      ],
+      "program_verdict": {
+        "status": "FAILED",
+        "machine_status": "FAILED",
+        "failure_reason": "DETERMINISTIC_CHECK_FAILED",
+        "check_counts": {
+          "PASS": 8,
+          "FAIL": 2
+        },
+        "checks": [
+          {
+            "severity": "normal",
+            "equals": "WAITING_INPUT",
+            "event_id": "e02",
+            "path": "status",
+            "observed": "WAITING_INPUT",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "WAITING_INPUT",
+            "event_id": "e02",
+            "path": "reason",
+            "observed": "WAITING_INPUT",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": [
+              "ITEM",
+              "PARCEL"
+            ],
+            "event_id": "e02",
+            "path": "output.missing_materials",
+            "observed": [
+              "ITEM",
+              "PARCEL"
+            ],
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": null,
+            "event_id": "e02",
+            "path": "output.action",
+            "observed": null,
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "WAITING_INPUT",
+            "event_id": "e05",
+            "path": "status",
+            "observed": "WAITING_INPUT",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "MATERIAL_REVIEW_REQUIRED",
+            "event_id": "e05",
+            "path": "reason",
+            "observed": "MATERIAL_REVIEW_REQUIRED",
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": [],
+            "event_id": "e05",
+            "path": "output.missing_materials",
+            "observed": [],
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": null,
+            "event_id": "e05",
+            "path": "output.action",
+            "observed": null,
+            "status": "PASS"
+          },
+          {
+            "severity": "normal",
+            "equals": "COMPLETED",
+            "event_id": "e07",
+            "path": "status",
+            "observed": "NEEDS_REVIEW",
+            "status": "FAIL"
+          },
+          {
+            "severity": "normal",
+            "equals": "ELIGIBLE",
+            "event_id": "e07",
+            "path": "reason",
+            "observed": "MODEL_COST_BUDGET_EXHAUSTED",
+            "status": "FAIL"
+          }
+        ]
+      },
+      "human_review": {
+        "status": "PENDING",
+        "facts": "PENDING",
+        "citations": "PENDING",
+        "handling": "PENDING",
+        "overall": "PENDING",
+        "reviewer": "PENDING",
+        "reviewed_at": "PENDING",
+        "rationale": "PENDING"
+      }
+    }
+  ],
+  "evidence_legend": {
+    "model_role_outputs": "Structured role finish event payloads from a matching model-start role. The event contains model-derived notes, not a raw transcript or guaranteed customer-facing response.",
+    "published_application_steps": "Actual output recorded at each application step. The system can combine validated model citations with deterministic rules and notes. Null means no output was published at that step.",
+    "policy_context": "The recorded policy clauses and machine applicability evidence are available for independent review. They are not gold labels.",
+    "program_verdict": "Check equals fields come from the existing development script reference and observed fields from execution. They are not model output or human judgments."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "启动隔离调试页面",
+      "type": "shell",
+      "command": "set -eu; debug_dist=\"$(mktemp -d)\"; trap 'rm -rf -- \"$debug_dist\"' EXIT; npm run typecheck; ./node_modules/.bin/vite build --outDir \"$debug_dist\"; ./node_modules/.bin/vite preview --config ../scripts/debug_vite.config.mjs --outDir \"$debug_dist\"",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend",
+        "shell": {"executable": "/bin/bash", "args": ["-c"]}
+      },
+      "problemMatcher": []
+    }
+  ]
+}

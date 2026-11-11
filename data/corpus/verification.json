@@ -1,0 +1,183 @@
+{
+  "exact_normalized_duplicates_en": 0,
+  "exact_normalized_duplicates_zh": 0,
+  "families_in_multiple_splits": 0,
+  "near_duplicate_check": {
+    "method": "Jaccard of NFKC case-folded alphanumeric character grams, EN n=4, ZH n=3",
+    "threshold": 0.68,
+    "cross_split_field_pairs_checked": 9000,
+    "highest_similarity": 0.6308,
+    "flagged_field_pairs": 0,
+    "alerts": [],
+    "top_cross_split_field_pairs": [
+      {
+        "left": "PE01-09015",
+        "right": "PE01-09220",
+        "field": "source_expression_en",
+        "jaccard": 0.6308
+      },
+      {
+        "left": "PE01-09238",
+        "right": "PE01-09282",
+        "field": "source_expression_en",
+        "jaccard": 0.5152
+      },
+      {
+        "left": "PE01-44059",
+        "right": "PE01-44625",
+        "field": "expression_zh",
+        "jaccard": 0.5
+      },
+      {
+        "left": "PE01-09582",
+        "right": "PE01-43948",
+        "field": "source_expression_en",
+        "jaccard": 0.4237
+      },
+      {
+        "left": "PE01-08734",
+        "right": "PE01-44763",
+        "field": "source_expression_en",
+        "jaccard": 0.4
+      },
+      {
+        "left": "PE01-08675",
+        "right": "PE01-09288",
+        "field": "source_expression_en",
+        "jaccard": 0.3919
+      },
+      {
+        "left": "PE01-08708",
+        "right": "PE01-09548",
+        "field": "source_expression_en",
+        "jaccard": 0.3774
+      },
+      {
+        "left": "PE01-24970",
+        "right": "PE01-25082",
+        "field": "source_expression_en",
+        "jaccard": 0.375
+      },
+      {
+        "left": "PE01-24865",
+        "right": "PE01-24988",
+        "field": "source_expression_en",
+        "jaccard": 0.3721
+      },
+      {
+        "left": "PE01-08848",
+        "right": "PE01-09288",
+        "field": "source_expression_en",
+        "jaccard": 0.3625
+      }
+    ],
+    "human_semantic_review": "PENDING"
+  },
+  "verified_sources": [
+    {
+      "path": "raw/bitext/ecommerce.csv",
+      "expected_sha256": "13a988266fed4e2b2c1ff947a89ef220ce09b5b13ac83c4a1496c0d7b81e8127",
+      "actual_sha256": "13a988266fed4e2b2c1ff947a89ef220ce09b5b13ac83c4a1496c0d7b81e8127",
+      "size_bytes": 42624013,
+      "use": "expression_text"
+    },
+    {
+      "path": "raw/bitext/README.upstream.md",
+      "expected_sha256": "7d86648704deb3cbe9171a0d0596ca8030e999691f9f05346038c80e699f17d0",
+      "actual_sha256": "7d86648704deb3cbe9171a0d0596ca8030e999691f9f05346038c80e699f17d0",
+      "size_bytes": 10100,
+      "use": "source_documentation"
+    },
+    {
+      "path": "licenses/CDLA-Sharing-1.0.html",
+      "expected_sha256": "890dbaabe54229f86728c6450e2961eeb8c16aab9431580e3c84098c34eb38f4",
+      "actual_sha256": "890dbaabe54229f86728c6450e2961eeb8c16aab9431580e3c84098c34eb38f4",
+      "size_bytes": 156071,
+      "use": "license_archive"
+    },
+    {
+      "path": "raw/tau2_retail/tasks.json",
+      "expected_sha256": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+      "actual_sha256": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+      "size_bytes": 345982,
+      "use": "structure_reference"
+    },
+    {
+      "path": "raw/tau2_retail/split_tasks.json",
+      "expected_sha256": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20",
+      "actual_sha256": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20",
+      "size_bytes": 3263,
+      "use": "structure_reference"
+    },
+    {
+      "path": "raw/tau2_retail/LICENSE",
+      "expected_sha256": "e67c5aa0074dfcaefd3c3a1aedb94cb539234aecd15d5a972574e3200e6252fe",
+      "actual_sha256": "e67c5aa0074dfcaefd3c3a1aedb94cb539234aecd15d5a972574e3200e6252fe",
+      "size_bytes": 1072,
+      "use": "license_archive"
+    },
+    {
+      "path": "raw/tau2_retail/README.upstream.md",
+      "expected_sha256": "7ae047a745ef93b311edb0da5d74fbc2bd784a35ce285a73ab3af8b6aed3e34b",
+      "actual_sha256": "7ae047a745ef93b311edb0da5d74fbc2bd784a35ce285a73ab3af8b6aed3e34b",
+      "size_bytes": 14718,
+      "use": "source_documentation"
+    }
+  ],
+  "raw_bitext_intent_counts": {
+    "damaged_delivery": 992,
+    "refund_status": 999,
+    "wrong_item": 996
+  },
+  "selected_total": 120,
+  "selected_per_intent_by_split": {
+    "damaged": {
+      "dev": 20,
+      "validation": 10,
+      "holdout": 10
+    },
+    "wrong_item": {
+      "dev": 20,
+      "validation": 10,
+      "holdout": 10
+    },
+    "refund_status": {
+      "dev": 20,
+      "validation": 10,
+      "holdout": 10
+    }
+  },
+  "selected_by_split": {
+    "holdout": 30,
+    "validation": 30,
+    "dev": 60
+  },
+  "selected_families": {
+    "damage-in-transit": 10,
+    "damage-parcel": 10,
+    "damage-received-product": 20,
+    "refund-check": 20,
+    "refund-information": 10,
+    "refund-track": 10,
+    "wrong-direct-report": 10,
+    "wrong-delivery-mismatch": 20,
+    "wrong-attribute-mismatch": 10
+  },
+  "source_record_id_collisions": 0,
+  "source_responses_copied": 0,
+  "external_policies_copied": 0,
+  "tau2_reference": {
+    "task_count": 114,
+    "train": 74,
+    "test": 40,
+    "expressions_or_answers_copied": 0
+  },
+  "human_review_pending": 120,
+  "gold_labels_pending": 120,
+  "artifact_sha256": {
+    "licenses/CDLA-Sharing-1.0.html": "890dbaabe54229f86728c6450e2961eeb8c16aab9431580e3c84098c34eb38f4",
+    "licenses/tau2-MIT.txt": "e67c5aa0074dfcaefd3c3a1aedb94cb539234aecd15d5a972574e3200e6252fe",
+    "expressions.jsonl": "c23ef2ca279260f49090328fd80de874a1a0a53bf19c0b10b07f011ae55a068f",
+    "human-review.csv": "5a7b69fa97640cab9857f63a7bdcb71de60d77ff3bc3e0d6172848932ab4a5b2"
+  }
+}

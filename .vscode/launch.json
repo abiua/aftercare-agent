@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "隔离建单调试",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/debug_api.py",
+      "args": ["--editor"],
+      "cwd": "${workspaceFolder}",
+      "python": "${command:python.interpreterPath}",
+      "console": "integratedTerminal",
+      "envFile": "/dev/null",
+      "env": {"PYTHONPATH": "${workspaceFolder}/backend/src"}
+    }
+  ]
+}

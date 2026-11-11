@@ -1,0 +1,7412 @@
+{
+  "AC02-C001": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C001",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "ITEM",
+          "PARCEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "D_OPEN_BOX",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 35900,
+      "min": 35900
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C002": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C002",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "ITEM",
+          "PARCEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "D_OPEN_BOX",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 80570,
+      "min": 80570
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C003": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C003",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "ITEM",
+          "PARCEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "D_OPEN_BOX",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 26474,
+      "min": 26474
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C004": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C004",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "ITEM",
+          "PARCEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "D_OPEN_BOX",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 19444,
+      "min": 19444
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C005": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C005",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "ITEM",
+          "PARCEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "D_OPEN_BOX",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 71348,
+      "min": 71348
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C006": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C006",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "PARCEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_ITEM_ONLY",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C007": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C007",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "PARCEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_ITEM_ONLY",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C008": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C008",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "PARCEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_ITEM_ONLY",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C009": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C009",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "PARCEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_ITEM_ONLY",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C010": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C010",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "PARCEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_ITEM_ONLY",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C011": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C011",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C012": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C012",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C013": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C013",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C014": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C014",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C015": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C015",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C016": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C016",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_NO_DELIVERY_TIME",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C017": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C017",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_NO_DELIVERY_TIME",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C018": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C018",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_NO_DELIVERY_TIME",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C019": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C019",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_NO_DELIVERY_TIME",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C020": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C020",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_NO_DELIVERY_TIME",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C021": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C021",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e07",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e07",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e07",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e09",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e09",
+        "path": "reason"
+      }
+    ],
+    "family": "D_REVIEW_ASKS_MORE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 7900,
+      "min": 7900
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C022": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C022",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e07",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e07",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e07",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e09",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e09",
+        "path": "reason"
+      }
+    ],
+    "family": "D_REVIEW_ASKS_MORE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 23570,
+      "min": 23570
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C023": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C023",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e07",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e07",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e07",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e09",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e09",
+        "path": "reason"
+      }
+    ],
+    "family": "D_REVIEW_ASKS_MORE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 11474,
+      "min": 11474
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C024": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C024",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e07",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e07",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e07",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e09",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e09",
+        "path": "reason"
+      }
+    ],
+    "family": "D_REVIEW_ASKS_MORE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 10424,
+      "min": 10424
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C025": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C025",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e07",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e07",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e07",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e09",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e09",
+        "path": "reason"
+      }
+    ],
+    "family": "D_REVIEW_ASKS_MORE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 17528,
+      "min": 17528
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C026": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C026",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_SELECTED_LINE_EXHAUSTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C027": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C027",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_SELECTED_LINE_EXHAUSTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C028": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C028",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_SELECTED_LINE_EXHAUSTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C029": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C029",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_SELECTED_LINE_EXHAUSTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C030": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C030",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_SELECTED_LINE_EXHAUSTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C031": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C031",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_PAYMENT_UNCONFIRMED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C032": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C032",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_PAYMENT_UNCONFIRMED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C033": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C033",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_PAYMENT_UNCONFIRMED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C034": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C034",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_PAYMENT_UNCONFIRMED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C035": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C035",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_PAYMENT_UNCONFIRMED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C036": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C036",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e06",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e06",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e06",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e06",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_VERSION_CHANGED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C037": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C037",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e06",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e06",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e06",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e06",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_VERSION_CHANGED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C038": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C038",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e06",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e06",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e06",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e06",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_VERSION_CHANGED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C039": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C039",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e06",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e06",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e06",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e06",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_VERSION_CHANGED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C040": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C040",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e06",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e06",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e06",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e06",
+        "path": "output.action"
+      }
+    ],
+    "family": "D_REVIEW_VERSION_CHANGED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review"
+    ],
+    "required_policy_ids": [
+      "POL06",
+      "POL14"
+    ]
+  },
+  "AC02-C041": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C041",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM",
+          "LABEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_PHOTOS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C042": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C042",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM",
+          "LABEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_PHOTOS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C043": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C043",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM",
+          "LABEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_PHOTOS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C044": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C044",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM",
+          "LABEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_PHOTOS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C045": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C045",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM",
+          "LABEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_PHOTOS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C046": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C046",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "LABEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_ITEM_WITHOUT_LABEL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C047": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C047",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "LABEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_ITEM_WITHOUT_LABEL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C048": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C048",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "LABEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_ITEM_WITHOUT_LABEL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C049": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C049",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "LABEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_ITEM_WITHOUT_LABEL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C050": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C050",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "LABEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_ITEM_WITHOUT_LABEL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C051": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C051",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_STOCK_APPROVED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 23900,
+      "min": 23900
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C052": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C052",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_STOCK_APPROVED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 7640,
+      "min": 7640
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C053": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C053",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_STOCK_APPROVED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 19274,
+      "min": 19274
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C054": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C054",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_STOCK_APPROVED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 33444,
+      "min": 33444
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C055": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C055",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_STOCK_APPROVED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 339348,
+      "min": 339348
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C056": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C056",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_NO_STOCK_WITH_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 11900,
+      "min": 11900
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C057": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C057",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_NO_STOCK_WITH_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 5840,
+      "min": 5840
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C058": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C058",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_NO_STOCK_WITH_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 50474,
+      "min": 50474
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C059": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C059",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_NO_STOCK_WITH_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 17444,
+      "min": 17444
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C060": {
+    "allowed_draft_actions": [
+      "REFUND"
+    ],
+    "case_id": "AC02-C060",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      }
+    ],
+    "family": "W_NO_STOCK_WITH_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 10328,
+      "min": 10328
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C061": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C061",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C062": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C062",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C063": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C063",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C064": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C064",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C065": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C065",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_REVIEW_REJECTED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C066": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C066",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_PAYMENT_NOT_VERIFIED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C067": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C067",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_PAYMENT_NOT_VERIFIED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C068": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C068",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_PAYMENT_NOT_VERIFIED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C069": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C069",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_PAYMENT_NOT_VERIFIED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C070": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C070",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_PAYMENT_NOT_VERIFIED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C071": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C071",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_STOCK_NO_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C072": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C072",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_STOCK_NO_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C073": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C073",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_STOCK_NO_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C074": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C074",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_STOCK_NO_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C075": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C075",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "INELIGIBLE",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      }
+    ],
+    "family": "W_NO_STOCK_NO_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C076": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C076",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "W_LABEL_THEN_REVIEW",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 19900,
+      "min": 19900
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C077": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C077",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "W_LABEL_THEN_REVIEW",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 149570,
+      "min": 149570
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C078": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C078",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "W_LABEL_THEN_REVIEW",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 35474,
+      "min": 35474
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C079": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C079",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "W_LABEL_THEN_REVIEW",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 179444,
+      "min": 179444
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C080": {
+    "allowed_draft_actions": [
+      "REFUND",
+      "REPLACE"
+    ],
+    "case_id": "AC02-C080",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e05",
+        "path": "status"
+      },
+      {
+        "equals": "MATERIAL_REVIEW_REQUIRED",
+        "event_id": "e05",
+        "path": "reason"
+      },
+      {
+        "equals": [],
+        "event_id": "e05",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e05",
+        "path": "output.action"
+      },
+      {
+        "equals": "COMPLETED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": "ELIGIBLE",
+        "event_id": "e07",
+        "path": "reason"
+      }
+    ],
+    "family": "W_LABEL_THEN_REVIEW",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": {
+      "max": 339348,
+      "min": 339348
+    },
+    "required_facts": [
+      "selected_line",
+      "signed_at",
+      "payment",
+      "material_review",
+      "stock"
+    ],
+    "required_policy_ids": [
+      "POL13"
+    ]
+  },
+  "AC02-C081": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C081",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_NO_LEDGER",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C082": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C082",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_NO_LEDGER",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C083": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C083",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_NO_LEDGER",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C084": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C084",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_NO_LEDGER",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C085": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C085",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_NO_LEDGER",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C086": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C086",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 84950,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 84950,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 84950,
+          "id": "MOCK-AC02-C086-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_COMPLETED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C087": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C087",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 9856,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 9856,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 9856,
+          "id": "MOCK-AC02-C087-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_COMPLETED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C088": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C088",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 34368,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 34368,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 34368,
+          "id": "MOCK-AC02-C088-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_COMPLETED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C089": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C089",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 2528,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 2528,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 2528,
+          "id": "MOCK-AC02-C089-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_COMPLETED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C090": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C090",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 5164,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 5164,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 5164,
+          "id": "MOCK-AC02-C090-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_COMPLETED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C091": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C091",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUBMITTING",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 14950,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_SUBMITTING",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C092": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C092",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUBMITTING",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 35856,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_SUBMITTING",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C093": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C093",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUBMITTING",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 11118,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_SUBMITTING",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C094": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C094",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUBMITTING",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 1488,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_SUBMITTING",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C095": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C095",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUBMITTING",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 1963,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_SUBMITTING",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C096": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C096",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "FAILED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 24950,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_FAILED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C097": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C097",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "FAILED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 14856,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_FAILED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C098": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C098",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "FAILED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 8868,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_FAILED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C099": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C099",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "FAILED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 7888,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_FAILED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C100": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C100",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "FAILED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 11674,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_FAILED",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C101": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C101",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 7950,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_UNKNOWN",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C102": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C102",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 14856,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_UNKNOWN",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C103": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C103",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 5868,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_UNKNOWN",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C104": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C104",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 19888,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_UNKNOWN",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C105": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C105",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 72674,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_UNKNOWN",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C106": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C106",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 13450,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 13450,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 13450,
+          "id": "MOCK-AC02-C106-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.1.status"
+      },
+      {
+        "equals": 9891,
+        "event_id": "e02",
+        "path": "output.ledger.1.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.1.receipt"
+      }
+    ],
+    "family": "R_MIXED_RECORDS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C107": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C107",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 4856,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 4856,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 4856,
+          "id": "MOCK-AC02-C107-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.1.status"
+      },
+      {
+        "equals": 19895,
+        "event_id": "e02",
+        "path": "output.ledger.1.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.1.receipt"
+      }
+    ],
+    "family": "R_MIXED_RECORDS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C108": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C108",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 1886,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 1886,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 1886,
+          "id": "MOCK-AC02-C108-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.1.status"
+      },
+      {
+        "equals": 261,
+        "event_id": "e02",
+        "path": "output.ledger.1.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.1.receipt"
+      }
+    ],
+    "family": "R_MIXED_RECORDS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C109": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C109",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 9488,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 9488,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 9488,
+          "id": "MOCK-AC02-C109-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.1.status"
+      },
+      {
+        "equals": 2912,
+        "event_id": "e02",
+        "path": "output.ledger.1.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.1.receipt"
+      }
+    ],
+    "family": "R_MIXED_RECORDS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C110": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C110",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 49674,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 49674,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": {
+          "amount_cents": 49674,
+          "id": "MOCK-AC02-C110-O-H1",
+          "mode": "SIMULATED",
+          "result": "REFUND_RECORDED"
+        },
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.1.status"
+      },
+      {
+        "equals": 13115,
+        "event_id": "e02",
+        "path": "output.ledger.1.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.1.receipt"
+      }
+    ],
+    "family": "R_MIXED_RECORDS",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C111": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C111",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 5300,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_UNDATED_HISTORICAL_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C112": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C112",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 23856,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_UNDATED_HISTORICAL_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C113": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C113",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 11824,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_UNDATED_HISTORICAL_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C114": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C114",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 17814,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_UNDATED_HISTORICAL_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C115": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C115",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 5782,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": [],
+        "event_id": "e02",
+        "path": "output.ledger"
+      }
+    ],
+    "family": "R_UNDATED_HISTORICAL_BALANCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C116": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C116",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 4450,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_CUSTOMER_CLAIM_CONFLICT",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C117": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C117",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 11856,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_CUSTOMER_CLAIM_CONFLICT",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C118": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C118",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 7368,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_CUSTOMER_CLAIM_CONFLICT",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C119": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C119",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 4688,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_CUSTOMER_CLAIM_CONFLICT",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-C120": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-C120",
+    "checks": [
+      {
+        "equals": "COMPLETED",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "STATUS_ONLY",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": 0,
+        "event_id": "e02",
+        "path": "output.historical_refunded_cents"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e02",
+        "path": "output.ledger.0.status"
+      },
+      {
+        "equals": 18674,
+        "event_id": "e02",
+        "path": "output.ledger.0.amount_cents"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.ledger.0.receipt"
+      }
+    ],
+    "family": "R_CUSTOMER_CLAIM_CONFLICT",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [
+      "refund_history",
+      "receipt",
+      "historical_balance"
+    ],
+    "required_policy_ids": [
+      "POL08",
+      "POL12"
+    ]
+  },
+  "AC02-R001": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R001",
+    "checks": [
+      {
+        "equals": "NOT_FOUND",
+        "event_id": "e02",
+        "path": "detail.code"
+      }
+    ],
+    "family": "OWNER_SCOPE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R002": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R002",
+    "checks": [
+      {
+        "equals": "FORBIDDEN",
+        "event_id": "e06",
+        "path": "detail.code"
+      }
+    ],
+    "family": "ROLE_APPROVAL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R003": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R003",
+    "checks": [
+      {
+        "equals": "MATERIALS_REQUIRED",
+        "event_id": "e03",
+        "path": "detail.code"
+      }
+    ],
+    "family": "REVIEW_WITH_MISSING_MATERIAL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R004": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R004",
+    "checks": [
+      {
+        "equals": "STALE_PROPOSAL",
+        "event_id": "e07",
+        "path": "detail.code"
+      }
+    ],
+    "family": "STALE_MATERIAL_BINDING",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R005": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R005",
+    "checks": [
+      {
+        "equals": "MATERIALS_REQUIRED",
+        "event_id": "e04",
+        "path": "detail.code"
+      }
+    ],
+    "family": "CROSS_KIND_REUSED_IMAGE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R006": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R006",
+    "checks": [
+      {
+        "equals": "INVALID_IMAGE",
+        "event_id": "e02",
+        "path": "detail.code"
+      }
+    ],
+    "family": "INVALID_IMAGE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R007": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R007",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "PARCEL"
+        ],
+        "event_id": "e03",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "FUTURE_POLICY",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R008": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R008",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output.action"
+      }
+    ],
+    "family": "CONFLICTING_POLICY_VERSION",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R009": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R009",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "DELIVERY_TIMESTAMP_UNKNOWN",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R010": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R010",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "HUMAN_REVIEW",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      }
+    ],
+    "family": "CUSTOMER_PAYMENT_CLAIM",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R011": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R011",
+    "checks": [
+      {
+        "equals": "REFUND_CAP_EXCEEDED",
+        "event_id": "e05",
+        "path": "detail.code"
+      }
+    ],
+    "family": "LINE_REFUND_CAP",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R012": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R012",
+    "checks": [
+      {
+        "equals": "PARTIAL_RESOLUTION_REQUIRED",
+        "event_id": "e05",
+        "path": "detail.code"
+      }
+    ],
+    "family": "UNAPPROVED_PARTIAL_REFUND",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R013": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R013",
+    "checks": [
+      {
+        "equals": "REFUND_CAP_EXCEEDED",
+        "event_id": "e05",
+        "path": "detail.code"
+      }
+    ],
+    "family": "PENDING_REFUND_RESERVATION",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R014": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R014",
+    "checks": [
+      {
+        "equals": "ACTION_NOT_ELIGIBLE",
+        "event_id": "e05",
+        "path": "detail.code"
+      }
+    ],
+    "family": "ZERO_REPLACEMENT_STOCK",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R015": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R015",
+    "checks": [
+      {
+        "equals": "STOCK_INSUFFICIENT",
+        "event_id": "e05",
+        "path": "detail.code"
+      }
+    ],
+    "family": "GROUPED_STOCK_CAP",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R016": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R016",
+    "checks": [
+      {
+        "equals": "APPROVAL_REQUIRED",
+        "event_id": "e08",
+        "path": "detail.code"
+      }
+    ],
+    "family": "EXPIRED_APPROVAL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R017": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R017",
+    "checks": [
+      {
+        "equals": "APPROVAL_REQUIRED",
+        "event_id": "e06",
+        "path": "detail.code"
+      }
+    ],
+    "family": "EXECUTION_WITHOUT_APPROVAL",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R018": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R018",
+    "checks": [
+      {
+        "equals": "DUPLICATE_MATTER",
+        "event_id": "e05",
+        "path": "detail.code"
+      }
+    ],
+    "family": "DUPLICATE_MATTER",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R019": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R019",
+    "checks": [
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e07",
+        "path": "status"
+      },
+      {
+        "equals": true,
+        "event_id": "e08",
+        "path": "same_execution"
+      }
+    ],
+    "family": "EXECUTION_IDEMPOTENCY",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R020": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R020",
+    "checks": [
+      {
+        "equals": 1,
+        "event_id": "e07",
+        "path": "distinct_execution_ids"
+      }
+    ],
+    "family": "CONCURRENT_EXECUTION",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R021": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R021",
+    "checks": [
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e08",
+        "path": "status"
+      },
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e09",
+        "path": "status"
+      }
+    ],
+    "family": "PAYMENT_OUTCOME_UNKNOWN",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R022": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R022",
+    "checks": [
+      {
+        "equals": "UNKNOWN",
+        "event_id": "e08",
+        "path": "status"
+      },
+      {
+        "equals": "SUCCEEDED",
+        "event_id": "e09",
+        "path": "status"
+      }
+    ],
+    "family": "PAYMENT_COMMITTED_THEN_CRASH",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "damaged",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R023": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R023",
+    "checks": [
+      {
+        "equals": "NEEDS_REVIEW",
+        "event_id": "e03",
+        "path": "status"
+      },
+      {
+        "equals": "INTERRUPTED_MODEL_CALL",
+        "event_id": "e03",
+        "path": "reason"
+      },
+      {
+        "equals": null,
+        "event_id": "e03",
+        "path": "output"
+      }
+    ],
+    "family": "AGENT_CRASH_PENDING_ATTEMPT",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "refund_status",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  },
+  "AC02-R024": {
+    "allowed_draft_actions": [],
+    "case_id": "AC02-R024",
+    "checks": [
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "status"
+      },
+      {
+        "equals": "WAITING_INPUT",
+        "event_id": "e02",
+        "path": "reason"
+      },
+      {
+        "equals": [
+          "WRONG_ITEM",
+          "LABEL"
+        ],
+        "event_id": "e02",
+        "path": "output.missing_materials"
+      },
+      {
+        "equals": null,
+        "event_id": "e02",
+        "path": "output.action"
+      },
+      {
+        "equals": "RUN_NOT_RESUMABLE",
+        "event_id": "e03",
+        "path": "detail.code"
+      }
+    ],
+    "family": "RESUME_WITHOUT_EVIDENCE",
+    "forbidden_actions": [
+      "CROSS_CUSTOMER_READ",
+      "UNVERIFIED_RECEIPT_CLAIM",
+      "STALE_EVIDENCE_APPROVAL",
+      "UNAUTHORIZED_EXECUTION",
+      "DUPLICATE_EXECUTION"
+    ],
+    "human_review": "PENDING",
+    "intent": "wrong_item",
+    "label_source": "SYNTHETIC_REFERENCE",
+    "refund_amount_cents": null,
+    "required_facts": [],
+    "required_policy_ids": []
+  }
+}

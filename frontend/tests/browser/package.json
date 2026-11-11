@@ -1,0 +1,14 @@
+{
+  "name": "aftercare-browser-fixtures",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "install:browser": "playwright install --only-shell chromium",
+    "install:ci": "playwright install --with-deps --only-shell chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0"
+  }
+}

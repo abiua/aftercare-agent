@@ -1,0 +1,66 @@
+name: Offline checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.7'
+          enable-cache: false
+      - name: Install locked backend environment
+        working-directory: backend
+        run: |
+          uv lock --check
+          uv sync --frozen --python 3.11
+      - name: Install locked frontend environment
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+      - name: Verify frozen data and run offline checks
+        run: scripts/check.sh pure
+
+  browser-fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            frontend/tests/browser/package-lock.json
+      - name: Build production frontend
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Run isolated browser fixtures
+        working-directory: frontend/tests/browser
+        run: |
+          npm ci --no-audit --no-fund
+          npm run install:ci
+          npm test
+      - name: Save failed browser fixture evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-fixture-failures
+          path: frontend/tests/browser/test-results/
+          if-no-files-found: ignore

@@ -1,0 +1,36 @@
+{
+  "version": "policy-retrieval-dev-v1",
+  "relevance_source": "DEVELOPER_RULE_EXPECTATION",
+  "decision_at": "2026-11-10T10:00:00+08:00",
+  "default_product": "P001",
+  "k": [1, 3, 5],
+  "synthetic_versions": {
+    "pol13_conflict": [
+      {"id": "POL13", "version": "benchmark-a", "title": "错发举证 A", "text": "错发需提交商品实物照及快递标签照。", "intents": ["wrong_item"], "product_ids": ["P001"], "effective_at": "2026-06-01T00:00:00+08:00", "priority": 10, "source": "synthetic:retrieval-dev-v1"},
+      {"id": "POL13", "version": "benchmark-b", "title": "错发举证 B", "text": "错发需提交商品实物照、快递标签照及包装照。", "intents": ["wrong_item"], "product_ids": ["P001"], "effective_at": "2026-06-01T00:00:00+08:00", "priority": 10, "source": "synthetic:retrieval-dev-v1"}
+    ],
+    "pol06_future_and_draft": [
+      {"id": "POL06", "version": "benchmark-future", "title": "损坏举证未来版", "text": "商品破损时仅需商品照片。", "intents": ["damaged"], "effective_at": "2027-06-01T00:00:00+08:00", "priority": 10, "source": "synthetic:retrieval-dev-v1"},
+      {"id": "POL06", "version": "benchmark-draft", "title": "损坏举证草案", "text": "商品破损时仅需提交包裹单号。", "intents": ["damaged"], "effective_at": "2026-06-01T00:00:00+08:00", "status": "DRAFT", "priority": 10, "source": "synthetic:retrieval-dev-v1"}
+    ],
+    "pol12_scoped": [
+      {"id": "POL12", "version": "benchmark-p001", "title": "指定商品退款待核对", "text": "本商品的退款执行状态未知时，应使用原请求键核对，在结果可查前继续等待。", "intents": ["refund_status"], "product_ids": ["P001"], "effective_at": "2026-06-01T00:00:00+08:00", "priority": 10, "source": "synthetic:retrieval-dev-v1"}
+    ]
+  },
+  "queries": [
+    {"id": "D01", "intent": "damaged", "kind": "direct", "message": "东西破了，要补哪些照片？", "relevant": [["POL06", "1.0"]]},
+    {"id": "D02", "intent": "damaged", "kind": "paraphrase", "message": "拆开才看到里面碎成几块了，我该留哪些影像给客服？", "relevant": [["POL06", "1.0"]]},
+    {"id": "D03", "intent": "damaged", "kind": "negation", "message": "没有收到错款，只是商品摔坏了。我只传了外箱，接下来还需要提供什么？", "relevant": [["POL06", "1.0"]]},
+    {"id": "D04", "intent": "damaged", "kind": "multi_clause", "message": "商品坏了，已经提交损坏和外包裹照片。审核过后能不能申请商品退款？", "relevant": [["POL06", "1.0"], ["POL14", "1.0"]]},
+    {"id": "D05", "intent": "damaged", "kind": "version", "variants": "pol06_future_and_draft", "message": "寄来的商品有破损，今天的规则要求拍哪里？", "relevant": [["POL06", "1.0"]], "forbidden": [["POL06", "benchmark-future"], ["POL06", "benchmark-draft"]]},
+    {"id": "W01", "intent": "wrong_item", "kind": "direct", "message": "送来的型号不对，换发需要哪些材料？", "relevant": [["POL13", "1.0"]]},
+    {"id": "W02", "intent": "wrong_item", "kind": "paraphrase", "message": "发来的是另一个货号，能补寄我原来拍下的那件吗？", "relevant": [["POL13", "1.0"]]},
+    {"id": "W03", "intent": "wrong_item", "kind": "negation", "message": "商品没坏，也不是申请退货，商家给我发了别的颜色，怎么处理？", "relevant": [["POL13", "1.0"]]},
+    {"id": "W04", "intent": "wrong_item", "kind": "conflict", "variants": "pol13_conflict", "message": "我拿到的是其他款，究竟需要拍几张、拍哪些？", "relevant": [], "expected_blockers": ["CONFLICTING_POLICY_PRIORITY:POL13:P001"], "forbidden_ids": ["POL13"]},
+    {"id": "R01", "intent": "refund_status", "kind": "direct", "message": "上次申请的退款在哪里看进度？", "relevant": [["POL08", "1.0"]]},
+    {"id": "R02", "intent": "refund_status", "kind": "paraphrase", "message": "之前那笔退回来的钱还没消息，麻烦查一下那次处理记录。", "relevant": [["POL08", "1.0"]]},
+    {"id": "R03", "intent": "refund_status", "kind": "negation", "message": "我不要再发起退款，上一笔提交时超时了，能核对下结果吗？", "relevant": [["POL08", "1.0"], ["POL12", "1.0"]]},
+    {"id": "R04", "intent": "refund_status", "kind": "version", "variants": "pol12_scoped", "message": "本商品这笔退款执行未知，需要拿哪个键核对？", "relevant": [["POL12", "benchmark-p001"]], "forbidden": [["POL12", "1.0"]]},
+    {"id": "R05", "intent": "refund_status", "kind": "version", "variants": "pol12_scoped", "product": "P002", "message": "本商品这笔退款执行未知，需要拿哪个键核对？", "relevant": [["POL12", "1.0"]], "forbidden": [["POL12", "benchmark-p001"]]}
+  ]
+}
