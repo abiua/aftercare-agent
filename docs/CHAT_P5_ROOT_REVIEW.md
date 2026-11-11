@@ -236,3 +236,11 @@ root独立原生复核仍三轮/三请求/三快照、2客户消息，有效revi
 浏览器 `reports/browser-material-reassessment-20261111.json` PARTIAL：客户2消息/2原图200且实际渲染，PENDING_SUPPORT、offer为空、无退款完成；客服第3候选HUMAN_HANDOFF和CONTROL审核标注可读，48GET无错误/丢失，退出关闭。发现自动AGENT parent为空时UI没有历史列表，不能从页面导航v1/v2；另有两条重复离线照片提示。历史API可读不替代页面可用性。两项后续修复中，总结报告保持PARTIAL，不改原失败或补充报告。
 
 两项浏览器发现已在代码修复，尚未部署：support-only `GET /conversations/{id}/decisions/history` 当前issue倒序分页，返回issue_id与轻量摘要、exclusive before_version，原单快照历史及人工parent语义保留。前端列出自动和人工版本、历史只读，返回当前才能复核，跨事项迟到响应拒显，parent按钮改为修改前版本。审核重评且vision关闭时静默发布；普通客户新图仍给原不可查看提示，已有历史消息不删除。root后端相关22通过、1跳过及Ruff通过；UI代理5项Chromium、lint/类型/构建通过。当前5201仍7da08d7后端/b49f914前端，真实历史列表回查和新版提示需后续升级，PARTIAL报告保持。
+
+## 候选历史保留数据升级与只读接口验收（2026-11-11）
+
+root执行candidate-history阶段，计划92e4119874895e1cb6c86f8e0b384dc554381a44862c20f70b568b2adcfa69bb，部署72cb34d后端976230…88b3及前端09029e…e2f9；该提交CI43011303117成功。原配置SHA e9001758…5987保持，基础容器/卷不替换。独立恢复源PG7706834943065174055与目标7706874176240566311不同，451纳管表和50对象逐项一致，6临时资源已由root再次检查不存在。公开摘要reports/owned-5201-candidate-history-upgrade-20261111.json，私有原回执与备份保留。
+
+新只读验收脚本绑定原conv/case/PG及两镜像，通过HTTP每页1条验证3→2→1及末页空，逐版摘要/当前head/issue与PG原生和原reconciliation报告一致；客户404，limit0/51均422，前后native相同，业务POST0。reports/chat-decision-history-http-20261111.json PASSED。root脚本纯测试1项及改动Ruff/diff通过；实际浏览器导航回查另行记录。没有新增模型调用、材料审核、候选或财务操作；审核后重复离线提示未在新部署上重触发，不能将本地测试写成运行栈效果验收。
+
+真实浏览器 reports/browser-candidate-history-20261111.json PASSED：客服列表3→2→1，点开2/1的ID/version/SHA对上原生报告，旧版无审核或启动，返回第3版恢复当前控件。客户仍2条原消息、2图200、PENDING_SUPPORT、无内部历史入口或请求；51 GET无抓包错误/丢失，无业务写入，双方退出并关闭专属会话。旧PARTIAL报告保持，旧重复提示仍保留，本轮未触发防重复逻辑。此结果仅补齐历史导航实际可用性，不将原离线控制案例升级为真实模型或真人审核验收。

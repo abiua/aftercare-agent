@@ -1,0 +1,25 @@
+{
+  "status": "PASSED",
+  "stage": "COMPLETE",
+  "plan_sha256": "92e4119874895e1cb6c86f8e0b384dc554381a44862c20f70b568b2adcfa69bb",
+  "boundary": "OWNED_5201_APP_ONLY_CANDIDATE_HISTORY",
+  "target_commit": "72cb34d2a0b981fb01d4182de2e79dae99e54beb",
+  "images": {
+    "new_backend": "sha256:976230409519b10aacd45023b12274138e7e2c5fe4f918451da837e7587388b3",
+    "new_frontend": "sha256:09029e318152377abd5b4b7ee2f838c18b9b7055e44bd47466127e43e0cde2f9"
+  },
+  "private_receipt_sha256": "06fea011d59540f0b36c52c29239d720b580b3184f711f7ec1b291ea628f0c6b",
+  "runtime_settings_unchanged": true,
+  "temporary_resources_independently_absent": true,
+  "backup_readback": {
+    "all_managed_fingerprints_match": true,
+    "managed_table_count": 451,
+    "all_source_archive_restore_object_bytes_match": true,
+    "object_count": 50,
+    "source_system_identifier": "7706834943065174055",
+    "restore_system_identifier": "7706874176240566311"
+  },
+  "source_infrastructure_preserved": true,
+  "model_calls": 0,
+  "financial_writes": 0
+}

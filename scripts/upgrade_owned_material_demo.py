@@ -48,34 +48,60 @@ REASSESSMENT_COMMIT = "7da08d770d72153499db7ecd5fd3231293bea263"
 REASSESSMENT_BACKEND = "sha256:7319ccca9d062c57d8b2f91db388473db2cedc594f3661605bc81b6d17c43ea8"
 BLIND_V2_RECEIPT_SHA = "938e04f8cdd913986aa21cda8a20f419759aff6b471f0a1e8f51b151e1416edc"
 BLIND_V2_RECEIPT = ROOT / ".runtime/owned-5201-blind-v2-upgrade-retry-20261111.json"
-STAGES = ("blind-v2", "material-reassessment")
+REASSESSMENT_RECEIPT = ROOT / ".runtime/owned-5201-material-reassessment-upgrade-20261111.json"
+REASSESSMENT_RECEIPT_SHA = "ac42d4ffafbc25a4f55fcba5fc225fe732c5929fbbdc2c43a4a7c988c259aaaf"
+HISTORY_IMAGE_FILE = ROOT / ".runtime/chat-candidate-history-images.json"
+HISTORY_COMMIT = "72cb34d2a0b981fb01d4182de2e79dae99e54beb"
+HISTORY_IMAGES = {
+    "new_backend": "sha256:976230409519b10aacd45023b12274138e7e2c5fe4f918451da837e7587388b3",
+    "new_frontend": "sha256:09029e318152377abd5b4b7ee2f838c18b9b7055e44bd47466127e43e0cde2f9",
+}
+STAGES = ("blind-v2", "material-reassessment", "candidate-history")
+
+
+def _predecessor(stage):
+    if stage == "material-reassessment":
+        return BLIND_V2_RECEIPT, BLIND_V2_RECEIPT_SHA, "OWNED_5201_APP_ONLY_BLIND_V2", COMMIT
+    require(stage == "candidate-history", "OWNED_5201_STAGE_INVALID")
+    return (
+        REASSESSMENT_RECEIPT,
+        REASSESSMENT_RECEIPT_SHA,
+        "OWNED_5201_APP_ONLY_MATERIAL_REASSESSMENT",
+        REASSESSMENT_COMMIT,
+    )
 
 
 def _stage_pins(stage):
     if stage == "blind-v2":
         return OLD, COMMIT, IMAGE_FILE, "OWNED_5201_APP_ONLY_BLIND_V2", {}
-    require(stage == "material-reassessment", "OWNED_5201_STAGE_INVALID")
-    previous = br.private_json(BLIND_V2_RECEIPT)
+    path, checksum, prior_boundary, prior_commit = _predecessor(stage)
+    previous = br.private_json(path)
     prior = previous["plan"]
     require(
-        _hash(BLIND_V2_RECEIPT) == BLIND_V2_RECEIPT_SHA
+        _hash(path) == checksum
         and previous["status"] == "PASSED"
         and previous["stage"] == "COMPLETE"
         and previous["plan_sha256"] == digest(prior)
-        and prior["boundary"] == "OWNED_5201_APP_ONLY_BLIND_V2"
-        and prior["target_commit"] == COMMIT
+        and prior["boundary"] == prior_boundary
+        and prior["target_commit"] == prior_commit
         and prior["owned_stack"] == STACK_ID
         and prior["owned_url"] == URL
         and prior["system_identifier"] == SYSTEM_ID
         and prior["alembic_revision"] == NEW_REV,
         "OWNED_5201_PREDECESSOR_RECEIPT_INVALID",
     )
+    if stage == "material-reassessment":
+        commit, receipt = REASSESSMENT_COMMIT, REASSESSMENT_IMAGE_FILE
+        boundary = "OWNED_5201_APP_ONLY_MATERIAL_REASSESSMENT"
+    else:
+        commit, receipt = HISTORY_COMMIT, HISTORY_IMAGE_FILE
+        boundary = "OWNED_5201_APP_ONLY_CANDIDATE_HISTORY"
     return (
         prior["new_images"],
-        REASSESSMENT_COMMIT,
-        REASSESSMENT_IMAGE_FILE,
-        "OWNED_5201_APP_ONLY_MATERIAL_REASSESSMENT",
-        {"prior_upgrade_receipt_sha256": _hash(BLIND_V2_RECEIPT), "upgrade_stage": stage},
+        commit,
+        receipt,
+        boundary,
+        {"prior_upgrade_receipt_sha256": checksum, "upgrade_stage": stage},
     )
 
 
@@ -166,6 +192,8 @@ def _images(stage, old, commit, receipt):
             and new["new_backend"] != old["new_backend"],
             "OWNED_5201_REASSESSMENT_BACKEND_ONLY_REQUIRED",
         )
+    if stage == "candidate-history":
+        require(new == HISTORY_IMAGES, "OWNED_5201_HISTORY_IMAGE_PIN_MISMATCH")
     for image in {*old.values(), *new.values()}:
         require(
             re.fullmatch(r"sha256:[a-f0-9]{64}", image)
@@ -252,8 +280,8 @@ def _plan(stage="blind-v2"):
     )
     _identity(stack)
     infra = _infrastructure(stack)
-    if stage == "material-reassessment":
-        prior = br.private_json(BLIND_V2_RECEIPT)["plan"]
+    if stage != "blind-v2":
+        prior = br.private_json(_predecessor(stage)[0])["plan"]
         require(
             (network, infra) == (prior["network"], prior["infra"]),
             "OWNED_5201_PREDECESSOR_INFRA_CHANGED",
@@ -263,6 +291,18 @@ def _plan(stage="blind-v2"):
     if stage == "material-reassessment":
         _, updated = _analysis_settings(settings_path)
         after["runtime_settings_after_sha256"] = sha256(updated).hexdigest()
+    if stage == "candidate-history":
+        settings = br.private_json(settings_path)["test"]
+        require(
+            _hash(settings_path) == prior["runtime_settings_after_sha256"]
+            and settings["chat_analysis_enabled"] is True
+            and settings["chat_vision_enabled"] is False
+            and settings["chat_investigation_enabled"] is True
+            and settings["chat_decisions_enabled"] is True
+            and not any(settings.get(name) for name in ("model_enabled", "embedding_enabled")),
+            "OWNED_5201_HISTORY_SETTINGS_DRIFT",
+        )
+
     return (
         {
             "boundary": boundary,
@@ -546,12 +586,14 @@ def _upgrade(plan, state, stack, report, path):
         manifest = backup.verify_backup(archive)
         require(
             manifest.archive_sha256 == receipt["archive"]["sha256"]
+            and _hash(stack.runtime / "local.json") == plan["runtime_settings_sha256"]
             and _hash(STATE) == plan["old_state_sha256"]
             and _hash(_stage_pins(plan.get("upgrade_stage", "blind-v2"))[2])
             == plan["image_receipt_sha256"]
             and (
                 not plan.get("prior_upgrade_receipt_sha256")
-                or _hash(BLIND_V2_RECEIPT) == plan["prior_upgrade_receipt_sha256"]
+                or _hash(_predecessor(plan["upgrade_stage"])[0])
+                == plan["prior_upgrade_receipt_sha256"]
             ),
             "OWNED_5201_BACKUP_OR_STATE_DRIFT",
         )
@@ -616,6 +658,11 @@ def _rollback_plan(path, stage="blind-v2"):
     _identity(stack)
     require(_infrastructure(stack) == saved["infra"], "OWNED_5201_ROLLBACK_INFRA_CHANGED")
     settings_rollback = {}
+    if stage == "candidate-history":
+        require(
+            _hash(stack.runtime / "local.json") == saved["runtime_settings_sha256"],
+            "OWNED_5201_HISTORY_SETTINGS_DRIFT",
+        )
     if "runtime_settings_after_sha256" in saved and prior["stage"] != "BACKUP_RESTORE":
         backup_path = Path(prior["private_settings_backup"])
         require(

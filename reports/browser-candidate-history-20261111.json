@@ -1,0 +1,44 @@
+{
+  "status": "PASSED",
+  "scope": "NATIVE_BROWSER_READ_ONLY",
+  "url": "http://127.0.0.1:5201",
+  "conversation_id": "0b1cce8e-2954-4477-9118-be01fb0b55a1",
+  "case_id": "fe8c0602-1a46-4c2d-a666-127088f5d084",
+  "support": {
+    "history_index_versions": [
+      3,
+      2,
+      1
+    ],
+    "history_detail_versions_read_only": [
+      2,
+      1
+    ],
+    "old_details_match_native_id_version_sha256": true,
+    "returned_to_current_version": 3,
+    "current_review_controls_visible": true
+  },
+  "customer": {
+    "original_messages": 2,
+    "original_image_get_statuses": [
+      200,
+      200
+    ],
+    "public_progress": "PENDING_SUPPORT",
+    "internal_history_visible": false,
+    "history_requests": 0,
+    "refund_completion_visible": false,
+    "existing_duplicate_program_notice_preserved": true
+  },
+  "business_write_requests": 0,
+  "owned_browser_session_logged_out_and_closed": true,
+  "capture": {
+    "id": "d84b83c090b44",
+    "requests": 51,
+    "errors": 0,
+    "dropped_requests": 0
+  },
+  "private_artifact_directory": ".runtime/browser-demo-ouvg2nat/candidate-history-browser",
+  "prior_partial_report_preserved": "reports/browser-material-reassessment-20261111.json",
+  "limits": "Existing synthetic offline control. No new review, model call, or duplicate-suppression exercise."
+}
