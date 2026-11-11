@@ -11,7 +11,7 @@ from contextlib import ExitStack, contextmanager
 from hashlib import sha256
 from pathlib import Path
 from unittest.mock import patch
-from uuid import UUID
+from uuid import NAMESPACE_URL, UUID, uuid5
 
 from aftercare import backup
 from aftercare.auth import UserContext, token_hash
@@ -576,6 +576,321 @@ def _verify_blind_reviews(engine, business, source_store, archive_dir, manifest,
     return verified
 
 
+def _p5_pg_evidence(path, state_path, state, source, names):
+    from verify_chat_p5_pg import _failed_manifest_hash
+
+    require(
+        state_path.name == "offline-browser-demo-p5-pg.json"
+        and state.get("profile") == "test"
+        and state["url"] == "http://127.0.0.1:5200",
+        "P5_PG_OWNED_TEST_SOURCE_REQUIRED",
+    )
+    report = private_json(path)
+    plan, acceptance = report["plan"], report["acceptance"]
+    require(
+        report["status"] == "PASSED"
+        and report["stage"] == "VERIFIED"
+        and report["owned_stack"] == plan["recovery"]["stack_id"] == state["run_id"]
+        and report["owned_url"] == state["url"]
+        and report["prior_manifest_unchanged"]
+        and report["prior_failed_report_unchanged"]
+        and report["plan_sha256"] == digest(plan)
+        and plan["scope"] == "P5_CONTROLLED_PG_S3_RECOVERY_FROM_PREPLAN_FAILURE"
+        and plan["profile"] == "test"
+        and plan["images"]["aftercare-backend:chat-p5-pg-20261111"] == names["backend_image_id"]
+        and acceptance["system_identifier"] == plan["recovery"]["system_identifier"]
+        and acceptance["recovery_reused_existing_sentinel"]
+        and set(acceptance["boundary"])
+        == {"CONTROLLED_WORKER_CORE", "NO_PROVIDER_CALLS", "NO_INDEPENDENT_LABELS"},
+        "P5_PG_ACCEPTANCE_REPORT_MISMATCH",
+    )
+    recovery = plan["recovery"]
+    prior_path = Path(recovery["failed_report"])
+    prior_manifest = source.directory / "p5-pg-output" / "manifest"
+    prior = private_json(prior_path)
+    require(
+        prior_path.name == "chat-p5-pg-controlled-20261111.json"
+        and prior["status"] == "FAILED"
+        and prior["stage"] == "CONTROLLED_RUN"
+        and prior["owned_stack"] == state["run_id"]
+        and prior["owned_url"] == state["url"]
+        and prior["private_manifest_directory"] == str(prior_manifest)
+        and Path(recovery["prior_manifest_directory"]) == prior_manifest
+        and sha256(prior_path.read_bytes()).hexdigest() == recovery["failed_report_sha256"]
+        and _failed_manifest_hash(prior_manifest) == recovery["prior_manifest_sha256"],
+        "P5_PG_PRIOR_FAILURE_EVIDENCE_MISMATCH",
+    )
+    output = source.directory / "p5-pg-recovery-output"
+    primary = output / "manifest"
+    require(
+        Path(report["private_manifest_directory"]) == primary,
+        "P5_PG_ACCEPTANCE_MANIFEST_PATH_MISMATCH",
+    )
+    receipt = acceptance["receipt"]
+    interruption = acceptance["controlled_interruption"]
+    require(
+        interruption["injection_boundary"] == "AFTER_READY_BEFORE_AGENT_START"
+        and interruption["status"] == "UNKNOWN"
+        and interruption["additional_attempts_on_two_reopens"] == 0
+        and len(receipt["rows"]) == len({item["id"] for item in receipt["rows"]}) == 6,
+        "P5_PG_INTERRUPTION_NOT_VERIFIED",
+    )
+    schemas = {}
+    for journal, campaign, plan_hash, is_primary in (
+        (primary, plan["campaign"], receipt["plan_sha256"], True),
+        (
+            output / "interruption-manifest",
+            plan["independent_recovery_campaign"],
+            interruption["plan_sha256"],
+            False,
+        ),
+    ):
+        frozen = private_json(journal / "plan.json")
+        require(
+            digest(frozen) == plan_hash
+            and frozen["campaign"] == campaign
+            and frozen["controls"]["storage_topology"] == "OWNED_POSTGRESQL_S3"
+            and frozen["controls"]["evidence_grade"] == "CONTROLLED_WORKER_CORE"
+            and len(frozen["cases"]) == (2 if is_primary else 1)
+            and len(frozen["rows"]) == (6 if is_primary else 3)
+            and (is_primary or interruption["row_id"] in {row["id"] for row in frozen["rows"]}),
+            "P5_PG_MANIFEST_PLAN_MISMATCH",
+        )
+        cases = {(row["case_id"], row["repetition"]): row for row in frozen["cases"]}
+
+        attestation_sha = frozen["controls"]["attestation_sha256"]
+        require(
+            re.fullmatch(r"[0-9a-f]{64}", attestation_sha) is not None,
+            "P5_PG_ATTESTATION_HASH_INVALID",
+        )
+
+        def owner_claim(
+            namespace, *, campaign=campaign, attestation_sha=attestation_sha, **binding
+        ):
+            return {
+                "version": "p5-pg-owner-v1",
+                "attestation_sha256": attestation_sha,
+                "campaign": campaign,
+                "namespace": namespace,
+                "object_prefix": f"evaluation/{namespace}/",
+                **binding,
+            }
+
+        for case in cases.values():
+            namespace = (
+                "eval_"
+                + uuid5(
+                    NAMESPACE_URL,
+                    digest(["p5-source-v1", campaign, case["case_id"], case["repetition"]]),
+                ).hex
+            )
+            require(
+                digest(case["scope"]) == case["scope_sha256"]
+                and case["source_namespace"] == namespace
+                and re.fullmatch(r"[0-9a-f]{64}", case["source_sha256"]) is not None
+                and namespace not in schemas,
+                "P5_PG_FROZEN_SOURCE_MISMATCH",
+            )
+            schemas[namespace] = {
+                "case": case,
+                "row": None,
+                "owner_claim": owner_claim(
+                    namespace,
+                    source_case=case["case_id"],
+                    repetition=case["repetition"],
+                    source_sha256=case["source_sha256"],
+                ),
+            }
+        primary_rows = {item["id"]: item for item in receipt["rows"]}
+        for row in frozen["rows"]:
+            row_id = str(UUID(row["id"]))
+            saved = private_json(journal / f"{row_id}.result.json")
+            namespace = "eval_" + UUID(row_id).hex
+            ready = private_json(journal / f"{row_id}.ready.json")
+            expected = {
+                **row,
+                "plan_sha256": plan_hash,
+                "controls_sha256": digest(frozen["controls"]),
+            }
+            require(
+                namespace not in schemas
+                and ready == {**expected, "namespace": namespace}
+                and all(saved[key] == value for key, value in expected.items()),
+                "P5_PG_ARM_RECEIPT_MISMATCH",
+            )
+            if is_primary:
+                require(
+                    saved == primary_rows[row_id] and saved["checkpoint_persisted"],
+                    "P5_PG_ARM_ACCEPTANCE_MISMATCH",
+                )
+            elif row_id == interruption["row_id"]:
+                require(
+                    saved["status"] == "UNKNOWN" and not saved["attempts"],
+                    "P5_PG_INTERRUPTION_RECEIPT_MISMATCH",
+                )
+            schemas[namespace] = {
+                "case": cases[(row["case_id"], row["repetition"])],
+                "row": saved,
+                "owner_claim": owner_claim(namespace, **expected),
+            }
+    require(
+        len(schemas) == 12
+        and {
+            key
+            for key, item in schemas.items()
+            if item["row"] is None and item["owner_claim"]["campaign"] == plan["campaign"]
+        }
+        == set(acceptance["recovery_existing_sources"]),
+        "P5_PG_EXPECTED_SCHEMA_SCOPE_MISMATCH",
+    )
+    return {
+        "schemas": schemas,
+        "system_identifier": acceptance["system_identifier"],
+        "stack_id": state["run_id"],
+        "sentinel_sha256": acceptance["object_sentinel_sha256"],
+        "plan_sha256": receipt["plan_sha256"],
+        "report_sha256": sha256(path.read_bytes()).hexdigest(),
+    }
+
+
+def _verify_p5_pg_rows(connection, manifest, evidence):
+    schemas = evidence["schemas"]
+    require(
+        {key.split(".")[0] for key in manifest.database if key.startswith("eval_")}
+        == schemas.keys(),
+        "P5_PG_RESTORED_SCHEMA_SCOPE_MISMATCH",
+    )
+    verified = []
+    for schema, item in sorted(schemas.items()):
+        row, case = item["row"], item["case"]
+
+        def table(name, *, namespace=schema):
+            return backup._qualified(namespace, name)
+
+        def count(name):
+            return connection.scalar(text(f"SELECT count(*) FROM {table(name)}"))
+
+        owner = connection.execute(text(f"SELECT claim, ready FROM {table('p5_owner')}")).one()
+        require(
+            owner.ready is True
+            and owner.claim == item["owner_claim"]
+            and count("business_executions") == 0,
+            "P5_PG_RESTORED_SCHEMA_OWNER_MISMATCH",
+        )
+        if row is None or row["status"] == "UNKNOWN":
+            require(
+                all(
+                    count(name) == 0
+                    for name in ("agent_runs", "agent_model_attempts", "chat_decision_snapshots")
+                )
+                and (
+                    f"{schema}.checkpoints" not in manifest.database
+                    if row is None
+                    else count("checkpoints") == 0
+                ),
+                "P5_PG_RESTORED_EMPTY_RUN_MISMATCH",
+            )
+        else:
+            run = connection.execute(
+                text(f"SELECT id, thread_id, status FROM {table('agent_runs')}")
+            ).one()
+            snapshot = connection.execute(
+                text(f"SELECT id, run_id, origin, input FROM {table('chat_decision_snapshots')}")
+            ).one()
+            checkpoints = connection.execute(
+                text(f"SELECT thread_id, checkpoint_id FROM {table('checkpoints')}")
+            ).all()
+            require(
+                tuple(run) == (row["run_id"], row["thread_id"], row["run_status"])
+                and (snapshot.id, snapshot.run_id, snapshot.origin, snapshot.input)
+                == (row["snapshot_id"], row["run_id"], "AGENT", case["scope"])
+                and {checkpoint.thread_id for checkpoint in checkpoints} == {row["thread_id"]}
+                and (row["thread_id"], row["checkpoint_id"]) in checkpoints
+                and count("agent_model_attempts") == len(row["attempts"]),
+                "P5_PG_RESTORED_RUN_BINDING_MISMATCH",
+            )
+        verified.append(
+            {
+                "schema": schema,
+                "kind": "source" if row is None else "arm",
+                **(
+                    {"run_id": row.get("run_id"), "status": row["status"]}
+                    if row is not None
+                    else {}
+                ),
+            }
+        )
+    require(
+        connection.scalar(text("SELECT count(*) FROM public.business_executions")) == 0,
+        "P5_PG_PUBLIC_EXECUTIONS_PRESENT",
+    )
+    return verified
+
+
+def _missing_pg_authorization(store, key):
+    try:
+        store.get(key, 4096)
+    except BusinessError as error:
+        require(error.code == "MATERIAL_OBJECT_MISSING", "P5_PG_AUTHORIZATION_READ_UNVERIFIED")
+    else:
+        raise VerificationError("P5_PG_AUTHORIZATION_OBJECT_TRANSFERRED")
+
+
+def _verify_p5_pg_objects(archive_dir, manifest, result, source_store, target_store, evidence):
+    require(
+        result.get("p5_runtime_authorization") == "REQUIRES_NEW_ATTESTATION",
+        "P5_PG_RESTORED_AUTHORIZATION_MISMATCH",
+    )
+    sentinel = f"evaluation/p5-stack/{evidence['stack_id']}/sentinel"
+    source_sentinel = source_store.get(sentinel, 64)
+    require(
+        len(source_sentinel) == 64
+        and sha256(source_sentinel).hexdigest() == evidence["sentinel_sha256"],
+        "P5_PG_SOURCE_SENTINEL_CHANGED",
+    )
+    _missing_pg_authorization(target_store, sentinel)
+    for schema in evidence["schemas"]:
+        _missing_pg_authorization(target_store, f"evaluation/{schema}/.p5-owner.json")
+    expected = {
+        (schema, table): sorted(
+            (row["sha256"], row["size"], row["content_type"]) for row in item["case"][key]
+        )
+        for schema, item in evidence["schemas"].items()
+        for table, key in (
+            ("chat_attachments", "images"),
+            ("business_materials", "material_objects"),
+        )
+    }
+    seen = {key: [] for key in expected}
+    for record in manifest.materials:
+        key = (record.schema_name, record.table_name)
+        require(key in seen, "P5_PG_UNEXPECTED_ARCHIVED_OBJECT")
+        original = (archive_dir / backup.OBJECTS / record.sha256).read_bytes()
+        require(
+            original
+            == source_store.get(record.key, record.size)
+            == target_store.get(record.key, record.size)
+            and len(original) == record.size
+            and sha256(original).hexdigest() == record.sha256,
+            "P5_PG_RESTORED_OBJECT_BYTES_MISMATCH",
+        )
+        seen[key].append((record.sha256, record.size, record.content_type))
+    require(
+        {key: sorted(rows) for key, rows in seen.items()} == expected, "P5_PG_OBJECT_SCOPE_MISMATCH"
+    )
+    return {
+        "chat_originals": sum(
+            len(rows) for key, rows in seen.items() if key[1] == "chat_attachments"
+        ),
+        "typed_materials": sum(
+            len(rows) for key, rows in seen.items() if key[1] == "business_materials"
+        ),
+        "source_archive_restore_bytes_match": True,
+        "runtime_authorization": result["p5_runtime_authorization"],
+        "sentinel_and_owner_objects_not_transferred": True,
+    }
+
+
 def restore_readback(
     topology,
     target,
@@ -585,6 +900,7 @@ def restore_readback(
     *,
     require_material_sources,
     p5=None,
+    p5_pg=None,
     tester=None,
 ):
     engine = backup.restored_engine(target, result["database"])
@@ -601,51 +917,72 @@ def restore_readback(
                 ),
                 "RESTORE_READBACK_WRONG_SYSTEM",
             )
-            attachments = (
-                connection.execute(
-                    text("""
-                SELECT a.id, a.object_key, a.sha256, a.size, a.content_type,
-                       m.id AS message_id, c.id AS conversation_id, c.customer_id
-                FROM chat_attachments a JOIN chat_messages m ON m.id = a.message_id
-                JOIN chat_conversations c ON c.id = m.conversation_id
-                WHERE m.sequence IS NOT NULL AND (
-                    SELECT count(*) FROM chat_attachments sibling WHERE sibling.message_id = m.id
-                ) = 2
-                ORDER BY m.id, a.position
-            """)
-                )
-                .mappings()
-                .all()
-            )
-            require(len(attachments) >= 2, "TWO_PHOTO_MESSAGE_REQUIRED")
-            link_count = connection.scalar(
-                text("""
-                SELECT count(*) FROM chat_case_links link
-                JOIN business_cases cases ON cases.id = link.case_id
-                JOIN chat_conversations conv ON conv.id = link.conversation_id
-                WHERE conv.customer_id = cases.customer_id
-            """)
-            )
-            require(link_count > 0, "CHAT_CASE_LINK_REQUIRED")
-            rows = _material_sources(connection) if require_material_sources else []
-            if require_material_sources:
-                require(
-                    len(rows)
-                    == manifest.database[f"public.{backup.CHAT_MATERIAL_SOURCE_TABLE}"].rows
-                    and len({(row["conversation_id"], row["issue_id"]) for row in rows}) > 0
-                    and any(
-                        sum(item["message_id"] == row["message_id"] for item in rows) >= 2
-                        for row in rows
-                    ),
-                    "SCOPED_MATERIAL_SOURCE_PAIR_REQUIRED",
-                )
-            if require_material_sources or p5:
+            if p5_pg:
                 connection.execute(text("SET LOCAL TIME ZONE 'UTC'"))
                 require(
                     backup._fingerprints(connection) == manifest.database,
                     "RESTORE_READBACK_FINGERPRINT_MISMATCH",
                 )
+                verified = _verify_p5_pg_rows(connection, manifest, p5_pg)
+            else:
+                attachments = (
+                    connection.execute(
+                        text("""
+                    SELECT a.id, a.object_key, a.sha256, a.size, a.content_type,
+                           m.id AS message_id, c.id AS conversation_id, c.customer_id
+                    FROM chat_attachments a JOIN chat_messages m ON m.id = a.message_id
+                    JOIN chat_conversations c ON c.id = m.conversation_id
+                    WHERE m.sequence IS NOT NULL AND (
+                        SELECT count(*) FROM chat_attachments sibling WHERE sibling.message_id = m.id
+                    ) = 2
+                    ORDER BY m.id, a.position
+                """)
+                    )
+                    .mappings()
+                    .all()
+                )
+                require(len(attachments) >= 2, "TWO_PHOTO_MESSAGE_REQUIRED")
+                link_count = connection.scalar(
+                    text("""
+                    SELECT count(*) FROM chat_case_links link
+                    JOIN business_cases cases ON cases.id = link.case_id
+                    JOIN chat_conversations conv ON conv.id = link.conversation_id
+                    WHERE conv.customer_id = cases.customer_id
+                """)
+                )
+                require(link_count > 0, "CHAT_CASE_LINK_REQUIRED")
+                rows = _material_sources(connection) if require_material_sources else []
+                if require_material_sources:
+                    require(
+                        len(rows)
+                        == manifest.database[f"public.{backup.CHAT_MATERIAL_SOURCE_TABLE}"].rows
+                        and len({(row["conversation_id"], row["issue_id"]) for row in rows}) > 0
+                        and any(
+                            sum(item["message_id"] == row["message_id"] for item in rows) >= 2
+                            for row in rows
+                        ),
+                        "SCOPED_MATERIAL_SOURCE_PAIR_REQUIRED",
+                    )
+                if require_material_sources or p5:
+                    connection.execute(text("SET LOCAL TIME ZONE 'UTC'"))
+                    require(
+                        backup._fingerprints(connection) == manifest.database,
+                        "RESTORE_READBACK_FINGERPRINT_MISMATCH",
+                    )
         store = S3ObjectStore(topology.restore_bucket(target, result["bucket"]))
+        if p5_pg:
+            return {
+                "restored_database_fingerprints_match_archive": True,
+                "evaluation_schemas": verified,
+                "objects": _verify_p5_pg_objects(
+                    archive_dir,
+                    manifest,
+                    result,
+                    S3ObjectStore(topology.settings["source"]),
+                    store,
+                    p5_pg,
+                ),
+            }
         business = BusinessService(engine, target, storage=store)
         service = ConversationService(business)
         archived = {item.key: item for item in manifest.materials}
@@ -713,6 +1050,7 @@ def execute(
     require_material_sources=False,
     p5_http_report=None,
     p5_browser_report=None,
+    p5_pg_report=None,
 ):
     state, source, names = source_resources(state_path)
     source_profile = state.get("profile", "app")
@@ -721,6 +1059,9 @@ def execute(
         _p5_evidence(p5_http_report, p5_browser_report, state_path, state)
         if p5_http_report
         else None
+    )
+    p5_pg = (
+        _p5_pg_evidence(p5_pg_report, state_path, state, source, names) if p5_pg_report else None
     )
     tester = (
         next(row for row in private_json(source.credentials_path) if row["role"] == "tester")
@@ -854,7 +1195,15 @@ def execute(
                 topology.identities["source"][1] != topology.identities["target"][1],
                 "SOURCE_AND_DESTINATION_SAME_SYSTEM",
             )
-            if require_material_sources or p5:
+            if p5_pg:
+                require(
+                    str(topology.identities["source"][1]) == p5_pg["system_identifier"],
+                    "P5_PG_SOURCE_SYSTEM_ID_MISMATCH",
+                )
+                report["p5_pg_evidence"] = {
+                    key: p5_pg[key] for key in ("plan_sha256", "report_sha256")
+                }
+            if require_material_sources or p5 or p5_pg:
                 before = source_fingerprints(topology, src)
             if require_material_sources:
                 required = (
@@ -882,7 +1231,7 @@ def execute(
             with topology.route_cli("source"):
                 manifest = backup.create_backup(src, archive)
             require(backup.verify_backup(archive) == manifest, "ARCHIVE_VERIFICATION_MISMATCH")
-            if require_material_sources or p5:
+            if require_material_sources or p5 or p5_pg:
                 require(manifest.database == before, "SOURCE_CHANGED_BEFORE_ARCHIVE")
             tables = required if require_material_sources else backup.CHAT_TABLES
             if p5:
@@ -910,6 +1259,11 @@ def execute(
                 "bucket": result["bucket"],
                 "material_count": result["material_count"],
                 "fingerprinted_tables": len(result["table_rows"]),
+                **(
+                    {"p5_runtime_authorization": result["p5_runtime_authorization"]}
+                    if p5_pg
+                    else {}
+                ),
             }
             report["stage"] = "READBACK"
             report["readback"] = restore_readback(
@@ -920,9 +1274,10 @@ def execute(
                 result,
                 require_material_sources=require_material_sources,
                 p5=p5,
+                p5_pg=p5_pg,
                 tester=tester,
             )
-            if require_material_sources or p5:
+            if require_material_sources or p5 or p5_pg:
                 require(
                     source_fingerprints(topology, src) == before, "SOURCE_CHANGED_AFTER_RESTORE"
                 )
@@ -962,11 +1317,16 @@ def main():
     parser.add_argument("--require-material-sources", action="store_true")
     parser.add_argument("--p5-http-report", type=Path)
     parser.add_argument("--p5-browser-report", type=Path)
+    parser.add_argument("--p5-pg-report", type=Path)
     args = parser.parse_args()
     if bool(args.p5_http_report) != bool(args.p5_browser_report):
         parser.error("P5 verification requires both --p5-http-report and --p5-browser-report")
+    if args.p5_pg_report and (args.p5_http_report or args.require_material_sources):
+        parser.error("--p5-pg-report is mutually exclusive with public-chat verification")
     if not args.execute:
-        state, _, _ = source_resources(args.source_state)
+        state, source, names = source_resources(args.source_state)
+        if args.p5_pg_report:
+            _p5_pg_evidence(args.p5_pg_report, args.source_state, state, source, names)
         if args.p5_http_report:
             _p5_evidence(args.p5_http_report, args.p5_browser_report, args.source_state, state)
         print(json.dumps({"status": "READY", "source": state["url"], "writes": 0}))
@@ -990,7 +1350,11 @@ def main():
             "exported read-only repeatable-read snapshot and pg_dump custom archive",
             "manifest hashing, table fingerprint comparison, object digest and restored object verification",
             "random restore database and bucket, production fresh destination creation",
-            "authenticated conversation attachment service with owner/foreign readback",
+            (
+                "evaluation schema run, candidate, checkpoint, and original/typed object readback"
+                if args.p5_pg_report
+                else "authenticated conversation attachment service with owner/foreign readback"
+            ),
         ],
     }
     with os.fdopen(fd, "w") as output:
@@ -1004,6 +1368,7 @@ def main():
                     require_material_sources=args.require_material_sources,
                     p5_http_report=args.p5_http_report,
                     p5_browser_report=args.p5_browser_report,
+                    p5_pg_report=args.p5_pg_report,
                 )
         except BlockingIOError:
             report.update(status="FAILED", failure_code="DEMO_LIFECYCLE_BUSY")

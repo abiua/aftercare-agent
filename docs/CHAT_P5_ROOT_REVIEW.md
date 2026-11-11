@@ -89,3 +89,10 @@ root 审查发现所有六行 candidate_persisted_ms 为负：冻结业务时间
 新增私有 register_pg_blind 入口，沿已核验运行环境读取原计划、源输入、各臂原生运行及P3；不导入或重建P3。登记前复核scope/图片/候选校验和/检查点与实际运行绑定，同一输入的三个来源只生成一个盲审任务。缺失或未知臂留在私有映射，全部无候选只保存无任务原因。原候选、实验臂和运行信息不进入初判页面；原source/arm不写入。公开任务写入后私有映射失败可幂等补写。新实际UTC时钟与旧冻结时钟的checksum分支分别验证，非UTC业务时点纳入测试。
 
 root与独立代理审查未发现阻断；root联合运行登记/备份66项通过（含原备份62项），静态检查通过。测试使用独立SQLite原生P3，不以此代替真实PG登记/浏览器。真实登记验收脚本正在准备，旧同schema入口保留。
+
+
+## 新评测拓扑真实备份恢复
+
+`reports/chat-p5-pg-backup-restore-20261111.json` 实际通过：5200源导出后恢复到不同物理PG测试实例，537表指纹、12个eval schema、24聊天原图+24业务材料对象逐字节一致，完整owner声明与原清单绑定，原生运行/P3/checkpoint及UNKNOWN空运行保留；源导出前/归档/结束后指纹一致。恢复结果明确REQUIRES_NEW_ATTESTATION，S3 sentinel/owner授权对象未转移。root逐一检查6个临时容器/网络/卷已不存在，私有归档保留 `.runtime/chat-backup-restore-1a7lwbd6`。
+
+报告旧通用production_core列表含“authenticated conversation attachment service with owner/foreign readback”，该描述不适用于本次eval schema分支：本次验证的是记录/原图字节，不是恢复后评审登录授权。原报告保留，脚本已按模式修正后续报告描述。旧5197的人审权限/浏览器备份证据仍仅适用于其原范围。
