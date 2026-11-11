@@ -291,7 +291,7 @@ class _PgRuntime:
         return self._engine.execution_options(schema_translate_map={None: namespace})
 
     @contextmanager
-    def source(self, case_id, repetition, source_sha256):
+    def source(self, case_id, repetition, source_sha256, *, require_existing=False):
         if (
             not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}", case_id)
             or type(repetition) is not int
@@ -312,6 +312,8 @@ class _PgRuntime:
                 text("SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname = :namespace"),
                 {"namespace": namespace},
             )
+        if require_existing and not existing:
+            raise ValueError("CHAT_EVAL_PG_SOURCE_MISSING")
         if existing:
             self._verify_owner(namespace, claim)
         else:

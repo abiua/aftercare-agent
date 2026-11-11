@@ -1,5 +1,6 @@
 """Fail-closed PostgreSQL/S3 configuration checks without connecting to a database."""
 
+from contextlib import nullcontext
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -11,6 +12,22 @@ from aftercare.evaluation.chat import pg_runtime
 from aftercare.evaluation.chat.pg_runtime import PgAttestation, open_pg_runtime, sentinel_key
 
 ATTESTATION = PgAttestation("1" * 32, "7351111683238127052", "owned-test", "2" * 64, 32)
+
+
+def test_existing_source_requirement_never_claims_a_missing_namespace(monkeypatch):
+    engine = SimpleNamespace(connect=lambda: nullcontext(SimpleNamespace(scalar=lambda *_: None)))
+    runtime = pg_runtime._PgRuntime(
+        _settings(), ATTESTATION, "owned-campaign", engine, None, None, {}
+    )
+    monkeypatch.setattr(runtime, "fence", lambda: True)
+    monkeypatch.setattr(
+        runtime, "_claim_namespace", lambda *_: pytest.fail("missing source was created")
+    )
+    with (
+        pytest.raises(ValueError, match="CHAT_EVAL_PG_SOURCE_MISSING"),
+        runtime.source("DAMAGE-ORDINARY", 1, "4" * 64, require_existing=True),
+    ):
+        pytest.fail("missing source was yielded")
 
 
 def _settings(**changes):
