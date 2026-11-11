@@ -1159,6 +1159,8 @@ class BusinessService:
         notes: str,
         policy_ids: list[str],
     ) -> dict:
+        from aftercare.conversations.decisions import ConversationDecisions, lock_case
+
         _require_role(user, "support")
         notes = notes.strip()
         if not 1 <= len(notes) <= 2000:
@@ -1167,7 +1169,7 @@ class BusinessService:
         scope = f"proposal:{case_id}"
         signature = digest([expected_version, action, lines, notes, sorted(set(policy_ids))])
         with Session(self.engine) as db, db.begin():
-            case, order = self._case(db, case_id, user, lock=True)
+            case, order, conversation = lock_case(self, db, case_id, user)
             replay = self._replay(db, user, scope, idempotency_key, signature)
             if replay is not None:
                 return replay
@@ -1175,6 +1177,17 @@ class BusinessService:
             _version(case.version, expected_version)
             self._reject_duplicate_matter(db, case, order, lines)
             plan = self._validate_plan(db, case, order, action, lines, policy_ids=policy_ids)
+            if case.decision_conversation_id is not None:
+                plan["decision_binding"] = ConversationDecisions(self).accepted(
+                    db,
+                    user,
+                    case,
+                    order,
+                    conversation,
+                    action=action,
+                    lines=lines,
+                    policy_ids=plan["policy_ids"],
+                )
             for old in db.scalars(
                 select(Proposal).where(
                     Proposal.case_id == case.id,
@@ -1227,6 +1240,8 @@ class BusinessService:
         case: Case,
         order: Order,
         row: Proposal,
+        user: UserContext,
+        conversation,
     ) -> None:
         resolution, _ = self._case_policies(db, case, self._order_json(db, order))
         if row.status not in {"PROPOSED", "APPROVED"} or row.binding != self._binding(
@@ -1238,6 +1253,11 @@ class BusinessService:
         current = self._validate_plan(
             db, case, order, row.action, row.lines, policy_ids=row.policy_ids
         )
+        from aftercare.conversations.decisions import check_proposal
+
+        binding = check_proposal(self, db, user, case, order, conversation, row)
+        if binding is not None:
+            current["decision_binding"] = binding
         payload = {
             "case_id": row.case_id,
             "version": row.version,
@@ -1272,6 +1292,8 @@ class BusinessService:
         decision: str,
         notes: str,
     ) -> dict:
+        from aftercare.conversations.decisions import lock_case
+
         _require_role(user, "approver")
         notes = notes.strip()
         if decision not in {"APPROVED", "REJECTED"} or not 1 <= len(notes) <= 2000:
@@ -1279,7 +1301,7 @@ class BusinessService:
         scope = f"approval:{case_id}"
         signature = digest([expected_version, proposal_id, decision, notes])
         with Session(self.engine) as db, db.begin():
-            case, order = self._case(db, case_id, user, lock=True)
+            case, order, conversation = lock_case(self, db, case_id, user)
             replay = self._replay(db, user, scope, idempotency_key, signature)
             if replay is not None:
                 return replay
@@ -1288,7 +1310,7 @@ class BusinessService:
             row = self._proposal(db, case, proposal_id)
             if row.proposer_id == user.user_id:
                 raise BusinessError("SEPARATION_REQUIRED", "提交人与审批人必须分开。", 403)
-            self._check_proposal(db, case, order, row)
+            self._check_proposal(db, case, order, row, user, conversation)
             at = self.clock()
             last = self._last_approval(db, row)
             if (
@@ -1387,6 +1409,8 @@ class BusinessService:
         idempotency_key: str,
         proposal_id: str,
     ) -> dict:
+        from aftercare.conversations.decisions import lock_case
+
         _require_role(user, "support")
         scope = f"execute:{case_id}"
         signature = digest([expected_version, proposal_id])
@@ -1408,7 +1432,7 @@ class BusinessService:
             self._verified_content(material)
 
         with Session(self.engine) as db, db.begin():
-            case, order = self._case(db, case_id, user, lock=True)
+            case, order, conversation = lock_case(self, db, case_id, user)
             replay = self._replay(db, user, scope, idempotency_key, signature)
             proposal = self._proposal(db, case, proposal_id)
             existing = self._existing_execution(db, case, proposal)
@@ -1420,7 +1444,7 @@ class BusinessService:
             self._editable(case)
             _version(case.version, expected_version)
             self._reject_duplicate_matter(db, case, order, proposal.lines)
-            self._check_proposal(db, case, order, proposal)
+            self._check_proposal(db, case, order, proposal, user, conversation)
             approval = self._last_approval(db, proposal)
             at = self.clock()
             if (

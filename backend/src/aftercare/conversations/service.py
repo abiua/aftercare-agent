@@ -16,6 +16,7 @@ from aftercare.business.storage import MAX_BYTES, validate_image, verify_object
 from aftercare.intake import _order_resolution, rule_intents
 
 from . import analysis as chat_analysis
+from . import decisions as chat_decisions
 from .tables import Attachment, CaseLink, Conversation, Message
 
 MAX_ATTACHMENTS = 6
@@ -78,6 +79,7 @@ class ConversationService:
         self.business = business
         self.engine, self.clock, self.storage = business.engine, business.clock, business.storage
         self.analysis = chat_analysis.scheduler(self.engine, business.settings, clock=self.clock)
+        self.decisions_enabled = chat_decisions.enabled(business.settings)
 
     @staticmethod
     def _find(db, ident, user, *, lock=False):
@@ -159,6 +161,8 @@ class ConversationService:
         result = {"conversation": _conversation(row), "messages": self._messages(db, row, messages)}
         if snapshot := chat_analysis.snapshot(self.analysis, db, row):
             result["analysis"] = snapshot
+        if self.decisions_enabled:
+            result["features"] = {"chat_decisions": True}
         return result
 
     def create(self, user, key):
@@ -277,7 +281,7 @@ class ConversationService:
                     )
             else:
                 self._editable(row)
-                if self.analysis:
+                if self.analysis or self.decisions_enabled:
                     chat_analysis.issue(row)
                 message = Message(
                     id=_id(),
@@ -323,7 +327,7 @@ class ConversationService:
             self._check_message(message, user, signature)
             if message.sequence is None:
                 self._editable(row)
-                if self.analysis and (
+                if (self.analysis or self.decisions_enabled) and (
                     message.analysis_issue_id is None
                     or message.analysis_issue_id != row.analysis_issue_id
                 ):
@@ -353,7 +357,7 @@ class ConversationService:
                         cards = [_status("HUMAN_HANDOFF")]
                     else:
                         reply, cards = self._customer_reply(db, row, user, message, bool(photos))
-                        if self.analysis:
+                        if self.analysis or self.decisions_enabled:
                             offers_new_issue = any(card["data"].get("new_issue") for card in cards)
                             if offers_new_issue:
                                 # This specific request remains unassigned until confirmed.
@@ -557,6 +561,15 @@ class ConversationService:
                         )
                     ],
                 )
+        if self.decisions_enabled and row.active_case_id:
+            case, _ = self.business._case(db, row.active_case_id, user, lock=True)
+            try:
+                chat_decisions.enroll(case, row)
+            except BusinessError as error:
+                if error.code != "CASE_DECISION_ALREADY_MANAGED":
+                    raise
+                row.status = "HUMAN_HANDOFF"
+                return "该工单已关联其他会话，已转客服核对。", [_status(error.code)]
         if has_photos:
             return "已收到照片，会保留在这段会话中。", []
         if row.active_case_id:
@@ -646,6 +659,15 @@ class ConversationService:
                 raise
             row.status = "HUMAN_HANDOFF"
             return "该商品已有同类工单，已转客服核对。", [_status("CASE_SCOPE_EXISTS")]
+        if self.decisions_enabled:
+            chat_analysis.issue(row)
+            try:
+                chat_decisions.enroll(case, row)
+            except BusinessError as error:
+                if error.code != "CASE_DECISION_ALREADY_MANAGED":
+                    raise
+                row.status = "HUMAN_HANDOFF"
+                return "该工单已关联其他会话，已转客服核对。", [_status(error.code)]
         if (
             db.scalar(
                 select(CaseLink.id).where(
@@ -702,7 +724,7 @@ class ConversationService:
             )
             chat_analysis.invalidate(self.analysis, db, row)
             if new_issue:
-                if self.analysis:
+                if self.analysis or self.decisions_enabled:
                     start = chat_analysis.confirmed_issue_start(db, row, message, order.id)
                     chat_analysis.issue(row, reset=True, input_from_seq=start)
                     if start is not None:

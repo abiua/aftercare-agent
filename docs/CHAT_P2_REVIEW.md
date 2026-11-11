@@ -51,3 +51,5 @@
 首轮启动报告`reports/chat-p2-vision-worker-live-20261111.json`为FAILED/START_OBJECTS_FAILED：58352被占用，尚未建立API或付费worker，零提供方调用。原报告和准入记录保留。核对专属资源已清理、无wire/密钥副本后，单次恢复协议换用58354。
 
 `reports/chat-p2-vision-worker-live-resume-20261111.json`为PASSED：授权HTTP上传冻结的AI生成裂纹杯原图，S3回读字节一致，经实际Celery工作进程向提供方发出一次请求，HTTP200，PG写入同一原图与发送图摘要绑定的观察，客户卡片为“可见商品、疑似裂纹”。实际用量739输入/38输出，登记价格估算0.000929美元；没有审批、责任或真实性判断。重复投递后审计及公开消息保持一致，重复任务消费以同名任务累计数判断，未逐投递ID关联。临时付费worker及其密钥副本已移除，隔离页面5192保留，恢复离线worker。该路径以真实HTTP API操作，尚未对5192做浏览器视觉核对；其他商品分布、跨图冲突及独立人工评测仍待验证。
+
+随后真实Chrome只读核对5192：客户会话显示“可见商品、疑似裂纹”及“仍需核对”，点击原图后实际渲染裂纹杯。17条应用请求均为GET/200，无写入或新分析；捕获在导航前启动、无网络替换规则，私有捕获0600，专属浏览器会话已停止。报告`reports/browser-chat-p2-vision-worker-resume-20261111.json`。这次浏览器只查看既有示例，不宣称浏览器新上传触发分析已覆盖。独立清理复核`reports/chat-p2-vision-worker-independent-review-20261111.json`再次确认付费worker及私有密钥副本不存在，离线服务健康。

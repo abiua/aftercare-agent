@@ -18,6 +18,12 @@ from aftercare.business.errors import BusinessError
 from aftercare.business.refund_lookup import resolve_refund_text, targeted_refund
 from aftercare.business.rules import digest
 from aftercare.db import User
+from aftercare.intelligence.decision_candidate import (
+    DECISION_INPUT_EVENT,
+    DECISION_READY_EVENT,
+    load_binding,
+    make_binding,
+)
 from aftercare.intelligence.graph import GraphContext, build_graph
 from aftercare.intelligence.model_limits import ProviderLimiter
 from aftercare.intelligence.models import (
@@ -583,9 +589,33 @@ class AgentService:
         else:
             self.process(run_id)
 
-    def start(self, case_id, user, *, expected_version, idempotency_key, mode, strategy, message):
+    def start(
+        self,
+        case_id,
+        user,
+        *,
+        expected_version,
+        idempotency_key,
+        mode,
+        strategy,
+        message,
+        decision_scope=None,
+        decision_previous=None,
+    ):
         self._can_mutate(user)
         facts = self._context(case_id, user)
+        if decision_previous is not None and decision_scope is None:
+            raise RunError("DECISION_RUN_BINDING_INVALID", "会话候选运行缺少冻结输入。")
+        decision_request = (
+            {
+                "scope": decision_scope.model_dump(mode="json"),
+                "previous": decision_previous.model_dump(mode="json")
+                if decision_previous is not None
+                else None,
+            }
+            if decision_scope is not None
+            else None
+        )
         with Session(self.engine) as session, session.begin():
             _lock(session, case_id)
             previous, digest = self._mutation(
@@ -599,11 +629,26 @@ class AgentService:
                     "mode": mode,
                     "strategy": strategy,
                     "message": message,
+                    **(
+                        {"decision_input": decision_request} if decision_request is not None else {}
+                    ),
                 },
             )
             if previous:
                 return _serialize(self._get(session, case_id, previous.run_id))
             self._check_version(facts, expected_version)
+            binding = (
+                make_binding(
+                    decision_scope,
+                    decision_previous,
+                    facts,
+                    user,
+                    message,
+                    _context_digest(_with_refund_lookup(facts, message)),
+                )
+                if decision_scope is not None
+                else None
+            )
             active = session.scalar(
                 select(AgentRun.id).where(
                     AgentRun.case_id == case_id,
@@ -631,6 +676,8 @@ class AgentService:
             )
             session.add(run)
             _event(session, run, "status", {"status": "QUEUED", "cycle": 0})
+            if binding is not None:
+                _event(session, run, DECISION_INPUT_EVENT, binding)
             session.add(
                 RunMutation(
                     case_id=case_id,
@@ -664,6 +711,10 @@ class AgentService:
                 return _serialize(run)
             self._check_version(facts, expected_version)
             if operation == "resume":
+                if load_binding(session, run) is not None:
+                    raise RunError(
+                        "DECISION_RUN_REQUIRES_NEW_INPUT", "请从当前会话重新登记调查输入。"
+                    )
                 if run.status != "WAITING_INPUT" or expected_version <= run.case_version:
                     raise RunError("RUN_NOT_RESUMABLE", "请先补充材料并刷新工单后继续。")
                 run.cycle += 1
@@ -728,7 +779,9 @@ class AgentService:
                 {
                     "seq": row.seq,
                     "kind": row.kind,
-                    "payload": row.payload,
+                    "payload": {}
+                    if row.kind in {DECISION_INPUT_EVENT, DECISION_READY_EVENT}
+                    else row.payload,
                     "created_at": _iso(row.created_at),
                 }
                 for row in session.scalars(
@@ -869,6 +922,10 @@ class AgentService:
             config = {"configurable": {"thread_id": run.thread_id}, "recursion_limit": 30}
             snapshot = graph.get_state(config)
             context_digest = _context_digest(facts)
+            with Session(self.engine) as session:
+                decision_input = load_binding(session, run)
+            if decision_input is not None and decision_input["context_sha256"] != context_digest:
+                raise ModelFailure("DECISION_RUN_CONTEXT_CHANGED")
             lookup_targeted = targeted_refund(facts.get("refund_lookup"))
             self._bind_context(
                 run,
@@ -929,7 +986,13 @@ class AgentService:
                 raise ModelFailure("FACTS_CHANGED_DURING_RUN")
             if _seconds(run.deadline) <= 0:
                 raise ModelFailure("RUN_DEADLINE_EXCEEDED")
-            self._finish(run, state["status"], state.get("reason"), state.get("output"))
+            self._finish(
+                run,
+                state["status"],
+                state.get("reason"),
+                state.get("output"),
+                decision_context=context_digest if decision_input is not None else None,
+            )
         except QueueFenceLost:
             raise
         except (BusinessError, ModelFailure, RunError) as error:
@@ -938,7 +1001,7 @@ class AgentService:
             self._finish(run, "FAILED", "RUN_INTERNAL_ERROR", None)
             raise
 
-    def _finish(self, run, status, reason, output):
+    def _finish(self, run, status, reason, output, *, decision_context=None):
         with Session(self.engine) as session, session.begin():
             _require_queue(session, self.queue_admission)
             current = session.get(AgentRun, run.id, with_for_update=True)
@@ -946,3 +1009,18 @@ class AgentService:
                 if self.attempt_admission is not None and not self.attempt_admission(session):
                     status, reason, output = "CANCELED", "EXPERIMENT_CANCELLED", None
                 _mark(session, current, status, reason, output)
+                if decision_context is not None and status in {
+                    "WAITING_INPUT",
+                    "NEEDS_REVIEW",
+                    "COMPLETED",
+                }:
+                    _event(
+                        session,
+                        current,
+                        DECISION_READY_EVENT,
+                        {
+                            "cycle": current.cycle,
+                            "context_sha256": decision_context,
+                            "output_sha256": digest([status, reason, output]),
+                        },
+                    )

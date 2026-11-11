@@ -73,3 +73,13 @@ class CaseLink(Base):
     case_id: Mapped[str] = mapped_column(ForeignKey("business_cases.id"))
     source_message_id: Mapped[str] = mapped_column(ForeignKey(Message.id))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class DecisionProjection(Base):
+    __tablename__ = "chat_decision_projections"
+
+    run_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    snapshot_id: Mapped[str | None] = mapped_column(String(36))
+    state: Mapped[str] = mapped_column(String(24))
+    reason: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

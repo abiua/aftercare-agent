@@ -583,11 +583,11 @@ def test_legacy_fingerprint_rejects_archive_containing_chat():
 def test_chat_analysis_tables_are_an_optional_complete_backup_bundle(package):
     _, manifest, _ = package
     previous = manifest.model_dump()
-    for table in backup.CHAT_ANALYSIS_TABLES:
+    for table in backup.CHAT_ANALYSIS_TABLES | backup.CHAT_DECISION_TABLES:
         previous["database"].pop(f"public.{table}", None)
     assert backup.BackupManifest.model_validate(previous)
 
-    current = manifest.model_dump()
+    current = backup.BackupManifest.model_validate(previous).model_dump()
     for table in backup.CHAT_ANALYSIS_TABLES:
         current["database"][f"public.{table}"] = {"rows": 0, "sha256": "a" * 64}
     assert backup.BackupManifest.model_validate(current)
@@ -604,3 +604,23 @@ def test_chat_analysis_tables_are_an_optional_complete_backup_bundle(package):
     catalog.remove(("public", "chat_observations"))
     with pytest.raises(backup.BackupError, match="CHAT_ANALYSIS_SCHEMA_INCOMPLETE"):
         backup._managed_tables(SimpleNamespace(execute=lambda *args: catalog))
+
+
+def test_chat_decision_tables_are_optional_only_as_a_complete_bundle(package):
+    _, manifest, _ = package
+    legacy = manifest.model_dump()
+    for table in backup.CHAT_DECISION_TABLES:
+        legacy["database"].pop(f"public.{table}", None)
+    assert backup.BackupManifest.model_validate(legacy)
+    current = manifest.model_dump()
+    for table in backup.CHAT_ANALYSIS_TABLES | backup.CHAT_DECISION_TABLES:
+        current["database"][f"public.{table}"] = {"rows": 0, "sha256": "a" * 64}
+    assert backup.BackupManifest.model_validate(current)
+    without_analysis = backup.BackupManifest.model_validate(current).model_dump()
+    for table in backup.CHAT_ANALYSIS_TABLES:
+        without_analysis["database"].pop(f"public.{table}")
+    with pytest.raises(ValueError, match="Incomplete conversation decision schema"):
+        backup.BackupManifest.model_validate(without_analysis)
+    del current["database"]["public.chat_customer_decisions"]
+    with pytest.raises(ValueError, match="Incomplete conversation decision schema"):
+        backup.BackupManifest.model_validate(current)

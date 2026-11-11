@@ -1,6 +1,6 @@
 """Authorized conversation and original-attachment HTTP endpoints."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
@@ -10,7 +10,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from aftercare.business.api import ID, Actor, BusinessRoute, Key, Version
 from aftercare.business.errors import BusinessError
 from aftercare.business.storage import MAX_BYTES
+from aftercare.decisions.contracts import CustomerResponse, DecisionRef, Review
 
+from .decisions import ConversationDecisions
 from .service import MAX_ATTACHMENTS, ConversationService
 
 BODY_MAX = MAX_BYTES + 64 * 1024
@@ -19,6 +21,18 @@ BODY_MAX = MAX_BYTES + 64 * 1024
 class ConversationRoute(BusinessRoute):
     def get_route_handler(self):
         handler = super().get_route_handler()
+        if "/decisions" in self.path:
+
+            async def private(request: Request):
+                try:
+                    response = await handler(request)
+                except HTTPException as error:
+                    error.headers = {**(error.headers or {}), "Cache-Control": "no-store"}
+                    raise
+                response.headers["Cache-Control"] = "no-store"
+                return response
+
+            return private
         if not self.path.endswith("/messages") or "POST" not in self.methods:
             return handler
 
@@ -143,3 +157,79 @@ def context(conversation_id: UUID, body: Context, service: Service, user: Actor,
 @router.post("/{conversation_id}/handoff")
 def handoff(conversation_id: UUID, body: Handoff, service: Service, user: Actor, key: Key):
     return service.handoff(str(conversation_id), user, **body.model_dump(), key=key)
+
+
+class ReviewDecision(Empty):
+    ref: DecisionRef
+    review: Review
+    expected_review_id: UUID | None = None
+    evidence_gaps: Annotated[
+        list[Literal["ITEM", "PARCEL", "WRONG_ITEM", "LABEL", "ISSUE_DESCRIPTION"]],
+        Field(max_length=5),
+    ] = Field(default_factory=list)
+
+
+class RespondDecision(Empty):
+    ref: DecisionRef
+    response: CustomerResponse
+
+
+@router.get("/{conversation_id}/decisions")
+def current_decision(conversation_id: UUID, service: Service, user: Actor):
+    return ConversationDecisions(service.business).current(user, str(conversation_id))
+
+
+@router.get("/{conversation_id}/decisions/history/{snapshot_id}")
+def decision_history(conversation_id: UUID, snapshot_id: UUID, service: Service, user: Actor):
+    return ConversationDecisions(service.business).history(
+        user, str(conversation_id), str(snapshot_id)
+    )
+
+
+@router.post("/{conversation_id}/decisions/run", status_code=202)
+def run_decision(
+    conversation_id: UUID, _body: Empty, request: Request, service: Service, user: Actor, key: Key
+):
+    from aftercare.intelligence.service import RunError
+
+    try:
+        run = ConversationDecisions(service.business).run(
+            user, str(conversation_id), key, request.app.state.agent
+        )
+    except RunError as error:
+        raise BusinessError(error.code, error.message, error.status) from None
+    return {"run_id": run["id"], "status": run["status"]}
+
+
+@router.post("/{conversation_id}/decisions/review")
+def review_decision(
+    conversation_id: UUID, body: ReviewDecision, service: Service, user: Actor, key: Key
+):
+    return ConversationDecisions(service.business).review(
+        user,
+        str(conversation_id),
+        body.ref,
+        body.review,
+        key=key,
+        expected_review_id=str(body.expected_review_id) if body.expected_review_id else None,
+        evidence_gaps=body.evidence_gaps,
+        chat=service,
+    )
+
+
+@router.get("/{conversation_id}/decisions/offer")
+def current_offer(conversation_id: UUID, service: Service, user: Actor):
+    return ConversationDecisions(service.business).offer(user, str(conversation_id))
+
+
+@router.post("/{conversation_id}/decisions/offer/respond")
+def respond_to_offer(
+    conversation_id: UUID, body: RespondDecision, service: Service, user: Actor, key: Key
+):
+    return ConversationDecisions(service.business).respond(
+        user,
+        str(conversation_id),
+        body.ref,
+        body.response,
+        key=key,
+    )

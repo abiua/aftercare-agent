@@ -50,6 +50,10 @@ FINGERPRINT_TABLES = (
 EVALUATION_SCHEMA = r"eval_[0-9a-f]{32}"
 CHAT_TABLES = frozenset({"chat_conversations", "chat_messages", "chat_attachments", "chat_case_links"})
 CHAT_ANALYSIS_TABLES = frozenset({"chat_analysis_turns", "chat_model_attempts", "chat_observations"})
+CHAT_DECISION_TABLES = frozenset({
+    "chat_decision_heads", "chat_decision_snapshots", "chat_support_decisions",
+    "chat_decision_offers", "chat_customer_decisions", "chat_decision_projections",
+})
 CHAT_KEY = r"conversations/[A-Za-z0-9_-]{1,36}/[A-Za-z0-9_-]{1,36}/[0-5]-"
 MATERIAL_KEY = r"cases/[A-Za-z0-9_-]{1,36}/(?:ITEM|PARCEL|WRONG_ITEM|LABEL)/"
 ISOLATED_TABLES = frozenset(
@@ -92,6 +96,7 @@ PUBLIC_TABLES = (
     | V2_ADDED_PUBLIC_FINGERPRINTS
     | CHAT_TABLES
     | CHAT_ANALYSIS_TABLES
+    | CHAT_DECISION_TABLES
     | {
         "eval_imports",
         EVALUATION_PROGRESS_TABLE,
@@ -182,6 +187,10 @@ class BackupManifest(PrivateRecord):
         present_analysis = analysis_keys & self.database.keys()
         if present_analysis and (present_analysis != analysis_keys or not present_chat):
             raise ValueError("Incomplete conversation analysis schema")
+        decision_keys = {f"public.{table}" for table in CHAT_DECISION_TABLES}
+        present_decisions = decision_keys & self.database.keys()
+        if present_decisions and (present_decisions != decision_keys or not present_analysis):
+            raise ValueError("Incomplete conversation decision schema")
         expected_public = {f"public.{table}" for table in REQUIRED_PUBLIC_TABLES}
         if not expected_public <= self.database.keys():
             raise ValueError("Missing database fingerprint")
@@ -354,6 +363,9 @@ def _managed_tables(connection) -> list[tuple[str, str]]:
     present_analysis = {table for schema, table in managed if schema == "public"} & CHAT_ANALYSIS_TABLES
     if present_analysis and (present_analysis != CHAT_ANALYSIS_TABLES or not present_chat):
         raise BackupError("CHAT_ANALYSIS_SCHEMA_INCOMPLETE")
+    present_decisions = {table for schema, table in managed if schema == "public"} & CHAT_DECISION_TABLES
+    if present_decisions and (present_decisions != CHAT_DECISION_TABLES or not present_analysis):
+        raise BackupError("CHAT_DECISION_SCHEMA_INCOMPLETE")
     if not REQUIRED_PUBLIC_TABLES <= {table for schema, table in managed if schema == "public"}:
         raise BackupError("BACKUP_REQUIRED_TABLES_MISSING")
     return managed

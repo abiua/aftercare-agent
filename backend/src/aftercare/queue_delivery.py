@@ -44,7 +44,7 @@ def publish(app, journal, job_id):
 
 def process_target(profile, kind, target_id, job_id=None):
     from aftercare.runtime import open_runtime
-    with open_runtime(profile) as (settings, engine, _, agent):
+    with open_runtime(profile) as (settings, engine, business, agent):
         journal = DeliveryJournal(engine)
         if job_id:
             with Session(engine) as db:
@@ -70,6 +70,9 @@ def process_target(profile, kind, target_id, job_id=None):
             if kind == 'agent':
                 agent.queue_admission = admitted
                 agent.process(target_id, expected_cycle=generation)
+                if getattr(settings, "chat_decisions_enabled", False):
+                    from aftercare.conversations.decision_delivery import project
+                    project(business, target_id)
             else:
                 from aftercare.evaluation.runner import EvaluationRunner
                 from aftercare.evaluation.service import EvaluationService

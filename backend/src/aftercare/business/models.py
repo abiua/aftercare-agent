@@ -75,7 +75,14 @@ class Policy(Base):
 
 class Case(Base):
     __tablename__ = "business_cases"
-    __table_args__ = (UniqueConstraint("order_id", "intent", "scope_hash"),)
+    __table_args__ = (
+        UniqueConstraint("order_id", "intent", "scope_hash"),
+        CheckConstraint(
+            "(decision_conversation_id IS NULL) = (decision_issue_id IS NULL) "
+            "AND (decision_conversation_id IS NULL) = (decision_legacy_through_version IS NULL)",
+            name="ck_business_cases_decision_binding",
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     ticket_id: Mapped[str] = mapped_column(String(36), unique=True)
@@ -90,6 +97,9 @@ class Case(Base):
     materials_version: Mapped[int] = mapped_column(default=0)
     facts_version: Mapped[int] = mapped_column(default=0)
     facts: Mapped[dict] = mapped_column(JSON, default=dict)
+    decision_conversation_id: Mapped[str | None] = mapped_column(String(36))
+    decision_issue_id: Mapped[str | None] = mapped_column(String(36))
+    decision_legacy_through_version: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
@@ -147,6 +157,7 @@ class Proposal(Base):
     amount_cents: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(24))
     proposer_id: Mapped[str] = mapped_column(String(128))
+    decision_binding: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 

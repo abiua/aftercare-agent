@@ -21,7 +21,7 @@ export type ChatAnalysis = ChatAnalysisKey & {
 };
 export type ChatMessage = {id: string; conversation_id: string; sequence: number; role: 'customer' | 'support' | 'assistant';
   text: string; created_at: string; attachments: ChatAttachment[]; cards: ChatCard[]};
-export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; analysis?: ChatAnalysis};
+export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; analysis?: ChatAnalysis; features?: {chat_decisions?: boolean}};
 export type ChatPage = ChatUpdate & {has_more: boolean; next_after: number};
 
 export const CHAT_PAGE_SIZE = 50;

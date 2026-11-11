@@ -11,6 +11,21 @@ const messages: Record<string, string> = {
   NETWORK_ERROR: '服务暂时无法连接，请稍后重试。',
   INVALID_REFUND_EXECUTION_ID: '请输入一个完整的退款执行编号。',
   REFUND_LOOKUP_INTENT_REQUIRED: '请在退款进度工单中查询指定退款。',
+  DECISION_INPUT_REQUIRED: '请先让客户确认订单和商品，并关联当前售后事项。',
+  DECISION_STALE: '本次售后信息已更新，请重新核对候选方案。',
+  DECISION_REVIEW_STALE: '客服复核记录已更新，请查看当前版本。',
+  DECISION_ALREADY_REVIEWED: '该候选已有复核记录，请查看当前版本。',
+  DECISION_UNRESOLVED: '方案还有未核对的事项。',
+  DECISION_OPTION_UNAVAILABLE: '此候选方案仍需核对，暂时无法采纳。',
+  DECISION_OFFER_STALE: '客服方案已更新或失效，请刷新查看。',
+  DECISION_OFFER_ALREADY_ANSWERED: '这份方案已有回复，请刷新查看。',
+  DECISION_CUSTOMER_CONSENT_REQUIRED: '请核对客户已接受的方案，再继续办理。',
+  DECISION_RESOLUTION_UNKNOWN: '待核对事项已更新，请重新查看候选方案。',
+  DECISION_LINES_OUT_OF_SCOPE: '方案包含当前售后范围之外的商品。',
+  DECISION_EVIDENCE_GAP_REQUIRED: '请勾选需要客户补充的内容。',
+  DECISION_EVIDENCE_OUT_OF_SCOPE: '方案包含当前售后事项无法使用的材料。',
+  DECISION_POLICY_OUT_OF_SCOPE: '方案依据需要重新核对。',
+  DECISION_BINDING_INVALID: '当前订单或售后事项需要重新确认。',
   INVALID_RESPONSE: '服务返回了无法读取的数据，请刷新后查看当前状态。',
 };
 
@@ -18,6 +33,7 @@ export function errorMessage(error: unknown) {
   if (error instanceof ApiError) {
     const known = knownEvaluationMessage(error.code) ?? intakeMessage(error.code);
     if (known) return known;
+    if (Object.hasOwn(messages, error.code)) return messages[error.code];
     if (error.status === 401) return '登录凭据失效，请重新登录。';
     if (error.status === 403) return '当前身份没有执行此操作的权限。';
     if (error.status === 404) return '记录不存在，或当前身份无权查看。';

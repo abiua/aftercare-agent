@@ -73,6 +73,21 @@ def make_queue(profile):
         finally:
             engine.dispose()
 
+    @app.task(name="aftercare.project_chat_decision", shared=False)
+    def project_chat_decision(run_id):
+        from aftercare.business.service import BusinessService
+        from aftercare.conversations.decision_delivery import project
+        from aftercare.db import guarded_engine
+
+        current = load_settings(profile)
+        if not getattr(current, "chat_decisions_enabled", False):
+            return
+        engine = guarded_engine(current)
+        try:
+            project(BusinessService(engine, current), run_id)
+        finally:
+            engine.dispose()
+
     @app.task(name="aftercare.recover", shared=False)
     def recover():
         from sqlalchemy import select
@@ -98,6 +113,10 @@ def make_queue(profile):
             for job_id in journal.due():
                 publish(app, journal, job_id)
             reconcile_failed(engine, settings)
+            if getattr(settings, "chat_decisions_enabled", False):
+                from aftercare.conversations.decision_delivery import pending
+                for run_id in pending(engine):
+                    app.send_task("aftercare.project_chat_decision", args=[run_id])
         finally:
             engine.dispose()
 

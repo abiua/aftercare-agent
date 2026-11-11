@@ -30,6 +30,7 @@ class Settings(BaseModel):
     embedding_enabled: bool = False
     container: bool = False
     chat_analysis_enabled: bool = False
+    chat_decisions_enabled: bool = False
     chat_vision_enabled: bool = False
     chat_vision_alias: Literal["economy", "analysis"] = "analysis"
     chat_analysis_max_calls: int = Field(default=2, strict=True, ge=1, le=6)

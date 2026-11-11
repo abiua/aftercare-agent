@@ -247,7 +247,7 @@ export const test = base.extend({
     const {promise: heldRefundLookup, resolve: releaseRefundLookup} = Promise.withResolvers();
     const state = {releaseRefundLookup, refundLookupCalls: [], releaseProgress, progressStreams: [], progressProbes: [], progressReads: 0, releaseScenario, calls: [], confirmed: [], uploads: [], executions: [], created: undefined, releaseExecution,
       reviewHistory: [], reviewCalls: [], reviewConflict: false, chatPosts: [], chatMessages: [], chatCreated: false,
-      chatContext: [], chatAbortFirst: false, chatDetails: []};
+      chatContext: [], chatAbortFirst: false, chatDetails: [], chatDecisionPosts: []};
     const conversation = {id: chatId, customer_id: 'C-FIXTURE', status: 'OPEN', revision: 1,
       created_at: createdAt, updated_at: createdAt, active_order_id: null, active_case_id: null};
     const replies = new Map();
@@ -288,12 +288,56 @@ export const test = base.extend({
           return json(route, conversation, 201);
         }
         if (path === chatPath && method === 'GET' && state.chatCreated) {
+          if (state.chatDecision) Object.assign(conversation, {active_order_id: 'A1001'}, state.chatDecision.conversation);
           const after = Number(url.searchParams.get('after') ?? 0);
           const limit = Number(url.searchParams.get('limit') ?? 50);
           state.chatDetails.push(after);
           const messages = state.chatMessages.filter((row) => row.sequence > after).slice(0, limit);
           const next_after = messages.at(-1)?.sequence ?? after;
-          return json(route, {conversation, messages, next_after, has_more: next_after < state.chatMessages.length, analysis: state.chatAnalysis});
+          return json(route, {conversation, messages, next_after, has_more: next_after < state.chatMessages.length, analysis: state.chatAnalysis,
+            features: state.chatDecision ? {chat_decisions: true} : undefined});
+        }
+        if (state.chatDecision && path.startsWith(`${chatPath}/decisions`)) {
+          const statePath = path.slice(`${chatPath}/decisions`.length);
+          const decision = state.chatDecision;
+          if (role === 'support' && method === 'GET' && !statePath)
+            return json(route, {issue_id: 'decision-issue', snapshot: decision.current, expected_review_id: decision.latest?.id ?? null, latest_review: decision.latest ?? null, customer_decision: decision.customerDecision ?? null});
+          if (role === 'support' && method === 'GET' && statePath === `/history/${decision.original.id}`)
+            return json(route, decision.original);
+          if (role === 'support' && method === 'POST' && statePath === '/review') {
+            state.chatDecisionPosts.push({role, body, key: headers['idempotency-key']});
+            if (decision.blockedReview) {
+              decision.latest = {id: 'review-blocked', action: body.review.action, reason: body.review.reason,
+                created_at: createdAt, program_check: {status: 'BLOCKED', code: 'DECISION_EVIDENCE_OUT_OF_SCOPE'}};
+              return json(route, {...decision.latest, offer: null});
+            }
+            if (body.review.action === 'REQUEST_EVIDENCE') {
+              decision.latest = {id: 'review-gap', action: body.review.action, reason: body.review.reason, created_at: createdAt};
+              decision.offer = null;
+              decision.customerDecision = null;
+              return json(route, {...decision.latest, program_check: null, offer: null});
+            }
+            const replacement = body.review.replacement;
+            decision.latest = {id: 'review-1', action: body.review.action, reason: body.review.reason, created_at: createdAt};
+            decision.current = {...decision.current, id: 'candidate-2', version: 2, sha256: 'b'.repeat(64),
+              parent_id: decision.original.id, origin: 'SUPPORT_MODIFICATION', candidate: {options: [replacement], unresolved: []}};
+            decision.offer = {id: 'offer-1', version: 1, sha256: 'c'.repeat(64), action: replacement.action,
+              lines: replacement.lines, policy_ids: replacement.policy_ids, expires_at: decision.current.expires_at, customer_decision: null};
+            return json(route, {id: decision.latest.id, action: decision.latest.action, offer: decision.offer});
+          }
+          if (role === 'customer' && method === 'GET' && statePath === '/offer') {
+            const value = {issue_id: decision.issueId ?? 'decision-issue', offer: decision.offer ?? null};
+            await decision.holdOffer;
+            return json(route, value);
+          }
+          if (role === 'customer' && method === 'POST' && statePath === '/offer/respond' && decision.offer) {
+            state.chatDecisionPosts.push({role, body, key: headers['idempotency-key']});
+            decision.offer.customer_decision = {id: 'reply-1', action: body.response.action};
+            decision.customerDecision = {...decision.offer.customer_decision, reason: body.response.reason ?? null,
+              offer: body.ref, created_at: createdAt};
+            return json(route, decision.offer.customer_decision);
+          }
+          return denied(route, 404, 'NOT_FOUND', '无权查看方案。');
         }
         if (path === `${chatPath}/messages` && method === 'POST' && state.chatCreated) {
           const raw = request.postDataBuffer().toString('utf8');
@@ -341,6 +385,10 @@ export const test = base.extend({
         return denied(route, 404, 'NOT_FOUND', '对话不存在。');
       }
       if (method === 'GET' && path === '/api/orders') return json(route, {items: orders});
+      if (method === 'GET' && state.chatDecision && path.startsWith('/api/orders/')) {
+        const order = orders.find(({id}) => path === `/api/orders/${id}`);
+        if (order) return json(route, order);
+      }
       if (method === 'GET' && path === '/api/cases') return json(route, {items: state.created ? [state.created, originalCase] : [originalCase]});
       if (method === 'GET' && path === '/api/cases/fixture-case-other') return denied(route, 404, 'NOT_FOUND', '工单不存在。');
       if (method === 'GET' && path === `/api/cases/${refundLookupCaseId}` && role === 'customer') {

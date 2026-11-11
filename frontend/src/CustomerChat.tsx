@@ -1,3 +1,4 @@
+import { ChatDecisions } from './ChatDecisions';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Checkbox, Input, Modal, Space, Tag } from 'antd';
 import { ApiError, errorMessage, segment, type Client } from './api';
@@ -87,6 +88,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
   const controls = useActions(api);
   const merge = useCallback((update: ChatUpdate, request: number) => setState((old) => ({
     conversation: !old || update.conversation.revision >= old.conversation.revision ? update.conversation : old.conversation,
+    features: !old || update.conversation.revision >= old.conversation.revision ? update.features : old.features,
     messages: mergeChatMessages(old?.messages ?? [], update.messages),
     analysisRead: mergeChatAnalysis(old?.analysisRead, {
       revision: update.conversation.revision, request, value: update.analysis,
@@ -214,6 +216,9 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
       </article>)}
       {conversation && !state?.messages.length && <p className="muted">发送一条消息开始对话。</p>}
     </div>
+    {conversation && !readError && state?.features?.chat_decisions === true &&
+      <ChatDecisions key={JSON.stringify([conversation.revision, conversation.active_order_id, conversation.active_case_id, analysis?.issue_id])} api={api} base={base} user={user} orderId={conversation.active_order_id}
+        issueId={analysis?.issue_id} revision={conversation.revision} refreshChat={load} />}
     {conversation && <div className="chat-compose">
       <Input.TextArea aria-label={user.role === 'support' ? '公开回复' : '描述售后问题'} autoSize={{minRows: 2, maxRows: 5}}
         value={text} maxLength={2000} showCount disabled={blocked || sending} onChange={(event) => save({...draft, text: event.target.value, error: ''})}
