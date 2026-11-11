@@ -5,8 +5,10 @@ import json
 import os
 import re
 from contextlib import contextmanager
+from hashlib import sha256
 from ipaddress import ip_network
 from pathlib import Path
+from tempfile import mkstemp
 from unittest.mock import patch
 
 import offline_demo
@@ -41,6 +43,74 @@ COMMIT = "b49f914dc6c0c2359f56ae8aaa21e1235f92e149"
 OLD = {"new_backend": OLD_BACKEND, "new_frontend": OLD_FRONTEND}
 ROLES = ("frontend", "beat", "worker", "api")
 RESTORE_SUBNET = "10.253.251.0/28"
+REASSESSMENT_IMAGE_FILE = ROOT / ".runtime/chat-material-reassessment-images.json"
+REASSESSMENT_COMMIT = "7da08d770d72153499db7ecd5fd3231293bea263"
+REASSESSMENT_BACKEND = "sha256:7319ccca9d062c57d8b2f91db388473db2cedc594f3661605bc81b6d17c43ea8"
+BLIND_V2_RECEIPT_SHA = "938e04f8cdd913986aa21cda8a20f419759aff6b471f0a1e8f51b151e1416edc"
+BLIND_V2_RECEIPT = ROOT / ".runtime/owned-5201-blind-v2-upgrade-retry-20261111.json"
+STAGES = ("blind-v2", "material-reassessment")
+
+
+def _stage_pins(stage):
+    if stage == "blind-v2":
+        return OLD, COMMIT, IMAGE_FILE, "OWNED_5201_APP_ONLY_BLIND_V2", {}
+    require(stage == "material-reassessment", "OWNED_5201_STAGE_INVALID")
+    previous = br.private_json(BLIND_V2_RECEIPT)
+    prior = previous["plan"]
+    require(
+        _hash(BLIND_V2_RECEIPT) == BLIND_V2_RECEIPT_SHA
+        and previous["status"] == "PASSED"
+        and previous["stage"] == "COMPLETE"
+        and previous["plan_sha256"] == digest(prior)
+        and prior["boundary"] == "OWNED_5201_APP_ONLY_BLIND_V2"
+        and prior["target_commit"] == COMMIT
+        and prior["owned_stack"] == STACK_ID
+        and prior["owned_url"] == URL
+        and prior["system_identifier"] == SYSTEM_ID
+        and prior["alembic_revision"] == NEW_REV,
+        "OWNED_5201_PREDECESSOR_RECEIPT_INVALID",
+    )
+    return (
+        prior["new_images"],
+        REASSESSMENT_COMMIT,
+        REASSESSMENT_IMAGE_FILE,
+        "OWNED_5201_APP_ONLY_MATERIAL_REASSESSMENT",
+        {"prior_upgrade_receipt_sha256": _hash(BLIND_V2_RECEIPT), "upgrade_stage": stage},
+    )
+
+
+def _analysis_settings(path):
+    before = br.private_json(path)
+    settings = before["test"]
+    require(
+        set(before) == {"test"}
+        and settings["chat_analysis_enabled"] is False
+        and settings["chat_vision_enabled"] is False
+        and settings["chat_decisions_enabled"] is True
+        and settings["chat_investigation_enabled"] is True
+        and not any(settings.get(name) for name in ("model_enabled", "embedding_enabled")),
+        "OWNED_5201_REASSESSMENT_SETTINGS_MISMATCH",
+    )
+    raw = path.read_bytes()
+    updated, edits = re.subn(rb'("chat_analysis_enabled"\s*:\s*)false', rb"\g<1>true", raw)
+    expected = {"test": {**settings, "chat_analysis_enabled": True}}
+    require(
+        edits == 1 and json.loads(updated) == expected,
+        "OWNED_5201_REASSESSMENT_SETTINGS_EDIT_AMBIGUOUS",
+    )
+    return raw, updated
+
+
+def _replace_private(path, content):
+    fd, tmp = mkstemp(prefix=".owned-upgrade-settings-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(tmp, path)
+    finally:
+        Path(tmp).unlink(missing_ok=True)
 
 
 def _local():
@@ -77,20 +147,32 @@ def _restore_subnet():
     return str(candidate)
 
 
-def _images():
-    images = br.private_json(IMAGE_FILE)
+def _images(stage, old, commit, receipt):
+    images = br.private_json(receipt)
     require(
-        images["commit"] == COMMIT and images["runtime_updated"] is False,
+        images["commit"] == commit and images["runtime_updated"] is False,
         "OWNED_5201_TARGET_IMAGE_RECEIPT_INVALID",
     )
-    new = {"new_backend": images["backend"], "new_frontend": images["frontend"]}
-    for image in {*OLD.values(), *new.values()}:
+    frontend = (
+        images.get("frontend", old["new_frontend"])
+        if stage == "material-reassessment"
+        else images["frontend"]
+    )
+    new = {"new_backend": images["backend"], "new_frontend": frontend}
+    if stage == "material-reassessment":
+        require(
+            frontend == old["new_frontend"]
+            and new["new_backend"] == REASSESSMENT_BACKEND
+            and new["new_backend"] != old["new_backend"],
+            "OWNED_5201_REASSESSMENT_BACKEND_ONLY_REQUIRED",
+        )
+    for image in {*old.values(), *new.values()}:
         require(
             re.fullmatch(r"sha256:[a-f0-9]{64}", image)
             and _docker("image", "inspect", "--format", "{{.Id}}", image) == image,
             "OWNED_5201_IMAGE_PIN_MISMATCH",
         )
-    require(new != OLD, "OWNED_5201_NEW_IMAGES_REQUIRED")
+    require(new != old, "OWNED_5201_NEW_IMAGES_REQUIRED")
     return new
 
 
@@ -152,33 +234,49 @@ def _scope(state):
     return offline_demo.restore(state)
 
 
-def _plan():
+def _plan(stage="blind-v2"):
     _local()
+    old, commit, receipt, boundary, predecessor = _stage_pins(stage)
     state = br.private_json(STATE)
     stack = _scope(state)
     require(
         state["status"] == "READY" and offline_demo.status(state)["healthy_now"],
         "OWNED_5201_SOURCE_NOT_READY",
     )
-    network, system_id = _topology(stack, OLD_BACKEND, OLD_FRONTEND)
+    network, system_id = _topology(stack, old["new_backend"], old["new_frontend"])
     require(
         system_id == SYSTEM_ID
-        and (state["backend_image"], state["frontend_image"]) == (OLD_BACKEND, OLD_FRONTEND),
+        and (state["backend_image"], state["frontend_image"])
+        == (old["new_backend"], old["new_frontend"]),
         "OWNED_5201_OLD_IMAGES_MISMATCH",
     )
     _identity(stack)
+    infra = _infrastructure(stack)
+    if stage == "material-reassessment":
+        prior = br.private_json(BLIND_V2_RECEIPT)["plan"]
+        require(
+            (network, infra) == (prior["network"], prior["infra"]),
+            "OWNED_5201_PREDECESSOR_INFRA_CHANGED",
+        )
+    settings_path = stack.runtime / "local.json"
+    after = {}
+    if stage == "material-reassessment":
+        _, updated = _analysis_settings(settings_path)
+        after["runtime_settings_after_sha256"] = sha256(updated).hexdigest()
     return (
         {
-            "boundary": "OWNED_5201_APP_ONLY_BLIND_V2",
+            "boundary": boundary,
+            **predecessor,
+            **after,
             "owned_stack": STACK_ID,
             "owned_url": URL,
             "system_identifier": SYSTEM_ID,
             "network": network,
-            "infra": _infrastructure(stack),
-            "old_images": OLD,
-            "new_images": _images(),
-            "target_commit": COMMIT,
-            "image_receipt_sha256": _hash(IMAGE_FILE),
+            "infra": infra,
+            "old_images": old,
+            "new_images": _images(stage, old, commit, receipt),
+            "target_commit": commit,
+            "image_receipt_sha256": _hash(receipt),
             "old_state_sha256": _hash(STATE),
             "alembic_revision": NEW_REV,
             "runtime_settings_sha256": _hash(stack.runtime / "local.json"),
@@ -262,14 +360,29 @@ def _start(stack, state, plan, images):
     )
     _identity(stack)
     require(
-        _hash(stack.runtime / "local.json") == plan["runtime_settings_sha256"],
+        _hash(stack.runtime / "local.json")
+        == (
+            plan.get("runtime_settings_after_sha256", plan["runtime_settings_sha256"])
+            if images == plan["new_images"]
+            else plan["runtime_settings_sha256"]
+        ),
         "OWNED_5201_RUNTIME_SETTINGS_CHANGED",
     )
 
 
-def _rollback(stack, state, plan):
+def _rollback(stack, state, plan, settings_backup=None):
     _identity(stack)
     require(_infrastructure(stack) == plan["infra"], "OWNED_5201_ROLLBACK_INFRA_CHANGED")
+    if "runtime_settings_after_sha256" in plan:
+        current = stack.runtime / "local.json"
+        require(
+            settings_backup is not None
+            and _hash(settings_backup) == plan["runtime_settings_sha256"]
+            and _hash(current)
+            in {plan["runtime_settings_sha256"], plan["runtime_settings_after_sha256"]},
+            "OWNED_5201_ROLLBACK_SETTINGS_CHANGED",
+        )
+        original_settings = settings_backup.read_bytes()
     for role in ROLES:
         name = f"{stack.prefix}-{role}"
         owner = stack.owned("container", name)
@@ -295,6 +408,8 @@ def _rollback(stack, state, plan):
             stack.resources.remove(("container", name))
         state["resources"] = stack.resources
         offline_demo.save(state)
+    if "runtime_settings_after_sha256" in plan:
+        _replace_private(current, original_settings)
     _start(stack, state, plan, plan["old_images"])
 
 
@@ -432,11 +547,28 @@ def _upgrade(plan, state, stack, report, path):
         require(
             manifest.archive_sha256 == receipt["archive"]["sha256"]
             and _hash(STATE) == plan["old_state_sha256"]
-            and _hash(IMAGE_FILE) == plan["image_receipt_sha256"],
+            and _hash(_stage_pins(plan.get("upgrade_stage", "blind-v2"))[2])
+            == plan["image_receipt_sha256"]
+            and (
+                not plan.get("prior_upgrade_receipt_sha256")
+                or _hash(BLIND_V2_RECEIPT) == plan["prior_upgrade_receipt_sha256"]
+            ),
             "OWNED_5201_BACKUP_OR_STATE_DRIFT",
         )
         private_write(directory / "pre-upgrade-state.json", STATE.read_text())
         private_write(directory / "pre-upgrade-plan.json", json.dumps(plan))
+        settings_backup = None
+        if "runtime_settings_after_sha256" in plan:
+            current = stack.runtime / "local.json"
+            raw, updated = _analysis_settings(current)
+            require(
+                sha256(raw).hexdigest() == plan["runtime_settings_sha256"]
+                and sha256(updated).hexdigest() == plan["runtime_settings_after_sha256"],
+                "OWNED_5201_REASSESSMENT_SETTINGS_CHANGED",
+            )
+            settings_backup = directory / "pre-upgrade-local.json"
+            private_write(settings_backup, raw.decode("utf-8"))
+            report["private_settings_backup"] = str(settings_backup)
         report.update(stage="REPLACING_APPS", verified_archive=str(archive))
         _save(path, report)
         _identity(stack)
@@ -446,10 +578,16 @@ def _upgrade(plan, state, stack, report, path):
         offline_demo.save(state)
         try:
             retire(state)
+            if settings_backup is not None:
+                require(
+                    _hash(current) == plan["runtime_settings_sha256"],
+                    "OWNED_5201_REASSESSMENT_SETTINGS_CHANGED",
+                )
+                _replace_private(current, updated)
             _start(stack, state, plan, plan["new_images"])
         except Exception:  # Restore the original app image pair without touching data.
             try:
-                _rollback(stack, state, plan)
+                _rollback(stack, state, plan, settings_backup)
                 report["rollback"] = "RESTORED_OLD_APPS"
             except Exception as error:  # noqa: BLE001 - preserve bounded recovery evidence
                 report["rollback"] = "RECOVERY_REQUIRED"
@@ -457,24 +595,45 @@ def _upgrade(plan, state, stack, report, path):
             raise
 
 
-def _rollback_plan(path):
+def _rollback_plan(path, stage="blind-v2"):
     prior = br.private_json(path)
     saved = prior["plan"]
+    old, commit, receipt, boundary, predecessor = _stage_pins(stage)
     require(
         prior["plan_sha256"] == digest(saved)
         and prior["stage"] in {"BACKUP_RESTORE", "REPLACING_APPS", "COMPLETE"}
         and saved["owned_stack"] == STACK_ID
         and saved["system_identifier"] == SYSTEM_ID
-        and saved["old_images"] == OLD
-        and saved["new_images"] == _images(),
+        and saved["boundary"] == boundary
+        and saved["target_commit"] == commit
+        and all(saved.get(key) == value for key, value in predecessor.items())
+        and saved["old_images"] == old
+        and saved["new_images"] == _images(stage, old, commit, receipt),
         "OWNED_5201_ROLLBACK_RECEIPT_INVALID",
     )
     state = br.private_json(STATE)
     stack = _scope(state)
     _identity(stack)
     require(_infrastructure(stack) == saved["infra"], "OWNED_5201_ROLLBACK_INFRA_CHANGED")
+    settings_rollback = {}
+    if "runtime_settings_after_sha256" in saved and prior["stage"] != "BACKUP_RESTORE":
+        backup_path = Path(prior["private_settings_backup"])
+        require(
+            backup_path
+            == Path(prior["backup_restore"]["private_run_directory"]) / "pre-upgrade-local.json"
+            and backup_path.parent.parent == STATE.parent
+            and backup_path.parent.name.startswith("chat-backup-restore-")
+            and _hash(backup_path) == saved["runtime_settings_sha256"]
+            and _hash(stack.runtime / "local.json")
+            in {saved["runtime_settings_sha256"], saved["runtime_settings_after_sha256"]},
+            "OWNED_5201_ROLLBACK_SETTINGS_CHANGED",
+        )
+        br.private_json(backup_path)
+        settings_rollback["rollback_settings_backup"] = str(backup_path)
+
     plan = {
         **saved,
+        **settings_rollback,
         "rollback_report": str(path.resolve()),
         "rollback_report_sha256": _hash(path),
         "rollback_state_sha256": _hash(STATE),
@@ -485,6 +644,7 @@ def _rollback_plan(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--stage", choices=STAGES, default="blind-v2")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--expected-plan-sha256")
     parser.add_argument("--report", type=Path)
@@ -497,7 +657,11 @@ def main():
         offline_demo.lifecycle_lock(STATE, shared=not args.execute),
         patch.object(offline_demo, "STATE", STATE),
     ):
-        plan, state, stack = _rollback_plan(args.rollback_from) if args.rollback_from else _plan()
+        plan, state, stack = (
+            _rollback_plan(args.rollback_from, args.stage)
+            if args.rollback_from
+            else _plan(args.stage)
+        )
         checksum = digest(plan)
         if not args.execute:
             print(
@@ -525,7 +689,12 @@ def main():
                 if plan["rollback_stage"] == "BACKUP_RESTORE":
                     _unpause(stack, [owned_container(stack, role) for role in ROLES])
                     require(
-                        _topology(stack, OLD_BACKEND, OLD_FRONTEND) == (plan["network"], SYSTEM_ID)
+                        _topology(
+                            stack,
+                            plan["old_images"]["new_backend"],
+                            plan["old_images"]["new_frontend"],
+                        )
+                        == (plan["network"], SYSTEM_ID)
                         and offline_demo.status(state)["healthy_now"],
                         "OWNED_5201_ROLLBACK_OLD_APPS_UNHEALTHY",
                     )
@@ -533,7 +702,10 @@ def main():
                     state["status"] = "UPGRADING_APPS"
                     state["resources"] = stack.resources
                     offline_demo.save(state)
-                    _rollback(stack, state, plan)
+                    settings_backup = plan.get("rollback_settings_backup")
+                    _rollback(
+                        stack, state, plan, Path(settings_backup) if settings_backup else None
+                    )
             else:
                 _upgrade(plan, state, stack, report, args.report)
             report.update(status="PASSED", stage="COMPLETE")

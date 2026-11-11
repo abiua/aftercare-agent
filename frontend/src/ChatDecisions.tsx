@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Card, Checkbox, Input, Modal, Select, Space, Tag } from 'antd';
 import { ApiError, errorMessage, segment, type Client } from './api';
 import type { Order, User } from './contracts';
-import { canAcceptOption, customerActions, decisionActions, decisionRef, editableMeasure, evidenceGaps, isExecutionOption, orderLineName, reviewActions, type CustomerAction, type CustomerOffer, type CustomerOfferView, type DecisionLine, type DecisionOption, type DecisionSnapshot, type EvidenceGap, type ProgramCheck, type ReviewAction, type SupportDecisionView } from './chatDecisionData';
+import { canAcceptOption, customerActions, decisionActions, decisionRef, editableMeasure, evidenceGaps, isExecutionOption, orderLineName, reviewActions, type CustomerAction, type CustomerOffer, type CustomerOfferView, type DecisionHistoryPage, type DecisionLine, type DecisionOption, type DecisionSnapshot, type EvidenceGap, type ProgramCheck, type ReviewAction, type SupportDecisionView } from './chatDecisionData';
 import { investigationReason } from './investigationMessages';
 import { useActions, useResource } from './hooks';
 import { Evidence, Feedback, Json, money, time } from './ui';
@@ -87,33 +87,71 @@ function SupportDecisionPanel({api, base, issueId, revision, refreshChat}: Props
   const path = `${base}/decisions`;
   const resource = useDecisionRead<SupportDecisionView>(api, path, revision);
   const actions = useActions(api);
-  const [historyId, setHistoryId] = useState<string>();
+  const [historySelection, setHistorySelection] = useState<{scope: string; id: string}>();
+  const [historyBrowse, setHistoryBrowse] = useState<{scope: string; cursors: number[]}>();
   const [savedReview, setSavedReview] = useState<{id: string; program_check: ProgramCheck | null}>();
   const [editor, setEditor] = useState<{snapshot: DecisionSnapshot; reviewId: string | null; action: ReviewAction}>();
   const view = resource.value;
   const usable = !resource.error && (!issueId || view?.issue_id === issueId);
   const current = usable ? view?.snapshot : undefined;
+  const currentIssue = usable ? view?.issue_id : undefined;
+  const scope = JSON.stringify([base, currentIssue]);
+  const historyId = historySelection?.scope === scope ? historySelection.id : undefined;
+  const browsing = historyBrowse?.scope === scope;
+  const cursors = browsing ? historyBrowse.cursors : [];
+  const cursor = cursors.at(-1);
+  const historyIndex = useResource<DecisionHistoryPage>(api, currentIssue && browsing ?
+    `${path}/history?limit=20${cursor ? `&before_version=${cursor}` : ''}` : null);
+  const index = !historyIndex.error && historyIndex.value?.issue_id === currentIssue ? historyIndex.value : undefined;
+  const nextCursor = index?.next_before_version;
+  const showHistory = (id: string) => {setEditor(undefined); setHistorySelection(id === current?.id ? undefined : {scope, id});};
   const reviewCheck = usable ? view?.latest_review?.program_check ?? (
     savedReview?.id === view?.expected_review_id ? savedReview?.program_check : undefined
   ) : undefined;
-  const history = useResource<DecisionSnapshot>(api, current && historyId ? `${path}/history/${segment(historyId)}` : null);
-  const order = useResource<Order>(api, current ? `/orders/${segment(current.input.order_id)}` : null);
-  function refresh() {resource.refresh(); refreshChat();}
-  const draft = current && (historyId && historyId !== current.id ? history.value : current);
+  const history = useResource<DecisionSnapshot>(api, currentIssue && historyId ? `${path}/history/${segment(historyId)}` : null);
+  const historical = !history.error && history.value?.id === historyId &&
+    history.value?.input.issue_id === currentIssue ? history.value : undefined;
+  const draft = historyId ? historical : current;
+  const order = useResource<Order>(api, draft ? `/orders/${segment(draft.input.order_id)}` : null);
+  function refresh() {resource.refresh(); historyIndex.refresh(); refreshChat();}
   const stale = !!editor && (current?.id !== editor.snapshot.id || current.sha256 !== editor.snapshot.sha256 || view?.expected_review_id !== editor.reviewId);
-  return <Card size="small" className="chat-decision" title="售后方案复核" extra={<Button disabled={actions.busy || !usable || !view?.issue_id} onClick={() =>
+  return <Card size="small" className="chat-decision" title="售后方案复核" extra={!historyId && <Button disabled={actions.busy || !usable || !view?.issue_id} onClick={() =>
     void actions.submit(`${path}/run`, {}, {success: '已提交调查。', refresh})}>启动方案调查</Button>}>
-    <Feedback error={resource.error || actions.error || history.error} notice={actions.notice} />
-    {reviewCheck?.status === 'BLOCKED' && <Alert type="warning" title="复核已记录，暂未向客户发送方案。"
+    <Feedback error={resource.error || actions.error || history.error || historyIndex.error} notice={actions.notice} />
+    {currentIssue && <Button onClick={() => {
+      setHistoryBrowse(browsing ? undefined : {scope, cursors: []});
+    }}>{browsing ? '收起候选历史' : '查看候选历史'}</Button>}
+    {browsing && <section aria-label="候选历史">
+      {historyIndex.loading && !index && <p>正在读取候选历史。</p>}
+      {index?.items.length === 0 && <p>本事项还没有候选记录。</p>}
+      {!!index?.items.length && <ul>{index.items.map((item) => <li key={item.id}>
+        <Button type="link" onClick={() => showHistory(item.id)}>
+          第 {item.version} 版 · {item.origin === 'AGENT' ? 'Agent 原始候选' : '客服修改方案'}
+        </Button>
+        {item.id === current?.id && <Tag>当前版本</Tag>}
+        <span>{time(item.created_at)}</span>
+      </li>)}</ul>}
+      <Space wrap>
+        {cursors.length > 0 && <Button disabled={historyIndex.loading} onClick={() =>
+          setHistoryBrowse({scope, cursors: cursors.slice(0, -1)})}>更新的版本</Button>}
+        {nextCursor != null && <Button disabled={historyIndex.loading} onClick={() =>
+          setHistoryBrowse({scope, cursors: [...cursors, nextCursor]})}>更早的版本</Button>}
+      </Space>
+    </section>}
+    {historyId && <p>历史记录仅供查看。</p>}
+
+    {!historyId && reviewCheck?.status === 'BLOCKED' && <Alert type="warning" title="复核已记录，暂未向客户发送方案。"
       description={reviewCheck.code ? errorMessage(new ApiError(422, reviewCheck.code, '本次程序核对未通过，请核对订单、材料和方案。')) :
         '本次程序核对未通过，请核对订单、材料和方案。'} />}
-    {reviewCheck?.status === 'PASSED' && <Tag>客服复核时程序核对通过</Tag>}
-    {reviewCheck?.status === 'NON_EXECUTING' && <Tag>客服复核记录为后续处理建议</Tag>}
-    {!draft && <p className="muted">{resource.loading ? '正在读取方案。' : '当前没有待复核的候选方案。'}</p>}
-    {draft && <SnapshotCard snapshot={draft} order={order.value} showParent={setHistoryId} />}
-    {historyId && <Button onClick={() => setHistoryId(undefined)}>返回当前方案</Button>}
-    {usable && view?.latest_review && <p>最近客服处理 · {reviewActions[view.latest_review.action]} · {view.latest_review.reason} · {time(view.latest_review.created_at)}</p>}
-    {usable && view?.customer_decision && <section>
+    {!historyId && reviewCheck?.status === 'PASSED' && <Tag>客服复核时程序核对通过</Tag>}
+    {!historyId && reviewCheck?.status === 'NON_EXECUTING' && <Tag>客服复核记录为后续处理建议</Tag>}
+    {!draft && <p className="muted">{historyId ?
+      (history.loading ? '正在读取历史版本。' : '当前无法查看该历史版本。') :
+      (resource.loading ? '正在读取方案。' : '当前没有待复核的候选方案。')}</p>}
+    {draft && <SnapshotCard snapshot={draft} order={order.value} showParent={showHistory} />}
+    {historyId && <Button onClick={() => setHistorySelection(undefined)}>返回当前方案</Button>}
+    {!historyId && usable && view?.latest_review && <p>最近客服处理 · {reviewActions[view.latest_review.action]} · {view.latest_review.reason} · {time(view.latest_review.created_at)}</p>}
+    {!historyId && usable && view?.customer_decision && <section>
       <h3>客户对关联方案的回复</h3>
       <p>方案第 {view.customer_decision.offer.version} 版 · {customerActions[view.customer_decision.action]} · {time(view.customer_decision.created_at)}</p>
       {view.customer_decision.reason && <p>{view.customer_decision.reason}</p>}
@@ -124,7 +162,7 @@ function SupportDecisionPanel({api, base, issueId, revision, refreshChat}: Props
         (action === 'MODIFY' && !current.candidate.options.length) || (action === 'ACCEPT' && !current.candidate.options.some((option) => canAcceptOption(current, option)))}
         onClick={() => setEditor({snapshot: current, reviewId: view?.expected_review_id ?? null, action})}>{reviewActions[action]}</Button>)}
     </Space>}
-    {editor && <ReviewEditor api={api} path={path} order={order.value} {...editor} stale={stale}
+    {!historyId && editor && <ReviewEditor api={api} path={path} order={order.value} {...editor} stale={stale}
       close={() => setEditor(undefined)} refresh={refresh} onSaved={setSavedReview} />}
   </Card>;
 }
@@ -133,7 +171,7 @@ function SnapshotCard({snapshot, order, showParent}: {snapshot: DecisionSnapshot
   return <section>
     <h3>{snapshot.origin === 'AGENT' ? 'Agent 原始候选' : '客服修改方案'} · 第 {snapshot.version} 版</h3>
     <p>订单 {snapshot.input.order_id} · 截至第 {snapshot.input.input_through_seq} 条消息</p>
-    {snapshot.parent_id && <Button onClick={() => showParent(snapshot.parent_id!)}>查看上一版候选</Button>}
+    {snapshot.parent_id && <Button onClick={() => showParent(snapshot.parent_id!)}>查看修改前版本</Button>}
     {snapshot.candidate.unresolved.length > 0 && <Alert type="warning" title="仍需核对" description={
       <ul>{snapshot.candidate.unresolved.map((item) => <li key={item}>{investigationReason(item) ?? item}</li>)}</ul>
     } />}

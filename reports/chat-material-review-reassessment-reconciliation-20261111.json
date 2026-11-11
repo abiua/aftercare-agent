@@ -1,0 +1,54 @@
+{
+  "status": "PARTIAL",
+  "boundary": "READ_ONLY_RECONCILIATION_CONTROL_NO_REAL_IMAGE_UNDERSTANDING",
+  "original_report_sha256": "63cc6b5046773fcde27389bdb9efe44ee600fa7945c520a263d749c52381e492",
+  "original_failure": "P5_MATERIAL_REASSESS_NATIVE_CHAIN",
+  "assertion_discrepancy": "AUTOMATIC_SNAPSHOT_PARENT_NULL_EXPECTED_PREVIOUS_IN_DURABLE_REQUEST_AND_AGENT_BINDING",
+  "conversation_id": "0b1cce8e-2954-4477-9118-be01fb0b55a1",
+  "case_id": "fe8c0602-1a46-4c2d-a666-127088f5d084",
+  "material_review_id": "4bf768bf-bca9-414c-942c-e92f55867a79",
+  "turn_count": 3,
+  "request_count": 3,
+  "snapshot_count": 3,
+  "snapshot_refs": [
+    {
+      "id": "e275203d-59ff-4ca8-b140-e402798ec24d",
+      "version": 1,
+      "sha256": "223323365b8e4d03a4556fbbf230641d1edab3225a4aba497a86c752e5fe76d6"
+    },
+    {
+      "id": "728d98bc-7b0f-4f31-bacd-60d1219b033e",
+      "version": 2,
+      "sha256": "ee46476ae08a2ebb390a34cb93b28d18d019acee5f840b0c58f3d185a7ced5a2"
+    },
+    {
+      "id": "8d324f2b-3192-4481-9329-1bfed2f56d4f",
+      "version": 3,
+      "sha256": "e82fb42403c9444ede58d0c3fb7b7bc102b86225d551cf633e63e94a6b764c3d"
+    }
+  ],
+  "new_run_reason": "INVESTIGATION_MODEL_UNAVAILABLE",
+  "new_candidate_actions": [
+    "HUMAN_HANDOFF"
+  ],
+  "new_request_previous_matches_locked_head": true,
+  "persisted_binding_matches_request_previous": true,
+  "customer_progress": "PENDING_SUPPORT",
+  "customer_message_count": 2,
+  "old_history_readback_verified": true,
+  "original_and_material_bytes_verified": 2,
+  "scoped_counts": {
+    "agent_attempts": 0,
+    "chat_attempts": 0,
+    "proposals": 0,
+    "approvals": 0,
+    "executions": 0,
+    "customer_decisions": 0
+  },
+  "repeat_review_http": "NOT_RUN",
+  "new_scope_order_version_verified": true,
+  "new_scope_selected_line_verified": true,
+  "new_scope_review_bound": true,
+  "new_scope_eligibility": "ELIGIBLE",
+  "new_scope_sha256": "aa2644ffa1fc7b54f3b3ac35487f07bb9b74cdde59cc3c6513ae657170d464a6"
+}

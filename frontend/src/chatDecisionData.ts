@@ -10,10 +10,15 @@ export type DecisionOption = ExecutionOption | NonExecutionOption;
 export type ProgramCheck = {status: 'PASSED' | 'BLOCKED' | 'NON_EXECUTING'; code?: string; policy_ids?: string[]};
 export type DecisionSnapshot = DecisionRef & {
   origin: 'AGENT' | 'SUPPORT_MODIFICATION'; parent_id: string | null; original_run_id: string;
-  input: {case_id: string; order_id: string; line_ids: string[]; input_through_seq: number;
+  input: {issue_id: string; case_id: string; order_id: string; line_ids: string[]; input_through_seq: number;
     evidence_ids: string[]; input_refs: {kind: string; id: string; sha256: string}[]; business_versions: Record<string, string | number>};
   candidate: {options: DecisionOption[]; unresolved: string[]};
   checks: Record<string, ProgramCheck>; expires_at: string;
+};
+export type DecisionHistoryPage = {
+  issue_id: string | null;
+  items: {id: string; version: number; origin: DecisionSnapshot['origin']; created_at: string}[];
+  next_before_version: number | null;
 };
 export type ReviewAction = 'ACCEPT' | 'MODIFY' | 'REJECT' | 'REQUEST_EVIDENCE' | 'TAKE_OVER';
 export const evidenceGaps = {

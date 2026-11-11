@@ -313,10 +313,26 @@ export const test = base.extend({
         if (state.chatDecision && path.startsWith(`${chatPath}/decisions`)) {
           const statePath = path.slice(`${chatPath}/decisions`.length);
           const decision = state.chatDecision;
+          const issue = decision.issueId ?? 'decision-issue';
+          const inIssue = (snapshot) => snapshot && ({...snapshot, input: {...snapshot.input, issue_id: issue}});
           if (role === 'support' && method === 'GET' && !statePath)
-            return json(route, {issue_id: 'decision-issue', snapshot: decision.current, expected_review_id: decision.latest?.id ?? null, latest_review: decision.latest ?? null, customer_decision: decision.customerDecision ?? null});
-          if (role === 'support' && method === 'GET' && statePath === `/history/${decision.original.id}`)
-            return json(route, decision.original);
+            return json(route, {issue_id: issue, snapshot: inIssue(decision.current), expected_review_id: decision.latest?.id ?? null, latest_review: decision.latest ?? null, customer_decision: decision.customerDecision ?? null});
+          if (role === 'support' && method === 'GET' && statePath.startsWith('/history')) {
+            const snapshots = decision.history ?? [...new Map([decision.original, decision.current].filter(Boolean)
+              .map((snapshot) => [snapshot.id, snapshot])).values()];
+            if (statePath === '/history') {
+              const before = Number(url.searchParams.get('before_version') ?? Infinity);
+              const limit = decision.historyPageSize ?? Number(url.searchParams.get('limit') ?? 20);
+              const matching = snapshots.filter(({version}) => version < before).sort((a, b) => b.version - a.version);
+              const items = matching.slice(0, limit).map(({id, version, origin}) => ({id, version, origin, created_at: createdAt}));
+              return json(route, {issue_id: issue, items, next_before_version: matching.length > limit ? items.at(-1).version : null});
+            }
+            const snapshot = inIssue(snapshots.find(({id}) => statePath === `/history/${id}`));
+            if (snapshot) {
+              await decision.holdHistory?.[snapshot.id];
+              return json(route, snapshot);
+            }
+          }
           if (role === 'support' && method === 'POST' && statePath === '/review') {
             state.chatDecisionPosts.push({role, body, key: headers['idempotency-key']});
             if (decision.blockedReview) {

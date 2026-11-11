@@ -338,14 +338,15 @@ def process(chat, turn_id, settings, model):
     binding = None
     try:
         binding = service.input_snapshot(lease)
-        if not binding["attachments"]:
+        if not binding["attachments"] or not settings.chat_vision_enabled:
             with Session(chat.engine) as db:
                 turn = db.get_one(ChatAnalysisTurn, turn_id)
                 material_review_changed = turn.reason == MATERIAL_REVIEW_CHANGED
             if material_review_changed:
                 service.publish_status(lease, lambda *_: None)
-            else:
-                service.publish_status(lease, lambda db, row: _text_reply(chat, db, row, binding))
+                return
+        if not binding["attachments"]:
+            service.publish_status(lease, lambda db, row: _text_reply(chat, db, row, binding))
             return
         user = UserContext(
             user_id=binding["actor_id"], role="customer", customer_id=binding["customer_id"]

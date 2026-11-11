@@ -544,6 +544,40 @@ class ConversationDecisions:
                 else None,
             }
 
+    def history_index(self, actor, ident, *, before_version=None, limit=20):
+        with Session(self.engine) as db, db.begin():
+            row, issue_id = self._current(db, actor, ident, "support")
+            if issue_id is None:
+                return {"issue_id": None, "items": [], "next_before_version": None}
+            query = select(
+                DecisionSnapshot.id,
+                DecisionSnapshot.version,
+                DecisionSnapshot.origin,
+                DecisionSnapshot.created_at,
+            ).where(
+                DecisionSnapshot.conversation_id == row.id,
+                DecisionSnapshot.issue_id == issue_id,
+            )
+            if before_version is not None:
+                query = query.where(DecisionSnapshot.version < before_version)
+            entries = db.execute(
+                query.order_by(DecisionSnapshot.version.desc()).limit(limit + 1)
+            ).all()
+            items = [
+                {
+                    "id": entry.id,
+                    "version": entry.version,
+                    "origin": entry.origin,
+                    "created_at": utc(entry.created_at).isoformat(),
+                }
+                for entry in entries[:limit]
+            ]
+            return {
+                "issue_id": issue_id,
+                "items": items,
+                "next_before_version": items[-1]["version"] if len(entries) > limit else None,
+            }
+
     def history(self, actor, ident, snapshot_id):
         with Session(self.engine) as db, db.begin():
             row, _ = self._current(db, actor, ident, "support")

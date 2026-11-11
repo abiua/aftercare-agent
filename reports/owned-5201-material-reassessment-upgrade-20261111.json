@@ -1,0 +1,28 @@
+{
+  "status": "PASSED",
+  "url": "http://127.0.0.1:5201",
+  "backend": "sha256:7319ccca9d062c57d8b2f91db388473db2cedc594f3661605bc81b6d17c43ea8",
+  "frontend": "sha256:adc940831d70a679ff559aeff461309ad60dd0cb6f21589b640ccd8e86751c98",
+  "backend_source_commit": "7da08d770d72153499db7ecd5fd3231293bea263",
+  "ci_commit": "5906b06b1076215444ab9426cf7c6d9f61795ebf",
+  "ci_run": 43009102154,
+  "ci_status": "SUCCESS",
+  "plan_sha256": "05b1583cc93a48589715a2cf64a8e774d86c9473c3b999f16d53804b285f0338",
+  "readback": {
+    "all_managed_fingerprints_match": true,
+    "managed_table_count": 451,
+    "all_source_archive_restore_object_bytes_match": true,
+    "object_count": 46,
+    "source_system_identifier": "7706834943065174055",
+    "restore_system_identifier": "7706869421385400358"
+  },
+  "source_infrastructure_retained": true,
+  "only_runtime_setting_changed": {
+    "chat_analysis_enabled": {
+      "before": false,
+      "after": true
+    }
+  },
+  "temporary_restore_resources_independently_confirmed_absent": true,
+  "real_queue_acceptance": "CHAIN_VERIFIED_BY_RECONCILIATION_BROWSER_PARTIAL"
+}

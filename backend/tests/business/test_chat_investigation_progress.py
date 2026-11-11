@@ -281,3 +281,56 @@ def test_material_review_preserves_pending_customer_text(enabled):
     assert actor.role == "customer"
     assert any("暂时无法提供" in row["text"] for row in raw["frozen_context"]["messages"])
     assert any(row["id"] == reviewed["id"] for row in raw["frozen_context"]["reviews"])
+
+
+def test_offline_review_reassessment_does_not_repeat_photo_unavailable_notice(enabled):
+    from test_business import _photo
+    from test_conversation_analysis_integration import advance, work
+
+    url, business, _ = _published(enabled)
+    enabled.settings.chat_vision_enabled = False
+
+    def notices():
+        detail = enabled.client.get(url, headers=headers()).json()
+        return sum(
+            card["data"].get("code") == "PHOTO_ANALYSIS_UNAVAILABLE"
+            for row in detail["messages"]
+            for card in row["cards"]
+        )
+
+    uploaded = send(enabled.client, url, "", photos=(("original.png", _photo("red")),))
+    assert uploaded.status_code == 201
+    case_id = uploaded.json()["conversation"]["active_case_id"]
+    advance(enabled)
+    work(enabled)
+    assert notices() == 1
+    version = business.context(case_id, SUPPORT)["case"]["version"]
+    business.upload(
+        case_id,
+        SUPPORT,
+        kind="ITEM",
+        content=_photo("red"),
+        expected_version=version,
+        idempotency_key="confirmed-offline-image",
+    )
+    version = business.context(case_id, SUPPORT)["case"]["version"]
+    business.review_materials(
+        case_id,
+        SUPPORT,
+        decision="NEEDS_MORE",
+        notes="已核对已有材料。",
+        expected_version=version,
+        idempotency_key="review-offline-image",
+    )
+    advance(enabled)
+    work(enabled)
+    (turn,) = delivery.pending(business)
+    assert delivery._stage(business, turn) is not None
+    assert notices() == 1
+
+    assert (
+        send(enabled.client, url, "", photos=(("followup.png", _photo("blue")),)).status_code == 201
+    )
+    advance(enabled)
+    work(enabled)
+    assert notices() == 2

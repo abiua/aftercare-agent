@@ -22,7 +22,7 @@ test('fixture: support modification preserves the original and customer responds
     ref: {id: original.id, version: 1, sha256: original.sha256}, expected_review_id: null,
     review: {action: 'MODIFY', reason: '内部客服核对说明', replacement: {lines: [{line_id: 'L01', amount_cents: 825}]}, resolved_items: []},
   }});
-  await page.getByRole('button', {name: '查看上一版候选'}).click();
+  await page.getByRole('button', {name: '查看修改前版本'}).click();
   await expect(page.getByRole('heading', {name: /Agent 原始候选/})).toBeVisible();
   await expect(page.getByText(/12\.00/)).toBeVisible();
 
@@ -68,6 +68,48 @@ test('fixture: support modification preserves the original and customer responds
   await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(fixtureApi.chatDecisionPosts[3].body).toMatchObject({evidence_gaps: ['LABEL'],
     review: {action: 'REQUEST_EVIDENCE', reason: '需核对包裹标签。'}});
+});
+
+test('fixture: support browses paginated automatic history read-only and ignores a late prior-issue result', async ({page, fixtureApi}) => {
+  fixtureApi.chatCreated = true;
+  const snapshot = (version) => ({id: `auto-${version}`, version, sha256: 'a'.repeat(64), parent_id: null,
+    origin: 'AGENT', input: {order_id: 'A1001', input_through_seq: 2}, expires_at: '2027-01-01T00:00:00Z',
+    checks: {option: {status: 'PASSED'}}, candidate: {unresolved: [], options: [{
+      id: 'option', action: 'REFUND', lines: [{line_id: 'L01', amount_cents: 1200}],
+      rationale: `自动候选 ${version} 的内部依据`, evidence_ids: ['photo'], policy_ids: ['POL01'],
+    }]}});
+  const [first, second, current] = [1, 2, 3].map(snapshot);
+  fixtureApi.chatDecision = {current, history: [first, second, current], historyPageSize: 2};
+  await signIn(page, 'support');
+  await page.goto(`/?conversation=${chatId}`);
+  await expect(page.getByRole('heading', {name: 'Agent 原始候选 · 第 3 版'})).toBeVisible();
+  await page.getByRole('button', {name: '查看候选历史'}).click();
+  await page.getByRole('button', {name: '第 2 版 · Agent 原始候选'}).click();
+  await expect(page.getByText('自动候选 2 的内部依据')).toBeVisible();
+  await expect(page.getByRole('button', {name: '修改', exact: true})).toHaveCount(0);
+  await expect(page.getByRole('button', {name: '启动方案调查'})).toHaveCount(0);
+  await page.getByRole('button', {name: '更早的版本'}).click();
+  await page.getByRole('button', {name: '第 1 版 · Agent 原始候选'}).click();
+  await expect(page.getByText('自动候选 1 的内部依据')).toBeVisible();
+  await page.getByRole('button', {name: '返回当前方案'}).click();
+  await expect(page.getByRole('button', {name: '修改', exact: true})).toBeVisible();
+
+  const {promise, resolve} = Promise.withResolvers();
+  fixtureApi.chatDecision.holdHistory = {[first.id]: promise};
+  const delayed = page.waitForRequest((request) => request.url().endsWith('/history/auto-1'));
+  await page.getByRole('button', {name: '第 1 版 · Agent 原始候选'}).click();
+  await delayed;
+  try {
+    Object.assign(fixtureApi.chatDecision, {issueId: 'new-issue', current: snapshot(4),
+      conversation: {revision: 2}});
+    await page.getByRole('button', {name: '刷新消息'}).click();
+    await expect(page.getByRole('heading', {name: 'Agent 原始候选 · 第 4 版'})).toBeVisible();
+  } finally {
+    resolve();
+  }
+  await expect(page.getByText('自动候选 1 的内部依据')).toHaveCount(0);
+  await expect(page.getByRole('button', {name: '返回当前方案'})).toHaveCount(0);
+  expect(fixtureApi.chatDecisionPosts).toHaveLength(0);
 });
 
 test('fixture: scope change removes the previous offer while the new offer read is pending', async ({page, fixtureApi}) => {

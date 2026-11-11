@@ -1,0 +1,141 @@
+{
+  "status": "FAILED",
+  "stage": "WAIT_FOR_CELERY",
+  "plan_sha256": "b8c8e1a1b13b07106ae413084774730b783f832f11bd57eabb3e8aef654a7650",
+  "plan": {
+    "stack_id": "315cfced887148e3b4221b777887e929",
+    "system_id": "7706834943065174055",
+    "network": "aftercare-fresh-315cfced887148e3b4221b777887e929-net",
+    "backend": "sha256:7319ccca9d062c57d8b2f91db388473db2cedc594f3661605bc81b6d17c43ea8",
+    "frontend": "sha256:adc940831d70a679ff559aeff461309ad60dd0cb6f21589b640ccd8e86751c98",
+    "flags": {
+      "api": {
+        "chat_analysis_enabled": true,
+        "chat_decisions_enabled": true,
+        "chat_investigation_enabled": true,
+        "model_enabled": false,
+        "embedding_enabled": false,
+        "chat_vision_enabled": false,
+        "chat_investigation_protocol": "compact-v6"
+      },
+      "beat": {
+        "chat_analysis_enabled": true,
+        "chat_decisions_enabled": true,
+        "chat_investigation_enabled": true,
+        "model_enabled": false,
+        "embedding_enabled": false,
+        "chat_vision_enabled": false,
+        "chat_investigation_protocol": "compact-v6"
+      },
+      "worker": {
+        "chat_analysis_enabled": true,
+        "chat_decisions_enabled": true,
+        "chat_investigation_enabled": true,
+        "model_enabled": false,
+        "embedding_enabled": false,
+        "chat_vision_enabled": false,
+        "chat_investigation_protocol": "compact-v6"
+      }
+    },
+    "customer_id": "C002",
+    "customer_user_id": "08b1935d-7dd2-4fb6-89df-ec758b51a825",
+    "customer_client": "other_customer",
+    "order": {
+      "id": "O0288",
+      "version": 1,
+      "line_id": "L01",
+      "policy_snapshot": "c81d6b2afebca5ecf3d37da49168e1407ae65409451481d9ebd444ac9b9128bf",
+      "initial_status": "WAITING_INPUT",
+      "initial_reason_code": null,
+      "initial_expected_route_reason": "EVIDENCE_REQUIRED",
+      "approved_status": "ELIGIBLE",
+      "approved_reason_code": null,
+      "items": [
+        {
+          "line_id": "L01"
+        }
+      ]
+    },
+    "images": {
+      "ITEM": "6e4390e0e3afcec897eb0969e43d9666b64ac4f4d8238c0654219d3fe92a6939",
+      "PARCEL": "c3a405020cc71723d644d50c51ec2a4dd79de6e06d55381fcc241b024a587306"
+    },
+    "driver_sha256": "09354862aefc68d9c4ca828e563804eb526bee192a97b57776e85255d04b7116",
+    "helper_sha256s": {
+      "offline_demo.py": "ab754a5f9b69c0c15675c2e94ca6a206e87a6cffc7a5a05a95735ce47deec0b2",
+      "setup_runtime.py": "da60073cb1052997f538ac7214e32a1fd63e7d493c2678036a0e551a3911dc2c",
+      "verify_fresh_bootstrap.py": "0f1f0fc94bbac4bd9bdfe1bcfcece6c403bd06c41ac3c7af76478c6440e40007",
+      "verify_material_review_migration.py": "8f083721d79805f0f415b08c476e177a4d8781b0ec3f08c1f13ccdf62ff0ab8b",
+      "verify_chat_p1_http.py": "284a4c2849683c4b513337314b0b23c6ae0587eaed2f142970e69d08e2e3660e",
+      "verify_chat_p2_offline.py": "5d8b1cb73716b9ed2e1bb52ab3aeda75658e891b73ade6e475b33f7432cd8447",
+      "verify_chat_p3_offline.py": "f0c9163170f5c98df30f464a207babc721e5933498366a660e651ef1b48f2b9e",
+      "verify_chat_p4_path.py": "8955b56da4cd6350b48fb74c6bfe123b4240f1952429b0e625ba222bc3b500c8",
+      "verify_chat_p5_pg.py": "d54b8fe3a56baf24dc24dcde5a9f57c33208d1d4c790ffdb0c252fad96a60a8b",
+      "verify_chat_backup_restore.py": "77065faeca2357c609287de54e6808f98a69c36519cd645c84bcba9e6ce480f0",
+      "verify_streaming_compatibility.py": "908c03368730b2f535f2069ebc52717563d604df0a73040605533689afb9941c"
+    },
+    "maximum_provider_calls": 0,
+    "maximum_approvals": 0,
+    "maximum_executions": 0,
+    "boundary": "CONTROL_HTTP_CELERY_NO_REAL_IMAGE_UNDERSTANDING"
+  },
+  "request_ids": {
+    "create_conversation": {
+      "idempotency_key": "18168b36-1990-45b3-985e-706140b2a219"
+    },
+    "confirm_context": {
+      "idempotency_key": "d93c96ba-3149-42b9-b201-c8e0a69c5b18"
+    },
+    "initial_text": {
+      "idempotency_key": "09cfb1ef-83b2-4beb-a34a-aaa395529f61",
+      "client_message_id": "734164a7-19f6-4dd7-8100-8da9f2bf09ef"
+    },
+    "photos": {
+      "idempotency_key": "cc9115a5-6203-43dc-ae22-469d6037cc02",
+      "client_message_id": "912b20af-6c34-43b7-ae58-d93e6f7ba312"
+    },
+    "p4_customer_link_denied_ITEM": {
+      "idempotency_key": "d2ebd889-3bb4-414b-a01a-4dcc0d15d7f1"
+    },
+    "p4_link_ITEM": {
+      "idempotency_key": "51c5448f-b7cd-421e-9b58-05f5aacdbc3d"
+    },
+    "p4_customer_link_denied_PARCEL": {
+      "idempotency_key": "f6814537-c21b-49ca-b80f-8fdc2daf706f"
+    },
+    "p4_link_PARCEL": {
+      "idempotency_key": "fe8e7664-24f0-4707-a348-9d4ee673efbc"
+    },
+    "material_review": {
+      "idempotency_key": "6df1739b-053b-465b-a3a9-a1d502955db5"
+    }
+  },
+  "conversation_id": "0b1cce8e-2954-4477-9118-be01fb0b55a1",
+  "case_id": "fe8c0602-1a46-4c2d-a666-127088f5d084",
+  "initial_snapshot_id": "e275203d-59ff-4ca8-b140-e402798ec24d",
+  "photo_snapshot_id": "728d98bc-7b0f-4f31-bacd-60d1219b033e",
+  "attachment_ids": [
+    "069580f0-e5cd-40bb-98ab-327c904d1dbd",
+    "4e243b99-d5dd-4d36-8a5a-cf0cae0783ad"
+  ],
+  "material_links": [
+    {
+      "attachment_id": "069580f0-e5cd-40bb-98ab-327c904d1dbd",
+      "message_id": "cf3296b0-7a3d-482b-aca5-a48760286f70",
+      "issue_id": "10419b85-b704-45a4-acb9-35ef428cbe70",
+      "sha256": "6e4390e0e3afcec897eb0969e43d9666b64ac4f4d8238c0654219d3fe92a6939",
+      "material_id": "973d579b-eec7-446c-a30d-4c2733fc8209",
+      "kind": "ITEM"
+    },
+    {
+      "attachment_id": "4e243b99-d5dd-4d36-8a5a-cf0cae0783ad",
+      "message_id": "cf3296b0-7a3d-482b-aca5-a48760286f70",
+      "issue_id": "10419b85-b704-45a4-acb9-35ef428cbe70",
+      "sha256": "c3a405020cc71723d644d50c51ec2a4dd79de6e06d55381fcc241b024a587306",
+      "material_id": "1347fe4a-dd07-435f-a3aa-40aa190fd250",
+      "kind": "PARCEL"
+    }
+  ],
+  "review_id": "4bf768bf-bca9-414c-942c-e92f55867a79",
+  "failure_code": "P5_MATERIAL_REASSESS_NATIVE_CHAIN"
+}

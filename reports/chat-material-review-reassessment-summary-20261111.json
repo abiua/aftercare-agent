@@ -1,0 +1,21 @@
+{
+  "status": "PARTIAL",
+  "scope": "MATERIAL_REVIEW_AUTOMATIC_REASSESSMENT_CONTROL",
+  "native_http_celery_chain": "VERIFIED_BY_RECONCILIATION",
+  "exact_original_review_replay": "PASSED",
+  "browser": "PARTIAL_HISTORY_NAVIGATION_MISSING",
+  "original_harness_failure_preserved": true,
+  "model_and_image_inference": "NOT_RUN",
+  "financial_execution": "NOT_RUN",
+  "independent_human_review": false,
+  "source_reports": {
+    "reports/chat-material-review-reassessment-20261111.json": "63cc6b5046773fcde27389bdb9efe44ee600fa7945c520a263d749c52381e492",
+    "reports/chat-material-review-reassessment-reconciliation-20261111.json": "757ea62f9950ce63f4f7162e4d24f3caee2e79537f1b0935804cc15763316ca1",
+    "reports/chat-material-review-reassessment-replay-20261111.json": "11733fc4db2b667114f9e20f3f416bce0f5c72c32e463ac26bfa8847abf3afb5",
+    "reports/browser-material-reassessment-20261111.json": "c875860551e33763b7d1532b9baa123d35c40ad67f40b9d4c5969bb86d5761ac"
+  },
+  "remaining": [
+    "Support UI cannot navigate earlier automatic Agent candidates",
+    "Material review retrigger repeats offline photo message"
+  ]
+}

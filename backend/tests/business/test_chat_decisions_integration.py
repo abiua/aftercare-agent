@@ -456,6 +456,33 @@ def test_history_stays_readable_after_confirmed_new_issue(configured):
     url, case_id = _link(env)
     _offer(env, url, case_id)
     original = env.client.get(url + "/decisions", headers=headers(SUPPORT)).json()["snapshot"]
+    history_path = url + "/decisions/history"
+    first = env.client.get(history_path, params={"limit": 1}, headers=headers(SUPPORT))
+    assert first.status_code == 200 and first.headers["cache-control"] == "no-store"
+    page = first.json()
+    assert page["issue_id"] == original["input"]["issue_id"]
+    (latest,) = page["items"]
+    assert {key: latest[key] for key in ("id", "version", "origin")} == {
+        key: original[key] for key in ("id", "version", "origin")
+    }
+    assert set(latest) == {"id", "version", "origin", "created_at"}
+    assert latest["created_at"].endswith("+00:00")
+    assert page["next_before_version"] == original["version"]
+    second = env.client.get(
+        history_path,
+        params={"limit": 1, "before_version": page["next_before_version"]},
+        headers=headers(SUPPORT),
+    ).json()
+    assert second["next_before_version"] is None
+    assert len(second["items"]) == 1
+    assert second["items"][0]["id"] == original["parent_id"]
+    assert second["items"][0]["origin"] == "AGENT"
+    assert second["items"][0]["version"] < original["version"]
+    assert env.client.get(history_path, headers=headers()).status_code == 404
+    assert (
+        env.client.get(history_path, params={"limit": 51}, headers=headers(SUPPORT)).status_code
+        == 422
+    )
     message = send(env.client, url, "同一订单另一个商品发错了").json()
     changed = change(env.client, url, message["conversation"]["revision"], lines=("L01",), new=True)
     assert (
@@ -467,6 +494,10 @@ def test_history_stays_readable_after_confirmed_new_issue(configured):
         ).json()
         == original
     )
+    new_issue_page = env.client.get(history_path, headers=headers(SUPPORT)).json()
+    assert new_issue_page["issue_id"] != page["issue_id"]
+    assert new_issue_page["items"] == []
+    assert new_issue_page["next_before_version"] is None
     other = create(env.client)
     assert (
         env.client.get(

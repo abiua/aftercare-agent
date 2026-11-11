@@ -1,0 +1,41 @@
+{
+  "status": "PARTIAL",
+  "scope": "NATIVE_BROWSER_READ_ONLY",
+  "url": "http://127.0.0.1:5201",
+  "conversation_id": "0b1cce8e-2954-4477-9118-be01fb0b55a1",
+  "case_id": "fe8c0602-1a46-4c2d-a666-127088f5d084",
+  "customer": {
+    "original_messages": 2,
+    "images": [
+      {
+        "attachment_id": "069580f0-e5cd-40bb-98ab-327c904d1dbd",
+        "http_status": 200
+      },
+      {
+        "attachment_id": "4e243b99-d5dd-4d36-8a5a-cf0cae0783ad",
+        "http_status": 200
+      }
+    ],
+    "progress": "PENDING_SUPPORT",
+    "offer_present": false,
+    "refund_completed_visible": false
+  },
+  "support": {
+    "current_candidate_version": 3,
+    "current_action": "HUMAN_HANDOFF",
+    "material_review_control_notice_visible": true,
+    "old_candidate_history_navigable": false,
+    "history_gap": "Current native AGENT snapshot has null parent_id. Browser only offers historical navigation through a snapshot parent."
+  },
+  "related_native_history_report": "reports/chat-material-review-reassessment-reconciliation-20261111.json",
+  "business_write_requests": 0,
+  "owned_browser_session_logged_out_and_closed": true,
+  "private_artifact_directory": ".runtime/browser-demo-ouvg2nat/material-reassessment-browser",
+  "capture": {
+    "id": "d2e4f690a5130",
+    "requests": 48,
+    "errors": 0,
+    "dropped_requests": 0
+  },
+  "limits": "Synthetic offline control. Browser verifies public progress and current staff view. Historical native evidence is from the separate reconciliation report."
+}

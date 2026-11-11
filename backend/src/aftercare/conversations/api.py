@@ -223,6 +223,19 @@ def current_decision(conversation_id: UUID, service: Service, user: Actor):
     return ConversationDecisions(service.business).current(user, str(conversation_id))
 
 
+@router.get("/{conversation_id}/decisions/history")
+def decision_history_index(
+    conversation_id: UUID,
+    service: Service,
+    user: Actor,
+    before_version: Annotated[int | None, Query(ge=1, le=2_147_483_647)] = None,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+):
+    return ConversationDecisions(service.business).history_index(
+        user, str(conversation_id), before_version=before_version, limit=limit
+    )
+
+
 @router.get("/{conversation_id}/decisions/history/{snapshot_id}")
 def decision_history(conversation_id: UUID, snapshot_id: UUID, service: Service, user: Actor):
     return ConversationDecisions(service.business).history(

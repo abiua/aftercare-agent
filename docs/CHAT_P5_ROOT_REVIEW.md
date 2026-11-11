@@ -222,3 +222,17 @@ root审查并执行 `upgrade_owned_material_demo.py`，将5201四个应用容器
 生产修复使用既有conversation→order/case锁和同事务持久轮次登记；当前事项关联需匹配，三项聊天开关均开启才启用。有效PENDING/RUNNING P2保留，避免丢掉客户无法补图的文字或在途视觉调用；已发布轮次需要重新调查时提升revision，旧任务不能发布覆盖。无新照片不重复视觉分析，审核重放不重复登记；不会创建客户消息或直接审批/执行。公开进度对比当前调查依赖，不再被过期offer/review遮蔽；已有人工运行优先，阻断显式NEEDS_SUPPORT。SQLite原生AgentService+P3投影和HTTP回读覆盖三种照片状态、新审核冻结、历史快照保留、幂等、旧offer及人工优先。新增运行栈验证尚未执行，5201仍b49f914。
 
 顺序传递消融为独立test capability/manifest，首轮policy在fact完成后收到主张、无继承引用权限；verify/recheck与默认工具预算保持。两案四臂实际SQLite runner共24 fixture attempts，普通5/5、复杂7/7，复杂两臂都一次补查与verify1。默认服务真实start拒绝，失能力恢复在checkpoint/model前拒绝，重放无新增。不能称纯并行实验，不代表真实模型或正确率。root runner/graph30项及最终完整非PG1075通过、2跳过、40PG未选；改动文件Ruff及diff检查通过。前一提交6b613ca托管CI43007178878成功。
+
+## 材料重评真实队列续验（2026-11-11）
+
+7da08d7后端7319ccca9d062c57d8b2f91db388473db2cedc594f3661605bc81b6d17c43ea8已部署5201，前端adc940…51c98保持。升级计划05b1583cc93a48589715a2cf64a8e774d86c9473c3b999f16d53804b285f0338，源PG7706834943065174055、独立恢复PG7706869421385400358；451纳管表/46对象源归档恢复一致，所有临时资源已独立确认移除。仅analysis从False改True，原配置私有归档。CI旧失败43008485649为ubuntu-latest的26.04字体安装不可用；固定24.04的5906b06对应43009102154成功，应用代码未因CI改动。
+
+真实HTTP/Celery测试计划b8c8e1a1b13b07106ae413084774730b783f832f11bd57eabb3e8aef654a7650，C002/O0288/L01（C001两可用单行订单已有case，未复用或改历史数据），conversation0b1cce8e-2954-4477-9118-be01fb0b55a1，casefe8c0602-1a46-4c2d-a666-127088f5d084。客户显式选单行、文字、同会话双图，support关联原图并提交明确CONTROL模拟审核，无HUMAN结构化观察；不直接调用worker process/stage。审核后实际第三轮请求7fbb6d78-ad85-45ce-a015-874667c5f32c、run1f14ff3b-98a3-45f5-b854-840bd74240f2、新候选8d324f2b-3192-4481-9329-1bfed2f56d4f，记录有效review且规则ELIGIBLE，但模型关闭所以INVESTIGATION_MODEL_UNAVAILABLE/HUMAN_HANDOFF。客户消息仍2条，客户PENDING_SUPPORT。
+
+原 `reports/chat-material-review-reassessment-20261111.json` 保留FAILED/NATIVE_CHAIN：验收错误要求自动AGENT snapshot.parent_id指向上一候选，该字段实际用于人工修改；自动前序通过持久request.previous与Agent binding.expected_previous绑定。只读补充 `...-reconciliation-20261111.json` PARTIAL验证双绑定、scope、三快照及原图历史回读；它当时尚未执行重复POST。root后续独立 `...-replay-20261111.json` PASSED，用MATERIALS_REVIEWED.sequence-1重建原expected_version并验证原Idempotency.request_hash，原actor/key/body精确HTTP重放得到原响应，前后轮次/请求/快照/审核/资金/模型读回摘要完全相同。原FAILED不改写，也不将补充核对伪装成原脚本完整成功。未来驱动断言改为previous双绑定，POST前保存body与baseline；root2项定向和Ruff通过。
+
+root独立原生复核仍三轮/三请求/三快照、2客户消息，有效review4bf768bf-bca9-414c-942c-e92f55867a79；public proposals/approvals/executions/agent_attempts/chat_attempts/intake_audits全部0。此次是业务事件自动续跑的控制技术证据，不证明真实视觉、真实模型决策或真人审批质量。
+
+浏览器 `reports/browser-material-reassessment-20261111.json` PARTIAL：客户2消息/2原图200且实际渲染，PENDING_SUPPORT、offer为空、无退款完成；客服第3候选HUMAN_HANDOFF和CONTROL审核标注可读，48GET无错误/丢失，退出关闭。发现自动AGENT parent为空时UI没有历史列表，不能从页面导航v1/v2；另有两条重复离线照片提示。历史API可读不替代页面可用性。两项后续修复中，总结报告保持PARTIAL，不改原失败或补充报告。
+
+两项浏览器发现已在代码修复，尚未部署：support-only `GET /conversations/{id}/decisions/history` 当前issue倒序分页，返回issue_id与轻量摘要、exclusive before_version，原单快照历史及人工parent语义保留。前端列出自动和人工版本、历史只读，返回当前才能复核，跨事项迟到响应拒显，parent按钮改为修改前版本。审核重评且vision关闭时静默发布；普通客户新图仍给原不可查看提示，已有历史消息不删除。root后端相关22通过、1跳过及Ruff通过；UI代理5项Chromium、lint/类型/构建通过。当前5201仍7da08d7后端/b49f914前端，真实历史列表回查和新版提示需后续升级，PARTIAL报告保持。

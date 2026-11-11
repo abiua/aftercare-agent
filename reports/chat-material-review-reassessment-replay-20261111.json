@@ -1,0 +1,12 @@
+{
+  "status": "PASSED",
+  "boundary": "EXACT_ORIGINAL_IDEMPOTENT_HTTP_REPLAY",
+  "conversation_id": "0b1cce8e-2954-4477-9118-be01fb0b55a1",
+  "case_id": "fe8c0602-1a46-4c2d-a666-127088f5d084",
+  "review_id": "4bf768bf-bca9-414c-942c-e92f55867a79",
+  "native_request_hash_verified": true,
+  "same_native_response": true,
+  "before_after_readback_sha256": "6c5427f2abb262795f736aff5312ba300c914af430bb47239c00ed1224a582d6",
+  "no_new_turn_request_snapshot_or_financial_model_record": true,
+  "independent_human_review": false
+}
