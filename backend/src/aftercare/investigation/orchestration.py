@@ -38,7 +38,7 @@ ClaimID = Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]{1,64}$")]
 _ROLE_INSTRUCTIONS = {
     "strong_single": "分步调查订单事实和适用政策。独立只读查询可并列发出；保留证据缺口和替代方案。",
     "fact": "只调查订单和材料事实。区分客户陈述、附件观察和业务系统已核实记录，不提出处理方案。",
-    "policy": "只检查条款版本、适用范围和前提。区分候选条款和对当前事实有支持的条款，不提出处理方案。",
+    "policy": "只检查条款版本、适用范围和前提。原始目录包含历史和不适用的条款。依据产品、适用日期与版本关系核验，区分候选条款和对当前事实有支持的条款，不提出处理方案。",
     "verifier": "逐条核对角色主张与原始记录及条款。若有反例，写明相冲突的字段与依据；仅针对实际冲突请求一次局部复查。",
 }
 
@@ -114,6 +114,7 @@ class InvestigationContext:
     trusted_evidence_ids: frozenset[str] = frozenset()
     verifier_reserve: object = None
     arm: str = "auto"
+    policy_authority: dict | None = None
 
 
 class ProtectedAudit:

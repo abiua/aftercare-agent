@@ -8,6 +8,7 @@ import aftercare.business.models
 import aftercare.conversation_analysis.tables
 import aftercare.conversations.tables
 import aftercare.dispatch
+import aftercare.evaluation.chat.tables
 import aftercare.evaluation.tables
 import aftercare.intake_audit
 import aftercare.intelligence.model_limits

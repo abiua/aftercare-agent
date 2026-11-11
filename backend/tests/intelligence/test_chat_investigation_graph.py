@@ -434,3 +434,121 @@ def test_p4_current_batch_limit_in_prompt_rejects_before_any_tool_read(investiga
             "allowed": 4,
         }
     ]
+
+
+def test_historical_policy_option_is_preserved_with_exact_version_rejection(investigation):
+    from aftercare.investigation.graph import _publish_options
+
+    selected = {"id": "POL01", "version": "v1"}
+    historical = {"id": "POL01", "version": "v0", "text": "原历史政策"}
+    value = investigation.model_copy(
+        update={
+            "evidence": (
+                *investigation.evidence,
+                Evidence(
+                    ref=_ref("POLICY", "POL01:v0"), trust="POLICY", data={"clause": historical}
+                ),
+            )
+        }
+    )
+    audit = Audit()
+    ctx = InvestigationContext(
+        value,
+        None,
+        None,
+        audit,
+        None,
+        lambda **_: pytest.fail("wrong version reached validator"),
+        "analysis",
+        frozenset({"line"}),
+        frozenset({"line", "POL01:v0", "POL01:v1"}),
+        policy_authority={
+            "order": {"items": [{"line_id": "line", "product_id": "product"}]},
+            "policy_catalogue": {"documents": [selected, historical]},
+            "policies": {"by_product": {"product": [selected]}},
+        },
+    )
+    result = _publish_options(
+        ctx,
+        {
+            "claims": [_claim("claim", "POL01:v0")],
+            "options": [
+                {
+                    "id": "old-version-option",
+                    "action": "REFUND",
+                    "lines": [{"line_id": "line", "amount_cents": 100}],
+                    "policy_ids": ["POL01"],
+                    "evidence_ids": ["line", "POL01:v0"],
+                    "rationale": "历史版候选",
+                }
+            ],
+        },
+    )
+    assert result["status"] == "NEEDS_REVIEW"
+    assert result["output"]["action"] is None
+    assert result["output"]["investigation_options"][0]["lines"][0]["amount_cents"] == 100
+    assert result["output"]["investigation_unresolved"]
+    (event,) = [payload for kind, payload in audit.events if kind == "investigation_result"]
+    assert event["program_checks"] == {
+        "old-version-option": "INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE"
+    }
+
+
+def test_targeted_policy_recheck_can_read_another_frozen_version(investigation):
+    from types import SimpleNamespace
+
+    from aftercare.investigation.catalogue import CATALOGUE_VERSION
+    from aftercare.investigation.graph import _recheck
+
+    alternate = Evidence(
+        ref=_ref("POLICY", "POL01:v0"),
+        trust="POLICY",
+        data={"clause": {"id": "POL01", "version": "v0", "text": "独立旧版全文"}},
+    )
+    value = investigation.model_copy(
+        update={
+            "policy_catalogue_version": CATALOGUE_VERSION,
+            "policy_context": {
+                "products": [{"id": "product", "category": None}],
+                "catalogue_sha256": "f" * 64,
+            },
+            "evidence": (*investigation.evidence, alternate),
+        }
+    )
+
+    def revised(kwargs):
+        payload = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        assert (
+            payload["check_receipt"]["data"]["records"][0]["data"]["clause"]["text"]
+            == "独立旧版全文"
+        )
+        return {"claims": [_claim("claim", "POL01:v0")]}
+
+    script = Script({"p4:compact-v3:recheck:0": revised})
+    audit = Audit()
+    ctx = InvestigationContext(
+        value, None, script, audit, InvestigationTools(value), None, "analysis"
+    )
+    result = _recheck(
+        {
+            "recheck": {
+                "target_role": "policy",
+                "claim_ids": ["policy/claim"],
+                "tool_name": "read_policy_clause",
+                "arguments": {"policy_id": "POL01", "version": "v0", "product_id": "product"},
+                "reason": "核查同条款旧版的适用期。",
+            },
+            "active_claims": [
+                {
+                    **_claim("claim", "POL01:v1"),
+                    "id": "policy/claim",
+                    "role": "policy",
+                    "conflicting_refs": [],
+                }
+            ],
+        },
+        SimpleNamespace(context=ctx),
+    )
+    assert result["path"] == "MULTI" and result["recheck_count"] == 1
+    assert result["active_claims"][0]["supporting_refs"] == ["POL01:v0"]
+    assert script.calls == ["p4:compact-v3:recheck:0"]

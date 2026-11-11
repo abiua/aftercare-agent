@@ -140,6 +140,8 @@ def route_input(value: InvestigationInput) -> RouteDecision:
         refs.extend([delivered.ref, *disputed])
     version_groups = {}
     for row in groups.get("POLICY", []):
+        if value.policy_catalogue_version and row.ref.source_id not in value.selected_policy_keys:
+            continue
         version_groups.setdefault(row.data["clause"]["id"], []).append(row)
     variants = [row for rows in version_groups.values() if len(rows) > 1 for row in rows]
     if variants:

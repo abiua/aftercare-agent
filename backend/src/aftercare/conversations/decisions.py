@@ -16,6 +16,11 @@ from aftercare.decisions.tables import (
     Offer,
     SupportDecision,
 )
+from aftercare.investigation.catalogue import (
+    CATALOGUE_REF,
+    catalogue_capsule,
+    exact_policy_refs_match,
+)
 
 from .tables import Attachment, Conversation, Message
 
@@ -114,7 +119,28 @@ class ConversationDecisions:
     def freeze(self, db, row, case, order):
         from aftercare.conversation_analysis.tables import ChatAnalysisTurn, Observation
 
-        context = self.business._context(db, case, order)
+        raw_catalogue = None
+        if getattr(self.business.settings, "chat_investigation_enabled", False):
+            decision_at = self.business.clock()
+            documents = self.business._all_policy_versions(db)
+            context = self.business._context(
+                db, case, order, policy_documents=documents, decision_at=decision_at
+            )
+            ids = {
+                item["product_id"]
+                for item in context["order"]["items"]
+                if item["line_id"] in case.line_ids
+            }
+            by_id = {item["id"]: item for item in context["order"]["products"]}
+            products = [
+                {"id": key, "category": by_id.get(key, {}).get("category")} for key in sorted(ids)
+            ]
+            try:
+                raw_catalogue = catalogue_capsule(documents, decision_at, products)
+            except ValueError as error:
+                _fail(str(error), 422)
+        else:
+            context = self.business._context(db, case, order)
         messages = list(
             db.scalars(
                 select(Message)
@@ -184,7 +210,8 @@ class ConversationDecisions:
         policy_ref = _ref("POLICY", "effective-policy-snapshot", context["policy_resolution"])
         evidence.append(policy_ref)
         dependencies = list(evidence)
-        if getattr(self.business.settings, "chat_investigation_enabled", False):
+        if raw_catalogue is not None:
+            evidence.append(_ref("POLICY", CATALOGUE_REF, raw_catalogue))
             balances = {item["line_id"]: item for item in context["eligibility"]["lines"]}
             evidence.extend(
                 _ref("FACT", item["line_id"], [item, balances[item["line_id"]]])
@@ -193,7 +220,7 @@ class ConversationDecisions:
             )
             evidence.extend(
                 _ref("POLICY", f"{item['id']}:{item['version']}", item)
-                for item in context["policy_resolution"]["documents"]
+                for item in raw_catalogue["documents"]
             )
         refs = [*message_refs, *evidence]
         if (
@@ -279,6 +306,7 @@ class ConversationDecisions:
             "materials": context["materials"],
             "reviews": context["reviews"],
             "policies": context["policy_resolution"],
+            **({"policy_catalogue": raw_catalogue} if raw_catalogue is not None else {}),
             "eligibility": context["eligibility"],
             "ledger": context["ledger"],
         }
@@ -300,6 +328,7 @@ class ConversationDecisions:
                     {key: value for key, value in versions.items() if key != "case"},
                     related,
                     dependencies,
+                    *([raw_catalogue["documents_sha256"]] if raw_catalogue is not None else []),
                 ]
             ),
             business_versions=versions,
@@ -307,13 +336,25 @@ class ConversationDecisions:
         )
 
     def validate(self, db, scope, option):
+        catalogue = scope.frozen_context.get("policy_catalogue")
+        versioned = catalogue and set(option.evidence_ids).intersection(
+            f"{doc['id']}:{doc['version']}" for doc in catalogue["documents"]
+        )
+        if versioned and not exact_policy_refs_match(scope.frozen_context, option):
+            _fail("INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE")
         case = db.get_one(Case, scope.case_id)
         order = db.get_one(Order, scope.order_id)
         lines = self.business._normalise_lines(option.action, option.business_lines())
         self.business._editable(case)
         self.business._reject_duplicate_matter(db, case, order, lines)
         return self.business._validate_plan(
-            db, case, order, option.action, lines, policy_ids=list(option.policy_ids)
+            db,
+            case,
+            order,
+            option.action,
+            lines,
+            policy_ids=list(option.policy_ids),
+            expected_policy_snapshot=scope.policy_catalogue_sha256 if versioned else None,
         )
 
     def _current(self, db, actor, ident, role):

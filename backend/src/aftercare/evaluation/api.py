@@ -14,6 +14,7 @@ from aftercare.auth import bearer, current_user
 from aftercare.business.api import Actor, BusinessRoute, Key, Version
 from aftercare.business.errors import BusinessError
 
+from .chat.api import router as blind_review_router
 from .imports import ImportInput
 from .progress import PAGE_SIZE
 from .service import EvaluationService, ExperimentInput
@@ -71,6 +72,7 @@ class EvaluationRoute(BusinessRoute):
 
 
 router = APIRouter(prefix="/evaluation", tags=["evaluation"], route_class=EvaluationRoute)
+router.include_router(blind_review_router)
 
 
 def _service(request: Request) -> EvaluationService:

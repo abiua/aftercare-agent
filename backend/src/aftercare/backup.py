@@ -56,6 +56,10 @@ CHAT_DECISION_TABLES = frozenset({
 })
 CHAT_INVESTIGATION_TABLE = "chat_investigation_requests"
 CHAT_MATERIAL_SOURCE_TABLE = "chat_material_sources"
+CHAT_BLIND_REVIEW_TABLES = frozenset({
+    "eval_chat_blind_tasks", "eval_chat_blind_initials",
+    "eval_chat_blind_exposures", "eval_chat_blind_labels",
+})
 CHAT_KEY = r"conversations/[A-Za-z0-9_-]{1,36}/[A-Za-z0-9_-]{1,36}/[0-5]-"
 MATERIAL_KEY = r"cases/[A-Za-z0-9_-]{1,36}/(?:ITEM|PARCEL|WRONG_ITEM|LABEL)/"
 ISOLATED_TABLES = frozenset(
@@ -100,6 +104,7 @@ PUBLIC_TABLES = (
     | CHAT_ANALYSIS_TABLES
     | CHAT_DECISION_TABLES
     | {CHAT_INVESTIGATION_TABLE, CHAT_MATERIAL_SOURCE_TABLE}
+    | CHAT_BLIND_REVIEW_TABLES
     | {
         "eval_imports",
         EVALUATION_PROGRESS_TABLE,
@@ -201,6 +206,12 @@ class BackupManifest(PrivateRecord):
             and f"public.{CHAT_INVESTIGATION_TABLE}" not in self.database
         ):
             raise ValueError("Incomplete conversation material source schema")
+        blind_keys = {f"public.{table}" for table in CHAT_BLIND_REVIEW_TABLES}
+        present_blind = blind_keys & self.database.keys()
+        if present_blind and (
+            present_blind != blind_keys or f"public.{CHAT_MATERIAL_SOURCE_TABLE}" not in self.database
+        ):
+            raise ValueError("Incomplete chat blind review schema")
         expected_public = {f"public.{table}" for table in REQUIRED_PUBLIC_TABLES}
         if not expected_public <= self.database.keys():
             raise ValueError("Missing database fingerprint")
@@ -383,6 +394,11 @@ def _managed_tables(connection) -> list[tuple[str, str]]:
         and ("public", CHAT_INVESTIGATION_TABLE) not in managed
     ):
         raise BackupError("CHAT_MATERIAL_SOURCE_SCHEMA_INCOMPLETE")
+    present_blind = {table for schema, table in managed if schema == "public"} & CHAT_BLIND_REVIEW_TABLES
+    if present_blind and (
+        present_blind != CHAT_BLIND_REVIEW_TABLES or ("public", CHAT_MATERIAL_SOURCE_TABLE) not in managed
+    ):
+        raise BackupError("CHAT_BLIND_REVIEW_SCHEMA_INCOMPLETE")
     if not REQUIRED_PUBLIC_TABLES <= {table for schema, table in managed if schema == "public"}:
         raise BackupError("BACKUP_REQUIRED_TABLES_MISSING")
     return managed

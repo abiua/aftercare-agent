@@ -89,13 +89,21 @@ class InvestigationTools:
         self._search = policy_search
 
     def schemas(self, role: Role) -> list[dict]:
+        descriptions = (
+            {
+                "search_applicable_policy": "Rank raw frozen policy candidates, including historical and inapplicable versions. No applicability judgment.",
+                "read_policy_clause": "Read an exact raw policy version. product_id must be in the frozen case; the clause may not apply to it.",
+            }
+            if self._input.policy_catalogue_version
+            else {}
+        )
         return [
             {
                 "type": "function",
                 "function": {
                     "name": name,
                     "parameters": _SCHEMAS[name].model_json_schema(),
-                    "description": name.replace("_", " "),
+                    "description": descriptions.get(name, name.replace("_", " ")),
                 },
             }
             for name in _ALLOWED.get(role, ())
@@ -133,7 +141,12 @@ class InvestigationTools:
             return self._select(("CONDITION",), args.condition_keys)
         if name == "read_policy_clause":
             rows = self._select(("POLICY",), [f"{args.policy_id}:{args.version}"])
-            if args.product_id not in rows[0].data["selected_for"]:
+            products = (
+                {row["id"] for row in self._input.policy_context["products"]}
+                if self._input.policy_catalogue_version
+                else set(rows[0].data["selected_for"])
+            )
+            if args.product_id not in products:
                 raise ToolRejected("EVIDENCE_NOT_AVAILABLE")
             return rows
         return self._select(tuple({kind for kind, _ in self._rows}), args.conflicting_refs)
@@ -149,6 +162,8 @@ class InvestigationTools:
             data = {"status": "REQUESTED", **validated.model_dump(mode="json")}
         else:
             data = {"records": [row.model_dump(mode="json") for row in rows]}
+            if name == "read_policy_clause" and self._input.policy_catalogue_version:
+                data["applicability"] = "NOT_ASSESSED"
         return ToolReceipt(
             name=name,
             arguments_sha256=digest(validated.model_dump(mode="json")),
@@ -175,9 +190,25 @@ class InvestigationTools:
             audit = {"mode": "BM25", "lexical": ranking}
         else:
             result = self._search.search_selected(
-                query, list(docs.values()), blockers=self._input.policy_blockers
+                query,
+                list(docs.values()),
+                blockers=()
+                if self._input.policy_catalogue_version
+                else self._input.policy_blockers,
             )
             ranking = [document_key(doc) for doc in result.documents]
             audit = {"mode": result.mode, "retrieval_evidence": result.evidence}
+        if self._input.policy_catalogue_version:
+            audit.update(
+                corpus_sha256=self._input.policy_context["catalogue_sha256"],
+                candidate_scope="FROZEN_RAW_CATALOGUE",
+                applicability="NOT_ASSESSED",
+            )
+            if (
+                self._search is not None
+                and getattr(self._search, "encode", None) is not None
+                and audit["mode"] == "BM25"
+            ):
+                audit["hybrid_fallback"] = "HYBRID_NOT_APPLIED_TO_COMPLETE_FROZEN_CORPUS"
         rows = [*conditions, *(policies[key] for key in ranking)]
         return rows, {"records": [row.model_dump(mode="json") for row in rows], "retrieval": audit}

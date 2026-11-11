@@ -583,6 +583,8 @@ def test_legacy_fingerprint_rejects_archive_containing_chat():
 def test_chat_analysis_tables_are_an_optional_complete_backup_bundle(package):
     _, manifest, _ = package
     previous = manifest.model_dump()
+    for table in backup.CHAT_BLIND_REVIEW_TABLES:
+        previous["database"].pop(f"public.{table}")
     for table in backup.CHAT_ANALYSIS_TABLES | backup.CHAT_DECISION_TABLES | {backup.CHAT_INVESTIGATION_TABLE, backup.CHAT_MATERIAL_SOURCE_TABLE}:
         previous["database"].pop(f"public.{table}", None)
     assert backup.BackupManifest.model_validate(previous)
@@ -609,6 +611,8 @@ def test_chat_analysis_tables_are_an_optional_complete_backup_bundle(package):
 def test_chat_decision_tables_are_optional_only_as_a_complete_bundle(package):
     _, manifest, _ = package
     legacy = manifest.model_dump()
+    for table in backup.CHAT_BLIND_REVIEW_TABLES:
+        legacy["database"].pop(f"public.{table}")
     for table in backup.CHAT_DECISION_TABLES | {backup.CHAT_INVESTIGATION_TABLE, backup.CHAT_MATERIAL_SOURCE_TABLE}:
         legacy["database"].pop(f"public.{table}", None)
     assert backup.BackupManifest.model_validate(legacy)
@@ -629,6 +633,8 @@ def test_chat_decision_tables_are_optional_only_as_a_complete_bundle(package):
 def test_chat_investigation_fingerprint_requires_predecessor_schema(package):
     _, manifest, _ = package
     current = manifest.model_dump()
+    for table in backup.CHAT_BLIND_REVIEW_TABLES:
+        current["database"].pop(f"public.{table}")
     assert f"public.{backup.CHAT_INVESTIGATION_TABLE}" in current["database"]
     current["database"].pop(f"public.{backup.CHAT_MATERIAL_SOURCE_TABLE}")
     previous = backup.BackupManifest.model_validate(current).model_dump()
@@ -643,10 +649,24 @@ def test_chat_investigation_fingerprint_requires_predecessor_schema(package):
 def test_chat_material_source_fingerprint_requires_investigation_schema(package):
     _, manifest, _ = package
     current = manifest.model_dump()
+    for table in backup.CHAT_BLIND_REVIEW_TABLES:
+        current["database"].pop(f"public.{table}")
     assert f"public.{backup.CHAT_MATERIAL_SOURCE_TABLE}" in current["database"]
-    previous = manifest.model_dump()
+    previous = backup.BackupManifest.model_validate(current).model_dump()
     previous["database"].pop(f"public.{backup.CHAT_MATERIAL_SOURCE_TABLE}")
     assert backup.BackupManifest.model_validate(previous)
     current["database"].pop(f"public.{backup.CHAT_INVESTIGATION_TABLE}")
     with pytest.raises(ValueError, match="Incomplete conversation material source schema"):
+        backup.BackupManifest.model_validate(current)
+
+
+def test_chat_blind_review_fingerprints_are_optional_complete_group(package):
+    _, manifest, _ = package
+    current = manifest.model_dump()
+    previous = manifest.model_dump()
+    for table in backup.CHAT_BLIND_REVIEW_TABLES:
+        previous["database"].pop(f"public.{table}")
+    assert backup.BackupManifest.model_validate(previous)
+    current["database"].pop("public.eval_chat_blind_exposures")
+    with pytest.raises(ValueError, match="Incomplete chat blind review schema"):
         backup.BackupManifest.model_validate(current)

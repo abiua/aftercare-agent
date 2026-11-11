@@ -7,6 +7,7 @@ from aftercare.business.rules import digest
 from aftercare.conversations.decisions import _relevant
 from aftercare.decisions.contracts import DecisionScope
 
+from .catalogue import CATALOGUE_REF, valid_capsule
 from .contracts import CustomerMessage, Evidence, EvidenceRef, InvestigationInput
 
 MAX_TEXT_BYTES = 24_000
@@ -232,30 +233,86 @@ def _project(scope):
         or policies["snapshot"] != scope.business_versions["policies"]
     ):
         raise InputUnavailable("INVESTIGATION_REFERENCE_MISMATCH")
-    for item in policies["documents"]:
-        key = f"{item['id']}:{item['version']}"
-        selection = [
-            product
-            for product, docs in policies["by_product"].items()
-            if any(doc["id"] == item["id"] and doc["version"] == item["version"] for doc in docs)
-        ]
-        if not selection:
-            raise InputUnavailable("INVESTIGATION_POLICY_SCOPE")
-        add(
-            "POLICY",
-            key,
-            {"clause": item, "selected_for": sorted(selection), "snapshot": policies["snapshot"]},
-            trust="POLICY",
-            bound_kind="POLICY" if explicit_tool_bindings else None,
-            committed=item,
-        )
+    catalogue = data.get("policy_catalogue")
+    policy_context = {}
+    if catalogue is not None:
+        if (
+            not valid_capsule(catalogue)
+            or bindings.get(("POLICY", CATALOGUE_REF)) != digest(catalogue)
+            or {product["id"] for product in catalogue["products"]}
+            != {row["product_id"] for row in order["items"]}
+        ):
+            raise InputUnavailable("INVESTIGATION_POLICY_CATALOGUE_INVALID")
+        policy_context = {
+            "catalogue_sha256": catalogue["documents_sha256"],
+            "products": catalogue["products"],
+            "policy_defaults": {"status": "PUBLISHED", "time_basis": "decision_at", "priority": 0},
+            "timestamps": {
+                "decision_at": catalogue["decision_at"],
+                "case_created_at": case.get("created_at"),
+                "order_created_at": order.get("created_at"),
+                "paid_at": order.get("paid_at"),
+                "delivered_at": order.get("delivered_at"),
+            },
+        }
+        for item in catalogue["documents"]:
+            add(
+                "POLICY",
+                f"{item['id']}:{item['version']}",
+                {"clause": item, "catalogue_sha256": catalogue["documents_sha256"]},
+                trust="POLICY",
+                bound_kind="POLICY",
+                committed=item,
+            )
+    else:
+        for item in policies["documents"]:
+            key = f"{item['id']}:{item['version']}"
+            selection = [
+                product
+                for product, docs in policies["by_product"].items()
+                if any(
+                    doc["id"] == item["id"] and doc["version"] == item["version"] for doc in docs
+                )
+            ]
+            if not selection:
+                raise InputUnavailable("INVESTIGATION_POLICY_SCOPE")
+            add(
+                "POLICY",
+                key,
+                {
+                    "clause": item,
+                    "selected_for": sorted(selection),
+                    "snapshot": policies["snapshot"],
+                },
+                trust="POLICY",
+                bound_kind="POLICY" if explicit_tool_bindings else None,
+                committed=item,
+            )
     payload = [row.model_dump(mode="json") for row in evidence]
     if len(json.dumps(payload, ensure_ascii=False).encode()) > MAX_EVIDENCE_BYTES:
         raise InputUnavailable("INVESTIGATION_EVIDENCE_LIMIT")
     if len({(row.ref.source_kind, row.ref.source_id) for row in evidence}) != len(evidence):
         raise InputUnavailable("INVESTIGATION_DUPLICATE_EVIDENCE")
     relevant = digest(
-        [scope.dependency_sha256, [row.model_dump(mode="json") for row in messages], payload]
+        [
+            scope.dependency_sha256,
+            [row.model_dump(mode="json") for row in messages],
+            payload,
+            *(
+                [
+                    {
+                        **policy_context,
+                        "timestamps": {
+                            key: value
+                            for key, value in policy_context["timestamps"].items()
+                            if key != "decision_at"
+                        },
+                    }
+                ]
+                if policy_context
+                else []
+            ),
+        ]
     )
     return InvestigationInput(
         conversation_id=scope.conversation_id,
@@ -271,4 +328,9 @@ def _project(scope):
         policy_blockers=tuple(policies["blockers"]),
         business_versions=scope.business_versions,
         intent=case["intent"],
+        policy_catalogue_version=catalogue["version"] if catalogue else None,
+        policy_context=policy_context,
+        selected_policy_keys=tuple(
+            f"{item['id']}:{item['version']}" for item in policies["documents"]
+        ),
     )

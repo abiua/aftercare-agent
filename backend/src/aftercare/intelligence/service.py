@@ -40,6 +40,7 @@ from aftercare.intelligence.models import (
 )
 from aftercare.intelligence.policies import MODEL_ID, PolicySearch, bge_encoder, document_key
 from aftercare.intelligence.tables import AgentRun, ModelAttempt, RunEvent, RunMutation
+from aftercare.investigation.catalogue import CATALOGUE_VERSION
 from aftercare.investigation.graph import ARMS, CHAT_GRAPH_PROFILE, build_investigation_graph
 from aftercare.investigation.input import InputUnavailable, build_input
 from aftercare.investigation.issue_budget import (
@@ -759,6 +760,7 @@ class AgentService:
                 binding.update(profile)
                 if graph_profile:
                     binding["investigation_prompt_version"] = PROMPT_VERSION
+                    binding["investigation_policy_catalogue_version"] = CATALOGUE_VERSION
                 if decision_turn_id is not None and not auto_turn_current(
                     session, decision_scope, user.user_id, decision_turn_id
                 ):
@@ -1073,6 +1075,11 @@ class AgentService:
             profile = binding.get("graph_profile")
             if profile and binding.get("investigation_prompt_version") != PROMPT_VERSION:
                 raise ModelFailure("INVESTIGATION_PROMPT_VERSION_CHANGED")
+            if (
+                profile
+                and binding.get("investigation_policy_catalogue_version") != CATALOGUE_VERSION
+            ):
+                raise ModelFailure("INVESTIGATION_POLICY_CATALOGUE_REQUIRED")
             if profile and (profile != CHAT_GRAPH_PROFILE or profile not in self.graphs):
                 raise ModelFailure("INVESTIGATION_PROFILE_UNAVAILABLE")
             facts = _with_refund_lookup(self._context(run.case_id, user), run.message)
@@ -1096,6 +1103,8 @@ class AgentService:
                 policy_resolution=facts.get("policy_resolution"),
             )
             scope = DecisionScope.model_validate(binding["scope"]) if profile else None
+            if scope is not None:
+                self._check_policy_catalogue(scope)
             turn_id = binding.get("decision_turn_id")
 
             def guard(session, callback):
@@ -1175,6 +1184,8 @@ class AgentService:
                 user = self._actor(session, run)
                 self._can_mutate(user, run)
             latest = _with_refund_lookup(self._context(run.case_id, user), run.message)
+            if scope is not None:
+                self._check_policy_catalogue(scope)
             if _context_digest(latest) != context_digest:
                 raise ModelFailure("FACTS_CHANGED_DURING_RUN")
             if _seconds(run.deadline) <= 0:
@@ -1195,9 +1206,18 @@ class AgentService:
             self._finish(run, "FAILED", "RUN_INTERNAL_ERROR", None)
             raise
 
+    def _check_policy_catalogue(self, scope):
+        catalogue = (scope.frozen_context or {}).get("policy_catalogue")
+        if catalogue and digest(self.business.all_policy_versions()) != catalogue.get(
+            "documents_sha256"
+        ):
+            raise ModelFailure("INVESTIGATION_POLICY_CATALOGUE_CHANGED")
+
     def _investigation_context(self, legacy, scope, arm):
         try:
             value = build_input(scope)
+            if value.policy_catalogue_version != CATALOGUE_VERSION:
+                raise InputUnavailable("INVESTIGATION_POLICY_CATALOGUE_REQUIRED")
             route = route_input(value)
             investigation_tools = InvestigationTools(value, policy_search=legacy.search)
         except InputUnavailable as error:
@@ -1232,6 +1252,7 @@ class AgentService:
             ),
             reserve,
             arm,
+            scope.frozen_context if (scope.frozen_context or {}).get("policy_catalogue") else None,
         )
 
     def _finish(self, run, status, reason, output, *, decision_context=None, decision_guard=None):

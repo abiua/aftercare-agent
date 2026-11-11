@@ -16,6 +16,7 @@ from aftercare.decisions.service import DecisionService
 from aftercare.intelligence.decision_candidate import project_candidate
 from aftercare.intelligence.models import ModelRunner
 from aftercare.intelligence.tables import AgentRun, RunEvent
+from aftercare.investigation.catalogue import CATALOGUE_VERSION
 
 run_environment = test_intelligence.environment
 
@@ -249,6 +250,8 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
         ),
         eligibility={"status": "ELIGIBLE"},
         policy_blockers=(),
+        policy_catalogue_version=CATALOGUE_VERSION,
+        policy_context={"products": [{"id": "product", "category": None}]},
         business_versions={},
         intent="damaged",
     )
@@ -386,6 +389,8 @@ def test_p4_refuses_unapproved_data_scope_before_model_transport(system, monkeyp
         evidence=(),
         eligibility={"status": "ELIGIBLE"},
         policy_blockers=(),
+        policy_catalogue_version=CATALOGUE_VERSION,
+        policy_context={"products": [{"id": "product", "category": None}]},
         business_versions={},
         intent="damaged",
     )
@@ -473,6 +478,8 @@ def test_p4_output_is_explicitly_admitted_reserved_and_audits_incomplete(system,
         evidence=(),
         eligibility={"status": "ELIGIBLE"},
         policy_blockers=(),
+        policy_catalogue_version=CATALOGUE_VERSION,
+        policy_context={"products": [{"id": "product", "category": None}]},
         business_versions={},
         intent="damaged",
     )

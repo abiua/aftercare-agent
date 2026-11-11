@@ -195,7 +195,8 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
                 }
             )
         if role == "policy":
-            assert "customer_statements" not in user_view
+            assert user_view["customer_statements"]
+            assert "eligibility" not in user_view
             assert bool(sent["upstream_claims"]) == (arm == "single_staged")
             if not isinstance(messages[-1], ToolMessage):
                 return _call(
@@ -203,7 +204,7 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
                     {
                         "policy_id": policy_id,
                         "version": policy_version,
-                        "product_id": policy.data["selected_for"][0],
+                        "product_id": value.policy_context["products"][0]["id"],
                     },
                 )
             assert policy.data["clause"]["text"] in messages[-1].content
@@ -366,3 +367,109 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         assert rounds[1]["preflight"] == "FIT"
         assert rounds[1]["evidence_count"] == 17
         assert rounds[1]["estimated_with_tools"] < rounds[1]["limit"] == 24_576
+
+
+def test_full_policy_history_is_blindly_searchable_but_never_supports_current_action(configured):
+    from datetime import UTC, datetime
+
+    from aftercare.business.errors import BusinessError
+    from aftercare.business.models import Policy
+    from aftercare.decisions.contracts import Option
+    from aftercare.investigation.catalogue import CATALOGUE_VERSION
+    from aftercare.investigation.routing import route_input
+    from aftercare.investigation.tools import InvestigationTools, ToolRejected
+
+    url, case_id = _link(configured)
+    _evidence(configured.service, case_id)
+    configured.service.settings.chat_investigation_enabled = True
+    decisions = ConversationDecisions(configured.service)
+    expired = datetime(2020, 1, 1, tzinfo=UTC)
+    future = datetime(2090, 1, 1, tzinfo=UTC)
+    with Session(configured.db) as db, db.begin():
+        original = db.get_one(Policy, ("POL01", "1.0")).data
+        old = {
+            **original,
+            "version": "history",
+            "text": "旧版特别条款 HISTORYUNIQUE",
+            "effective_at": expired.isoformat(),
+            "expires_at": datetime(2021, 1, 1, tzinfo=UTC).isoformat(),
+            "product_ids": ["DIFFERENT-PRODUCT"],
+        }
+        later = {
+            **original,
+            "version": "future",
+            "text": "未来特别条款 FUTUREUNIQUE",
+            "effective_at": future.isoformat(),
+        }
+        db.add_all(
+            [
+                Policy(id="POL01", version="history", effective_at=expired, data=old),
+                Policy(id="POL01", version="future", effective_at=future, data=later),
+            ]
+        )
+    with Session(configured.db) as db, db.begin():
+        row = db.get_one(Conversation, url.split("/")[-1])
+        scope = decisions.resolve(db, SUPPORT, row.id, row.analysis_issue_id)
+    value = build_input(scope)
+    assert value.policy_catalogue_version == CATALOGUE_VERSION
+    assert route_input(value).path == "SINGLE"
+    role = value.role_view("policy")
+    assert (
+        "policy_context" in role
+        and "eligibility" not in role
+        and "selected_policy_keys" not in role
+    )
+    assert "selected_for" not in str(role)
+    assert role["policy_context"]["timestamps"]["decision_at"]
+    assert {"POL01:1.0", "POL01:history", "POL01:future"} <= {
+        ref["source_id"] for ref in role["available_evidence"]
+    }
+    tools = InvestigationTools(value)
+    product = role["policy_context"]["products"][0]["id"]
+    historical = tools.call(
+        "policy",
+        "read_policy_clause",
+        {
+            "policy_id": "POL01",
+            "version": "history",
+            "product_id": product,
+        },
+    )
+    assert historical.data["records"][0]["data"]["clause"] == old
+    assert historical.data["applicability"] == "NOT_ASSESSED"
+    with pytest.raises(ToolRejected, match="EVIDENCE_NOT_AVAILABLE"):
+        tools.call(
+            "policy",
+            "read_policy_clause",
+            {"policy_id": "POL01", "version": "history", "product_id": "DIFFERENT-PRODUCT"},
+        )
+    search = tools.call(
+        "policy", "search_applicable_policy", {"query": "HISTORYUNIQUE", "condition_keys": []}
+    )
+    assert search.data["retrieval"]["candidate_scope"] == "FROZEN_RAW_CATALOGUE"
+    assert search.data["retrieval"]["applicability"] == "NOT_ASSESSED"
+    assert search.refs[0].source_id == "POL01:history"
+
+    line = scope.line_ids[0]
+    option = Option(
+        id="invalid-historical",
+        action="REFUND",
+        lines=[{"line_id": line, "amount_cents": 1}],
+        evidence_ids=[line, "POL01:history"],
+        policy_ids=["POL01"],
+        rationale="测试旧版候选不通过。",
+    )
+    with Session(configured.db) as db, db.begin(), pytest.raises(BusinessError) as denied:
+        decisions.validate(db, scope, option)
+    assert denied.value.code == "INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE"
+
+    mixed = option.model_copy(update={"evidence_ids": (line, "POL01:history", "POL01:1.0")})
+    with Session(configured.db) as db, db.begin(), pytest.raises(BusinessError) as denied:
+        decisions.validate(db, scope, mixed)
+    assert denied.value.code == "INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE"
+
+    current = option.model_copy(update={"evidence_ids": (line, "POL01:1.0")})
+    configured.service.clock = lambda: datetime(2091, 1, 1, tzinfo=UTC)
+    with Session(configured.db) as db, db.begin(), pytest.raises(BusinessError) as denied:
+        decisions.validate(db, scope, current)
+    assert denied.value.code == "INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE"

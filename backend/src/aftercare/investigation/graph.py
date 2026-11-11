@@ -14,6 +14,7 @@ from aftercare.business.rules import digest
 from aftercare.decisions.contracts import CandidateOption, NonExecutingOption, Option
 from aftercare.intelligence.models import ModelFailure
 
+from .catalogue import exact_policy_refs_match
 from .orchestration import InvestigationContext, ProtectedAudit, RecheckRequest, run_phase
 from .prompt_evidence import PRIVATE_RECEIPT_EVENT
 
@@ -329,12 +330,23 @@ def _recheck(state, runtime: Runtime[InvestigationContext]):
         },
     )
     refs = [row["source_id"] for row in raw_receipt["refs"]]
-    if any(
-        not set(refs).intersection(row["supporting_refs"] + row["conflicting_refs"])
-        for row in claims
-        if row["id"] in targets
-    ):
-        return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
+    alternatives = {}
+    if request.tool_name == "read_policy_clause" and context.input.policy_catalogue_version:
+        alternatives = {
+            row.ref.source_id: row.data["clause"]["id"]
+            for row in context.input.evidence
+            if row.ref.source_kind == "POLICY"
+        }
+    new_policies = {alternatives[ref] for ref in refs if ref in alternatives}
+    for claim in claims:
+        if claim["id"] not in targets:
+            continue
+        referenced = set(claim["supporting_refs"] + claim["conflicting_refs"])
+        same_policy = new_policies.intersection(
+            alternatives[ref] for ref in referenced if ref in alternatives
+        )
+        if not referenced.intersection(refs) and not same_policy:
+            return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
     affected = affected_claims(claims, targets)
     audit = {
         "target_role": request.target_role,
@@ -427,6 +439,11 @@ def _publish_options(context, result, *, claims=None, verified=False):
             checks[option.id] = "INVESTIGATION_OPTION_SCOPE_INVALID"
             continue
         options.append(option)
+        if context.policy_authority is not None and not exact_policy_refs_match(
+            context.policy_authority, option
+        ):
+            checks[option.id] = "INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE"
+            continue
         try:
             checked = context.validate_draft(
                 action=option.action,
@@ -450,6 +467,8 @@ def _publish_options(context, result, *, claims=None, verified=False):
     )
     if not options:
         return _handoff(context, "INVESTIGATION_RULE_OR_EVIDENCE_BLOCKED")
+    if "INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE" in checks.values():
+        blockers.append("建议引用的政策版本不适用于目标商品。")
     if any(checks.get(option.id) for option in options):
         blockers.append("一项或多项原始方案未通过业务规则校验。")
     eligible = not blockers and any(isinstance(item, Option) for item in options)

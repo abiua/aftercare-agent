@@ -13,10 +13,34 @@ from contextlib import contextmanager
 from pathlib import Path
 from urllib.request import urlopen
 
-from setup_runtime import ROOT
+from setup_runtime import ROOT, private_write
 from verify_fresh_bootstrap import API_CHECK, IMAGES, FreshStack, require
 
 STATE = ROOT / '.runtime/offline-browser-demo.json'
+
+
+def configure_profile(stack, profile):
+    require(profile in {'app', 'test'}, 'INVALID_DEMO_PROFILE')
+    if profile == 'test':
+        from sqlalchemy.engine import make_url
+
+        target = stack.runtime / 'local.json'
+        config = json.loads(target.read_text())
+        values = dict(config['app'])
+        address = make_url(values['database_url'])
+        values['database_url'] = address.set(
+            username='ac_test', database='ac_test', port=55451,
+        ).render_as_string(hide_password=False)
+        values['object_endpoint'] = 'http://127.0.0.1:58351'
+        values['redis_url'] = 'redis://127.0.0.1:56380/0'
+        staged = target.with_suffix('.test-profile')
+        private_write(staged, json.dumps({'test': values}))
+        staged.replace(target)
+        staged = stack.directory / 'pg.test-profile'
+        private_write(staged,
+                      f'POSTGRES_USER=ac_test\nPOSTGRES_PASSWORD={address.password}\nPOSTGRES_DB=ac_test\n')
+        staged.replace(stack.directory / 'pg.env')
+    stack.credentials_path = stack.runtime / f'users-{profile}.json'
 
 
 @contextmanager
@@ -55,7 +79,9 @@ def restore(state):
     stack.run_id = run_id
     stack.directory = directory
     stack.runtime = directory / 'runtime'
-    stack.credentials_path = stack.runtime / 'users-app.json'
+    profile = state.get('profile', 'app')
+    require(profile in {'app', 'test'}, 'INVALID_DEMO_PROFILE')
+    stack.credentials_path = stack.runtime / f'users-{profile}.json'
     stack.log_path = directory / 'diagnostics.log'
     stack.secrets = []
     stack.resources = [tuple(x) for x in resources]
@@ -90,8 +116,11 @@ def status(state):
 
 
 def start(args):
+    profile = getattr(args, 'profile', 'app')
+    require(profile in {'app', 'test'}, 'INVALID_DEMO_PROFILE')
     if STATE.exists():
         state = json.loads(STATE.read_text())
+        require(state.get('profile', 'app') == profile, 'DEMO_PROFILE_CHANGED')
         current = status(state)
         # Never reset a stopped process or overwrite its data based on a stale marker.
         if state['status'] == 'READY' and current['healthy_now']:
@@ -103,8 +132,9 @@ def start(args):
     require(args.port != args.object_port, 'PORTS_MUST_DIFFER')
     directory = Path(tempfile.mkdtemp(prefix='browser-demo-', dir=STATE.parent))
     stack = FreshStack(directory)
+    configure_profile(stack, profile)
     state = {'status': 'STARTING', 'run_id': stack.run_id, 'directory': str(directory),
-             'resources': stack.resources, 'url': f'http://127.0.0.1:{args.port}'}
+             'resources': stack.resources, 'url': f'http://127.0.0.1:{args.port}', 'profile': profile}
     save(state)
     # Journal before Docker writes, including resources whose command outcome is unknown.
     original_docker = stack.docker
@@ -120,7 +150,7 @@ def start(args):
             stack.docker('IMAGE_REQUIRED', 'image', 'inspect', '--format', '{{.Id}}', image)
         config_path = stack.runtime / 'local.json'
         config = json.loads(config_path.read_text())
-        config['app']['object_presign_endpoint'] = f'http://127.0.0.1:{args.object_port}'
+        config[profile]['object_presign_endpoint'] = f'http://127.0.0.1:{args.object_port}'
         config_path.write_text(json.dumps(config))
         # Only the UI proxy and object store have host ingress. Model workers stay internal.
         ingress = stack.create('network', 'ingress')
@@ -128,29 +158,29 @@ def start(args):
         pg_volume = stack.create('volume', 'pg-data')
         object_volume = stack.create('volume', 'objects-data')
         pg = stack.run(IMAGES['pg'], 'pg', network, (
-            '--network-alias', 'pg-app', '--env-file', str(directory / 'pg.env'),
+            '--network-alias', f'pg-{profile}', '--env-file', str(directory / 'pg.env'),
             '--mount', f'type=volume,source={pg_volume},target=/var/lib/postgresql/data'),
-            ('postgres', '-c', 'cluster_name=aftercare-v2-app'))
+            ('postgres', '-c', f'cluster_name=aftercare-v2-{profile}'))
         objects = stack.run(IMAGES['objects'], 'objects', ingress, (
-            '--network-alias', 'objects-app', '-p', f'127.0.0.1:{args.object_port}:8333',
+            '--network-alias', f'objects-{profile}', '-p', f'127.0.0.1:{args.object_port}:8333',
             '--mount', f'type=volume,source={object_volume},target=/data',
             '--mount', f'type=bind,source={directory / "s3.json"},target=/config/s3.json,readonly'),
-            ('server', '-dir=/data', '-ip=objects-app', '-ip.bind=0.0.0.0', '-s3', '-s3.port=8333',
+            ('server', '-dir=/data', f'-ip=objects-{profile}', '-ip.bind=0.0.0.0', '-s3', '-s3.port=8333',
              '-s3.config=/config/s3.json'))
-        stack.docker('OBJECT_INTERNAL_NETWORK', 'network', 'connect', '--alias', 'objects-app', network, objects)
-        redis = stack.run(IMAGES['redis'], 'redis', network, ('--network-alias', 'redis-app', '--tmpfs', '/data'),
+        stack.docker('OBJECT_INTERNAL_NETWORK', 'network', 'connect', '--alias', f'objects-{profile}', network, objects)
+        redis = stack.run(IMAGES['redis'], 'redis', network, ('--network-alias', f'redis-{profile}', '--tmpfs', '/data'),
                           ('redis-server', '--save', '', '--appendonly', 'no'))
         common = ('--user', f'{os.getuid()}:{os.getgid()}', '--env', 'AFTERCARE_CONTAINER=1',
-                  '--env', 'AFTERCARE_PROFILE=app', '--env', 'AFTERCARE_CONTAINER_MODEL_MODE=offline')
+                  '--env', f'AFTERCARE_PROFILE={profile}', '--env', 'AFTERCARE_CONTAINER_MODEL_MODE=offline')
         init = stack.run(args.backend_image, 'init', network, (*common, '--mount',
             f'type=bind,source={stack.runtime},target=/workspace/.runtime', '--entrypoint', 'python'),
             ('-c', 'import time; time.sleep(900)'))
-        stack.wait('PG_READY', 'exec', pg, 'pg_isready', '-h', '127.0.0.1', '-U', 'ac_app', '-d', 'ac_app')
+        stack.wait('PG_READY', 'exec', pg, 'pg_isready', '-h', '127.0.0.1', '-U', f'ac_{profile}', '-d', f'ac_{profile}')
         stack.wait('REDIS_READY', 'exec', redis, 'redis-cli', 'ping', expected='PONG')
         stack.docker('MIGRATE', 'exec', init, 'alembic', 'upgrade', 'head', timeout=90)
-        stack.docker('BOOTSTRAP', 'exec', init, 'python', '-m', 'aftercare.manage', 'bootstrap', '--profile', 'app', timeout=90)
+        stack.docker('BOOTSTRAP', 'exec', init, 'python', '-m', 'aftercare.manage', 'bootstrap', '--profile', profile, timeout=90)
         readonly = (*common, '--mount', f'type=bind,source={stack.runtime},target=/workspace/.runtime,readonly')
-        api = stack.run(args.backend_image, 'api', network, (*readonly, '--network-alias', 'api-app'))
+        api = stack.run(args.backend_image, 'api', network, (*readonly, '--network-alias', f'api-{profile}'))
         stack.wait('API_READY', 'exec', api, 'python', '-c',
                    "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/api/readyz',timeout=4).close()")
         worker = stack.run(args.backend_image, 'worker', network, readonly,
@@ -159,11 +189,12 @@ def start(args):
         stack.run(args.backend_image, 'beat', network, readonly,
             ('celery', '-A', 'aftercare.worker', 'beat', '--loglevel=WARNING', '--schedule=/tmp/demo-beat'))
         front = stack.run(args.frontend_image, 'frontend', ingress,
-            ('-p', f'127.0.0.1:{args.port}:8080', '--env', 'AFTERCARE_UPSTREAM=api-app:8000'))
+            ('-p', f'127.0.0.1:{args.port}:8080', '--env', f'AFTERCARE_UPSTREAM=api-{profile}:8000'))
         stack.docker('FRONTEND_INTERNAL_NETWORK', 'network', 'connect', '--alias', 'frontend', network, front)
         stack.wait('NGINX_READY', 'exec', api, 'python', '-c',
                    "from urllib.request import urlopen; urlopen('http://frontend:8080/api/readyz',timeout=4).close()")
-        auth = stack.json_exec('AUTH', api, API_CHECK.replace('http://127.0.0.1:8000', 'http://frontend:8080'))
+        auth = stack.json_exec('AUTH', api, API_CHECK.replace(
+            'http://127.0.0.1:8000', 'http://frontend:8080').replace('users-app.json', f'users-{profile}.json'))
         require(auth['runtime_mode'] == 'offline' and all(auth['role_auth'].values()), 'OFFLINE_AUTH_REQUIRED')
         require(stack.owned('container', init), 'OWN_INIT_REQUIRED')
         stack.docker('REMOVE_INIT', 'rm', '-f', init)
@@ -187,6 +218,7 @@ def main():
     parser.add_argument('--object-port', type=int, default=58352)
     parser.add_argument('--backend-image', default='aftercare-backend:local')
     parser.add_argument('--frontend-image', default='aftercare-frontend:local')
+    parser.add_argument('--profile', choices=['app', 'test'], default='app')
     args = parser.parse_args()
     require(1024 <= args.port <= 65535 and 1024 <= args.object_port <= 65535, 'INVALID_PORT')
     STATE.parent.mkdir(exist_ok=True)

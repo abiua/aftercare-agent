@@ -46,7 +46,20 @@ class PromptEvidence:
             _failure()
         if "retrieval" in data:
             retrieval = data["retrieval"]
-            data["retrieval"] = {"mode": retrieval["mode"], "proof_sha256": digest(retrieval)}
+            data["retrieval"] = {
+                **{
+                    key: retrieval[key]
+                    for key in (
+                        "mode",
+                        "candidate_scope",
+                        "applicability",
+                        "corpus_sha256",
+                        "hybrid_fallback",
+                    )
+                    if key in retrieval
+                },
+                "proof_sha256": digest(retrieval),
+            }
         if had_records and not separate_records:
             data["records"] = records
         result = {

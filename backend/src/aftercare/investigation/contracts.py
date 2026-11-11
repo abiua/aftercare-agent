@@ -57,12 +57,18 @@ class InvestigationInput(Contract):
     policy_blockers: tuple[str, ...]
     business_versions: dict
     intent: str
+    policy_catalogue_version: str | None = None
+    policy_context: dict = Field(default_factory=dict)
+    selected_policy_keys: tuple[str, ...] = ()
 
     def role_view(self, role: Role) -> dict:
         """The graph should send this projection, never the complete snapshot."""
         result = {"intent": self.intent, "input_digest": self.relevant_input_sha256}
-        if role in {"strong_single", "fact"}:
+        if role in {"strong_single", "fact"} or (
+            role == "policy" and self.policy_catalogue_version
+        ):
             result["customer_statements"] = [msg.model_dump(mode="json") for msg in self.messages]
+        if role in {"strong_single", "fact"}:
             result["attachments"] = self._visible("ATTACHMENT")
             result["unverified_observations"] = self._visible("OBSERVATION")
         if role in {"strong_single", "fact"}:
@@ -70,9 +76,11 @@ class InvestigationInput(Contract):
         elif role == "policy":
             kinds = {"POLICY", "CONDITION"}
         else:
-            kinds = set()
+            kinds = {"POLICY"} if role == "verifier" and self.policy_catalogue_version else set()
         if role == "strong_single":
             kinds |= {"POLICY", "CONDITION"}
+        if role in {"strong_single", "policy", "verifier"} and self.policy_catalogue_version:
+            result["policy_context"] = self.policy_context
         result["available_evidence"] = [
             row.ref.model_dump(mode="json") for row in self.evidence if row.ref.source_kind in kinds
         ]

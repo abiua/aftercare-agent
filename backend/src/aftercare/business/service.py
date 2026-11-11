@@ -465,18 +465,20 @@ class BusinessService:
         with Session(self.engine) as db:
             return self._all_policy_versions(db)
 
-    def _case_policies(self, db: Session, case: Case, order_data: dict) -> tuple[dict, list[dict]]:
+    def _case_policies(
+        self, db: Session, case: Case, order_data: dict, *, policy_documents=None, decision_at=None
+    ) -> tuple[dict, list[dict]]:
         sku_ids = {
             item["product_id"] for item in order_data["items"] if item["line_id"] in case.line_ids
         }
         by_id = {item["id"]: item for item in order_data["products"]}
         products = [by_id.get(sku, {"id": sku}) for sku in sorted(sku_ids)]
         resolution = resolve_policies(
-            self._all_policy_versions(db),
+            self._all_policy_versions(db) if policy_documents is None else policy_documents,
             intent=case.intent,
             products=products,
             timestamps={
-                "decision_at": self.clock(),
+                "decision_at": self.clock() if decision_at is None else decision_at,
                 "case_created_at": utc(case.created_at),
                 "order_created_at": order_data.get("created_at"),
                 "paid_at": order_data.get("paid_at"),
@@ -574,9 +576,13 @@ class BusinessService:
             "policies": policy_snapshot,
         }
 
-    def _context(self, db: Session, case: Case, order: Order) -> dict:
+    def _context(
+        self, db: Session, case: Case, order: Order, *, policy_documents=None, decision_at=None
+    ) -> dict:
         order_data = self._order_json(db, order)
-        resolution, policies = self._case_policies(db, case, order_data)
+        resolution, policies = self._case_policies(
+            db, case, order_data, policy_documents=policy_documents, decision_at=decision_at
+        )
         materials = [_material_json(row) for row in self._materials(db, case)]
         review = self._current_review(db, case)
         ledger = self._ledger(db, order)
@@ -1099,8 +1105,17 @@ class BusinessService:
         lines: list[dict],
         *,
         policy_ids: list[str] | None = None,
+        expected_policy_snapshot: str | None = None,
     ) -> dict:
         context = self._context(db, case, order)
+        if (
+            expected_policy_snapshot is not None
+            and context["versions"]["policies"] != expected_policy_snapshot
+        ):
+            raise BusinessError(
+                "INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE",
+                "调查引用的政策版本与当前适用版本不一致。",
+            )
         assessment = context["eligibility"]
         by_id = {row["line_id"]: row for row in assessment["lines"]}
         if not {row["line_id"] for row in lines} <= by_id.keys():

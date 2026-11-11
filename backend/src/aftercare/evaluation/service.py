@@ -666,6 +666,7 @@ class EvaluationService:
             "eval_supplemental_usage": enabled,
             "eval_scenario_metrics": True,
             "eval_progress_events": enabled,
+            "chat_blind_review": enabled,
         }
 
     def gates(self, user):
