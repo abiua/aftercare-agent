@@ -49,6 +49,7 @@ FINGERPRINT_TABLES = (
 )
 EVALUATION_SCHEMA = r"eval_[0-9a-f]{32}"
 CHAT_TABLES = frozenset({"chat_conversations", "chat_messages", "chat_attachments", "chat_case_links"})
+CHAT_ANALYSIS_TABLES = frozenset({"chat_analysis_turns", "chat_model_attempts", "chat_observations"})
 CHAT_KEY = r"conversations/[A-Za-z0-9_-]{1,36}/[A-Za-z0-9_-]{1,36}/[0-5]-"
 MATERIAL_KEY = r"cases/[A-Za-z0-9_-]{1,36}/(?:ITEM|PARCEL|WRONG_ITEM|LABEL)/"
 ISOLATED_TABLES = frozenset(
@@ -90,6 +91,7 @@ PUBLIC_TABLES = (
     REQUIRED_PUBLIC_TABLES
     | V2_ADDED_PUBLIC_FINGERPRINTS
     | CHAT_TABLES
+    | CHAT_ANALYSIS_TABLES
     | {
         "eval_imports",
         EVALUATION_PROGRESS_TABLE,
@@ -176,6 +178,10 @@ class BackupManifest(PrivateRecord):
         present_chat = {f"public.{table}" for table in CHAT_TABLES} & self.database.keys()
         if present_chat and present_chat != {f"public.{table}" for table in CHAT_TABLES}:
             raise ValueError("Incomplete conversation schema")
+        analysis_keys = {f"public.{table}" for table in CHAT_ANALYSIS_TABLES}
+        present_analysis = analysis_keys & self.database.keys()
+        if present_analysis and (present_analysis != analysis_keys or not present_chat):
+            raise ValueError("Incomplete conversation analysis schema")
         expected_public = {f"public.{table}" for table in REQUIRED_PUBLIC_TABLES}
         if not expected_public <= self.database.keys():
             raise ValueError("Missing database fingerprint")
@@ -345,6 +351,9 @@ def _managed_tables(connection) -> list[tuple[str, str]]:
     present_chat = {table for schema, table in managed if schema == "public"} & CHAT_TABLES
     if present_chat and present_chat != CHAT_TABLES:
         raise BackupError("CHAT_SCHEMA_INCOMPLETE")
+    present_analysis = {table for schema, table in managed if schema == "public"} & CHAT_ANALYSIS_TABLES
+    if present_analysis and (present_analysis != CHAT_ANALYSIS_TABLES or not present_chat):
+        raise BackupError("CHAT_ANALYSIS_SCHEMA_INCOMPLETE")
     if not REQUIRED_PUBLIC_TABLES <= {table for schema, table in managed if schema == "public"}:
         raise BackupError("BACKUP_REQUIRED_TABLES_MISSING")
     return managed

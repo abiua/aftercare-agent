@@ -15,6 +15,7 @@ from aftercare.business.rules import digest, utc
 from aftercare.business.storage import MAX_BYTES, validate_image, verify_object
 from aftercare.intake import _order_resolution, rule_intents
 
+from . import analysis as chat_analysis
 from .tables import Attachment, CaseLink, Conversation, Message
 
 MAX_ATTACHMENTS = 6
@@ -76,6 +77,7 @@ class ConversationService:
     def __init__(self, business):
         self.business = business
         self.engine, self.clock, self.storage = business.engine, business.clock, business.storage
+        self.analysis = chat_analysis.scheduler(self.engine, business.settings, clock=self.clock)
 
     @staticmethod
     def _find(db, ident, user, *, lock=False):
@@ -154,7 +156,10 @@ class ConversationService:
 
     def _response(self, db, row, messages):
         db.flush()
-        return {"conversation": _conversation(row), "messages": self._messages(db, row, messages)}
+        result = {"conversation": _conversation(row), "messages": self._messages(db, row, messages)}
+        if snapshot := chat_analysis.snapshot(self.analysis, db, row):
+            result["analysis"] = snapshot
+        return result
 
     def create(self, user, key):
         _customer(user)
@@ -205,8 +210,7 @@ class ConversationService:
             )
             page = rows[:limit]
             return {
-                "conversation": _conversation(row),
-                "messages": self._messages(db, row, page),
+                **self._response(db, row, page),
                 "has_more": len(rows) > limit,
                 "next_after": page[-1].sequence if page else after,
             }
@@ -273,6 +277,8 @@ class ConversationService:
                     )
             else:
                 self._editable(row)
+                if self.analysis:
+                    chat_analysis.issue(row)
                 message = Message(
                     id=_id(),
                     conversation_id=ident,
@@ -283,6 +289,7 @@ class ConversationService:
                     text=text,
                     cards=[],
                     created_at=self.clock(),
+                    analysis_issue_id=row.analysis_issue_id,
                 )
                 db.add(message)
                 db.flush()
@@ -316,6 +323,14 @@ class ConversationService:
             self._check_message(message, user, signature)
             if message.sequence is None:
                 self._editable(row)
+                if self.analysis and (
+                    message.analysis_issue_id is None
+                    or message.analysis_issue_id != row.analysis_issue_id
+                ):
+                    raise BusinessError(
+                        "MESSAGE_SCOPE_CHANGED",
+                        "上传期间已切换售后事项。若照片属于当前事项，请重新发送。",
+                    )
                 # Cleanup takes the same conversation lock before deleting staged objects.
                 for position, photo in enumerate(photos):
                     object_key = self._object_key(ident, message_id, position, photo.checksum)
@@ -329,8 +344,37 @@ class ConversationService:
                 self._touch(row)
                 if user.role == "support":
                     row.status = "HUMAN_HANDOFF"
+                    chat_analysis.invalidate(self.analysis, db, row)
                 elif row.status == "OPEN":
-                    reply, cards = self._customer_reply(db, row, user, message, bool(photos))
+                    if self.analysis and chat_analysis.wants_handoff(row, message):
+                        row.status = "HUMAN_HANDOFF"
+                        chat_analysis.invalidate(self.analysis, db, row)
+                        reply = "已转客服处理。此前提交的文字和照片会保留。"
+                        cards = [_status("HUMAN_HANDOFF")]
+                    else:
+                        reply, cards = self._customer_reply(db, row, user, message, bool(photos))
+                        if self.analysis:
+                            offers_new_issue = any(card["data"].get("new_issue") for card in cards)
+                            if offers_new_issue:
+                                # This specific request remains unassigned until confirmed.
+                                message.analysis_issue_id = None
+                            defer = (
+                                not any(
+                                    card["data"].get("code", "").startswith("REFUND_")
+                                    or card["data"].get("code")
+                                    in {
+                                        "CORRECTION_NEEDS_SUPPORT",
+                                        "INVALID_REFERENCE",
+                                        "AMBIGUOUS_REFERENCE",
+                                    }
+                                    for card in cards
+                                )
+                                and not offers_new_issue
+                            )
+                            if defer and row.status == "OPEN":
+                                chat_analysis.stage(self.analysis, db, row)
+                            else:
+                                chat_analysis.invalidate(self.analysis, db, row)
                     self._reply(db, row, reply, cards, reply_to=message.id)
             return self.business._remember(
                 db, user, scope, key, signature, self._message_response(db, row, message)
@@ -656,7 +700,13 @@ class ConversationService:
                 order.id,
                 require_match=switching_order,
             )
+            chat_analysis.invalidate(self.analysis, db, row)
             if new_issue:
+                if self.analysis:
+                    start = chat_analysis.confirmed_issue_start(db, row, message, order.id)
+                    chat_analysis.issue(row, reset=True, input_from_seq=start)
+                    if start is not None:
+                        message.analysis_issue_id = row.analysis_issue_id
                 row.active_case_id = None
                 row.require_new_case = True
                 if message is None:
@@ -689,6 +739,8 @@ class ConversationService:
                     "已确认订单。请补充说明需要处理的问题。",
                     [_status("CLARIFICATION_REQUIRED")],
                 )
+            if self.analysis and intent != "refund_status" and row.active_case_id:
+                chat_analysis.stage(self.analysis, db, row)
             text, cards = response
             if claimed or intent == "refund_status":
                 cards.append(_status("ORDER_CONFIRMED", order_id=order.id))
@@ -711,6 +763,7 @@ class ConversationService:
             if row.status != "HUMAN_HANDOFF":
                 row.status = "HUMAN_HANDOFF"
                 self._touch(row)
+                chat_analysis.invalidate(self.analysis, db, row)
                 messages.append(self._reply(db, row, "已转客服处理。", [_status("HUMAN_HANDOFF")]))
             return self.business._remember(
                 db, user, scope, key, signature, self._response(db, row, messages)

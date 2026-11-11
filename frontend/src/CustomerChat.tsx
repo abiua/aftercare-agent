@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Checkbox, Input, Modal, Space, Tag } from 'antd';
 import { ApiError, errorMessage, segment, type Client } from './api';
-import { CHAT_PAGE_SIZE, chatMessageBody, mergeChatMessages, validChatFiles, type ChatAttachment, type ChatCard, type ChatPage, type ChatUpdate, type Conversation, type OrderCandidate } from './chat';
+import { analysisStatus, CHAT_PAGE_SIZE, chatMessageBody, isCurrentEvidenceRequest, mergeChatAnalysis, mergeChatMessages, validChatFiles, type ChatAttachment, type ChatCard, type ChatPage, type ChatUpdate, type Conversation, type OrderCandidate } from './chat';
 import type { Items, User } from './contracts';
 import { useActions, useResource } from './hooks';
 import { Feedback, money, time } from './ui';
@@ -65,7 +65,7 @@ export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCa
 
 function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; id: string; user: User; drafts: Map<string, ComposeDraft>; refreshList: () => void; onCase: (id: string) => void}) {
   const base = `/conversations/${segment(id)}`;
-  const [state, setState] = useState<ChatUpdate>();
+  const [state, setState] = useState<ChatUpdate & {analysisRead: ReturnType<typeof mergeChatAnalysis>}>();
   const [more, setMore] = useState(false);
   const [readError, setReadError] = useState('');
   const [reading, setReading] = useState(false);
@@ -82,15 +82,20 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
   const denied = useRef(false);
   const read = useRef<AbortController | null>(null);
   const cursor = useRef(0);
+  const requestNumber = useRef(0);
   const alive = useRef(false);
   const controls = useActions(api);
-  const merge = useCallback((update: ChatUpdate) => setState((old) => ({
+  const merge = useCallback((update: ChatUpdate, request: number) => setState((old) => ({
     conversation: !old || update.conversation.revision >= old.conversation.revision ? update.conversation : old.conversation,
     messages: mergeChatMessages(old?.messages ?? [], update.messages),
+    analysisRead: mergeChatAnalysis(old?.analysisRead, {
+      revision: update.conversation.revision, request, value: update.analysis,
+    }),
   })), []);
   const load = useCallback(async () => {
     if (read.current) return;
     const controller = new AbortController();
+    const request = ++requestNumber.current;
     read.current = controller;
     setReading(true);
     try {
@@ -98,7 +103,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
       if (controller.signal.aborted) return;
       denied.current = false;
       cursor.current = page.next_after;
-      merge(page);
+      merge(page, request);
       setMore(page.has_more);
       setReadError('');
     } catch (failure) {
@@ -136,6 +141,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
     const message = text;
     if ((!message.trim() && !files.length) || !validChatFiles(files)) return;
     const item = retry && outgoing ? outgoing : {id: crypto.randomUUID(), text: message, files};
+    const request = ++requestNumber.current;
     sendLock.current = true;
     setSending(true);
     save({...draft, outgoing: item, error: ''});
@@ -143,7 +149,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
       const result = await api.post<ChatUpdate>(`${base}/messages`, chatMessageBody(item.id, item.text, item.files), item.id);
       if (drafts.get(id)?.outgoing === item) drafts.delete(id);
       if (!alive.current || denied.current) return;
-      merge(result);
+      merge(result, request);
       setDraft(emptyDraft);
       refreshList();
       void load();
@@ -161,14 +167,19 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
   }
   async function act(path: string, body: object) {
     if (readError || sendLock.current) return false;
+    const request = ++requestNumber.current;
     const result = await controls.submit<ChatUpdate>(`${base}/${path}`, body, {success: '', refresh: () => void load()});
     if (!result || !alive.current || denied.current) return false;
-    merge(result);
+    merge(result, request);
     refreshList();
     return true;
   }
 
   const conversation = state?.conversation;
+  const analysis = state?.analysisRead.value;
+  const statusText = analysisStatus(analysis);
+  const attachments = new Map(state?.messages.flatMap((row) => row.attachments.map((attachment) =>
+    [attachment.id, attachment.filename] as const)));
   const latestOrderPrompt = state?.messages.slice().reverse().find((row) => row.cards.some((card) => card.type === 'order_candidates'))?.sequence;
   const [resolvedPrompt, setResolvedPrompt] = useState(0);
   const hasLinkedCase = state?.messages.some((row) => row.sequence > (latestOrderPrompt ?? 0) && row.cards.some((card) => card.type === 'case_link' || (card.type === 'status' && card.data.code === 'ORDER_CONFIRMED'))) ?? false;
@@ -180,12 +191,19 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
     <Button loading={reading} onClick={() => void load()}>{more ? '加载更多消息' : '刷新消息'}</Button>
   </Space>}>
     <Feedback error={readError || controls.error} />
+    {statusText && <p role="status" className="chat-analysis-status">{statusText}</p>}
     <div className="chat-messages" aria-label="对话消息">
       {state?.messages.map((row) => <article key={row.id} className={`chat-message chat-${row.role}`}>
-        <div className="chat-byline">{row.role === 'customer' ? '客户' : row.role === 'support' ? '客服' : '售后助手（程序回复）'} · {time(row.created_at)}</div>
+        <div className="chat-byline">{row.role === 'customer' ? '客户' : row.role === 'support' ? '客服' : row.cards.some((card) => card.type === 'photo_observation') ? '售后助手（照片观察）' : '售后助手（程序回复）'} · {time(row.created_at)}</div>
         {row.text && <p>{row.text}</p>}
-        {!!row.attachments.length && <div className="chat-photos">{row.attachments.map((attachment) => <ChatPhoto key={attachment.id} api={api} base={base} attachment={attachment} />)}</div>}
+        {!!row.attachments.length && <div className="chat-photos">{row.attachments.map((attachment) =>
+          <div key={attachment.id} id={`chat-photo-${attachment.id}`}><ChatPhoto api={api} base={base} attachment={attachment} /></div>)}</div>}
         {row.cards.map((card, index) => <MessageCard key={index} card={card} onCase={onCase}
+          messageText={row.text}
+          attachments={attachments}
+          offerCannotProvide={card.type === 'evidence_request' && user.role === 'customer' && !blocked &&
+            conversation?.status === 'OPEN' && isCurrentEvidenceRequest(analysis, card.data) &&
+            !text.trim() && !files.length ? () => save({...draft, text: '暂时无法提供', error: ''}) : undefined}
           canSelect={user.role === 'customer' && !blocked && row.sequence === latestOrderPrompt && !hasLinkedCase && row.sequence > resolvedPrompt && !more}
           choose={async (order, lines, newIssue) => {
             const done = await act('context', {order_id: order, line_ids: lines, expected_revision: conversation?.revision, new_issue: newIssue});
@@ -221,8 +239,10 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
   </Card>;
 }
 
-function MessageCard({card, onCase, canSelect, choose, currentOrder, busy}: {
+function MessageCard({card, onCase, messageText, attachments, offerCannotProvide, canSelect, choose, currentOrder, busy}: {
   card: ChatCard; onCase: (id: string) => void; canSelect: boolean;
+  messageText: string; offerCannotProvide?: () => void;
+  attachments: Map<string, string>;
   choose: (order: string, lines: string[], newIssue: boolean) => Promise<boolean>;
   currentOrder?: string | null; busy: boolean;
 }) {
@@ -232,6 +252,24 @@ function MessageCard({card, onCase, canSelect, choose, currentOrder, busy}: {
   if (card.type === 'status') {
     return card.data.refunds?.length ? <ul className="chat-refunds">{card.data.refunds.map((row) =>
       <li key={row.id}>{money(row.amount_cents)} · {refundLabel(row.status, row.receipt_confirmed)}<br />退款执行编号 {row.id}</li>)}</ul> : null;
+  }
+  if (card.type === 'photo_observation') {
+    return <div className="chat-observation">
+      <strong>照片观察 · {card.data.certainty === 'OBSERVED' ? '仍需核对' : '暂不能确定'}</strong>
+      <p>{card.data.summary}</p>
+      <Space wrap>{card.data.attachment_refs.flatMap((id) => {
+        const filename = attachments.get(id);
+        return filename ? [<a key={id} href={`#chat-photo-${segment(id)}`}>参照照片 · {filename}</a>] : [];
+      })}</Space>
+    </div>;
+  }
+  if (card.type === 'evidence_request') {
+    return <div className="chat-observation">
+      {messageText !== card.data.prompt && <p>{card.data.prompt}</p>}
+      {!!card.data.alternatives.length && <p className="muted">可以选择：{card.data.alternatives.join('、')}</p>}
+      {offerCannotProvide && card.data.alternatives.includes('暂时无法提供') &&
+        <Button disabled={busy} onClick={offerCannotProvide}>暂时无法提供</Button>}
+    </div>;
   }
   if (card.type !== 'order_candidates') return null;
   return <div className="chat-orders">{card.data.orders.map((order) => <OrderChoice key={order.id} order={order} disabled={!canSelect || busy}

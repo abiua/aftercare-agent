@@ -1,17 +1,20 @@
 """Only explicitly configured local aftercare clusters are migration targets."""
 import os
+
 from alembic import context
 from sqlalchemy import text
+
+import aftercare.business.models
+import aftercare.conversation_analysis.tables
+import aftercare.conversations.tables
+import aftercare.dispatch
+import aftercare.evaluation.tables
+import aftercare.intake_audit
+import aftercare.intelligence.model_limits
+import aftercare.intelligence.policies
+import aftercare.intelligence.tables  # noqa: F401
 from aftercare.config import load_settings
 from aftercare.db import Base, guarded_engine
-import aftercare.business.models  # noqa: F401
-import aftercare.conversations.tables  # noqa: F401
-import aftercare.intelligence.tables  # noqa: F401
-import aftercare.intelligence.policies  # noqa: F401
-import aftercare.evaluation.tables  # noqa: F401
-import aftercare.dispatch  # noqa: F401
-import aftercare.intelligence.model_limits  # noqa: F401
-import aftercare.intake_audit  # noqa: F401
 
 if context.is_offline_mode():
     raise RuntimeError('Offline migration disabled: target identity must be verified')

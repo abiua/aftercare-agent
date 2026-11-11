@@ -4,6 +4,7 @@ import json
 import os
 import re
 from collections.abc import Callable
+from contextvars import Context
 from copy import copy
 from dataclasses import dataclass
 from datetime import date
@@ -13,7 +14,14 @@ from time import monotonic
 from typing import Literal
 
 from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    model_serializer,
+    model_validator,
+)
 
 from aftercare.business.rules import digest
 from aftercare.intelligence.model_limits import ProviderLimitError
@@ -23,6 +31,9 @@ MAX_ATTEMPTS = 12
 MAX_LOGICAL_ATTEMPTS = 3
 TRANSPORT_EVIDENCE_VERSION = "ac-attempt-transport-v1"
 CACHE_WRITE_MODELS = {"gpt-6.1-sol", "gpt-6.1-terra"}
+VISION_INPUT_PREFIX = "data:image/jpeg;base64,"
+MAX_VISION_IMAGES = 6
+MAX_VISION_DATA_URL = 256 * 1024 + len(VISION_INPUT_PREFIX)
 SAFE_VALIDATION_FIELDS = {
     "intent",
     "notes",
@@ -36,6 +47,11 @@ SAFE_VALIDATION_FIELDS = {
     "version",
     "quote",
     "conflicts",
+    "photos",
+    "image_index",
+    "candidate_kind",
+    "uncertainty",
+    "findings",
 }
 
 
@@ -72,6 +88,24 @@ class ModelSpec(BaseModel):
     cache_write_usd_per_million: Decimal | None = Field(default=None, ge=0)
     cache_write_ttl: Literal["30m", "12h"] | None = None
 
+    vision: bool = False
+    vision_checked_at: date | None = None
+    vision_compatibility_version: str | None = None
+    vision_input_tokens_per_image: int | None = Field(default=None, strict=True, gt=0)
+
+    @model_serializer(mode="wrap")
+    def preserve_legacy_digest(self, handler):
+        data = handler(self)
+        if not self.vision:
+            for key in (
+                "vision",
+                "vision_checked_at",
+                "vision_compatibility_version",
+                "vision_input_tokens_per_image",
+            ):
+                data.pop(key, None)
+        return data
+
     @model_validator(mode="after")
     def validate_metadata(self):
         if self.compatibility == "VERIFIED" and not (
@@ -105,6 +139,17 @@ class ModelSpec(BaseModel):
             raise ValueError("A model cannot be its own fallback")
         if self.cache_write_ttl == "12h" and self.interface != "responses":
             raise ValueError("12-hour caching requires Responses API")
+        vision_fields = (
+            self.vision_checked_at,
+            self.vision_compatibility_version,
+            self.vision_input_tokens_per_image,
+        )
+        if self.vision and not (all(vision_fields) and self.compatibility == "VERIFIED"):
+            raise ValueError(
+                "Vision requires dated transport evidence and a per-image token upper bound"
+            )
+        if not self.vision and any(value is not None for value in vision_fields):
+            raise ValueError("Vision metadata requires vision to be enabled")
         return self
 
 
@@ -154,6 +199,10 @@ class TaskSpec:
     structured: bool = True
     data_scope: str = "simulated_case"
     streaming: bool = False
+    image_count: int = 0
+
+    def input_tokens(self, model: ModelSpec) -> int:
+        return self.prompt_tokens + self.image_count * (model.vision_input_tokens_per_image or 0)
 
 
 class ModelFailure(Exception):
@@ -203,6 +252,14 @@ def eligible_models(registry: Registry, task: TaskSpec) -> tuple[list[ModelSpec]
             reason = "PROVIDER_LIMIT_UNCONFIGURED"
         elif task.data_scope not in spec.data_scopes:
             reason = "DATA_SCOPE_RESTRICTED"
+        elif task.image_count and not spec.vision:
+            reason = "VISION_UNSUPPORTED"
+        elif (
+            task.image_count
+            and task.data_scope == "customer_attachment"
+            and spec.cache_write_ttl == "12h"
+        ):
+            reason = "VISION_RETENTION_RESTRICTED"
         elif task.tools and not spec.tool_calls:
             reason = "TOOLS_UNSUPPORTED"
         elif task.streaming and (not spec.streaming or (task.tools and not spec.streaming_tools)):
@@ -211,7 +268,7 @@ def eligible_models(registry: Registry, task: TaskSpec) -> tuple[list[ModelSpec]
             reason = "OUTPUT_UNSUPPORTED"
         elif spec.output_tokens < task.output_reserve:
             reason = "OUTPUT_LIMIT"
-        elif spec.context_tokens < task.prompt_tokens + task.output_reserve:
+        elif spec.context_tokens < task.input_tokens(spec) + task.output_reserve:
             reason = "CONTEXT_LIMIT"
         elif (registry.max_usd is not None or registry.max_run_usd is not None) and (
             spec.input_usd_per_million is None or spec.output_usd_per_million is None
@@ -262,6 +319,27 @@ def _transport(
     timeout: float,
     output: int,
 ) -> AIMessage:
+    if any(
+        isinstance(block, dict) and block.get("type") == "image_url"
+        for message in messages
+        if isinstance(message.content, list)
+        for block in message.content
+    ):
+        # invoke() configures inherited and global LangChain callbacks. The low-level
+        # provider generation path takes no callback manager and runs in a clean context.
+        from langsmith import tracing_context
+
+        def generate_private():
+            with tracing_context(enabled=False, parent=False):
+                client = _client(spec, [], timeout, output)
+                generation = client._generate(messages, run_manager=None).generations[0]
+                message = generation.message
+                for key in ("finish_reason", "status"):
+                    if key in (generation.generation_info or {}):
+                        message.response_metadata.setdefault(key, generation.generation_info[key])
+                return message
+
+        return Context().run(generate_private)
     return _client(spec, tools, timeout, output).invoke(messages)
 
 
@@ -372,6 +450,39 @@ def _content(response: AIMessage) -> str:
     )
 
 
+def _estimate_input(messages, tools, *, vision):
+    payload = []
+    images = 0
+    for message in messages:
+        row = message.model_dump(mode="json")
+        if isinstance(row["content"], list):
+            for block in row["content"]:
+                if not isinstance(block, dict) or block.get("type") not in {
+                    "image_url",
+                    "image",
+                    "input_image",
+                }:
+                    continue
+                value = block.get("image_url")
+                url = value.get("url") if isinstance(value, dict) else None
+                if (
+                    not vision
+                    or block["type"] != "image_url"
+                    or not isinstance(url, str)
+                    or not url.startswith(VISION_INPUT_PREFIX)
+                    or len(url) > MAX_VISION_DATA_URL
+                    or value.get("detail") != "low"
+                ):
+                    raise ModelFailure("VISION_INPUT_UNSUPPORTED")
+                images += 1
+                value["url"] = VISION_INPUT_PREFIX
+        payload.append(row)
+    if vision and not 1 <= images <= MAX_VISION_IMAGES:
+        raise ModelFailure("VISION_INPUT_LIMIT")
+    serialized = json.dumps(payload + tools, ensure_ascii=False)
+    return len(serialized.encode()) + 256, images
+
+
 class ModelRunner:
     def __init__(
         self,
@@ -427,17 +538,26 @@ class ModelRunner:
         tools: list[dict],
         validate: Callable,
         fixed: bool,
+        vision: bool = False,
+        data_scope: str = "simulated_case",
     ) -> dict:
         registry = self.registry
-        serialized = json.dumps(
-            [m.model_dump(mode="json") for m in messages] + tools,
-            ensure_ascii=False,
-        )
+        if vision and not any(
+            value is not None and value > 0 for value in (registry.max_usd, registry.max_run_usd)
+        ):
+            raise ModelFailure("VISION_BUDGET_REQUIRED")
+        if vision and (
+            not fixed or tools or any(isinstance(message, ToolMessage) for message in messages)
+        ):
+            raise ModelFailure("VISION_INPUT_UNSUPPORTED")
+        prompt_tokens, images = _estimate_input(messages, tools, vision=vision)
         task = TaskSpec(
             preferred,
-            len(serialized.encode()) + 256,
+            prompt_tokens,
             tools=bool(tools) or any(isinstance(message, ToolMessage) for message in messages),
-            streaming=registry.native_streaming,
+            streaming=registry.native_streaming and not vision,
+            data_scope=data_scope,
+            image_count=images,
         )
         candidates, excluded = eligible_models(registry, task)
         cooldown = audit.cooldown_aliases(registry.cooldown_seconds)
@@ -496,10 +616,11 @@ class ModelRunner:
         transcript = list(messages)
         code = "MODEL_FAILED"
         ordinal = 0
-        while ordinal < MAX_LOGICAL_ATTEMPTS:
+        attempt_limit = 1 if vision else MAX_LOGICAL_ATTEMPTS
+        while ordinal < attempt_limit:
             reserve = _reserve_price(
                 selected,
-                task.prompt_tokens + (256 if transcript != messages else 0),
+                task.input_tokens(selected) + (256 if transcript != messages else 0),
                 task.output_reserve,
             )
             try:
@@ -567,6 +688,8 @@ class ModelRunner:
                 usage = response.usage_metadata
                 if usage:
                     price = _estimated_price(selected, usage)
+                if vision and price is not None and reserve is not None and price > reserve:
+                    raise ModelFailure("VISION_ESTIMATE_EXCEEDED")
                 if response.response_metadata.get("status") in {
                     "incomplete",
                     "failed",
@@ -597,7 +720,7 @@ class ModelRunner:
                 audit.event("model_validation", {**draft, "errors": fields})
                 if native_streaming:
                     audit.close_draft("model_draft_discarded", {**draft, "reason": code})
-                if not repaired and ordinal < MAX_LOGICAL_ATTEMPTS:
+                if not repaired and ordinal < attempt_limit:
                     repaired = True
                     from langchain_core.messages import HumanMessage
 
@@ -638,7 +761,12 @@ class ModelRunner:
                     audit.close_draft("model_draft_discarded", {**draft, "reason": code})
                 if not retryable:
                     break
-                if code != "MODEL_RATE_LIMIT" and not technical_retry and not uncertain:
+                if (
+                    code != "MODEL_RATE_LIMIT"
+                    and not technical_retry
+                    and not uncertain
+                    and ordinal < attempt_limit
+                ):
                     technical_retry = True
                     continue
             else:
@@ -674,7 +802,7 @@ class ModelRunner:
                     uncertain=uncertain,
                     cooldown_seconds=registry.cooldown_seconds if code == "MODEL_RATE_LIMIT" else 0,
                 )
-            if not switched and fallback is not None and ordinal < MAX_LOGICAL_ATTEMPTS:
+            if not switched and fallback is not None and ordinal < attempt_limit:
                 switched = True
                 audit.event(
                     "model_switch",

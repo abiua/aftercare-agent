@@ -257,6 +257,7 @@ export const test = base.extend({
       state.chatMessages.push(row);
       return row;
     }
+    state.appendChatMessage = message;
     const unexpected = [];
     await context.route('**/*', async (route) => {
       const request = route.request();
@@ -292,7 +293,7 @@ export const test = base.extend({
           state.chatDetails.push(after);
           const messages = state.chatMessages.filter((row) => row.sequence > after).slice(0, limit);
           const next_after = messages.at(-1)?.sequence ?? after;
-          return json(route, {conversation, messages, next_after, has_more: next_after < state.chatMessages.length});
+          return json(route, {conversation, messages, next_after, has_more: next_after < state.chatMessages.length, analysis: state.chatAnalysis});
         }
         if (path === `${chatPath}/messages` && method === 'POST' && state.chatCreated) {
           const raw = request.postDataBuffer().toString('utf8');
@@ -308,13 +309,19 @@ export const test = base.extend({
             const messages = [message(role, text, attachments)];
             conversation.revision += 1;
             if (role === 'support') conversation.status = 'HUMAN_HANDOFF';
+            else if (state.chatAnalysis && text === '暂时无法提供') {
+              conversation.status = 'HUMAN_HANDOFF';
+              state.chatAnalysis = {...state.chatAnalysis, state: 'HUMAN_HANDOFF',
+                generation: state.chatAnalysis.generation + 1, state_version: 0, pending_uploads: 0};
+              messages.push(message('assistant', '此前提交的文字和照片会保留。'));
+            }
             else if (attachments.length) messages.push(message('assistant', '已收到照片。'));
             else messages.push(message('assistant', '请先确认要处理的订单。', [],
               [{type: 'order_candidates', data: {orders, new_issue: !!conversation.active_order_id}}]));
             replies.set(id, messages);
           }
           if (state.chatAbortFirst && state.chatPosts.length === 1) return route.abort();
-          return json(route, {conversation, messages: replies.get(id)}, 201);
+          return json(route, {conversation, messages: replies.get(id), analysis: state.chatAnalysis}, 201);
         }
         if (path === `${chatPath}/context` && method === 'POST' && role === 'customer') {
           state.chatContext.push(body);

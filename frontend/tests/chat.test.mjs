@@ -22,3 +22,21 @@ test('message retries encode identical identifiers and ordered files without int
   assert.equal(validChatFiles([new File([], 'empty.png')]), false);
   assert.equal(validChatFiles([{size: 8 * 1024 * 1024}, files[0]]), false);
 });
+
+test('a late response cannot revert analysis or revive an earlier request', async () => {
+  const {analysisStatus, isCurrentEvidenceRequest, mergeChatAnalysis} = await import('../src/chat.ts');
+  const base = {issue_id: 'old', generation: 3, state_version: 1, state: 'WAITING_UPLOADS', pending_uploads: 2};
+  const old = {revision: 5, request: 1, value: base};
+  const newer = {revision: 5, request: 2, value: {...base, state: 'COLLECTING', pending_uploads: 0}};
+  assert.equal(mergeChatAnalysis(old, newer), newer);
+  assert.equal(mergeChatAnalysis(newer, old), newer);
+  const terminal = {revision: 5, request: 1, value: {...base, state: 'WAITING_CUSTOMER', state_version: 3}};
+  assert.equal(mergeChatAnalysis(newer, terminal), terminal);
+  assert.equal(isCurrentEvidenceRequest(terminal.value, base), true);
+  const next = {revision: 6, request: 3, value: {...base, issue_id: 'new', generation: 4, state_version: 0}};
+  assert.equal(mergeChatAnalysis(next, terminal), next);
+  assert.equal(isCurrentEvidenceRequest(next.value, base), false);
+  assert.equal(analysisStatus({...base, pending_uploads: 0}), '正在整理已收到的消息。');
+  assert.equal(analysisStatus(base), '正在接收照片。');
+  assert.equal(analysisStatus(undefined), '');
+});

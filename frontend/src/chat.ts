@@ -10,13 +10,50 @@ export type OrderCandidate = Pick<Order, 'id' | 'items' | 'status' | 'version'> 
 export type ChatCard =
   | {type: 'order_candidates'; data: {orders: OrderCandidate[]; new_issue: boolean}}
   | {type: 'case_link'; data: {case_id: string; order_id: string}}
-  | {type: 'status'; data: {code: string; refunds?: {id: string; status: string; amount_cents: number; receipt_confirmed?: boolean}[]}};
+  | {type: 'status'; data: {code: string; refunds?: {id: string; status: string; amount_cents: number; receipt_confirmed?: boolean}[]}}
+  | {type: 'photo_observation'; data: ChatAnalysisKey & {attachment_refs: string[]; summary: string; certainty: 'OBSERVED' | 'UNCERTAIN' | 'CONTRADICTED'}}
+  | {type: 'evidence_request'; data: ChatAnalysisKey & {request_id: string; prompt: string; alternatives: string[]}};
+type ChatAnalysisKey = {issue_id: string; generation: number};
+export type ChatAnalysis = ChatAnalysisKey & {
+  state_version: number;
+  state: 'COLLECTING' | 'WAITING_UPLOADS' | 'CHECKING_PHOTOS' | 'WAITING_CUSTOMER' | 'HUMAN_HANDOFF' | 'COMPLETE' | 'UNAVAILABLE';
+  input_through_seq: number; pending_uploads: number; wait_until: string | null;
+};
 export type ChatMessage = {id: string; conversation_id: string; sequence: number; role: 'customer' | 'support' | 'assistant';
   text: string; created_at: string; attachments: ChatAttachment[]; cards: ChatCard[]};
-export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]};
+export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; analysis?: ChatAnalysis};
 export type ChatPage = ChatUpdate & {has_more: boolean; next_after: number};
 
 export const CHAT_PAGE_SIZE = 50;
+
+type AnalysisRead = {revision: number; request: number; value?: ChatAnalysis};
+export function mergeChatAnalysis(previous: AnalysisRead | undefined, incoming: AnalysisRead): AnalysisRead {
+  if (!previous || incoming.revision > previous.revision) return incoming;
+  if (incoming.revision < previous.revision) return previous;
+  if (!incoming.value) return previous.value ? previous : incoming;
+  if (!previous.value) return incoming;
+  const order = incoming.value.generation - previous.value.generation ||
+    incoming.value.state_version - previous.value.state_version || incoming.request - previous.request;
+  return order >= 0 ? incoming : previous;
+}
+
+export function isCurrentEvidenceRequest(analysis: ChatAnalysis | undefined, card: ChatAnalysisKey) {
+  return analysis?.state === 'WAITING_CUSTOMER' && analysis.issue_id === card.issue_id &&
+    analysis.generation === card.generation;
+}
+
+export function analysisStatus(analysis: ChatAnalysis | undefined) {
+  switch (analysis?.state) {
+    case 'COLLECTING': return '正在整理已收到的消息。你可以继续补充。';
+    case 'WAITING_UPLOADS': return analysis.pending_uploads > 0 ? '正在接收照片。' : '正在整理已收到的消息。';
+    case 'CHECKING_PHOTOS': return '正在检查已收到的信息。';
+    case 'WAITING_CUSTOMER': return '等待补充信息。';
+    case 'HUMAN_HANDOFF': return '已转客服处理。';
+    case 'UNAVAILABLE': return '当前无法自动检查。你可以转客服处理。';
+    default: return '';
+  }
+}
+
 export function mergeChatMessages(current: ChatMessage[], incoming: ChatMessage[]) {
   const merged = new Map(current.map((row) => [row.sequence, row]));
   for (const row of incoming) merged.set(row.sequence, row);

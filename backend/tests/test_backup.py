@@ -578,3 +578,29 @@ def test_legacy_fingerprint_rejects_archive_containing_chat():
     conn = SimpleNamespace(execute=lambda *args: SimpleNamespace(scalar_one=lambda: True))
     with pytest.raises(backup.BackupError, match="LEGACY_BACKUP_CONTAINS_CHAT"):
         backup._fingerprints(conn, format=backup.V1_FORMAT)
+
+
+def test_chat_analysis_tables_are_an_optional_complete_backup_bundle(package):
+    _, manifest, _ = package
+    previous = manifest.model_dump()
+    for table in backup.CHAT_ANALYSIS_TABLES:
+        previous["database"].pop(f"public.{table}", None)
+    assert backup.BackupManifest.model_validate(previous)
+
+    current = manifest.model_dump()
+    for table in backup.CHAT_ANALYSIS_TABLES:
+        current["database"][f"public.{table}"] = {"rows": 0, "sha256": "a" * 64}
+    assert backup.BackupManifest.model_validate(current)
+    current["database"].pop("public.chat_observations")
+    with pytest.raises(ValueError, match="Incomplete conversation analysis schema"):
+        backup.BackupManifest.model_validate(current)
+
+    catalog = [
+        ("public", table)
+        for table in backup.REQUIRED_PUBLIC_TABLES | backup.CHAT_TABLES | backup.CHAT_ANALYSIS_TABLES
+    ]
+    managed = backup._managed_tables(SimpleNamespace(execute=lambda *args: catalog))
+    assert {("public", table) for table in backup.CHAT_ANALYSIS_TABLES} <= set(managed)
+    catalog.remove(("public", "chat_observations"))
+    with pytest.raises(backup.BackupError, match="CHAT_ANALYSIS_SCHEMA_INCOMPLETE"):
+        backup._managed_tables(SimpleNamespace(execute=lambda *args: catalog))

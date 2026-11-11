@@ -39,6 +39,40 @@ def make_queue(profile):
         from aftercare.queue_delivery import process_target
         process_target(profile, 'evaluation', experiment_id, job_id)
 
+    if getattr(settings, "chat_analysis_enabled", False):
+        app.conf.beat_schedule["scan-chat-analysis"] = {
+            "task": "aftercare.chat_analysis_sweep", "schedule": 2.0,
+        }
+
+    @app.task(name="aftercare.chat_analysis", shared=False)
+    def analyze_chat(turn_id):
+        from aftercare.conversations.analysis import process
+        from aftercare.conversations.service import ConversationService
+        from aftercare.runtime import open_runtime
+
+        if not getattr(settings, "chat_analysis_enabled", False):
+            return
+        with open_runtime(profile) as (current, _, business, agent):
+            if current.chat_analysis_enabled:
+                process(ConversationService(business), turn_id, current, agent.model)
+
+    @app.task(name="aftercare.chat_analysis_sweep", shared=False)
+    def sweep_chat():
+        from aftercare.conversations.analysis import scheduler
+        from aftercare.db import guarded_engine
+
+        current = load_settings(profile)
+        if not current.chat_analysis_enabled:
+            return
+        engine = guarded_engine(current)
+        try:
+            analysis = scheduler(engine, current)
+            analysis.expire_stale_attempts()
+            for turn_id in analysis.due():
+                app.send_task("aftercare.chat_analysis", args=[turn_id])
+        finally:
+            engine.dispose()
+
     @app.task(name="aftercare.recover", shared=False)
     def recover():
         from sqlalchemy import select

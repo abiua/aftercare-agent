@@ -21,6 +21,9 @@ class Conversation(Base):
     line_ids: Mapped[list] = mapped_column(JSON)
     input_floor: Mapped[int] = mapped_column(Integer)
     require_new_case: Mapped[bool] = mapped_column(Boolean)
+    analysis_issue_id: Mapped[str | None] = mapped_column(String(36))
+    analysis_from_seq: Mapped[int | None] = mapped_column(Integer)
+    analysis_requests: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
@@ -39,6 +42,7 @@ class Message(Base):
     actor_id: Mapped[str | None] = mapped_column(String(128))
     sequence: Mapped[int | None] = mapped_column(Integer)
     discarded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    analysis_issue_id: Mapped[str | None] = mapped_column(String(36))
     role: Mapped[str] = mapped_column(String(12))
     text: Mapped[str] = mapped_column(Text)
     cards: Mapped[list] = mapped_column(JSON)
