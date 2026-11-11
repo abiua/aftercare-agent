@@ -7,6 +7,20 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from aftercare.business.contracts import MaterialReviewObservation, ReviewReference
 
 HUMAN_MATERIAL_PROJECTION_V1 = "human-material-observations-v1"
+
+ORDER_PAYMENT_REF = "recorded-order-payment"
+
+
+def recorded_order_payment(order):
+    """Whitelist the raw order record without asserting a payment policy conclusion."""
+    return {
+        "order_id": order["id"],
+        "order_version": order["version"],
+        "payment_status": order.get("payment_status"),
+        "paid_at": order.get("paid_at"),
+    }
+
+
 Sha = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 
 

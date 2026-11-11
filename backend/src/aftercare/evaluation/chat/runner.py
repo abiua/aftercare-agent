@@ -43,6 +43,7 @@ from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
 from aftercare.investigation.input import build_input
 from aftercare.investigation.issue_budget import IssueBudget
 from aftercare.investigation.prompt_evidence import PROMPT_VERSION
+from aftercare.investigation.protocol import LEGACY_V6, protocol_for_scope
 from aftercare.investigation.routing import route_input
 from aftercare.investigation.tools import InvestigationTools
 
@@ -155,7 +156,7 @@ def _freeze_case(case):
         )
         images = _images(db, business.storage, scope)
         materials = _material_images(db, business.storage)
-    value = build_input(scope)
+    value = _protocol_input(scope)
     if value.policy_catalogue_version != CATALOGUE_VERSION:
         raise ValueError("CHAT_EVAL_COMPLETE_CATALOGUE_REQUIRED")
     # Physical object keys, run IDs and runtime timestamps never enter this record.
@@ -333,15 +334,26 @@ def _candidate_bound(snapshot, run, source, expected):
     return bound, any(isinstance(option, Option) for option in candidate.options)
 
 
+def _protocol_input(scope):
+    return build_input(scope, evidence_projection=protocol_for_scope(scope).evidence_projection)
+
+
 def _route_evidence(row, source, events, attempts, *, has_candidate, executable):
     routes = [event.payload for event in events if event.kind == "investigation_route"]
     phases = [event.payload for event in events if event.kind == "investigation_input"]
     if not routes:
         return None, phases, not (attempts or phases or has_candidate)
     path = routes[0].get("selected_path")
-    planned = route_input(build_input(source.scope)).path
+    protocol = protocol_for_scope(source.scope)
+    planned = route_input(_protocol_input(source.scope)).path
     expected = "PROGRAM" if planned == "PROGRAM" else _PATHS[row["arm"]]
     if len(routes) != 1 or path != expected or routes[0].get("arm") != row["arm"]:
+        return path, phases, False
+    if (
+        routes[0].get("evidence_projection") != protocol.evidence_projection
+        or routes[0].get("prompt_version")
+        != (protocol.prompt_version if protocol.evidence_projection else None)
+    ):
         return path, phases, False
     if path == "PROGRAM":
         return path, phases, not (phases or attempts or executable)
@@ -350,7 +362,7 @@ def _route_evidence(row, source, events, attempts, *, has_candidate, executable)
     if path == "MULTI" and phase_roles.get("recheck") in {"fact", "policy"}:
         allowed["recheck"] = phase_roles["recheck"]
     initial = set(_PHASES[path]) - {"verify-1"}
-    prefixes = {f"p4:{PROMPT_VERSION}:{phase}" for phase in phase_roles}
+    prefixes = {f"p4:{protocol.prompt_version}:{phase}" for phase in phase_roles}
     succeeded = {
         item["logical_id"].rsplit(":", 1)[0] for item in attempts if item["status"] == "SUCCEEDED"
     }
@@ -360,16 +372,20 @@ def _route_evidence(row, source, events, attempts, *, has_candidate, executable)
         and all(
             allowed.get(phase) == role and phase in allowed for phase, role in phase_roles.items()
         )
-        and all(phase.get("prompt_version") == PROMPT_VERSION for phase in phases)
+        and all(phase.get("prompt_version") == protocol.prompt_version for phase in phases)
         and all(item["logical_id"].rsplit(":", 1)[0] in prefixes for item in attempts)
         and (not has_candidate or bool(phases))
-        and (not executable or {f"p4:{PROMPT_VERSION}:{phase}" for phase in required} <= succeeded)
+        and (
+            not executable
+            or {f"p4:{protocol.prompt_version}:{phase}" for phase in required} <= succeeded
+        )
         and ("verify-1" not in phase_roles or "recheck" in phase_roles)
     )
     return path, phases, valid
 
 
 def _audit(engine, storage, row, source, controls):
+    protocol = protocol_for_scope(source.scope)
     with Session(engine) as db:
         mutation = db.get(
             RunMutation, (source.scope.case_id, source.definition.actor.user_id, row["id"])
@@ -406,7 +422,10 @@ def _audit(engine, storage, row, source, controls):
             and binding.get("scope") == expected
             and binding.get("investigation_arm") == row["arm"]
             and binding.get("graph_profile") == CHAT_GRAPH_PROFILE
-            and binding.get("investigation_prompt_version") == PROMPT_VERSION
+            and binding.get("investigation_prompt_version") == protocol.prompt_version
+            and binding.get("investigation_evidence_projection") == protocol.evidence_projection
+            and controls["prompt"] == protocol.prompt_version
+            and controls.get("evidence_projection") == protocol.evidence_projection
             and binding.get("investigation_policy_catalogue_version") == CATALOGUE_VERSION
             and len(snapshots) <= 1
             and (snapshot is None or bound)
@@ -640,6 +659,16 @@ class ChatEvaluationRunner:
             if len(set(keys)) != len(keys):
                 raise ValueError("CHAT_EVAL_DUPLICATE_OR_EMPTY_CASES")
             sources = {(case.repetition, case.case_id): backend.freeze(case) for case in cases}
+            protocols = {protocol_for_scope(source.scope) for source in sources.values()}
+            if len(protocols) > 1:
+                raise ValueError("CHAT_EVAL_PROTOCOL_MISMATCH")
+            protocol = next(iter(protocols), LEGACY_V6)
+            if self._paid_scope is not None and protocol != LEGACY_V6:
+                raise ValueError("CHAT_EVAL_PAID_PROTOCOL_NOT_ADMITTED")
+            self.controls["prompt"] = protocol.prompt_version
+            self.controls.pop("evidence_projection", None)
+            if protocol.evidence_projection is not None:
+                self.controls["evidence_projection"] = protocol.evidence_projection
             records = [sources[(case.repetition, case.case_id)].record for case in cases]
             if len({digest(record["issue_budget"]) for record in records}) > 1:
                 raise ValueError("CHAT_EVAL_ISSUE_BUDGET_MISMATCH")
@@ -661,7 +690,7 @@ class ChatEvaluationRunner:
                         item["function"]["name"]
                         for role in ("strong_single", "fact", "policy", "verifier")
                         for item in InvestigationTools(
-                            build_input(next(iter(sources.values())).scope)
+                            _protocol_input(next(iter(sources.values())).scope)
                         ).schemas(role)
                     }
                 )

@@ -16,7 +16,13 @@ from .contracts import (
     InvestigationInput,
     account_order_ownership,
 )
-from .material_observations import HUMAN_MATERIAL_PROJECTION_V1, validate_review_observations
+from .material_observations import (
+    HUMAN_MATERIAL_PROJECTION_V1,
+    ORDER_PAYMENT_REF,
+    recorded_order_payment,
+    validate_review_observations,
+)
+from .protocol import HUMAN_PAYMENT_V7
 
 MAX_TEXT_BYTES = 24_000
 MAX_EVIDENCE_BYTES = 196_608
@@ -52,7 +58,11 @@ def build_input(scope: DecisionScope, *, evidence_projection=None) -> Investigat
     try:
         scope = DecisionScope.model_validate(scope.model_dump(mode="json"))
         stored_projection = scope.frozen_context.get("evidence_projection")
-        if stored_projection not in (None, HUMAN_MATERIAL_PROJECTION_V1):
+        if stored_projection not in (
+            None,
+            HUMAN_MATERIAL_PROJECTION_V1,
+            HUMAN_PAYMENT_V7.evidence_projection,
+        ):
             raise InputUnavailable("INVESTIGATION_EVIDENCE_PROJECTION_UNSUPPORTED")
         if stored_projection != evidence_projection:
             raise InputUnavailable("INVESTIGATION_EVIDENCE_PROJECTION_MISMATCH")
@@ -171,7 +181,10 @@ def _project(scope, evidence_projection):
     for item in data["reviews"]:
         observations = None
         if "observations" in item:
-            if evidence_projection != HUMAN_MATERIAL_PROJECTION_V1:
+            if evidence_projection not in (
+                HUMAN_MATERIAL_PROJECTION_V1,
+                HUMAN_PAYMENT_V7.evidence_projection,
+            ):
                 raise InputUnavailable("INVESTIGATION_EVIDENCE_PROJECTION_MISMATCH")
             try:
                 observations = validate_review_observations(
@@ -247,6 +260,14 @@ def _project(scope, evidence_projection):
     for name, field in _CONDITIONS.items():
         if field in order:
             add("CONDITION", name, {"value": order[field], "order_version": order["version"]})
+    payment_ref = ("FACT", ORDER_PAYMENT_REF)
+    if evidence_projection == HUMAN_PAYMENT_V7.evidence_projection:
+        if ORDER_PAYMENT_REF not in scope.evidence_ids:
+            raise InputUnavailable("INVESTIGATION_PAYMENT_BINDING_INVALID")
+        payment = recorded_order_payment(order)
+        add("CONDITION", ORDER_PAYMENT_REF, payment, bound_kind="FACT", committed=payment)
+    elif payment_ref in bindings or ORDER_PAYMENT_REF in scope.evidence_ids:
+        raise InputUnavailable("INVESTIGATION_PAYMENT_BINDING_INVALID")
     ownership_ref = ("FACT", ORDER_OWNERSHIP_REF)
     if (
         "authenticated_order_ownership" in data

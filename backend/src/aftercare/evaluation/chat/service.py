@@ -18,6 +18,7 @@ from aftercare.decisions.tables import DecisionSnapshot
 from aftercare.investigation.catalogue import CATALOGUE_REF
 from aftercare.investigation.contracts import ORDER_OWNERSHIP_REF
 from aftercare.investigation.input import build_input
+from aftercare.investigation.material_observations import ORDER_PAYMENT_REF
 
 from ..service import _mutate, _remember
 from .contracts import BlindCandidate, BlindInput
@@ -138,6 +139,8 @@ def _fact_data(kind, ident, data, line_ids):
     if kind == "CONDITION":
         if ident == ORDER_OWNERSHIP_REF:
             return _selected(data, ("value", "identity_scope", "version", "order_id"))
+        if ident == ORDER_PAYMENT_REF:
+            return _selected(data, ("order_id", "order_version", "payment_status", "paid_at"))
         if ident == "case:return_lines":
             return {
                 "value": {

@@ -34,6 +34,7 @@ from aftercare.evaluation.chat.runner import (
     _freeze_case,
 )
 from aftercare.evaluation.runner import _namespace
+from aftercare.intelligence.decision_candidate import load_binding
 from aftercare.intelligence.models import ModelRunner, Registry
 from aftercare.intelligence.service import AgentService, RunAudit
 from aftercare.intelligence.tables import AgentRun, RunEvent
@@ -41,7 +42,7 @@ from aftercare.intelligence.tables import AgentRun, RunEvent
 client, system, configured = _client, _system, _configured
 
 
-def _controlled_transport(context, calls):
+def _controlled_transport(context, calls, protocol="compact-v6"):
     eligible = context["eligibility"]
     line = eligible["lines"][0]
     line_id, amount = line["line_id"], line["available_cents"]
@@ -69,6 +70,17 @@ def _controlled_transport(context, calls):
         role = messages[0].content.split("。", 1)[0].split()[-1]
         sent = json.loads(messages[1].content)
         view = sent["frozen_input"]
+        assert view["evidence_encoding"] == protocol
+        if (
+            protocol == "compact-v7"
+            and role in {"strong_single", "fact"}
+            and isinstance(messages[-1], ToolMessage)
+        ):
+            assert any(
+                "recorded-order-payment" in message.content and "paid_at" in message.content
+                for message in messages
+                if isinstance(message, ToolMessage)
+            )
         if role == "strong_single":
             if not isinstance(messages[-1], ToolMessage):
                 return _reply(
@@ -218,8 +230,9 @@ def _gated_controlled_run(runner, manifest, case, directory):
 
 
 @pytest.mark.parametrize("eligible", [True, False])
+@pytest.mark.parametrize("protocol", ["compact-v6", "compact-v7"])
 def test_frozen_scope_across_arms_and_interruption_is_not_resent(
-    configured, tmp_path, monkeypatch, eligible
+    configured, tmp_path, monkeypatch, eligible, protocol
 ):
     # SQLite has no row locks. The fixture serializes audit transactions only.
     audit_lock = Lock()
@@ -247,6 +260,7 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
     if eligible:
         _evidence(configured.service, case_id)
     configured.service.settings.chat_investigation_enabled = True
+    configured.service.settings.chat_investigation_protocol = protocol
     with Session(configured.db) as db:
         conversation = db.get_one(Conversation, url.split("/")[-1])
     case = FrozenCase(
@@ -266,7 +280,7 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
         pytest.fail("PROGRAM attempted model transport")
 
     transport = (
-        _controlled_transport(configured.service.context(case_id, SUPPORT), calls)
+        _controlled_transport(configured.service.context(case_id, SUPPORT), calls, protocol)
         if eligible
         else no_model_expected
     )
@@ -300,10 +314,15 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
     manifest = Manifest(tmp_path / "paired")
     result = (
         _gated_controlled_run(runner, manifest, case, tmp_path / "wire")
-        if eligible
+        if eligible and protocol == "compact-v6"
         else runner.run(manifest, "paired-fixture", [case])
     )
     rows = result["rows"]
+    controls = manifest.read("plan.json")["controls"]
+    assert controls["prompt"] == protocol
+    assert controls.get("evidence_projection") == (
+        "human-material-payment-v1" if protocol == "compact-v7" else None
+    )
     assert [row["arm"] for row in rows] == list(ARMS)
     assert [row["route"] for row in rows] == (
         ["SINGLE", "STAGED", "MULTI"] if eligible else ["PROGRAM"] * 3
@@ -317,6 +336,11 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
         try:
             with Session(arm) as db:
                 run = db.get_one(AgentRun, row["run_id"])
+                binding = load_binding(db, run)
+                assert binding["investigation_prompt_version"] == protocol
+                assert binding.get("investigation_evidence_projection") == (
+                    "human-material-payment-v1" if protocol == "compact-v7" else None
+                )
                 snapshot = db.get_one(DecisionSnapshot, row["snapshot_id"])
                 assert utc(snapshot.created_at) >= utc(run.created_at) > case.decision_at
                 assert snapshot.input["frozen_context"]["policy_catalogue"]["decision_at"] == (
@@ -394,12 +418,24 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
         try:
             with Session(arm) as db, db.begin():
                 if field == "route":
-                    db.execute(
-                        delete(RunEvent).where(
-                            RunEvent.run_id == observed["run_id"],
-                            RunEvent.kind == "investigation_route",
-                        )
+                    route_events = select(RunEvent).where(
+                        RunEvent.run_id == observed["run_id"],
+                        RunEvent.kind == "investigation_route",
                     )
+                    if protocol == "compact-v7":
+                        event = db.scalars(route_events).one()
+                        event.payload = {
+                            key: value
+                            for key, value in event.payload.items()
+                            if key != "evidence_projection"
+                        }
+                    else:
+                        db.execute(
+                            delete(RunEvent).where(
+                                RunEvent.run_id == observed["run_id"],
+                                RunEvent.kind == "investigation_route",
+                            )
+                        )
                 else:
                     db.get_one(DecisionSnapshot, observed["snapshot_id"]).issue_id = "wrong-issue"
         finally:

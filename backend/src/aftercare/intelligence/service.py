@@ -54,7 +54,13 @@ from aftercare.investigation.orchestration import (
     INVESTIGATION_INPUT_TOKEN_LIMIT,
     InvestigationContext,
 )
-from aftercare.investigation.prompt_evidence import PRIVATE_RECEIPT_EVENT, PROMPT_VERSION
+from aftercare.investigation.prompt_evidence import PRIVATE_RECEIPT_EVENT
+from aftercare.investigation.protocol import (
+    LEGACY_V6,
+    protocol_for_binding,
+    protocol_for_scope,
+    protocol_for_settings,
+)
 from aftercare.investigation.routing import route_input, route_unavailable
 from aftercare.investigation.tools import InvestigationTools
 
@@ -592,6 +598,7 @@ class AgentService:
             else {}
         )
         self.investigation_enabled = getattr(settings, "chat_investigation_enabled", False)
+        self.investigation_protocol = protocol_for_settings(settings)
         self.investigation_issue_budget = IssueBudget.from_settings(settings)
         if self.investigation_enabled and saver is not None:
             self.graphs[CHAT_GRAPH_PROFILE] = build_investigation_graph(saver)
@@ -743,6 +750,19 @@ class AgentService:
             )
             if previous:
                 return _serialize(self._get(session, case_id, previous.run_id))
+            protocol = None
+            if decision_scope is not None:
+                try:
+                    protocol = protocol_for_scope(decision_scope)
+                except ValueError as error:
+                    raise RunError(str(error), "冻结证据投影不能启动当前调查。") from None
+                if (graph_profile and protocol != self.investigation_protocol) or (
+                    graph_profile is None and protocol.evidence_projection is not None
+                ):
+                    raise RunError(
+                        "INVESTIGATION_EVIDENCE_PROJECTION_MISMATCH",
+                        "冻结证据投影与当前调查协议不一致。",
+                    )
             self._check_version(facts, expected_version)
             binding = (
                 make_binding(
@@ -759,7 +779,9 @@ class AgentService:
             if binding is not None:
                 binding.update(profile)
                 if graph_profile:
-                    binding["investigation_prompt_version"] = PROMPT_VERSION
+                    binding["investigation_prompt_version"] = protocol.prompt_version
+                    if protocol.evidence_projection is not None:
+                        binding["investigation_evidence_projection"] = protocol.evidence_projection
                     binding["investigation_policy_catalogue_version"] = CATALOGUE_VERSION
                 if decision_turn_id is not None and not auto_turn_current(
                     session, decision_scope, user.user_id, decision_turn_id
@@ -1073,8 +1095,15 @@ class AgentService:
                 decision_input = load_binding(session, run)
             binding = decision_input or {}
             profile = binding.get("graph_profile")
-            if profile and binding.get("investigation_prompt_version") != PROMPT_VERSION:
-                raise ModelFailure("INVESTIGATION_PROMPT_VERSION_CHANGED")
+            scope = DecisionScope.model_validate(binding["scope"]) if profile else None
+            protocol = None
+            if scope is not None:
+                try:
+                    protocol = protocol_for_binding(binding, scope)
+                except ValueError as error:
+                    raise ModelFailure(str(error)) from None
+                if protocol != self.investigation_protocol:
+                    raise ModelFailure("INVESTIGATION_PROMPT_VERSION_CHANGED")
             if (
                 profile
                 and binding.get("investigation_policy_catalogue_version") != CATALOGUE_VERSION
@@ -1102,7 +1131,6 @@ class AgentService:
                 else CONTEXT_BINDING_VERSION,
                 policy_resolution=facts.get("policy_resolution"),
             )
-            scope = DecisionScope.model_validate(binding["scope"]) if profile else None
             if scope is not None:
                 self._check_policy_catalogue(scope)
             turn_id = binding.get("decision_turn_id")
@@ -1170,7 +1198,9 @@ class AgentService:
                 ),
             )
             if profile:
-                context = self._investigation_context(context, scope, binding["investigation_arm"])
+                context = self._investigation_context(
+                    context, scope, binding["investigation_arm"], protocol=protocol
+                )
             invoke = partial(_private_graph, graph.invoke) if profile else graph.invoke
             if not snapshot.values:
                 state = invoke({"cycle": run.cycle}, config, context=context)
@@ -1213,9 +1243,13 @@ class AgentService:
         ):
             raise ModelFailure("INVESTIGATION_POLICY_CATALOGUE_CHANGED")
 
-    def _investigation_context(self, legacy, scope, arm):
+    def _investigation_context(self, legacy, scope, arm, *, protocol=LEGACY_V6):
         try:
-            value = build_input(scope)
+            value = (
+                build_input(scope, evidence_projection=protocol.evidence_projection)
+                if protocol.evidence_projection is not None
+                else build_input(scope)
+            )
             if value.policy_catalogue_version != CATALOGUE_VERSION:
                 raise InputUnavailable("INVESTIGATION_POLICY_CATALOGUE_REQUIRED")
             route = route_input(value)
@@ -1253,6 +1287,7 @@ class AgentService:
             reserve,
             arm,
             scope.frozen_context if (scope.frozen_context or {}).get("policy_catalogue") else None,
+            protocol=protocol,
         )
 
     def _finish(self, run, status, reason, output, *, decision_context=None, decision_guard=None):

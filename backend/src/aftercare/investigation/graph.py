@@ -81,6 +81,14 @@ def _route(_state, runtime: Runtime[InvestigationContext]):
             **route.model_dump(mode="json"),
             "selected_path": selected,
             "arm": context.arm,
+            **(
+                {
+                    "prompt_version": context.protocol.prompt_version,
+                    "evidence_projection": context.protocol.evidence_projection,
+                }
+                if context.protocol.evidence_projection is not None
+                else {}
+            ),
         },
     )
     if selected == "PROGRAM":

@@ -1,5 +1,6 @@
 import json
 from threading import Barrier
+from types import SimpleNamespace
 
 import pytest
 from langgraph.checkpoint.memory import InMemorySaver
@@ -21,6 +22,13 @@ from aftercare.investigation.orchestration import (
     _result,
 )
 from aftercare.investigation.prompt_evidence import PROMPT_VERSION, PromptEvidence
+from aftercare.investigation.protocol import (
+    HUMAN_PAYMENT_V7,
+    LEGACY_V6,
+    protocol_for_binding,
+    protocol_for_scope,
+    protocol_for_settings,
+)
 from aftercare.investigation.tools import InvestigationTools
 
 
@@ -124,7 +132,7 @@ def _review(*claims, request=None):
     }
 
 
-def _run(value, path, script, *, tools=None, arm="auto", extra=None):
+def _run(value, path, script, *, tools=None, arm="auto", extra=None, protocol=LEGACY_V6):
     audit = Audit()
     ctx = InvestigationContext(
         value,
@@ -137,12 +145,107 @@ def _run(value, path, script, *, tools=None, arm="auto", extra=None):
         frozenset({"line", "line2"}),
         frozenset({"line", "POL01:v1"}),
         arm=arm,
+        protocol=protocol,
     )
     graph = build_investigation_graph(InMemorySaver())
     config = {"configurable": {"thread_id": "controlled"}, "recursion_limit": 30}
     output = graph.invoke({"cycle": 0}, config, context=ctx)
     assert graph.get_state(config).values == output
     return output, audit.events
+
+
+def test_executable_protocol_pairs_leave_legacy_bindings_and_preparation_scope_distinct():
+    legacy_scope = SimpleNamespace(frozen_context={"case": {}})
+    assert protocol_for_settings(SimpleNamespace()) == LEGACY_V6
+    assert protocol_for_scope(legacy_scope) == LEGACY_V6
+    assert (
+        protocol_for_binding({"investigation_prompt_version": "compact-v6"}, legacy_scope)
+        == LEGACY_V6
+    )
+    with pytest.raises(ValueError, match="INVESTIGATION_PROMPT_VERSION_CHANGED"):
+        protocol_for_binding({"investigation_prompt_version": "compact-v5"}, legacy_scope)
+
+    prepared = SimpleNamespace(
+        frozen_context={"evidence_projection": "human-material-observations-v1"}
+    )
+    with pytest.raises(ValueError, match="INVESTIGATION_EVIDENCE_PROJECTION_READ_ONLY"):
+        protocol_for_scope(prepared)
+
+    new_scope = SimpleNamespace(
+        frozen_context={"evidence_projection": HUMAN_PAYMENT_V7.evidence_projection}
+    )
+    assert (
+        protocol_for_settings(SimpleNamespace(chat_investigation_protocol="compact-v7"))
+        == HUMAN_PAYMENT_V7
+    )
+    assert protocol_for_scope(new_scope) == HUMAN_PAYMENT_V7
+    binding = {"investigation_prompt_version": "compact-v7"}
+    with pytest.raises(ValueError, match="INVESTIGATION_EVIDENCE_PROJECTION_MISMATCH"):
+        protocol_for_binding(binding, new_scope)
+    binding["investigation_evidence_projection"] = HUMAN_PAYMENT_V7.evidence_projection
+    assert protocol_for_binding(binding, new_scope) == HUMAN_PAYMENT_V7
+    assert "evidence_projection" not in legacy_scope.frozen_context
+
+
+@pytest.mark.parametrize("arm", ("strong_single", "single_staged", "multi"))
+def test_selected_v7_prompt_encoding_and_observation_limits_reach_every_arm(investigation, arm):
+    option = {
+        "id": "followup",
+        "action": "REQUEST_EVIDENCE",
+        "target_line_ids": ["line"],
+        "evidence_ids": ["line"],
+        "rationale": "目前证据不足。",
+        "missing_evidence": ["请补充能确认受损商品的照片。"],
+    }
+
+    def checked(response):
+        def invoke(kwargs):
+            system = kwargs["messages"][0].content
+            assert "HUMAN_MATERIAL_REVIEW 仅表示审核员登记了此版材料的所见" in system
+            assert "多图不得相加" in system and "财务批准" in system
+            assert "订单付款事实仅使用已记录" in system
+            view = json.loads(kwargs["messages"][1].content)["frozen_input"]
+            assert view["evidence_encoding"] == "compact-v7"
+            assert view["input_digest"] == investigation.relevant_input_sha256
+            return response
+
+        return invoke
+
+    line_call = _call("read_order_lines", line_ids=["line"])
+    clause_call = _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product")
+    if arm == "strong_single":
+        responses = {
+            "single:0": [line_call],
+            "single:1": {"claims": [_claim("f", "line")], "options": [option]},
+        }
+    else:
+        fact = "staged-fact" if arm == "single_staged" else "fact"
+        policy = "staged-policy" if arm == "single_staged" else "policy"
+        responses = {
+            f"{fact}:0": [line_call],
+            f"{fact}:1": {"claims": [_claim("f", "line")]},
+            f"{policy}:0": [clause_call],
+            f"{policy}:1": {"claims": [_claim("p", "POL01:v1")]},
+            "verify-0:0": {
+                **_review(("fact/f", "line"), ("policy/p", "POL01:v1")),
+                "options": [option],
+            },
+        }
+    model = Script(
+        {f"p4:compact-v7:{phase}": checked(response) for phase, response in responses.items()}
+    )
+    result, events = _run(investigation, "SINGLE", model, arm=arm, protocol=HUMAN_PAYMENT_V7)
+    assert result["reason"] == "HUMAN_REVIEW"
+    assert result["output"]["investigation_options"][0]["action"] == "REQUEST_EVIDENCE"
+    assert set(model.calls) == set(model.responses)
+    (route,) = [payload for kind, payload in events if kind == "investigation_route"]
+    assert route["prompt_version"] == "compact-v7"
+    assert route["evidence_projection"] == HUMAN_PAYMENT_V7.evidence_projection
+    assert all(
+        payload["prompt_version"] == "compact-v7"
+        for kind, payload in events
+        if kind in {"investigation_input", "investigation_prompt_budget"}
+    )
 
 
 def test_program_is_zero_model_and_retains_evidence_gap(investigation):

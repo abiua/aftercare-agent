@@ -3,7 +3,9 @@
 from aftercare.business.rules import digest
 from aftercare.intelligence.models import ModelFailure
 
-PROMPT_VERSION = "compact-v6"
+from .protocol import LEGACY_V6
+
+PROMPT_VERSION = LEGACY_V6.prompt_version
 PRIVATE_RECEIPT_EVENT = "investigation_receipt"
 PROMPT_LEGEND = (
     "证据结构：scope 依次为会话、事项、工单。"
@@ -18,12 +20,21 @@ PROMPT_LEGEND = (
 )
 
 
+HUMAN_PAYMENT_PROMPT_LEGEND = (
+    "HUMAN_MATERIAL_REVIEW 仅表示审核员登记了此版材料的所见，"
+    "不证明图片真实性、运输责任、退款资格或财务批准。"
+    "同一订单行的受影响数量是总数，多图不得相加；不确定不补写。"
+    "订单付款事实仅使用已记录的支付状态、时点和订单版本，缺失保持未知。"
+)
+
+
 def _failure():
     raise ModelFailure("INVESTIGATION_EVIDENCE_INCONSISTENT")
 
 
 class PromptEvidence:
-    def __init__(self, source):
+    def __init__(self, source, *, protocol=LEGACY_V6):
+        self.prompt_version = protocol.prompt_version
         self.scope = [source.conversation_id, source.issue_id, source.case_id]
         self.input_digest = source.relevant_input_sha256
 
@@ -96,7 +107,7 @@ class PromptEvidence:
                 receipts.append(projected)
             view["original_read_receipts"] = receipts
             view["original_frozen_evidence"] = list(originals.values())
-        return {**view, "scope": self.scope, "evidence_encoding": PROMPT_VERSION}
+        return {**view, "scope": self.scope, "evidence_encoding": self.prompt_version}
 
     @staticmethod
     def _add(index, row):

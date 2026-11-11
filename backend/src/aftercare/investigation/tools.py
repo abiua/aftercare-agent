@@ -9,6 +9,7 @@ from aftercare.business.rules import digest
 from aftercare.intelligence.policies import PolicySearch, bm25, document_key
 
 from .contracts import ORDER_OWNERSHIP_REF, Contract, EvidenceRef, InvestigationInput, Role
+from .material_observations import ORDER_PAYMENT_REF
 
 Id = Annotated[str, Field(min_length=1, max_length=160)]
 Ids = Annotated[list[Id], Field(min_length=1, max_length=20)]
@@ -101,6 +102,16 @@ class InvestigationTools:
             read_order_lines="Read order lines and any frozen authenticated account ownership record.",
             read_material_evidence="Read material records and their effective review, if any. Material review does not establish payment approval or image content.",
         )
+        if ("CONDITION", ORDER_PAYMENT_REF) in self._rows:
+            descriptions["read_order_lines"] = (
+                "Read order lines, frozen order payment status and timestamp, "
+                "and any authenticated account ownership record."
+            )
+            descriptions["read_material_evidence"] = (
+                "Read material records, their effective review, and any recorded structured "
+                "human observations. Observations do not establish image authenticity, cause, "
+                "eligibility, or approval."
+            )
         return [
             {
                 "type": "function",
@@ -158,10 +169,10 @@ class InvestigationTools:
     def call(self, role: Role, name: str, args: dict) -> ToolReceipt:
         validated = self.validate_call(role, name, args)
         rows = self._selected(name, validated)
-        if name == "read_order_lines" and (
-            owner := self._rows.get(("CONDITION", ORDER_OWNERSHIP_REF))
-        ):
-            rows.append(owner)
+        if name == "read_order_lines":
+            for ident in (ORDER_OWNERSHIP_REF, ORDER_PAYMENT_REF):
+                if (record := self._rows.get(("CONDITION", ident))) is not None:
+                    rows.append(record)
         if name == "read_material_evidence":
             materials = {row.ref.source_id for row in rows if row.ref.source_kind == "MATERIAL"}
             explicit = set(validated.evidence_ids)

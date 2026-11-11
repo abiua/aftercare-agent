@@ -24,12 +24,16 @@ from aftercare.investigation.catalogue import (
 from aftercare.investigation.contracts import ORDER_OWNERSHIP_REF, account_order_ownership
 from aftercare.investigation.material_observations import (
     HUMAN_MATERIAL_PROJECTION_V1,
+    ORDER_PAYMENT_REF,
+    recorded_order_payment,
     validate_review_observations,
 )
+from aftercare.investigation.protocol import HUMAN_PAYMENT_V7, protocol_for_settings
 
 from .tables import Attachment, ChatMaterialSource, Conversation, Message
 
 MAX_DECISION_INPUT_REFS = 250
+_DEFAULT_PROJECTION = object()
 ACKNOWLEDGEMENT = re.compile(
     r"^(?:好(?:的|了)?|收到|知道了|明白了?|了解|谢谢(?:你|您)?|多谢|辛苦了|你好|您好|嗯|ok)[\s。！!，,]*$",
     re.IGNORECASE,
@@ -161,8 +165,19 @@ def _freeze_human_reviews(db, row, case, context, attachments, messages):
 
 
 class ConversationDecisions:
-    def __init__(self, business, *, evidence_projection=None):
-        if evidence_projection not in (None, HUMAN_MATERIAL_PROJECTION_V1):
+    def __init__(self, business, *, evidence_projection=_DEFAULT_PROJECTION):
+        if evidence_projection is _DEFAULT_PROJECTION:
+            settings = business.settings
+            evidence_projection = (
+                protocol_for_settings(settings).evidence_projection
+                if getattr(settings, "chat_investigation_enabled", False)
+                else None
+            )
+        if evidence_projection not in (
+            None,
+            HUMAN_MATERIAL_PROJECTION_V1,
+            HUMAN_PAYMENT_V7.evidence_projection,
+        ):
             raise ValueError("DECISION_EVIDENCE_PROJECTION_UNSUPPORTED")
         self.evidence_projection = evidence_projection
         self.business = business
@@ -311,6 +326,10 @@ class ConversationDecisions:
             evidence.append(_ref("FACT", "case-facts", case.facts))
         if ownership is not None:
             evidence.append(_ref("FACT", ORDER_OWNERSHIP_REF, ownership))
+        if self.evidence_projection == HUMAN_PAYMENT_V7.evidence_projection:
+            evidence.append(
+                _ref("FACT", ORDER_PAYMENT_REF, recorded_order_payment(context["order"]))
+            )
         policy_ref = _ref("POLICY", "effective-policy-snapshot", context["policy_resolution"])
         evidence.append(policy_ref)
         dependencies = list(evidence)

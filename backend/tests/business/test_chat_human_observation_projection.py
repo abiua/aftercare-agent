@@ -14,6 +14,8 @@ from aftercare.decisions.contracts import DecisionScope
 from aftercare.evaluation.chat.service import _frozen_public
 from aftercare.investigation.input import InputUnavailable, build_input
 from aftercare.investigation.material_observations import HUMAN_MATERIAL_PROJECTION_V1 as PROJECTION
+from aftercare.investigation.material_observations import ORDER_PAYMENT_REF
+from aftercare.investigation.protocol import HUMAN_PAYMENT_V7
 from aftercare.investigation.tools import InvestigationTools, ToolRejected
 
 STAMP = datetime(2026, 11, 11, tzinfo=UTC)
@@ -22,7 +24,13 @@ PARCEL_SHA = "b" * 64
 
 
 def _freeze(
-    *, projection=PROJECTION, original_issue="issue", parcel_uncertain=False, observations=True
+    *,
+    projection=PROJECTION,
+    original_issue="issue",
+    parcel_uncertain=False,
+    observations=True,
+    protocol=None,
+    paid_at=None,
 ):
     row = SimpleNamespace(id="chat", analysis_issue_id="issue", customer_id="customer", sequence=1)
     case = SimpleNamespace(
@@ -105,6 +113,9 @@ def _freeze(
         "policy_resolution": {"documents": [clause], "blockers": [], "snapshot": "c" * 64},
     }
 
+    if paid_at is not None:
+        context["order"]["paid_at"] = paid_at
+
     def business_context(*_, include_review_observations=False, **__):
         visible = deepcopy(reviews)
         if not include_review_observations or not observations:
@@ -163,9 +174,10 @@ def _freeze(
             "Evidence freeze must not validate a financial action"
         ),
     )
-    return ConversationDecisions(business, evidence_projection=projection).freeze(
-        db, row, case, order
-    )
+    if protocol is not None:
+        business.settings.chat_investigation_protocol = protocol
+    options = {} if protocol is not None else {"evidence_projection": projection}
+    return ConversationDecisions(business, **options).freeze(db, row, case, order)
 
 
 def test_human_review_evidence_is_opt_in_frozen_and_read_by_authorized_roles():
@@ -298,3 +310,56 @@ def test_new_projection_without_observations_does_not_reuse_legacy_candidate():
     )
     assert _covered(previous, legacy, STAMP)
     assert not _covered(previous, current, STAMP)
+
+
+@pytest.mark.parametrize("paid_at", [None, STAMP.isoformat()])
+def test_v7_freezes_order_payment_as_a_citable_raw_record(paid_at):
+    scope = _freeze(protocol="compact-v7", paid_at=paid_at)
+    projection = HUMAN_PAYMENT_V7.evidence_projection
+    assert scope.frozen_context["evidence_projection"] == projection
+    assert scope.frozen_context["reviews"][1]["observations"]
+    value = build_input(scope, evidence_projection=projection)
+    payment = {
+        "order_id": scope.order_id,
+        "order_version": 1,
+        "payment_status": "CONFIRMED",
+        "paid_at": paid_at,
+    }
+    ref = next(ref for ref in scope.input_refs if ref.id == ORDER_PAYMENT_REF)
+    assert ref.kind == "FACT" and ref.sha256 == digest(payment)
+    assert ORDER_PAYMENT_REF in scope.evidence_ids
+    tools = InvestigationTools(value)
+    for role in ("fact", "strong_single"):
+        receipt = tools.call(role, "read_order_lines", {"line_ids": ["L01"]})
+        row = next(
+            row for row in receipt.data["records"] if row["ref"]["source_id"] == ORDER_PAYMENT_REF
+        )
+        assert row["data"] == payment
+        assert row["ref"]["source_kind"] == "CONDITION"
+        assert row["ref"]["version_or_sha256"] == ref.sha256
+    with pytest.raises(ToolRejected, match="TOOL_NOT_ALLOWED"):
+        tools.call("policy", "read_order_lines", {"line_ids": ["L01"]})
+    fact = next(
+        row for row in _frozen_public(scope).facts if row.id == f"CONDITION:{ORDER_PAYMENT_REF}"
+    )
+    assert fact.data == payment
+    legacy = _freeze(protocol="compact-v6", paid_at=paid_at)
+    assert value.eligibility == build_input(legacy).eligibility
+    assert ORDER_PAYMENT_REF not in legacy.evidence_ids
+    assert not any(row.ref.source_id == ORDER_PAYMENT_REF for row in build_input(legacy).evidence)
+
+
+@pytest.mark.parametrize("changed_field", ["payment_status", "paid_at", "version"])
+def test_v7_rejects_order_payment_tampering_even_if_input_digest_is_recomputed(changed_field):
+    scope = _freeze(protocol="compact-v7").model_dump(mode="json")
+    scope["frozen_context"]["order"][changed_field] = {
+        "payment_status": "UNKNOWN",
+        "paid_at": STAMP.isoformat(),
+        "version": 2,
+    }[changed_field]
+    scope["input_sha256"] = digest([scope["input_refs"], scope["frozen_context"]])
+    with pytest.raises(InputUnavailable, match="INVESTIGATION_REFERENCE_MISMATCH"):
+        build_input(
+            DecisionScope.model_validate(scope),
+            evidence_projection=HUMAN_PAYMENT_V7.evidence_projection,
+        )

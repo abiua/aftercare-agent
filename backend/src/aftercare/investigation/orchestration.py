@@ -22,7 +22,13 @@ from aftercare.intelligence.models import (
     tool_reply,
 )
 
-from .prompt_evidence import PRIVATE_RECEIPT_EVENT, PROMPT_LEGEND, PROMPT_VERSION, PromptEvidence
+from .prompt_evidence import (
+    HUMAN_PAYMENT_PROMPT_LEGEND,
+    PRIVATE_RECEIPT_EVENT,
+    PROMPT_LEGEND,
+    PromptEvidence,
+)
+from .protocol import HUMAN_PAYMENT_V7, LEGACY_V6, InvestigationProtocol
 
 INVESTIGATION_INPUT_TOKEN_LIMIT = P4_INPUT_LIMIT
 MAX_TOOL_BATCH = 4
@@ -115,6 +121,7 @@ class InvestigationContext:
     verifier_reserve: object = None
     arm: str = "auto"
     policy_authority: dict | None = None
+    protocol: InvestigationProtocol = LEGACY_V6
 
 
 class ProtectedAudit:
@@ -216,7 +223,8 @@ def run_phase(
     evidence_ids = set(known_evidence)
     upstream = upstream or []
     upstream_ids = {row["id"] for row in upstream}
-    projection = PromptEvidence(context.input)
+    prompt_version = context.protocol.prompt_version
+    projection = PromptEvidence(context.input, protocol=context.protocol)
     projected_prompt = projection.prompt(prompt)
     messages = [
         SystemMessage(
@@ -228,6 +236,7 @@ def run_phase(
                 "不得批准或执行任何操作。输出符合 JSON Schema 的 JSON 对象。"
                 + _ROLE_INSTRUCTIONS[role]
                 + PROMPT_LEGEND
+                + (HUMAN_PAYMENT_PROMPT_LEGEND if context.protocol == HUMAN_PAYMENT_V7 else "")
                 + _render(schema.model_json_schema())
             )
         ),
@@ -242,7 +251,7 @@ def run_phase(
             "phase_id": phase_id,
             "input_sha256": digest(prompt),
             "prompt_sha256": digest(projected_prompt),
-            "prompt_version": PROMPT_VERSION,
+            "prompt_version": prompt_version,
             "upstream_claim_ids": sorted(upstream_ids),
             "tools": sorted(available),
         },
@@ -285,7 +294,7 @@ def run_phase(
                 "role": role,
                 "phase_id": phase_id,
                 "round": index,
-                "prompt_version": PROMPT_VERSION,
+                "prompt_version": prompt_version,
                 "estimated_with_tools": with_tools,
                 "estimated_without_tools": without_tools,
                 "limit": INVESTIGATION_INPUT_TOKEN_LIMIT,
@@ -336,7 +345,7 @@ def run_phase(
 
         response = context.model.call(
             audit,
-            f"p4:{PROMPT_VERSION}:{phase_id}:{index}",
+            f"p4:{prompt_version}:{phase_id}:{index}",
             preferred="analysis" if context.strategy == "routed" else context.strategy,
             messages=bounded_messages,
             tools=bound,

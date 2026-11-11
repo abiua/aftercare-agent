@@ -17,6 +17,7 @@ from aftercare.decisions.contracts import (
     Option,
 )
 from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
+from aftercare.investigation.protocol import protocol_for_binding, protocol_for_scope
 
 from .tables import AgentRun, ModelAttempt, RunEvent
 
@@ -47,6 +48,8 @@ _REVIEW_REASONS = {
     "INVESTIGATION_PROMPT_LIMIT": "本轮待核对内容超过调查输入上限，调查已停止，需要客服继续核对。",
     "INVESTIGATION_MODEL_UNAVAILABLE": "当前没有可用的调查模型，需要客服继续核对。",
     "NO_COMPATIBLE_MODEL": "当前模型配置不满足本轮调查要求，需要客服继续核对。",
+    "INVESTIGATION_EVIDENCE_PROJECTION_MISMATCH": "冻结证据与当前调查配置不一致，需要重新核对。",
+    "INVESTIGATION_EVIDENCE_PROJECTION_READ_ONLY": "原证据仅供回读，请重新核对本事项。",
     "INVESTIGATION_PROMPT_VERSION_CHANGED": "调查配置已更新，原运行已停止，需要核对资料后重新调查。",
 }
 
@@ -227,7 +230,13 @@ def project_candidate(db, decisions, actor, run_id):
         _fail("DECISION_RUN_NOT_FOUND", 404)
     # The resolver takes conversation and business locks before taking the run lock.
     # A canceled waiting run cannot race a projection past this locked read.
-    decisions.resolve(db, actor, scope.conversation_id, scope.issue_id)
+    current_scope = decisions.resolve(db, actor, scope.conversation_id, scope.issue_id)
+    if binding.get("graph_profile") == CHAT_GRAPH_PROFILE:
+        try:
+            if protocol_for_binding(binding, scope) != protocol_for_scope(current_scope):
+                _fail("INVESTIGATION_PROMPT_VERSION_CHANGED")
+        except ValueError as error:
+            _fail(str(error))
     run = db.get(AgentRun, run_id, populate_existing=True, with_for_update={"read": True})
     if run is None or run.status not in _READY_STATES or load_binding(db, run) != binding:
         _fail("DECISION_RUN_NOT_READY")
