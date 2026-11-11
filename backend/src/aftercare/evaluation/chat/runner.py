@@ -27,7 +27,7 @@ from aftercare.db import Base, User
 from aftercare.decisions.contracts import Candidate, DecisionScope, Option
 from aftercare.decisions.service import DecisionService
 from aftercare.decisions.tables import DecisionSnapshot
-from aftercare.evaluation.chat.manifest import bound_rows
+from aftercare.evaluation.chat.manifest import RECHECK_ABLATION, bound_rows
 from aftercare.evaluation.runner import NamespacedObjects, _model_attempts, _namespace
 from aftercare.intelligence.decision_candidate import load_binding, project_candidate
 from aftercare.intelligence.models import (
@@ -39,7 +39,7 @@ from aftercare.intelligence.models import (
 from aftercare.intelligence.service import AgentService, RunError
 from aftercare.intelligence.tables import AgentRun, RunEvent, RunMutation
 from aftercare.investigation.catalogue import CATALOGUE_VERSION
-from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
+from aftercare.investigation.graph import CHAT_GRAPH_PROFILE, NO_RECHECK_ARM
 from aftercare.investigation.input import build_input
 from aftercare.investigation.issue_budget import IssueBudget
 from aftercare.investigation.prompt_evidence import PROMPT_VERSION
@@ -47,7 +47,12 @@ from aftercare.investigation.protocol import HUMAN_PAYMENT_V7, LEGACY_V6, protoc
 from aftercare.investigation.routing import route_input
 from aftercare.investigation.tools import InvestigationTools
 
-_PATHS = {"strong_single": "SINGLE", "single_staged": "STAGED", "multi": "MULTI"}
+_PATHS = {
+    "strong_single": "SINGLE",
+    "single_staged": "STAGED",
+    "multi": "MULTI",
+    NO_RECHECK_ARM: "MULTI",
+}
 _PHASES = {
     "SINGLE": {"single": "strong_single"},
     "STAGED": {"staged-fact": "fact", "staged-policy": "policy", "verify-0": "verifier"},
@@ -349,15 +354,18 @@ def _route_evidence(row, source, events, attempts, *, has_candidate, executable)
     expected = "PROGRAM" if planned == "PROGRAM" else _PATHS[row["arm"]]
     if len(routes) != 1 or path != expected or routes[0].get("arm") != row["arm"]:
         return path, phases, False
-    if (
-        routes[0].get("evidence_projection") != protocol.evidence_projection
-        or routes[0].get("prompt_version")
-        != (protocol.prompt_version if protocol.evidence_projection else None)
-    ):
+    if routes[0].get("evidence_projection") != protocol.evidence_projection or routes[0].get(
+        "prompt_version"
+    ) != (protocol.prompt_version if protocol.evidence_projection else None):
         return path, phases, False
     if path == "PROGRAM":
         return path, phases, not (phases or attempts or executable)
     phase_roles = {phase.get("phase_id"): phase.get("role") for phase in phases}
+    if row["arm"] == NO_RECHECK_ARM and (
+        {"recheck", "verify-1"} & phase_roles.keys()
+        or any(event.kind == "investigation_recheck" for event in events)
+    ):
+        return path, phases, False
     allowed = _PHASES[path].copy()
     if path == "MULTI" and phase_roles.get("recheck") in {"fact", "policy"}:
         allowed["recheck"] = phase_roles["recheck"]
@@ -415,8 +423,29 @@ def _audit(engine, storage, row, source, controls):
             has_candidate=snapshot is not None,
             executable=executable,
         )
+        suppressed = [
+            event.payload for event in events if event.kind == "investigation_recheck_suppressed"
+        ]
+        ablation_valid = (
+            not suppressed
+            if row["arm"] != NO_RECHECK_ARM
+            else (
+                bool(suppressed) == (run.reason == "INVESTIGATION_RECHECK_SUPPRESSED")
+                and len(suppressed) <= 1
+                and (
+                    not suppressed
+                    or (
+                        not executable
+                        and run.status == "NEEDS_REVIEW"
+                        and {"fact", "policy", "verify-0"}
+                        <= {phase.get("phase_id") for phase in phases}
+                    )
+                )
+            )
+        )
         valid = (
-            binding is not None
+            ablation_valid
+            and binding is not None
             and run.case_id == source.scope.case_id
             and run.owner_id == source.definition.actor.user_id
             and binding.get("scope") == expected
@@ -478,6 +507,7 @@ def _audit(engine, storage, row, source, controls):
             "rechecks": [
                 event.payload for event in events if event.kind == "investigation_recheck"
             ],
+            **({"suppressed_rechecks": suppressed} if row["arm"] == NO_RECHECK_ARM else {}),
             "snapshot_id": snapshot.id if snapshot is not None else None,
             "candidate_status": (
                 "MISSING"
@@ -528,7 +558,15 @@ def _audit(engine, storage, row, source, controls):
 class ChatEvaluationRunner:
     """Explicit local test seam. No settings or credential discovery."""
 
-    def __init__(self, model: ModelRunner, checkpointer, *, calls: int, budget: Decimal):
+    def __init__(
+        self,
+        model: ModelRunner,
+        checkpointer,
+        *,
+        calls: int,
+        budget: Decimal,
+        recheck_ablation=False,
+    ):
         registry = model.registry
         if (
             len(registry.models) != 1
@@ -539,6 +577,7 @@ class ChatEvaluationRunner:
             raise ValueError("CHAT_EVAL_FIXED_MODEL_REQUIRED")
         self._paid_scope = None
         self._paid_protocol = None
+        self._recheck_ablation = recheck_ablation
         self._wire_row = None
         self._configure(model, checkpointer, calls, budget)
 
@@ -561,7 +600,12 @@ class ChatEvaluationRunner:
         gate_policy = getattr(gate, "p5_policy", None)
         protocol = (
             {
-                ("p5-paid-text-v2", "chat-p5-paid-terra-ordinary-v2", "compact-v6", None): LEGACY_V6,
+                (
+                    "p5-paid-text-v2",
+                    "chat-p5-paid-terra-ordinary-v2",
+                    "compact-v6",
+                    None,
+                ): LEGACY_V6,
                 (
                     "p5-paid-text-v3",
                     "chat-p5-paid-terra-multimodal-v3",
@@ -576,8 +620,7 @@ class ChatEvaluationRunner:
             )
             if isinstance(plan, dict)
             and all(
-                isinstance(plan.get(key), str)
-                for key in ("protocol", "campaign", "prompt_version")
+                isinstance(plan.get(key), str) for key in ("protocol", "campaign", "prompt_version")
             )
             and (
                 plan.get("evidence_projection") is None
@@ -631,6 +674,7 @@ class ChatEvaluationRunner:
         runner = cls.__new__(cls)
         runner._paid_scope = scope_sha256
         runner._paid_protocol = protocol
+        runner._recheck_ablation = False
         runner._paid_campaign = plan["campaign"]
         runner._wire_row = partial(gate_policy.active_row, gate.STATE, plan, gate._write)
         runner._configure(model, None, 8, Decimal("0.40"))
@@ -673,7 +717,8 @@ class ChatEvaluationRunner:
             from .pg_runtime import _PgRuntime
 
             if (
-                not isinstance(backend, _PgRuntime)
+                self._recheck_ablation
+                or not isinstance(backend, _PgRuntime)
                 or campaign != self._paid_campaign
                 or backend.campaign != campaign
             ):
@@ -722,7 +767,11 @@ class ChatEvaluationRunner:
                 if sources
                 else [],
             }
-            plan = manifest.prepare(campaign, records, controls)
+            if self._recheck_ablation:
+                controls["comparison"] = RECHECK_ABLATION
+                plan = manifest.prepare_recheck_ablation(campaign, records, controls)
+            else:
+                plan = manifest.prepare(campaign, records, controls)
             results = []
             for row in bound_rows(plan):
                 backend.fence()
@@ -772,6 +821,7 @@ class ChatEvaluationRunner:
                     saver,
                     model=self.model,
                     dispatch=lambda _run_id: None,
+                    allow_recheck_ablation=self._recheck_ablation,
                     attempt_admission=lambda _session: backend.fence(),
                     attempt_continuation=lambda _session: backend.fence(),
                     queue_admission=lambda _session: backend.fence(),

@@ -9,9 +9,11 @@ from pathlib import Path
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from aftercare.business.rules import digest
+from aftercare.investigation.graph import NO_RECHECK_ARM
 
 PROTOCOL = "chat-eval-v1"
 ARMS = ("strong_single", "single_staged", "multi")
+RECHECK_ABLATION = "chat-eval-multi-recheck-ablation-v1"
 
 
 class Manifest:
@@ -43,12 +45,18 @@ class Manifest:
             return None
 
     def prepare(self, campaign, cases, controls):
+        return self._prepare(campaign, cases, controls, PROTOCOL, ARMS)
+
+    def prepare_recheck_ablation(self, campaign, cases, controls):
+        return self._prepare(campaign, cases, controls, RECHECK_ABLATION, ("multi", NO_RECHECK_ARM))
+
+    def _prepare(self, campaign, cases, controls, protocol, arms):
         groups = {(item["repetition"], item["case_id"]): item for item in cases}
         if not groups or len(groups) != len(cases):
             raise ValueError("CHAT_EVAL_DUPLICATE_OR_EMPTY_CASES")
         rows = []
-        for (repetition, case_id), arm in product(sorted(groups), ARMS):
-            name = digest([PROTOCOL, campaign, repetition, case_id, arm])
+        for (repetition, case_id), arm in product(sorted(groups), arms):
+            name = digest([protocol, campaign, repetition, case_id, arm])
             rows.append(
                 {
                     "id": str(uuid5(NAMESPACE_URL, name)),
@@ -59,7 +67,7 @@ class Manifest:
                 }
             )
         plan = {
-            "protocol": PROTOCOL,
+            "protocol": protocol,
             "campaign": campaign,
             "controls": controls,
             "cases": [groups[key] for key in sorted(groups)],

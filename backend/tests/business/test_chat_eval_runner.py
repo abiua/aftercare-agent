@@ -8,6 +8,7 @@ from decimal import Decimal
 from functools import partial, wraps
 from pathlib import Path
 from threading import Lock
+from types import SimpleNamespace
 from uuid import NAMESPACE_URL, uuid5
 
 import pytest
@@ -24,6 +25,7 @@ from test_conversations import send
 from test_conversations import system as _system
 
 from aftercare.business.rules import digest, utc
+from aftercare.business.service import BusinessService
 from aftercare.conversations.tables import Conversation
 from aftercare.decisions.tables import DecisionSnapshot
 from aftercare.evaluation.chat.manifest import ARMS, PROTOCOL, Manifest, bound_rows
@@ -36,13 +38,14 @@ from aftercare.evaluation.chat.runner import (
 from aftercare.evaluation.runner import _namespace
 from aftercare.intelligence.decision_candidate import load_binding
 from aftercare.intelligence.models import ModelRunner, Registry
-from aftercare.intelligence.service import AgentService, RunAudit
-from aftercare.intelligence.tables import AgentRun, RunEvent
+from aftercare.intelligence.service import AgentService, RunAudit, RunError
+from aftercare.intelligence.tables import AgentRun, ModelAttempt, RunEvent
+from aftercare.investigation.graph import CHAT_GRAPH_PROFILE, NO_RECHECK_ARM
 
 client, system, configured = _client, _system, _configured
 
 
-def _controlled_transport(context, calls, protocol="compact-v6"):
+def _controlled_transport(context, calls, protocol="compact-v6", *, conflict=True):
     eligible = context["eligibility"]
     line = eligible["lines"][0]
     line_id, amount = line["line_id"], line["available_cents"]
@@ -104,7 +107,13 @@ def _controlled_transport(context, calls, protocol="compact-v6"):
             if not isinstance(messages[-1], ToolMessage):
                 return _call("read_order_lines", line_args)
             drafts += 1
-            return _reply({"claims": [_claim("amount", line_id, str(amount - (drafts % 2 == 0)))]})
+            return _reply(
+                {
+                    "claims": [
+                        _claim("amount", line_id, str(amount - (conflict and drafts % 2 == 0)))
+                    ]
+                }
+            )
         if role == "policy":
             if not isinstance(messages[-1], ToolMessage):
                 return _call("read_policy_clause", policy_args)
@@ -370,6 +379,9 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
             [replace(case, decision_at=case.decision_at + timedelta(seconds=1))],
         )
 
+    if eligible and protocol == "compact-v7":
+        _exercise_recheck_ablation(case, configured, model.registry, tmp_path, monkeypatch)
+
     # A recorded start with no verified arm namespace cannot be dispatched again.
     interrupted = Manifest(tmp_path / "interrupted")
     plan = manifest.read("plan.json")
@@ -498,6 +510,98 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
     assert len(calls) == (26 if eligible else 0)
 
 
+def _exercise_recheck_ablation(case, configured, registry, tmp_path, monkeypatch):
+    calls = []
+    context = configured.service.context(_freeze_case(case).scope.case_id, SUPPORT)
+    model = ModelRunner(
+        registry, transport=_controlled_transport(context, calls, "compact-v7", conflict=False)
+    )
+    saver = InMemorySaver()
+    runner = ChatEvaluationRunner(
+        model, saver, calls=8, budget=Decimal("0.10"), recheck_ablation=True
+    )
+    manifest = Manifest(tmp_path / "ablation-live")
+    result = runner.run(manifest, "ablation-fixture", [case])
+    full, ablated = result["rows"]
+    assert (full["arm"], ablated["arm"]) == ("multi", NO_RECHECK_ARM)
+    assert full["input_sha256"] == ablated["input_sha256"]
+    assert full["controls_sha256"] == ablated["controls_sha256"]
+    assert manifest.read("plan.json")["controls"]["calls"] == 8
+    assert manifest.read("plan.json")["controls"]["budget_usd"] == "0.10"
+    assert full["status"] == ablated["status"] == "COMPLETED"
+    assert full["program_checks"] == ablated["program_checks"]
+    assert set(full["phases"]) == set(ablated["phases"]) == {"fact", "policy", "verify-0"}
+    assert full["rechecks"] == ablated["rechecks"] == ablated["suppressed_rechecks"] == []
+    assert len(full["attempts"]) == len(ablated["attempts"]) == 5
+    candidates = []
+    for row in (full, ablated):
+        engine = create_engine(
+            f"sqlite:///{manifest.directory / (_namespace(row['id']) + '.sqlite')}"
+        )
+        try:
+            with Session(engine) as db:
+                snapshot = db.get_one(DecisionSnapshot, row["snapshot_id"])
+                candidates.append((snapshot.candidate["options"], snapshot.candidate["unresolved"]))
+        finally:
+            engine.dispose()
+    assert candidates[0] == candidates[1]
+    assert runner.run(manifest, "ablation-fixture", [case]) == result
+    assert len(calls) == 10
+
+    scope = _freeze_case(case).scope
+    settings = configured.service.settings
+    for agent in (
+        AgentService(configured.db, settings, configured.service, None, model=model),
+        AgentService(
+            configured.db,
+            SimpleNamespace(**{**vars(settings), "profile": "app"}),
+            configured.service,
+            None,
+            model=model,
+            allow_recheck_ablation=True,
+        ),
+    ):
+        with pytest.raises(RunError) as denied:
+            agent.start(
+                scope.case_id,
+                SUPPORT,
+                expected_version=scope.business_versions["case"],
+                idempotency_key="deny-ablation",
+                mode="single",
+                strategy="analysis",
+                message=scope.frozen_context["legacy_agent_input"]["message"],
+                decision_scope=scope,
+                graph_profile=CHAT_GRAPH_PROFILE,
+                investigation_arm=NO_RECHECK_ARM,
+            )
+        assert denied.value.code == "INVESTIGATION_PROFILE_UNAVAILABLE"
+
+    arm = create_engine(f"sqlite:///{manifest.directory / (_namespace(ablated['id']) + '.sqlite')}")
+    try:
+        with Session(arm) as db, db.begin():
+            run = db.get_one(AgentRun, ablated["run_id"])
+            assert load_binding(db, run)["investigation_arm"] == NO_RECHECK_ARM
+            run.status = "QUEUED"
+        business = BusinessService(arm, settings, storage=configured.service.storage)
+        recovered = AgentService(arm, settings, business, saver, model=model)
+
+        def unexpected_checkpoint(*_args, **_kwargs):
+            pytest.fail("checkpoint reached without ablation capability")
+
+        monkeypatch.setattr(
+            recovered.graphs[CHAT_GRAPH_PROFILE], "get_state", unexpected_checkpoint
+        )
+        recovered.process(ablated["run_id"])
+        with Session(arm) as db:
+            run = db.get_one(AgentRun, ablated["run_id"])
+            assert run.status == "NEEDS_REVIEW"
+            assert run.reason == "INVESTIGATION_PROFILE_UNAVAILABLE"
+            assert db.scalar(select(func.count()).select_from(ModelAttempt)) == 5
+        assert len(calls) == 10
+    finally:
+        arm.dispose()
+
+
 def test_elapsed_rejects_negative_order_and_normalizes_clock_offsets():
     start = datetime.fromisoformat("2026-11-11T10:00:00+08:00")
     before = datetime.fromisoformat("2026-11-11T01:59:59.999+00:00")
@@ -506,3 +610,24 @@ def test_elapsed_rejects_negative_order_and_normalizes_clock_offsets():
     assert _elapsed(start, after) == 125
     assert _elapsed(start, after.astimezone(UTC).replace(tzinfo=None)) == 125
     assert _elapsed(start, None) is None
+
+
+def test_recheck_ablation_manifest_has_distinct_arms_and_cannot_resume_standard(tmp_path):
+    from aftercare.evaluation.chat.manifest import ARMS, RECHECK_ABLATION, Manifest
+
+    cases = [{"case_id": "case", "repetition": 1, "scope_sha256": "a" * 64}]
+    controls = {"comparison": RECHECK_ABLATION}
+    ablation = Manifest(tmp_path / "ablation")
+    standard = Manifest(tmp_path / "standard")
+    with ablation.lock():
+        plan = ablation.prepare_recheck_ablation("campaign", cases, controls)
+        assert plan["protocol"] == RECHECK_ABLATION
+        assert [row["arm"] for row in plan["rows"]] == ["multi", "multi_no_recheck"]
+        assert {row["input_sha256"] for row in plan["rows"]} == {"a" * 64}
+        assert ablation.prepare_recheck_ablation("campaign", cases, controls) == plan
+        with pytest.raises(ValueError, match="CHAT_EVAL_PLAN_CHANGED"):
+            ablation.prepare("campaign", cases, {})
+    with standard.lock():
+        default = standard.prepare("campaign", cases, {})
+        assert [row["arm"] for row in default["rows"]] == list(ARMS)
+        assert {row["id"] for row in default["rows"]}.isdisjoint(row["id"] for row in plan["rows"])

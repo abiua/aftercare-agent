@@ -325,7 +325,8 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
     assert sum(kind == "investigation_tool" for kind, _ in events) == 3
 
 
-def test_multi_independent_roles_and_one_local_recheck(investigation):
+@pytest.mark.parametrize("arm", ["multi", "multi_no_recheck"])
+def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
     barrier = Barrier(2)
 
     def start(role, call):
@@ -411,7 +412,28 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
             f"p4:{PROMPT_VERSION}:verify-1:0": final_verifier,
         }
     )
-    result, events = _run(investigation, "MULTI", model)
+    result, events = _run(investigation, "MULTI", model, arm=arm)
+    if arm == "multi_no_recheck":
+        assert result["status"] == "NEEDS_REVIEW"
+        assert result["reason"] == "INVESTIGATION_RECHECK_SUPPRESSED"
+        assert result["output"]["investigation_options"] == []
+        assert result["output"]["investigation_unresolved"] == [
+            "原订单字段与事实判断冲突。",
+            "INVESTIGATION_RECHECK_SUPPRESSED",
+        ]
+        assert [
+            payload for kind, payload in events if kind == "investigation_recheck_suppressed"
+        ] == [
+            {
+                "claim_ids": ["fact/f"],
+                "target_role": "fact",
+                "tool_name": "read_order_lines",
+                "reason": "原订单字段与事实判断冲突。",
+            }
+        ]
+        assert not any(kind == "investigation_recheck" for kind, _ in events)
+        assert len(model.calls) == 6
+        return
     assert result["reason"] == "INVESTIGATION_DEPENDENT_CLAIMS_UNRESOLVED"
     assert [
         payload["target_role"] for kind, payload in events if kind == "investigation_recheck"

@@ -280,7 +280,7 @@ function ExperimentDetails({api, id, caseId, repetition, catalogue, retryEnabled
   const result = value?.results.find((item) => item.case_id === caseId && item.repetition === repetition);
   const eligible = !!value && value.results.some((item) => retryableStatuses.includes(item.status));
   const rows = value?.results.filter((item) => (!filter || item.status === filter) && (!intent || item.intent === intent)) ?? [];
-  return <Drawer title={value?.name ?? '评测实验'} open afterOpenChange={setDrawerReady} onClose={close} size="large" extra={<Reload refresh={refresh} loading={resource.loading} />}>
+  return <Drawer title={value?.name ?? '评测实验'} open afterOpenChange={setDrawerReady} closable={{disabled: !drawerReady}} onClose={close} size="large" extra={<Reload refresh={refresh} loading={resource.loading} />}>
     <div className="stack">
       <Feedback error={resource.error || exportError} />
       {value && <>
@@ -369,7 +369,7 @@ function ResultDetails({api, result, supplementalUsageEnabled, parentReady, clos
   api: Client; result: EvalResult; supplementalUsageEnabled: boolean; parentReady: boolean; close: () => void; refresh: () => void;
 }) {
   const [drawerReady, setDrawerReady] = useState(false);
-  return <Drawer title={`案例 ${result.case_id} · 第 ${result.repetition} 次`} open afterOpenChange={setDrawerReady} onClose={close} size="large">
+  return <Drawer title={`案例 ${result.case_id} · 第 ${result.repetition} 次`} open afterOpenChange={setDrawerReady} closable={{disabled: !parentReady || !drawerReady}} onClose={close} size="large">
     <div className="stack">
       <div><Status value={result.status} /></div>
       <EvaluationReviewReading result={result} />

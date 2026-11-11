@@ -19,7 +19,8 @@ from .orchestration import InvestigationContext, ProtectedAudit, RecheckRequest,
 from .prompt_evidence import PRIVATE_RECEIPT_EVENT
 
 CHAT_GRAPH_PROFILE = "chat-investigation-v1"
-ARMS = {"auto", "strong_single", "single_staged", "multi"}
+NO_RECHECK_ARM = "multi_no_recheck"
+ARMS = {"auto", "strong_single", "single_staged", "multi", NO_RECHECK_ARM}
 _OPTIONS = TypeAdapter(list[CandidateOption])
 
 
@@ -72,9 +73,12 @@ def _route(_state, runtime: Runtime[InvestigationContext]):
     route = context.route
     selected = route.path
     if selected != "PROGRAM" and context.arm != "auto":
-        selected = {"strong_single": "SINGLE", "single_staged": "STAGED", "multi": "MULTI"}[
-            context.arm
-        ]
+        selected = {
+            "strong_single": "SINGLE",
+            "single_staged": "STAGED",
+            "multi": "MULTI",
+            NO_RECHECK_ARM: "MULTI",
+        }[context.arm]
     context.audit.event(
         "investigation_route",
         {
@@ -281,6 +285,34 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
             return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
         if count or state["path"] == "STAGED":
             return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_UNRESOLVED")}
+        if context.arm == NO_RECHECK_ARM:
+            own = {row["id"] for row in claims if row["role"] == request["target_role"]}
+            if not set(request["claim_ids"]) <= own:
+                return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
+            try:
+                context.tools.validate_call(
+                    request["target_role"], request["tool_name"], request["arguments"]
+                )
+            except (ValueError, BusinessError):
+                return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_TOOL_DENIED")}
+            reason = "INVESTIGATION_RECHECK_SUPPRESSED"
+            context.audit.event(
+                "investigation_recheck_suppressed",
+                {
+                    "claim_ids": request["claim_ids"],
+                    "target_role": request["target_role"],
+                    "tool_name": request["tool_name"],
+                    "reason": request["reason"],
+                },
+            )
+            return {
+                "path": "DONE",
+                **_output(
+                    context,
+                    reason=reason,
+                    unresolved=[*result.get("unresolved", []), request["reason"], reason],
+                ),
+            }
         return {
             "path": "RECHECK",
             "recheck": request,

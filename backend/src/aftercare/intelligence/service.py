@@ -41,7 +41,12 @@ from aftercare.intelligence.models import (
 from aftercare.intelligence.policies import MODEL_ID, PolicySearch, bge_encoder, document_key
 from aftercare.intelligence.tables import AgentRun, ModelAttempt, RunEvent, RunMutation
 from aftercare.investigation.catalogue import CATALOGUE_VERSION
-from aftercare.investigation.graph import ARMS, CHAT_GRAPH_PROFILE, build_investigation_graph
+from aftercare.investigation.graph import (
+    ARMS,
+    CHAT_GRAPH_PROFILE,
+    NO_RECHECK_ARM,
+    build_investigation_graph,
+)
 from aftercare.investigation.input import InputUnavailable, build_input
 from aftercare.investigation.issue_budget import (
     IssueBudget,
@@ -579,6 +584,7 @@ class AgentService:
         queue_admission=None,
         provider_limiter=None,
         intent_probe=None,
+        allow_recheck_ablation=False,
     ):
         self.engine, self.settings, self.business = engine, settings, business
         self.dispatch = dispatch
@@ -587,6 +593,7 @@ class AgentService:
         self.queue_admission = queue_admission
         self.provider_limiter = provider_limiter
         self.intent_probe = intent_probe
+        self.allow_recheck_ablation = allow_recheck_ablation
         saver = (
             _FencedCheckpointSaver(checkpointer, self._checkpoint_guard)
             if checkpointer is not None
@@ -702,6 +709,14 @@ class AgentService:
             or not self.investigation_enabled
             or decision_scope is None
             or investigation_arm not in ARMS
+            or (
+                investigation_arm == NO_RECHECK_ARM
+                and (
+                    not self.allow_recheck_ablation
+                    or self.settings.profile != "test"
+                    or user.role != "support"
+                )
+            )
             or (
                 decision_turn_id is not None
                 and (user.role != "customer" or investigation_arm != "auto")
@@ -1098,6 +1113,12 @@ class AgentService:
             scope = DecisionScope.model_validate(binding["scope"]) if profile else None
             protocol = None
             if scope is not None:
+                if binding.get("investigation_arm") == NO_RECHECK_ARM and (
+                    not self.allow_recheck_ablation
+                    or self.settings.profile != "test"
+                    or user.role != "support"
+                ):
+                    raise ModelFailure("INVESTIGATION_PROFILE_UNAVAILABLE")
                 try:
                     protocol = protocol_for_binding(binding, scope)
                 except ValueError as error:
