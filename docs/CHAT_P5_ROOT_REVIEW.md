@@ -67,3 +67,6 @@ root查看原始合成杯子/包裹图，杯沿缺口与裂纹、箱体破损及
 独立审查修复了只复制聊天原图而漏掉业务材料对象、以及恢复未验证业务材料字节的问题。受控验收脚本另加入活动租约竞争和 started/ready 落盘后、Agent 启动前的中断探针；这不等于在途模型请求或 Celery 故障验收。
 
 root 完整非 PG 回归 981 通过、2 可选跳过、40 PG 未选，日志 `.runtime/chat-p5-pg-root-regression-fixed.log`；备份定向 62 通过，变更文件 Ruff 通过。首次回归的两个旧备份契约失败保留在 `.runtime/chat-p5-pg-root-regression.log`，更新合法隔离聊天键与完整检查点组的契约后复验。当前仍未启动 5200 专属 PG/S3 栈、未进行本轮真实三臂模型调用，不能据此报告真实数据库或质量验收完成。
+
+
+实际首次运行更新：提交 e77911d 的托管检查 42981119641 成功。使用该提交冻结构建的后端及未变更前端启动独立 test 5200/58362，运行 b256ad0c74d046fea0c1403a43d19d04。`reports/chat-p5-pg-controlled-20261111.json` 状态 FAILED，阶段 CONTROLLED_RUN，外层错误 P5_PG_CONTROLLED_RUN_FAILED；原始诊断只保留 ValueError，需补安全错误定位。只读检查两个源 schema READY、各一会话两附件两份业务材料，无 arm schema、无检查点、无 Agent/模型尝试/执行记录，清单只有 lock、尚无 plan。因此实际验收未通过，禁止直接重跑覆盖失败或再次播种原源。后续先只读定位，再审查具体恢复路径。
