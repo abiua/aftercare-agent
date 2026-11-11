@@ -1,0 +1,39 @@
+{
+  "status": "PASSED",
+  "scope": "NATIVE_BROWSER_READ_ONLY_AFTER_BLIND_LABEL_V2_PREVIEW",
+  "url": "http://127.0.0.1:5201",
+  "v2": {
+    "task_id": "bbe0a0d9-4942-4e12-b275-0a6a079d30ca",
+    "state": "LABELED",
+    "option_labels": 3,
+    "decisions": [
+      "UNDETERMINED",
+      "UNDETERMINED",
+      "UNDETERMINED"
+    ],
+    "unchanged_after_refresh": true,
+    "editable": false
+  },
+  "v1": {
+    "task_id": "6f2270e3-88a9-4f8e-b925-3f303c9b4227",
+    "state": "LABELED",
+    "option_labels": 0,
+    "overall_review_readable": true,
+    "editable": false
+  },
+  "internal_evaluation_fields_visible": false,
+  "support_legacy_material_review_readable": true,
+  "customer_chat_entry_readable": true,
+  "business_write_requests": 0,
+  "capture": {
+    "id": "d24a69e9e3b99",
+    "requests": 30,
+    "errors": 0,
+    "dropped_requests": 0,
+    "dropped_operations": 0
+  },
+  "private_artifact_directory": ".runtime/browser-demo-ouvg2nat/blind-v2-browser-after",
+  "screenshots": "Viewport captures; complete text snapshots kept privately. Background full-page capture unavailable.",
+  "owned_browser_session_logged_out_and_closed": true,
+  "limits": "Pre-existing native control records. No HTTP form submission or independent review validation."
+}

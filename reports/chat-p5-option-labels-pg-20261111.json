@@ -1,0 +1,63 @@
+{
+  "status": "PASSED",
+  "plan": {
+    "campaign": "chat-p5-pg-option-labels-v2-control",
+    "stack_id": "315cfced887148e3b4221b777887e929",
+    "system_id": "7706834943065174055",
+    "backend": "sha256:fc76d6c01c51203efa6858de641bc4d94784852174941ab71868a9875dc77219",
+    "frontend": "sha256:adc940831d70a679ff559aeff461309ad60dd0cb6f21589b640ccd8e86751c98",
+    "network": "aftercare-fresh-315cfced887148e3b4221b777887e929-net",
+    "sentinel_sha256": "154e218f2af97780ef29ee11cbc4e4f9522a688dd2c32e0b37b664f8912688c4",
+    "evidence_grade": "CONTROL",
+    "files": {
+      "scripts/verify_chat_p5_pg.py": "d54b8fe3a56baf24dc24dcde5a9f57c33208d1d4c790ffdb0c252fad96a60a8b",
+      "backend/tests/business/chat_eval_development_fixtures.py": "634302ccad7e8dd0f0c53b9dadcb8f3802cafcfc9af8fae3871b22cc79594bae",
+      "data/chat-eval-v1/development/cases.json": "7e1a35811ab02e9b646a93b3c9a3071795e3c850a2786eb5c66e3cd15c7b2276",
+      "data/v0.1/agent/business.json": "869df87d59dd5c6c5d4a130ec0fcbd900e5c309efd30c27979353d705bc2562c",
+      "data/vision-v1/manifest.json": "9e3069ccfeb95b70bc5c2814893edb3d7686f51ecd660bfb4c54ac452e411dfe",
+      "data/vision-v1/synthetic-cracked-mug.png": "6e4390e0e3afcec897eb0969e43d9666b64ac4f4d8238c0654219d3fe92a6939",
+      "data/vision-v1/synthetic-torn-parcel.png": "c3a405020cc71723d644d50c51ec2a4dd79de6e06d55381fcc241b024a587306",
+      "scripts/verify_chat_p5_option_labels.py": "0272594402087086b654a25eaaf9479048f81fd743219be26b278448081779f0",
+      "scripts/offline_demo.py": "ab754a5f9b69c0c15675c2e94ca6a206e87a6cffc7a5a05a95735ce47deec0b2",
+      "scripts/setup_runtime.py": "da60073cb1052997f538ac7214e32a1fd63e7d493c2678036a0e551a3911dc2c",
+      "scripts/verify_fresh_bootstrap.py": "0f1f0fc94bbac4bd9bdfe1bcfcece6c403bd06c41ac3c7af76478c6440e40007",
+      "scripts/verify_material_review_migration.py": "8f083721d79805f0f415b08c476e177a4d8781b0ec3f08c1f13ccdf62ff0ab8b",
+      "scripts/verify_streaming_compatibility.py": "908c03368730b2f535f2069ebc52717563d604df0a73040605533689afb9941c"
+    }
+  },
+  "plan_sha256": "59782e90ca63e0b8c67f9179a73021d5a465b2905fa29ee56c9e708beb121689",
+  "private_output_directory": "/Users/mbw/Documents/aftercare-agent/.runtime/browser-demo-ouvg2nat/chat-p5-pg-option-labels-v2-control/output",
+  "acceptance": {
+    "tasks": {
+      "DAMAGE-ORDINARY": {
+        "task_id": "bbe0a0d9-4942-4e12-b275-0a6a079d30ca",
+        "status": "LABELED",
+        "label_version": "V2",
+        "labels_sha256": "94bf7354dc7f17def978e11e2d32ede27dbd5d127a0172940b7d79a66ea87e2c",
+        "option_labels": 3,
+        "registered_native_gates": 3
+      },
+      "DAMAGE-TWO-LINE-PACKAGE-CONFLICT": {
+        "task_id": "6f2270e3-88a9-4f8e-b925-3f303c9b4227",
+        "status": "LABELED",
+        "label_version": "V1",
+        "labels_sha256": "b290eb1065de840ac00efdde41000ecafa6ac247ea416679c8860bf7cfa215e8",
+        "option_labels": 0,
+        "registered_native_gates": 3
+      }
+    },
+    "planned_rows": 6,
+    "controlled_transport_calls": 26,
+    "provider_calls": 0,
+    "independent_human_labels": 0,
+    "gate_accuracy_export_sha256": "6efe28ab112c6c66d43bf5bb2e53569c904088f282a655aef7ec4963d8c9b702",
+    "program_gate_accuracy": "NOT_MEASURABLE",
+    "boundary": "NATIVE_BLIND_REVIEW_SERVICE_AND_POSTGRES_WRITES",
+    "http_submission": "NOT_TESTED",
+    "public_business_unchanged": true,
+    "original_bytes_read_back": true,
+    "existing_testers": 1,
+    "second_tester_isolation": "NOT_TESTED",
+    "non_tester_access_denied": true
+  }
+}

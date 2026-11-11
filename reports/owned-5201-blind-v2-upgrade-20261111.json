@@ -1,0 +1,26 @@
+{
+  "status": "PASSED",
+  "url": "http://127.0.0.1:5201",
+  "deployed_commit": "b49f914dc6c0c2359f56ae8aaa21e1235f92e149",
+  "plan_sha256": "f9db7f3c2f93a413f115d19b60d1e5e28580c620911f49b40c5933628de31b44",
+  "backend_image": "sha256:fc76d6c01c51203efa6858de641bc4d94784852174941ab71868a9875dc77219",
+  "frontend_image": "sha256:adc940831d70a679ff559aeff461309ad60dd0cb6f21589b640ccd8e86751c98",
+  "backup_restore": {
+    "all_managed_fingerprints_match": true,
+    "managed_table_count": 131,
+    "all_source_archive_restore_object_bytes_match": true,
+    "object_count": 14,
+    "source_system_identifier": "7706834943065174055",
+    "restore_system_identifier": "7706863907855241254"
+  },
+  "source_infrastructure_retained": true,
+  "temporary_restore_resources_independently_confirmed_absent": true,
+  "previous_attempt": {
+    "status": "FAILED",
+    "reason": "DOCKER_DEFAULT_ADDRESS_POOLS_EXHAUSTED",
+    "apps_replaced": false,
+    "old_apps_resumed": true
+  },
+  "provider_calls": 0,
+  "financial_writes": 0
+}

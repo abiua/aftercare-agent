@@ -1,0 +1,43 @@
+{
+  "status": "PASSED",
+  "scope": "NATIVE_BROWSER_READ_ONLY_BEFORE_BLIND_LABEL_V2_PREVIEW",
+  "url": "http://127.0.0.1:5201",
+  "support_legacy_material_review": {
+    "case_id": "d04cec91-5201-483a-b81f-f5ff4c92a70a",
+    "status": "APPROVED",
+    "history_visible": true,
+    "selector": "材料与审核 / 人工审核记录"
+  },
+  "customer_entry": {
+    "login_visible": true,
+    "chat_entry_visible": true,
+    "empty_state_visible": true,
+    "selector": "售后聊天 / 你好，需要什么售后帮助？"
+  },
+  "capture": {
+    "id": "d7adad159dd6c",
+    "requests": 14,
+    "errors": 0,
+    "dropped_requests": 0
+  },
+  "business_write_requests": 0,
+  "owned_browser_session_logged_out_and_closed": true,
+  "private_artifacts": {
+    "support.png": {
+      "present": true,
+      "size_bytes": 312237
+    },
+    "support.json": {
+      "present": true,
+      "size_bytes": 9530
+    },
+    "customer.png": {
+      "present": true,
+      "size_bytes": 96983
+    },
+    "customer.txt": {
+      "present": true,
+      "size_bytes": 1258
+    }
+  }
+}
