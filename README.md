@@ -60,8 +60,10 @@ AFTERCARE_RUN_PG=1 ./scripts/check.sh pg
 
 参考 [完整要求矩阵](docs/FULL_IMPLEMENTATION_PLAN.md)、[评测数据说明](docs/EVALUATION_DATASET.md)、[智能工作流](docs/HANDOFF_INTELLIGENCE.md)、[业务执行](docs/HANDOFF_BUSINESS.md)、[评测后端](docs/HANDOFF_EVALUATION.md)、[备份恢复](docs/BACKUP_RESTORE.md) 与 [集成证据](docs/HANDOFF_INTEGRATION.md)。S0 阶段文档保留其当时边界，不代表当前实现仍停留在数据准备。
 
-当前体验版已升级为 `acceptance-20261110-scenario`，包含质保未知事实修复、逐项复核和场景统计。数据与凭据前后核对一致，完整质量验收仍未完成。[部署记录](reports/deployment/scenario-app.json)
+最近一次部署验收记录为后端 `acceptance-20261110-formal`、前端 `acceptance-20261110-refund-fixed`，包含正式评测执行接线、逐项复核、场景统计与指定退款查询。升级时数据与凭据核对一致；完整质量验收仍未完成。[部署记录](reports/deployment/formal-app.json)
 
 ## 仓库与本机验收记录
 
 源码仓库为私有仓库 `abiua/aftercare-agent`。仓库包含源码、锁文件、合成数据、测试和开发文档；`.runtime/`、凭据、模型缓存及 `reports/` 本机运行证据不上传。文档中的 `reports/` 链接需要在原工作目录或运行相应验收脚本后查看，仓库本身不代表这些历史验收已经复现。GitHub Actions 执行离线程序及受控浏览器测试，不注入真实模型凭据，不代表 PostgreSQL/S3、真实模型质量或人工发布审批通过。
+
+[首次完整通过的 GitHub 检查](https://github.com/abiua/aftercare-agent/actions/runs/42945574844)对应提交 `1db1425`：数据测试18项、后端801通过（1跳过、30项数据库测试未选）、前端37项、受控浏览器27项，lint及构建通过。此前缺少本机报告的失败已保留，阅读卡回归现使用入库夹具，不再依赖 `reports/` 目录。
