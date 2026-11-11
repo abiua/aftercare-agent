@@ -13,15 +13,14 @@ const expected = {
 };
 
 const repo = process.env.AFTERCARE_REVIEW_REPORT_ROOT;
-test('four saved development reports separate public opinions from internal notes and end-of-report facts', {
-  skip: !repo && !existsInCheckout(),
-}, () => {
+test('four saved development reports separate public opinions from internal notes and end-of-report facts', () => {
   const root = repo ? pathToFileURL(resolve(repo) + '/') : new URL('../../', import.meta.url);
   const read = (file) => JSON.parse(readFileSync(new URL(file, root), 'utf8'));
-  const {entries} = read('data/review/development-review.json');
+  const {entries} = repo ? read('data/review/development-review.json')
+    : JSON.parse(readFileSync(new URL('./fixtures/review-reading.json', import.meta.url), 'utf8'));
   assert.equal(entries.length, 4);
-  for (const {review_id, provenance, user_input} of entries) {
-    const raw = read(provenance.report).results.find(({id}) => id === provenance.result_id);
+  for (const {review_id, provenance, user_input, result: fixture} of entries) {
+    const raw = repo ? read(provenance.report).results.find(({id}) => id === provenance.result_id) : fixture;
     // Object serialization order is deliberately changed. The script trace owns chronology.
     raw.actual.events = Object.fromEntries(Object.entries(raw.actual.events).reverse());
     const result = readReviewEvidence(raw);
@@ -45,15 +44,6 @@ test('four saved development reports separate public opinions from internal note
     if (review_id === 'DEV-HR-04') assert.equal(result.runs.at(-1).output, undefined);
   }
 });
-
-function existsInCheckout() {
-  try {
-    readFileSync(new URL('../../data/review/development-review.json', import.meta.url));
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 test('an unverified question, ambiguous steps and missing output are kept distinct', () => {
   const result = readReviewEvidence({
