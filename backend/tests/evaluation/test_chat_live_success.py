@@ -99,7 +99,7 @@ def test_complex_scope_distinguishes_customer_conflict_from_business_mapping(suc
     assert result["targeted_recheck"] == "NOT_OBSERVED"
 
 
-def test_second_ordinary_attempt_uses_disjoint_target_and_keeps_business_scope(success):
+def test_ordinary_attempts_use_disjoint_targets_and_keep_business_scope(success):
     prior = success.driver.STATE
     with success._target("ordinary") as first:
         assert success.driver.PORT == 5204
@@ -109,7 +109,14 @@ def test_second_ordinary_attempt_uses_disjoint_target_and_keeps_business_scope(s
         assert success.offline_demo.STATE == success.driver.STATE == second
         assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5206, 58368)
         assert set(success.driver.SUBNETS.values()) == {"10.253.252.96/28", "10.253.252.112/28"}
-        assert first_subnets.isdisjoint(success.driver.SUBNETS.values())
+        second_subnets = set(success.driver.SUBNETS.values())
+        assert first_subnets.isdisjoint(second_subnets)
+    with success._target("ordinary", 3) as third:
+        assert third not in {first, second} and third.name.endswith("ordinary-r3.json")
+        assert success.offline_demo.STATE == success.driver.STATE == third
+        assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5207, 58369)
+        assert set(success.driver.SUBNETS.values()) == {"10.253.252.128/28", "10.253.252.144/28"}
+        assert (first_subnets | second_subnets).isdisjoint(success.driver.SUBNETS.values())
         assert success.SCENARIOS["ordinary"]["order"] == "O9902"
         assert success.SCENARIOS["ordinary"]["lines"] == ["L01"]
     with success._target("complex"):
@@ -117,6 +124,6 @@ def test_second_ordinary_attempt_uses_disjoint_target_and_keeps_business_scope(s
     assert success.driver.STATE == prior
     with (
         pytest.raises(success.VerificationError, match="LIVE_SUCCESS_ATTEMPT_UNSUPPORTED"),
-        success._target("complex", 2),
+        success._target("complex", 3),
     ):
         pytest.fail("complex retry should not be admitted")

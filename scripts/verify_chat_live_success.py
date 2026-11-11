@@ -43,11 +43,19 @@ SCENARIOS = {
         "route": "MULTI",
     },
 }
-ORDINARY_R2 = {
-    "port": 5206,
-    "object_port": 58368,
-    "net": "10.253.252.96/28",
-    "ingress": "10.253.252.112/28",
+ORDINARY_REPEATS = {
+    2: {
+        "port": 5206,
+        "object_port": 58368,
+        "net": "10.253.252.96/28",
+        "ingress": "10.253.252.112/28",
+    },
+    3: {
+        "port": 5207,
+        "object_port": 58369,
+        "net": "10.253.252.128/28",
+        "ingress": "10.253.252.144/28",
+    },
 }
 PROTOCOL = "p5-live-business-wire-v2"
 FINANCIAL = (
@@ -61,10 +69,11 @@ FINANCIAL = (
 @contextmanager
 def _target(name, attempt=1):
     require(
-        attempt == 1 or (name == "ordinary" and attempt == 2), "LIVE_SUCCESS_ATTEMPT_UNSUPPORTED"
+        attempt == 1 or (name == "ordinary" and attempt in ORDINARY_REPEATS),
+        "LIVE_SUCCESS_ATTEMPT_UNSUPPORTED",
     )
-    scenario = SCENARIOS[name] if attempt == 1 else {**SCENARIOS[name], **ORDINARY_R2}
-    suffix = name if attempt == 1 else "ordinary-r2"
+    scenario = SCENARIOS[name] if attempt == 1 else {**SCENARIOS[name], **ORDINARY_REPEATS[attempt]}
+    suffix = name if attempt == 1 else f"ordinary-r{attempt}"
     state = ROOT / f".runtime/offline-browser-demo-live-success-{suffix}.json"
     with (
         patch.multiple(
@@ -165,8 +174,10 @@ def _preflight(name, image_receipt, *, attempt=1):
         sent_jpeg_sha256s=[row.sent_sha256 for row in photos],
     )
     plan["protected_state"] = ["5202_WAITING_INDEPENDENT_REVIEW", "5203_FAILED_AND_TAKEOVER"]
-    if attempt == 2:
+    if attempt >= 2:
         plan["protected_state"].append("5204_ORIGINAL_ORDINARY_UNKNOWN_NO_REPLAY")
+    if attempt == 3:
+        plan["protected_state"].append("5206_ORDINARY_R2_PARTIAL_NO_REPLAY")
     plan["gates"]["success_driver_sha256"] = _hash(Path(__file__))
     plan["complex_fixture_sha256"] = _hash(CASES) if case else None
     plan["completion"] = (
@@ -619,7 +630,7 @@ def _execute(plan, report, output):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scenario", choices=SCENARIOS, required=True)
-    parser.add_argument("--attempt", type=int, choices=(1, 2), default=1)
+    parser.add_argument("--attempt", type=int, choices=(1, *ORDINARY_REPEATS), default=1)
     parser.add_argument("--image-receipt", type=Path, required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--expected-plan-sha256")

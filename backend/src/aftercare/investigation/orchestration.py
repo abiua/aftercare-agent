@@ -26,6 +26,7 @@ from .prompt_evidence import (
     HUMAN_PAYMENT_PROMPT_LEGEND,
     PRIVATE_RECEIPT_EVENT,
     PROMPT_LEGEND,
+    RECEIPT_LEGEND,
     PromptEvidence,
 )
 from .protocol import HUMAN_PAYMENT_V7, LEGACY_V6, InvestigationProtocol
@@ -154,8 +155,23 @@ def _render(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _prompt_schema(schema):
+    """Omit generated titles from JSON Schema nodes, keeping instance data intact."""
+    result = {key: value for key, value in schema.items() if key != "title"}
+    for key in ("properties", "$defs"):
+        if key in result:
+            result[key] = {name: _prompt_schema(node) for name, node in result[key].items()}
+    for key in ("items", "additionalProperties"):
+        if isinstance(result.get(key), dict):
+            result[key] = _prompt_schema(result[key])
+    for key in ("anyOf", "allOf", "oneOf", "prefixItems"):
+        if key in result:
+            result[key] = [_prompt_schema(node) for node in result[key]]
+    return result
+
+
 def _model_tool_receipt(projection, call, receipt, known_evidence, receipt_sha256):
-    projected, _ = projection.receipt(receipt)
+    projected = projection.tool_receipt(receipt)
     name = "request_targeted_check"
     if call["name"] != name or receipt["name"] != name:
         return projected
@@ -243,6 +259,9 @@ def run_phase(
     prompt_version = context.protocol.prompt_version
     projection = PromptEvidence(context.input, protocol=context.protocol)
     projected_prompt = projection.prompt(prompt)
+    prompt_schema = schema.model_json_schema()
+    if projection.receipt_encoding:
+        prompt_schema = _prompt_schema(prompt_schema)
     messages = [
         SystemMessage(
             content=(
@@ -254,7 +273,8 @@ def run_phase(
                 + _ROLE_INSTRUCTIONS[role]
                 + PROMPT_LEGEND
                 + (HUMAN_PAYMENT_PROMPT_LEGEND if context.protocol == HUMAN_PAYMENT_V7 else "")
-                + _render(schema.model_json_schema())
+                + (RECEIPT_LEGEND if projection.receipt_encoding else "")
+                + _render(prompt_schema)
             )
         ),
         HumanMessage(

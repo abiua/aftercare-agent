@@ -834,3 +834,51 @@ def test_targeted_policy_recheck_can_read_another_frozen_version(investigation):
     assert result["path"] == "MULTI" and result["recheck_count"] == 1
     assert result["active_claims"][0]["supporting_refs"] == ["POL01:v0"]
     assert script.calls == [f"p4:{PROMPT_VERSION}:recheck:0"]
+
+
+def test_v7_tool_receipts_link_previously_shown_records(investigation):
+    from copy import deepcopy
+
+    from aftercare.intelligence.models import ModelFailure
+
+    projection = PromptEvidence(investigation, protocol=HUMAN_PAYMENT_V7)
+    view = projection.prompt(investigation.role_view("strong_single"))
+    assert view["receipt_encoding"] == "phase-record-links-v1"
+    receipt = InvestigationTools(investigation).call(
+        "strong_single", "read_order_lines", {"line_ids": ["line2"]}
+    ).model_dump(mode="json")
+    original = deepcopy(receipt)
+    first = projection.tool_receipt(receipt)["data"]
+    second = projection.tool_receipt(receipt)["data"]
+    assert first["records"]
+    assert second == {
+        "records": [],
+        "record_links": [[index, row["ref"]] for index, row in enumerate(first["records"])],
+    }
+    assert receipt == original
+
+    conflicting = deepcopy(receipt)
+    conflicting["data"]["records"][0]["data"]["unexpected"] = True
+    with pytest.raises(ModelFailure, match="INVESTIGATION_EVIDENCE_INCONSISTENT"):
+        projection.tool_receipt(conflicting)
+
+
+def test_v7_output_schema_omits_only_schema_titles():
+    from aftercare.investigation.orchestration import _prompt_schema
+
+    schema = {
+        "title": "Root",
+        "properties": {
+            "title": {"title": "Label", "enum": ["x"]},
+            "other": {"anyOf": [{"title": "Nested", "const": {"title": "data"}}]},
+        },
+        "required": ["title"],
+    }
+    assert _prompt_schema(schema) == {
+        "properties": {
+            "title": {"enum": ["x"]},
+            "other": {"anyOf": [{"const": {"title": "data"}}]},
+        },
+        "required": ["title"],
+    }
+    assert schema["title"] == "Root"

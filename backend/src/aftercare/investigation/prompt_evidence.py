@@ -3,9 +3,14 @@
 from aftercare.business.rules import digest
 from aftercare.intelligence.models import ModelFailure
 
-from .protocol import LEGACY_V6
+from .protocol import HUMAN_PAYMENT_V7, LEGACY_V6
 
 PROMPT_VERSION = LEGACY_V6.prompt_version
+RECEIPT_ENCODING = "phase-record-links-v1"
+RECEIPT_LEGEND = (
+    "record_links 的 [原位置,ref] 指向同阶段已展示的原始记录。"
+    "仍须按本轮 citable_evidence_ids 判断能否引用。"
+)
 PRIVATE_RECEIPT_EVENT = "investigation_receipt"
 PROMPT_LEGEND = (
     "证据结构：scope 依次为会话、事项、工单。"
@@ -37,6 +42,8 @@ class PromptEvidence:
         self.prompt_version = protocol.prompt_version
         self.scope = [source.conversation_id, source.issue_id, source.case_id]
         self.input_digest = source.relevant_input_sha256
+        self.receipt_encoding = RECEIPT_ENCODING if protocol == HUMAN_PAYMENT_V7 else None
+        self._shown_records = {}
 
     def ref(self, value):
         if value["scope"] != self.scope:
@@ -86,6 +93,26 @@ class PromptEvidence:
             result["refs"] = refs
         return result, records
 
+    def tool_receipt(self, value):
+        projected, records = self.receipt(value)
+        if self.receipt_encoding is None:
+            return projected
+        data = projected["data"]
+        if "records" in data:
+            novel, links = [], []
+            for position, row in enumerate(records):
+                key = tuple(row["ref"][:3])
+                prior = self._shown_records.get(key)
+                self._add(self._shown_records, row)
+                if prior is None:
+                    novel.append(row)
+                else:
+                    links.append([position, row["ref"]])
+            data["records"] = novel
+            if links:
+                data["record_links"] = links
+        return projected
+
     def prompt(self, view):
         view = dict(view)
         if "available_evidence" in view:
@@ -107,6 +134,11 @@ class PromptEvidence:
                 receipts.append(projected)
             view["original_read_receipts"] = receipts
             view["original_frozen_evidence"] = list(originals.values())
+        if self.receipt_encoding is not None:
+            for field in ("attachments", "unverified_observations", "original_frozen_evidence"):
+                for row in view.get(field, ()):
+                    self._add(self._shown_records, row)
+            view["receipt_encoding"] = self.receipt_encoding
         return {**view, "scope": self.scope, "evidence_encoding": self.prompt_version}
 
     @staticmethod
