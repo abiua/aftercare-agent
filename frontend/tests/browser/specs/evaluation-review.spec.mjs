@@ -9,9 +9,17 @@ async function openReview(page) {
   return dialog;
 }
 
-async function fillOverall(page, dialog, notes, decision = '通过') {
-  await dialog.getByRole('combobox', {name: '复核结论'}).click();
-  await page.locator('.ant-select-dropdown:visible').getByText(decision, {exact: true}).click();
+async function fillOverall(dialog, notes, decision = '通过') {
+  const conclusion = dialog.getByRole('combobox', {name: '复核结论'});
+  await conclusion.press('ArrowDown');
+  await expect(conclusion).toHaveAttribute('aria-expanded', 'true');
+  if (decision === '无法判断') {
+    await conclusion.press('ArrowDown');
+    await conclusion.press('ArrowDown');
+  }
+  await conclusion.press('Enter');
+  await expect(conclusion).toHaveAttribute('aria-expanded', 'false');
+  await expect(dialog.locator('.ant-select-content-has-value')).toHaveText(decision);
   await dialog.getByRole('textbox', {name: '证据与说明'}).fill(notes);
 }
 
@@ -27,7 +35,7 @@ test('fixture: saves exact explicitly chosen keys and confirms replacing current
   await expect(dialog.getByText('验收用示例条款原文。', {exact: true})).toBeVisible();
   await tool.getByRole('radio', {name: '无法判断'}).check();
   await citation.getByRole('radio', {name: '不正确', exact: true}).check();
-  await fillOverall(page, dialog, '  受控测试意见  ');
+  await fillOverall(dialog, '  受控测试意见  ');
   await dialog.getByRole('button', {name: '保存复核'}).click();
   await expect(dialog.getByText('受控测试意见', {exact: true})).toBeVisible();
   expect(fixtureApi.reviewCalls).toEqual([{
@@ -41,7 +49,7 @@ test('fixture: saves exact explicitly chosen keys and confirms replacing current
   await dialog.getByRole('button', {name: '添加人工复核'}).click();
   await expect(tool.getByRole('radio', {name: '暂不评'})).toBeChecked();
   await expect(citation.getByRole('radio', {name: '暂不评'})).toBeChecked();
-  await fillOverall(page, dialog, '本次仅提供总评。', '无法判断');
+  await fillOverall(dialog, '本次仅提供总评。', '无法判断');
   await expect(dialog.getByText('本次总评为无法判断，所选逐项标注只保留在历史中。')).toBeVisible();
   await dialog.getByRole('button', {name: '保存复核'}).click();
   await expect(dialog.getByText('请确认新版本的替换范围')).toBeVisible();
@@ -59,7 +67,7 @@ test('fixture: version conflict keeps prior choices local and requires opening a
   const dialog = await openReview(page);
   const citation = dialog.getByRole('radiogroup', {name: '第 1 条引用的判断'});
   await citation.getByRole('radio', {name: '正确', exact: true}).check();
-  await fillOverall(page, dialog, '先前浏览时的意见');
+  await fillOverall(dialog, '先前浏览时的意见');
   await dialog.getByRole('button', {name: '保存复核'}).click();
   await expect(dialog.getByText('另一位复核员已保存。')).toBeVisible();
   await expect(dialog.getByText('案例结果或复核记录已更新，请取消编辑并核对最新记录。')).toBeVisible();
@@ -70,7 +78,7 @@ test('fixture: version conflict keeps prior choices local and requires opening a
   await dialog.getByRole('button', {name: '取消编辑'}).click();
   await dialog.getByRole('button', {name: '添加人工复核'}).click();
   await expect(citation.getByRole('radio', {name: '暂不评'})).toBeChecked();
-  await fillOverall(page, dialog, '查阅最新记录后另写的意见。');
+  await fillOverall(dialog, '查阅最新记录后另写的意见。');
   await dialog.getByRole('button', {name: '保存复核'}).click();
   await expect(dialog.getByText('查阅最新记录后另写的意见。', {exact: true})).toBeVisible();
   expect(fixtureApi.reviewCalls.map(({body}) => body.expected_version)).toEqual([1, 2]);
@@ -82,7 +90,7 @@ test('fixture: legacy results with no audit keys can save overall review only', 
   const dialog = await openReview(page);
   await expect(dialog.getByText('历史报告缺少引用核对记录。')).toBeVisible();
   await expect(dialog.getByRole('radiogroup')).toHaveCount(0);
-  await fillOverall(page, dialog, '旧版证据不足，无法判断。', '无法判断');
+  await fillOverall(dialog, '旧版证据不足，无法判断。', '无法判断');
   await dialog.getByRole('button', {name: '保存复核'}).click();
   await expect(dialog.getByText('未提交逐项标注', {exact: true})).toBeVisible();
   expect(fixtureApi.reviewCalls[0].body).toEqual({
