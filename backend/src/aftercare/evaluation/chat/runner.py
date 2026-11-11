@@ -28,6 +28,7 @@ from aftercare.decisions.contracts import Candidate, DecisionScope, Option
 from aftercare.decisions.service import DecisionService
 from aftercare.decisions.tables import DecisionSnapshot
 from aftercare.evaluation.chat.manifest import (
+    COUNTEREXAMPLE_ABLATION,
     RECHECK_ABLATION,
     SEQUENTIAL_CLAIMS_ABLATION,
     bound_rows,
@@ -43,7 +44,12 @@ from aftercare.intelligence.models import (
 from aftercare.intelligence.service import AgentService, RunError
 from aftercare.intelligence.tables import AgentRun, RunEvent, RunMutation
 from aftercare.investigation.catalogue import CATALOGUE_VERSION
-from aftercare.investigation.graph import CHAT_GRAPH_PROFILE, NO_RECHECK_ARM, SEQUENTIAL_CLAIMS_ARM
+from aftercare.investigation.graph import (
+    CHAT_GRAPH_PROFILE,
+    NO_RECHECK_ARM,
+    SEQUENTIAL_CLAIMS_ARM,
+    SYNTHESIS_ONLY_ARM,
+)
 from aftercare.investigation.input import build_input
 from aftercare.investigation.issue_budget import IssueBudget
 from aftercare.investigation.prompt_evidence import PROMPT_VERSION
@@ -57,6 +63,7 @@ _PATHS = {
     "multi": "MULTI",
     NO_RECHECK_ARM: "MULTI",
     SEQUENTIAL_CLAIMS_ARM: "MULTI",
+    SYNTHESIS_ONLY_ARM: "MULTI",
 }
 _PHASES = {
     "SINGLE": {"single": "strong_single"},
@@ -348,7 +355,9 @@ def _protocol_input(scope):
     return build_input(scope, evidence_projection=protocol_for_scope(scope).evidence_projection)
 
 
-def _route_evidence(row, source, events, attempts, *, has_candidate, executable):
+def _route_evidence(
+    row, source, events, attempts, *, has_candidate, executable, counterexample_ablation=False
+):
     routes = [event.payload for event in events if event.kind == "investigation_route"]
     phases = [event.payload for event in events if event.kind == "investigation_input"]
     if not routes:
@@ -366,7 +375,7 @@ def _route_evidence(row, source, events, attempts, *, has_candidate, executable)
     if path == "PROGRAM":
         return path, phases, not (phases or attempts or executable)
     phase_roles = {phase.get("phase_id"): phase.get("role") for phase in phases}
-    if row["arm"] == NO_RECHECK_ARM and (
+    if row["arm"] in {NO_RECHECK_ARM, SYNTHESIS_ONLY_ARM} and (
         {"recheck", "verify-1"} & phase_roles.keys()
         or any(event.kind == "investigation_recheck" for event in events)
     ):
@@ -384,9 +393,18 @@ def _route_evidence(row, source, events, attempts, *, has_candidate, executable)
         if policy.get("upstream_claim_ids") != sorted(claim["id"] for claim in fact_claims):
             return path, phases, False
     allowed = _PHASES[path].copy()
+    if row["arm"] == SYNTHESIS_ONLY_ARM:
+        allowed = {"fact": "fact", "policy": "policy", "synthesize-0": "synthesizer"}
+        if any(event.kind == "investigation_assessment" for event in events):
+            return path, phases, False
+    if counterexample_ablation:
+        third_phase = "synthesize-0" if row["arm"] == SYNTHESIS_ONLY_ARM else "verify-0"
+        third = next((phase for phase in phases if phase.get("phase_id") == third_phase), None)
+        if third is not None and third.get("tools") != ["request_targeted_check"]:
+            return path, phases, False
     if path == "MULTI" and phase_roles.get("recheck") in {"fact", "policy"}:
         allowed["recheck"] = phase_roles["recheck"]
-    initial = set(_PHASES[path]) - {"verify-1"}
+    initial = set(allowed) - {"verify-1", "recheck"}
     prefixes = {f"p4:{protocol.prompt_version}:{phase}" for phase in phase_roles}
     succeeded = {
         item["logical_id"].rsplit(":", 1)[0] for item in attempts if item["status"] == "SUCCEEDED"
@@ -432,6 +450,7 @@ def _audit(engine, storage, row, source, controls):
         attempts = _model_attempts(engine, run.id)
         expected = source.scope.model_dump(mode="json")
         bound, executable = _candidate_bound(snapshot, run, source, expected)
+        counterexample_ablation = controls.get("comparison") == COUNTEREXAMPLE_ABLATION
         route, phases, route_valid = _route_evidence(
             row,
             source,
@@ -439,13 +458,14 @@ def _audit(engine, storage, row, source, controls):
             attempts,
             has_candidate=snapshot is not None,
             executable=executable,
+            counterexample_ablation=counterexample_ablation,
         )
         suppressed = [
             event.payload for event in events if event.kind == "investigation_recheck_suppressed"
         ]
         ablation_valid = (
             not suppressed
-            if row["arm"] != NO_RECHECK_ARM
+            if row["arm"] not in {NO_RECHECK_ARM, SYNTHESIS_ONLY_ARM}
             else (
                 bool(suppressed) == (run.reason == "INVESTIGATION_RECHECK_SUPPRESSED")
                 and len(suppressed) <= 1
@@ -454,19 +474,52 @@ def _audit(engine, storage, row, source, controls):
                     or (
                         not executable
                         and run.status == "NEEDS_REVIEW"
-                        and {"fact", "policy", "verify-0"}
+                        and {
+                            "fact",
+                            "policy",
+                            "synthesize-0" if row["arm"] == SYNTHESIS_ONLY_ARM else "verify-0",
+                        }
                         <= {phase.get("phase_id") for phase in phases}
+                        and (
+                            row["arm"] != SYNTHESIS_ONLY_ARM
+                            or suppressed[0].get("source") == "SYNTHESIS_TOOL_REQUEST"
+                        )
                     )
+                )
+            )
+        )
+        synthesis = [event.payload for event in events if event.kind == "investigation_synthesis"]
+        synthesis_valid = (
+            not synthesis
+            if row["arm"] != SYNTHESIS_ONLY_ARM
+            else (
+                len(synthesis) <= 1
+                and (not executable or len(synthesis) == 1)
+                and all(
+                    item.get("phase_id") == "synthesize-0"
+                    and sorted(item.get("upstream_claim_ids", []))
+                    == next(
+                        (
+                            phase["upstream_claim_ids"]
+                            for phase in phases
+                            if phase.get("phase_id") == "synthesize-0"
+                        ),
+                        None,
+                    )
+                    for item in synthesis
                 )
             )
         )
         valid = (
             ablation_valid
+            and synthesis_valid
             and binding is not None
             and run.case_id == source.scope.case_id
             and run.owner_id == source.definition.actor.user_id
             and binding.get("scope") == expected
             and binding.get("investigation_arm") == row["arm"]
+            and binding.get("investigation_counterexample_ablation", False)
+            is counterexample_ablation
             and binding.get("graph_profile") == CHAT_GRAPH_PROFILE
             and binding.get("investigation_prompt_version") == protocol.prompt_version
             and binding.get("investigation_evidence_projection") == protocol.evidence_projection
@@ -524,7 +577,12 @@ def _audit(engine, storage, row, source, controls):
             "rechecks": [
                 event.payload for event in events if event.kind == "investigation_recheck"
             ],
-            **({"suppressed_rechecks": suppressed} if row["arm"] == NO_RECHECK_ARM else {}),
+            **(
+                {"suppressed_rechecks": suppressed}
+                if row["arm"] in {NO_RECHECK_ARM, SYNTHESIS_ONLY_ARM}
+                else {}
+            ),
+            **({"synthesis_results": synthesis} if row["arm"] == SYNTHESIS_ONLY_ARM else {}),
             "snapshot_id": snapshot.id if snapshot is not None else None,
             "candidate_status": (
                 "MISSING"
@@ -584,6 +642,7 @@ class ChatEvaluationRunner:
         budget: Decimal,
         recheck_ablation=False,
         sequential_claims_ablation=False,
+        counterexample_ablation=False,
     ):
         registry = model.registry
         if (
@@ -595,10 +654,11 @@ class ChatEvaluationRunner:
             raise ValueError("CHAT_EVAL_FIXED_MODEL_REQUIRED")
         self._paid_scope = None
         self._paid_protocol = None
-        if recheck_ablation and sequential_claims_ablation:
+        if sum((recheck_ablation, sequential_claims_ablation, counterexample_ablation)) > 1:
             raise ValueError("CHAT_EVAL_ABLATIONS_MUST_BE_SEPARATE")
         self._recheck_ablation = recheck_ablation
         self._sequential_claims_ablation = sequential_claims_ablation
+        self._counterexample_ablation = counterexample_ablation
         self._wire_row = None
         self._configure(model, checkpointer, calls, budget)
 
@@ -697,6 +757,7 @@ class ChatEvaluationRunner:
         runner._paid_protocol = protocol
         runner._recheck_ablation = False
         runner._sequential_claims_ablation = False
+        runner._counterexample_ablation = False
         runner._paid_campaign = plan["campaign"]
         runner._wire_row = partial(gate_policy.active_row, gate.STATE, plan, gate._write)
         runner._configure(model, None, 8, Decimal("0.40"))
@@ -741,6 +802,7 @@ class ChatEvaluationRunner:
             if (
                 self._recheck_ablation
                 or self._sequential_claims_ablation
+                or self._counterexample_ablation
                 or not isinstance(backend, _PgRuntime)
                 or campaign != self._paid_campaign
                 or backend.campaign != campaign
@@ -797,6 +859,11 @@ class ChatEvaluationRunner:
                 controls["comparison"] = SEQUENTIAL_CLAIMS_ABLATION
                 controls["first_round_policy_input"] = "SEQUENTIAL_FACT_CLAIMS_DEPENDENCY"
                 plan = manifest.prepare_sequential_claims_ablation(campaign, records, controls)
+            elif self._counterexample_ablation:
+                controls["comparison"] = COUNTEREXAMPLE_ABLATION
+                controls["third_stage_tools"] = ["request_targeted_check"]
+                controls["local_recheck"] = "DISABLED_BOTH_ARMS"
+                plan = manifest.prepare_counterexample_ablation(campaign, records, controls)
             else:
                 plan = manifest.prepare(campaign, records, controls)
             results = []
@@ -850,6 +917,7 @@ class ChatEvaluationRunner:
                     dispatch=lambda _run_id: None,
                     allow_recheck_ablation=self._recheck_ablation,
                     allow_sequential_claims_ablation=self._sequential_claims_ablation,
+                    allow_counterexample_ablation=self._counterexample_ablation,
                     attempt_admission=lambda _session: backend.fence(),
                     attempt_continuation=lambda _session: backend.fence(),
                     queue_admission=lambda _session: backend.fence(),
@@ -865,6 +933,7 @@ class ChatEvaluationRunner:
                     decision_scope=source.scope,
                     graph_profile=CHAT_GRAPH_PROFILE,
                     investigation_arm=row["arm"],
+                    counterexample_ablation=self._counterexample_ablation,
                 )
                 run_id = started["id"]
                 agent.process(run_id)
@@ -880,7 +949,9 @@ class ChatEvaluationRunner:
                             project_candidate(db, records, case.actor, run_id)
                     except BusinessError as error:
                         projection_error = error.code
-                result = _audit(engine, storage, row, source, self.controls)
+                result = _audit(
+                    engine, storage, row, source, manifest.read("plan.json")["controls"]
+                )
                 if result is None:
                     return _failure("UNKNOWN", "CHAT_EVAL_RUN_UNBOUND")
                 if projection_error:
@@ -901,7 +972,9 @@ class ChatEvaluationRunner:
     def _reconcile(self, manifest, row, source, backend):
         try:
             with backend.arm(manifest, row, source, create=False) as (engine, storage, _, _saver):
-                result = _audit(engine, storage, row, source, self.controls)
+                result = _audit(
+                    engine, storage, row, source, manifest.read("plan.json")["controls"]
+                )
             if result is not None:
                 return {**result, **backend.checkpoint(row, result)}
             return result or _failure("UNKNOWN", "CHAT_EVAL_RUN_UNBOUND")

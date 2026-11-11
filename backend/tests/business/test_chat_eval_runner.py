@@ -814,3 +814,127 @@ def test_sequential_claims_sqlite_native_recheck_and_capability_loss(tmp_path, m
             assert len(calls) == 24
         finally:
             engine.dispose()
+
+
+def test_counterexample_ablation_sqlite_same_inputs_tools_and_no_recheck(tmp_path, monkeypatch):
+    from aftercare.evaluation.chat.manifest import COUNTEREXAMPLE_ABLATION
+    from aftercare.investigation.graph import SYNTHESIS_ONLY_ARM
+
+    _serialize_sqlite_audit(monkeypatch)
+    script_path = Path(__file__).resolve().parents[3] / "scripts/verify_chat_p5_pg.py"
+    spec = importlib.util.spec_from_file_location("p5_pg_control_fixture", script_path)
+    fixture = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fixture)
+    transport_calls = []
+    third_stage = []
+    baseline_transport = fixture._controlled_transport(transport_calls, paired_recheck_fixture=True)
+
+    def transport(model, messages, tools, timeout, output):
+        role = messages[0].content.split("。", 1)[0].split()[-1]
+        if role in {"verifier", "synthesizer"}:
+            third_stage.append((role, json.loads(messages[1].content), tools, output))
+        if role != "synthesizer":
+            return baseline_transport(model, messages, tools, timeout, output)
+        verifier_messages = [
+            messages[0].model_copy(
+                update={
+                    "content": messages[0].content.replace(
+                        "调查角色 synthesizer。", "调查角色 verifier。", 1
+                    )
+                }
+            ),
+            *messages[1:],
+        ]
+        response = baseline_transport(model, verifier_messages, tools, timeout, output)
+        native = json.loads(response.content)
+        if native.get("recheck"):
+            body = {
+                "options": [
+                    {
+                        "id": "binding-needed",
+                        "action": "REQUEST_EVIDENCE",
+                        "target_line_ids": ["L01", "L02"],
+                        "evidence_ids": ["L02"],
+                        "missing_evidence": ["确认受损商品与包裹的绑定。"],
+                        "rationale": "当前资料没有确认受损商品归属。",
+                    }
+                ],
+                "unresolved": ["包裹归属仍待核对。"],
+            }
+        else:
+            body = {"options": native["options"], "unresolved": []}
+        return response.model_copy(update={"content": json.dumps(body, ensure_ascii=False)})
+
+    model = ModelRunner(_fixture_registry(), transport=transport)
+    saver = InMemorySaver()
+    runner = ChatEvaluationRunner(
+        model, saver, calls=8, budget=Decimal("0.10"), counterexample_ablation=True
+    )
+    journal = Manifest(tmp_path / "counterexample-native")
+    campaign = "counterexample-native-fixture"
+    with (
+        development_source(tmp_path, "DAMAGE-ORDINARY") as ordinary,
+        development_source(tmp_path, "DAMAGE-TWO-LINE-PACKAGE-CONFLICT") as complex_case,
+    ):
+        cases = [ordinary, complex_case]
+        result = runner.run(journal, campaign, cases)
+        plan = journal.read("plan.json")
+        assert plan["protocol"] == COUNTEREXAMPLE_ABLATION
+        assert plan["controls"]["local_recheck"] == "DISABLED_BOTH_ARMS"
+        assert plan["controls"]["third_stage_tools"] == ["request_targeted_check"]
+        assert plan["controls"]["calls"] == 8 and plan["controls"]["budget_usd"] == "0.10"
+        assert len(result["rows"]) == 4
+        for case in cases:
+            verified, synthesis = [row for row in result["rows"] if row["case_id"] == case.case_id]
+            assert (verified["arm"], synthesis["arm"]) == (NO_RECHECK_ARM, SYNTHESIS_ONLY_ARM)
+            assert verified["input_sha256"] == synthesis["input_sha256"]
+            assert verified["controls_sha256"] == synthesis["controls_sha256"]
+            assert set(verified["phases"]) == {"fact", "policy", "verify-0"}
+            assert set(synthesis["phases"]) == {"fact", "policy", "synthesize-0"}
+            assert len(synthesis["synthesis_results"]) == 1
+            assert synthesis["synthesis_results"][0]["phase_id"] == "synthesize-0"
+            assert all(
+                row["route"] == "MULTI"
+                and row["input_comparable"]
+                and row["candidate_status"] == "AVAILABLE"
+                and len(row["attempts"]) == 5
+                and not row["rechecks"]
+                for row in (verified, synthesis)
+            )
+            if case is ordinary:
+                assert verified["status"] == synthesis["status"] == "COMPLETED"
+            else:
+                assert verified["reason"] == "INVESTIGATION_RECHECK_SUPPRESSED"
+                assert len(verified["suppressed_rechecks"]) == 1
+                assert synthesis["status"] == "NEEDS_REVIEW"
+        assert [entry[0] for entry in third_stage] == ["verifier", "synthesizer"] * 2
+        for baseline, variant in zip(third_stage[::2], third_stage[1::2], strict=True):
+            assert baseline[1:] == variant[1:]
+        assert len(transport_calls) == 20
+        assert runner.run(journal, campaign, cases) == result and len(transport_calls) == 20
+        settings = complex_case.source.settings
+        engine = create_engine(
+            f"sqlite:///{journal.directory / (_namespace(synthesis['id']) + '.sqlite')}"
+        )
+        try:
+            with Session(engine) as db, db.begin():
+                run = db.get_one(AgentRun, synthesis["run_id"])
+                assert load_binding(db, run)["investigation_counterexample_ablation"] is True
+                run.status = "QUEUED"
+            business = BusinessService(engine, settings, storage=complex_case.source.storage)
+            agent = AgentService(engine, settings, business, saver, model=model)
+
+            def unexpected_checkpoint(*_args, **_kwargs):
+                pytest.fail("checkpoint reached without counterexample ablation capability")
+
+            monkeypatch.setattr(
+                agent.graphs[CHAT_GRAPH_PROFILE], "get_state", unexpected_checkpoint
+            )
+            agent.process(synthesis["run_id"])
+            with Session(engine) as db:
+                run = db.get_one(AgentRun, synthesis["run_id"])
+                assert run.reason == "INVESTIGATION_PROFILE_UNAVAILABLE"
+                assert db.scalar(select(func.count()).select_from(ModelAttempt)) == 5
+            assert len(transport_calls) == 20
+        finally:
+            engine.dispose()

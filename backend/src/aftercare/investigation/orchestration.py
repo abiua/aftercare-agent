@@ -35,7 +35,7 @@ MAX_TOOL_BATCH = 4
 MAX_MODEL_ROUNDS = 8
 MAX_TOOL_CALLS = 8
 
-Phase = Literal["strong_single", "fact", "policy", "verifier"]
+Phase = Literal["strong_single", "fact", "policy", "verifier", "synthesizer"]
 ClaimState = Literal["SUPPORTED", "CONTRADICTED", "UNRESOLVED"]
 Text = Annotated[str, Field(min_length=1, max_length=500)]
 ClaimID = Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]{1,64}$")]
@@ -45,6 +45,7 @@ _ROLE_INSTRUCTIONS = {
     "strong_single": "分步调查订单事实和适用政策。独立只读查询可并列发出；保留证据缺口和替代方案。",
     "fact": "只调查订单和材料事实。区分客户陈述、附件观察和业务系统已核实记录，不提出处理方案。",
     "policy": "只检查条款版本、适用范围和前提。原始目录包含历史和不适用的条款。依据产品、适用日期与版本关系核验，区分候选条款和对当前事实有支持的条款，不提出处理方案。",
+    "synthesizer": "根据现有角色主张和对应证据整理候选与未解决事项。遇到不足可请求定向核对，保留不确定性。",
     "verifier": "逐条核对角色主张与原始记录及条款。若有反例，写明相冲突的字段与依据；仅针对实际冲突请求一次局部复查。",
 }
 
@@ -107,6 +108,11 @@ class VerificationResult(_Record):
     recheck: RecheckRequest | None = None
 
 
+class SynthesisResult(_Record):
+    options: Annotated[list[CandidateOption], Field(max_length=6)] = Field(default_factory=list)
+    unresolved: Annotated[list[Text], Field(max_length=16)] = Field(default_factory=list)
+
+
 @dataclass(slots=True)
 class InvestigationContext:
     input: object
@@ -122,6 +128,7 @@ class InvestigationContext:
     arm: str = "auto"
     policy_authority: dict | None = None
     protocol: InvestigationProtocol = LEGACY_V6
+    counterexample_ablation: bool = False
 
 
 class ProtectedAudit:
@@ -187,7 +194,7 @@ def _result(raw, schema, *, role, evidence_ids, upstream_ids):
             raise InvalidOutput("CYCLIC_CLAIM_DEPENDENCY", "claims") from None
         if role in {"fact", "policy"} and parsed.options:
             raise InvalidOutput("ROLE_ACTION_FORBIDDEN", "options")
-    else:
+    elif isinstance(parsed, VerificationResult):
         assessments = parsed.assessments
         if (
             {row.claim_id for row in assessments} != upstream_ids
@@ -217,8 +224,12 @@ def run_phase(
     audit = audit if audit is not None else context.audit
     if context.model is None:
         raise ModelFailure("INVESTIGATION_MODEL_UNAVAILABLE")
-    schema = VerificationResult if role == "verifier" else InvestigationResult
-    tools = context.tools.schemas(role) if tools_enabled else []
+    schema = {
+        "verifier": VerificationResult,
+        "synthesizer": SynthesisResult,
+    }.get(role, InvestigationResult)
+    tool_role = "verifier" if role == "synthesizer" else role
+    tools = context.tools.schemas(tool_role) if tools_enabled else []
     available = {item["function"]["name"] for item in tools}
     evidence_ids = set(known_evidence)
     upstream = upstream or []
@@ -337,7 +348,7 @@ def run_phase(
                 ):
                     raise InvalidOutput("TOOL_CALL_FORBIDDEN", "tool_calls")
                 try:
-                    context.tools.validate_call(role, name, args)
+                    context.tools.validate_call(tool_role, name, args)
                 except ValueError:
                     raise InvalidOutput("TOOL_ARGUMENTS_INVALID", "tool_calls.arguments") from None
                 batch_ids.add(ident)
@@ -365,7 +376,7 @@ def run_phase(
         if fresh:
             with ThreadPoolExecutor(max_workers=min(MAX_TOOL_BATCH, len(fresh))) as executor:
                 futures = {
-                    key: executor.submit(context.tools.call, role, call["name"], call["args"])
+                    key: executor.submit(context.tools.call, tool_role, call["name"], call["args"])
                     for key, call in fresh.items()
                 }
                 for key, future in futures.items():

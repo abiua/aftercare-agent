@@ -244,3 +244,11 @@ root执行candidate-history阶段，计划92e4119874895e1cb6c86f8e0b384dc554381a
 新只读验收脚本绑定原conv/case/PG及两镜像，通过HTTP每页1条验证3→2→1及末页空，逐版摘要/当前head/issue与PG原生和原reconciliation报告一致；客户404，limit0/51均422，前后native相同，业务POST0。reports/chat-decision-history-http-20261111.json PASSED。root脚本纯测试1项及改动Ruff/diff通过；实际浏览器导航回查另行记录。没有新增模型调用、材料审核、候选或财务操作；审核后重复离线提示未在新部署上重触发，不能将本地测试写成运行栈效果验收。
 
 真实浏览器 reports/browser-candidate-history-20261111.json PASSED：客服列表3→2→1，点开2/1的ID/version/SHA对上原生报告，旧版无审核或启动，返回第3版恢复当前控件。客户仍2条原消息、2图200、PENDING_SUPPORT、无内部历史入口或请求；51 GET无抓包错误/丢失，无业务写入，双方退出并关闭专属会话。旧PARTIAL报告保持，旧重复提示仍保留，本轮未触发防重复逻辑。此结果仅补齐历史导航实际可用性，不将原离线控制案例升级为真实模型或真人审核验收。
+
+## 已确认方案安全转交、反例消融及下一真实链预检（2026-11-11）
+
+本轮root审查并补齐support-only CaseDetail.chat_proposal：同一数据库快照内核对case/conversation/issue、当前候选依赖及offer到期，只有最新客户响应ACCEPT时提供READY内容，其余NO_OFFER/WAITING_CUSTOMER/WITHDRAWN/STALE不返回可提交方案。提交增加可选expected_offer，既有conversation→case锁内校验accepted binding后精确比对；相同内容换offer也409，未提供字段的旧幂等签名保持。前端聊天只传关联引用，工单重读权威内容，版本不符无提交，既有非托管表单保留。新增原生HTTP/SQLite验证等待、撤回、新说明、到期、错误引用、精确重放及审批仍必需。root完整非PG1084通过、2可选跳过、40PG未选；UI代理7项相关Chromium和lint/类型/构建通过。运行栈尚未更新，不声称实际页面已部署。
+
+反例消融采用独立manifest/capability，与既有默认三臂和付费入口分离。multi_no_recheck与multi_synthesis_only共用事实/政策取证，第三阶段的原始输入、上游主张、定向检查意向工具与预算相同；仅后者不输出逐条assessment，依然受引用/范围/冲突/程序硬规则限制，两臂均不执行局部补查。SQLite实际两案四臂20次fixture attempts，重放无新增，失去capability的恢复在checkpoint前拒绝。尚无PG或真实模型质量收益；对完整multi是同时变化核验和补查，不能宣称纯核验效果。
+
+新独立真实业务链只读预检计划3bf3ff3d398ca74fbef4ff8fb5f391081202dd9f18a2226f3595058e0ee46e00基于历史72cb34d已构建镜像，确认本地Docker和5203/58365可用、合成O9902种子和两图原始/变换摘要，未创建资源。视觉最多1次/$0.05、文字最多8次/$0.40，同时保留原生issue $0.20更严总预算；注册表预留视觉$0.0445、文字每次$0.03972不是实际账单。普通V7 scope-bound准入及分阶段Celery注入尚未实现，报告明确PREFLIGHT_ONLY_EXECUTION_NOT_IMPLEMENTED。下一步必须换本轮代码镜像并重新预检，不能用旧双臂paid active-row政策直接冒称普通端到端。5202待人工来源及5186/5187保持。

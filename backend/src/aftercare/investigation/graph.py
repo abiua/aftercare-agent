@@ -21,7 +21,16 @@ from .prompt_evidence import PRIVATE_RECEIPT_EVENT
 CHAT_GRAPH_PROFILE = "chat-investigation-v1"
 NO_RECHECK_ARM = "multi_no_recheck"
 SEQUENTIAL_CLAIMS_ARM = "multi_sequential_claims"
-ARMS = {"auto", "strong_single", "single_staged", "multi", NO_RECHECK_ARM, SEQUENTIAL_CLAIMS_ARM}
+SYNTHESIS_ONLY_ARM = "multi_synthesis_only"
+ARMS = {
+    "auto",
+    "strong_single",
+    "single_staged",
+    "multi",
+    NO_RECHECK_ARM,
+    SEQUENTIAL_CLAIMS_ARM,
+    SYNTHESIS_ONLY_ARM,
+}
 _OPTIONS = TypeAdapter(list[CandidateOption])
 
 
@@ -81,6 +90,7 @@ def _route(_state, runtime: Runtime[InvestigationContext]):
             "multi": "MULTI",
             NO_RECHECK_ARM: "MULTI",
             SEQUENTIAL_CLAIMS_ARM: "MULTI",
+            SYNTHESIS_ONLY_ARM: "MULTI",
         }[context.arm]
     context.audit.event(
         "investigation_route",
@@ -88,6 +98,7 @@ def _route(_state, runtime: Runtime[InvestigationContext]):
             **route.model_dump(mode="json"),
             "selected_path": selected,
             "arm": context.arm,
+            **({"counterexample_ablation": True} if context.counterexample_ablation else {}),
             **(
                 {
                     "prompt_version": context.protocol.prompt_version,
@@ -143,7 +154,7 @@ def _phase(
         if role in {"fact", "policy"} and phase_id != "recheck"
         else None,
     )
-    if role != "verifier":
+    if role not in {"verifier", "synthesizer"}:
         context.audit.event(
             "investigation_claims",
             {
@@ -264,11 +275,12 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
         ],
         "unresolved_invalidated_claim_ids": state.get("stale_claims", []),
     }
+    synthesis = context.counterexample_ablation and context.arm == SYNTHESIS_ONLY_ARM
     try:
         result = _phase(
             context,
-            "verifier",
-            f"verify-{count}",
+            "synthesizer" if synthesis else "verifier",
+            "synthesize-0" if synthesis else f"verify-{count}",
             upstream=claims,
             known=evidence,
             max_rounds=1 if count else 2,
@@ -278,6 +290,19 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
         )
     except ModelFailure as error:
         return {"path": "DONE", **_handoff(context, error.code)}
+    if synthesis:
+        context.audit.event(
+            "investigation_synthesis",
+            {"phase_id": "synthesize-0", "upstream_claim_ids": [claim["id"] for claim in claims]},
+        )
+        if any(receipt["name"] == "request_targeted_check" for receipt in result["receipts"]):
+            reason = "INVESTIGATION_RECHECK_SUPPRESSED"
+            context.audit.event(
+                "investigation_recheck_suppressed",
+                {"reason": reason, "source": "SYNTHESIS_TOOL_REQUEST"},
+            )
+            return {"path": "DONE", **_handoff(context, reason)}
+        return {"path": "DONE", **_publish_options(context, result, claims=claims)}
     context.audit.event(
         "investigation_assessment",
         {

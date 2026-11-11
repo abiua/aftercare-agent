@@ -46,6 +46,7 @@ from aftercare.investigation.graph import (
     CHAT_GRAPH_PROFILE,
     NO_RECHECK_ARM,
     SEQUENTIAL_CLAIMS_ARM,
+    SYNTHESIS_ONLY_ARM,
     build_investigation_graph,
 )
 from aftercare.investigation.input import InputUnavailable, build_input
@@ -587,6 +588,7 @@ class AgentService:
         intent_probe=None,
         allow_recheck_ablation=False,
         allow_sequential_claims_ablation=False,
+        allow_counterexample_ablation=False,
     ):
         self.engine, self.settings, self.business = engine, settings, business
         self.dispatch = dispatch
@@ -595,6 +597,7 @@ class AgentService:
         self.queue_admission = queue_admission
         self.provider_limiter = provider_limiter
         self.intent_probe = intent_probe
+        self._counterexample_ablation = allow_counterexample_ablation is True
         self._ablation_permissions = {
             NO_RECHECK_ARM: allow_recheck_ablation,
             SEQUENTIAL_CLAIMS_ARM: allow_sequential_claims_ablation,
@@ -689,7 +692,16 @@ class AgentService:
         else:
             self.process(run_id)
 
-    def _investigation_arm_allowed(self, arm, user):
+    def _investigation_arm_allowed(self, arm, user, *, counterexample_ablation=False):
+        if counterexample_ablation is True:
+            return (
+                self._counterexample_ablation
+                and self.settings.profile == "test"
+                and user.role == "support"
+                and arm in {NO_RECHECK_ARM, SYNTHESIS_ONLY_ARM}
+            )
+        if counterexample_ablation is not False or arm == SYNTHESIS_ONLY_ARM:
+            return False
         if arm not in self._ablation_permissions:
             return True
         return (
@@ -713,6 +725,7 @@ class AgentService:
         graph_profile=None,
         investigation_arm="auto",
         decision_turn_id=None,
+        counterexample_ablation=False,
     ):
         self._can_mutate(user)
         facts = self._context(case_id, user)
@@ -723,20 +736,31 @@ class AgentService:
             or not self.investigation_enabled
             or decision_scope is None
             or investigation_arm not in ARMS
-            or not self._investigation_arm_allowed(investigation_arm, user)
+            or not self._investigation_arm_allowed(
+                investigation_arm, user, counterexample_ablation=counterexample_ablation
+            )
             or (
                 decision_turn_id is not None
                 and (user.role != "customer" or investigation_arm != "auto")
             )
         ):
             raise RunError("INVESTIGATION_PROFILE_UNAVAILABLE", "会话调查模式不可用。")
-        if graph_profile is None and (decision_turn_id is not None or investigation_arm != "auto"):
+        if graph_profile is None and (
+            decision_turn_id is not None
+            or investigation_arm != "auto"
+            or counterexample_ablation is not False
+        ):
             raise RunError("INVESTIGATION_PROFILE_UNAVAILABLE", "会话调查模式不可用。")
         profile = (
             {
                 "graph_profile": graph_profile,
                 "investigation_arm": investigation_arm,
                 "decision_turn_id": decision_turn_id,
+                **(
+                    {"investigation_counterexample_ablation": True}
+                    if counterexample_ablation
+                    else {}
+                ),
             }
             if graph_profile is not None
             else {}
@@ -1120,7 +1144,16 @@ class AgentService:
             scope = DecisionScope.model_validate(binding["scope"]) if profile else None
             protocol = None
             if scope is not None:
-                if not self._investigation_arm_allowed(binding.get("investigation_arm"), user):
+                if not self._investigation_arm_allowed(
+                    binding.get("investigation_arm"),
+                    user,
+                    counterexample_ablation=binding.get(
+                        "investigation_counterexample_ablation", False
+                    ),
+                ) or (
+                    binding.get("investigation_counterexample_ablation")
+                    and binding.get("decision_turn_id")
+                ):
                     raise ModelFailure("INVESTIGATION_PROFILE_UNAVAILABLE")
                 try:
                     protocol = protocol_for_binding(binding, scope)
@@ -1223,7 +1256,13 @@ class AgentService:
             )
             if profile:
                 context = self._investigation_context(
-                    context, scope, binding["investigation_arm"], protocol=protocol
+                    context,
+                    scope,
+                    binding["investigation_arm"],
+                    protocol=protocol,
+                    counterexample_ablation=binding.get(
+                        "investigation_counterexample_ablation", False
+                    ),
                 )
             invoke = partial(_private_graph, graph.invoke) if profile else graph.invoke
             if not snapshot.values:
@@ -1267,7 +1306,9 @@ class AgentService:
         ):
             raise ModelFailure("INVESTIGATION_POLICY_CATALOGUE_CHANGED")
 
-    def _investigation_context(self, legacy, scope, arm, *, protocol=LEGACY_V6):
+    def _investigation_context(
+        self, legacy, scope, arm, *, protocol=LEGACY_V6, counterexample_ablation=False
+    ):
         try:
             value = (
                 build_input(scope, evidence_projection=protocol.evidence_projection)
@@ -1312,6 +1353,7 @@ class AgentService:
             arm,
             scope.frozen_context if (scope.frozen_context or {}).get("policy_catalogue") else None,
             protocol=protocol,
+            counterexample_ablation=counterexample_ablation,
         )
 
     def _finish(self, run, status, reason, output, *, decision_context=None, decision_guard=None):
