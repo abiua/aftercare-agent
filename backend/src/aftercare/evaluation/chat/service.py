@@ -314,12 +314,16 @@ def _candidate(snapshot, scope, public):
         )
     return BlindCandidate.model_validate(
         {
-            "id": digest([scope.input_sha256, snapshot.id])[:32],
+            "id": _blind_candidate_id(scope, snapshot),
             "status": "AVAILABLE",
             "options": options,
             "unresolved": list(candidate.unresolved),
         }
     ).model_dump(mode="json", exclude_none=True)
+
+
+def _blind_candidate_id(scope, snapshot):
+    return digest([scope.input_sha256, snapshot.id])[:32]
 
 
 class BlindReviewService:
@@ -370,50 +374,69 @@ class BlindReviewService:
                 public = _frozen_public(scope)
                 if sum(image.size for image in public.images) > _MAX_IMAGE_BYTES:
                     _fail("BLIND_REVIEW_SOURCE_TOO_LARGE", 422)
-                frozen = public.model_dump(mode="json")
                 source_sha = digest([scope.input_sha256, source.id])
-                input_sha = digest(frozen)
                 images = _image_objects(db, scope, public)
-                candidates = sorted(
-                    (
-                        _candidate(db.get(DecisionSnapshot, ident), scope, public)
-                        for ident in candidate_snapshot_ids
-                    ),
-                    key=lambda item: item["id"],
+                snapshots = tuple(
+                    db.get(DecisionSnapshot, ident) for ident in candidate_snapshot_ids
+                )
+                return self._persist_assignment(
+                    db,
+                    reviewer_id=reviewer_id,
+                    case_label=case_label,
+                    scope=scope,
+                    public=public,
+                    snapshots=snapshots,
+                    images=images,
+                    source_sha=source_sha,
                 )
             except ValueError:
                 _fail("BLIND_REVIEW_SOURCE_UNAVAILABLE", 422)
-            existing = db.scalar(
-                select(BlindTask).where(
-                    BlindTask.reviewer_id == reviewer_id,
-                    BlindTask.input_sha256 == input_sha,
-                )
+
+    def _persist_assignment(
+        self, db, *, reviewer_id, case_label, scope, public, snapshots, images, source_sha
+    ):
+        """Caller has locked reviewer and verified native snapshot and image provenance."""
+        if not 1 <= len(snapshots) <= 12 or set(images) != {image.id for image in public.images}:
+            _fail("BLIND_REVIEW_ASSIGNMENT_INVALID", 422)
+        if sum(image.size for image in public.images) > _MAX_IMAGE_BYTES:
+            _fail("BLIND_REVIEW_SOURCE_TOO_LARGE", 422)
+        frozen = public.model_dump(mode="json")
+        input_sha = digest(frozen)
+        candidates = sorted(
+            (_candidate(snapshot, scope, public) for snapshot in snapshots),
+            key=lambda item: item["id"],
+        )
+        existing = db.scalar(
+            select(BlindTask).where(
+                BlindTask.reviewer_id == reviewer_id,
+                BlindTask.input_sha256 == input_sha,
             )
-            if existing is not None:
-                if (existing.source_sha256, existing.case_label, existing.candidates) != (
-                    source_sha,
-                    case_label,
-                    candidates,
-                ):
-                    _fail("BLIND_REVIEW_ASSIGNMENT_EXISTS")
-                return _summary(existing)
-            for image in public.images:
-                original = self.business.storage.get(images[image.id], image.size)
-                verify_object(original, image.size, image.sha256)
-            row = BlindTask(
-                id=str(uuid4()),
-                reviewer_id=reviewer_id,
-                case_label=case_label,
-                input_sha256=input_sha,
-                source_sha256=source_sha,
-                input=frozen,
-                image_objects=images,
-                candidates=candidates,
-                version=1,
-                created_at=now(),
-            )
-            db.add(row)
-            return _summary(row)
+        )
+        if existing is not None:
+            if (existing.source_sha256, existing.case_label, existing.candidates) != (
+                source_sha,
+                case_label,
+                candidates,
+            ):
+                _fail("BLIND_REVIEW_ASSIGNMENT_EXISTS")
+            return _summary(existing)
+        for image in public.images:
+            original = self.business.storage.get(images[image.id], image.size)
+            verify_object(original, image.size, image.sha256)
+        row = BlindTask(
+            id=str(uuid4()),
+            reviewer_id=reviewer_id,
+            case_label=case_label,
+            input_sha256=input_sha,
+            source_sha256=source_sha,
+            input=frozen,
+            image_objects=images,
+            candidates=candidates,
+            version=1,
+            created_at=now(),
+        )
+        db.add(row)
+        return _summary(row)
 
     def list(self, actor, *, after=None, limit=25):
         with Session(self.engine) as db, db.begin():

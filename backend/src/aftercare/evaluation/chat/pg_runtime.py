@@ -31,6 +31,7 @@ from sqlalchemy.schema import CreateSchema
 
 from aftercare.business.errors import BusinessError
 from aftercare.business.rules import digest
+from aftercare.business.service import BusinessService
 from aftercare.business.storage import S3ObjectStore, verify_object
 from aftercare.config import TARGETS
 from aftercare.db import Base, guarded_engine
@@ -204,6 +205,12 @@ class _PgRuntime:
             "storage_topology": "OWNED_POSTGRESQL_S3",
             "attestation_sha256": digest(asdict(self.attestation)),
         }
+
+    def registration_business(self):
+        """Return the verified test destination for private blind registration."""
+        self.fence()
+        self._check_bucket()
+        return BusinessService(self._engine, self.settings, storage=self._storage)
 
     def _claim(self, namespace, **binding):
         return {
