@@ -325,8 +325,9 @@ class _PgRuntime:
             or case.source.engine is not registered[0]
             or case.source.storage is not registered[1]
             or case.source.settings is not self.settings
+            # SQLAlchemy adds its internal alias on first SQL compilation.
             or case.source.engine.get_execution_options().get("schema_translate_map")
-            != {None: registered[2]}
+            not in ({None: registered[2]}, {None: registered[2], "_none": registered[2]})
             or case.source.storage.prefix != registered[3]["object_prefix"]
             or case.source.storage.storage is not self._storage
         ):

@@ -4,6 +4,8 @@ from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
+from sqlalchemy import select, table
+from sqlalchemy.dialects import postgresql
 
 from aftercare.evaluation.chat import pg_runtime
 from aftercare.evaluation.chat.pg_runtime import PgAttestation, open_pg_runtime, sentinel_key
@@ -75,6 +77,49 @@ def test_pg_freeze_rejects_an_injected_source_before_touching_it():
     foreign = SimpleNamespace(case_id="DAMAGE-ORDINARY", repetition=1, source=None)
     with pytest.raises(ValueError, match="CHAT_EVAL_PG_SOURCE_UNOWNED"):
         runtime.freeze(foreign)
+
+
+def test_pg_freeze_accepts_only_the_owned_schema_and_sqlalchemy_alias(monkeypatch):
+    namespace = "eval_" + "3" * 32
+    settings = _settings()
+    backend_storage = object()
+    options = {"schema_translate_map": {None: namespace}}
+    engine = SimpleNamespace(get_execution_options=lambda: options)
+    storage = SimpleNamespace(prefix=f"evaluation/{namespace}/", storage=backend_storage)
+    runtime = pg_runtime._PgRuntime(
+        settings, ATTESTATION, "owned-campaign", None, backend_storage, None, {}
+    )
+    case = SimpleNamespace(
+        case_id="DAMAGE-ORDINARY",
+        repetition=1,
+        source=SimpleNamespace(engine=engine, storage=storage, settings=settings),
+    )
+    claim = runtime._claim(namespace, source_sha256="4" * 64)
+    runtime._sources[case.case_id, case.repetition] = engine, storage, namespace, claim
+    verified = []
+    monkeypatch.setattr(runtime, "_verify_owner", lambda *args: verified.append(args))
+    monkeypatch.setattr(pg_runtime, "_freeze_case", lambda _: SimpleNamespace(record={}))
+
+    assert runtime.freeze(case).record["source_namespace"] == namespace
+    mapping = options["schema_translate_map"]
+    select(table("chat_conversations")).compile(
+        dialect=postgresql.dialect(),
+        schema_translate_map=mapping,
+        render_schema_translate=True,
+    )
+    assert mapping == {None: namespace, "_none": namespace}
+    assert runtime.freeze(case).record["source_namespace"] == namespace
+
+    for foreign in (
+        {None: "public", "_none": namespace},
+        {None: namespace, "_none": "public"},
+        {None: namespace, "_none": namespace, "public": namespace},
+        {"_none": namespace},
+    ):
+        options["schema_translate_map"] = foreign
+        with pytest.raises(ValueError, match="CHAT_EVAL_PG_SOURCE_UNOWNED"):
+            runtime.freeze(case)
+    assert verified == [(namespace, claim), (namespace, claim)]
 
 
 def test_recovery_requires_the_s3_claim_to_equal_the_postgresql_claim():
