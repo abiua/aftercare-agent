@@ -295,7 +295,7 @@ export const test = base.extend({
           const messages = state.chatMessages.filter((row) => row.sequence > after).slice(0, limit);
           const next_after = messages.at(-1)?.sequence ?? after;
           return json(route, {conversation, messages, next_after, has_more: next_after < state.chatMessages.length, analysis: state.chatAnalysis,
-            features: state.chatDecision ? {chat_decisions: true} : undefined});
+            features: state.chatDecision ? {chat_decisions: true} : undefined, execution_progress: state.chatDecision?.executionProgress});
         }
         if (state.chatDecision && path.startsWith(`${chatPath}/decisions`)) {
           const statePath = path.slice(`${chatPath}/decisions`.length);

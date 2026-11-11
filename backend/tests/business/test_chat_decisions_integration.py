@@ -580,3 +580,53 @@ def test_pg_concurrent_customer_accept_and_withdraw_are_versioned_once(system):
                 db.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
                 assert db.scalar(text("SELECT to_regnamespace(:name) IS NULL"), {"name": schema})
         engine.dispose()
+
+
+def test_chat_execution_progress_is_receipt_backed_and_bound_to_active_issue(configured):
+    from aftercare.conversations.tables import Conversation
+
+    env = configured
+    url, case_id = _link(env)
+    detail = lambda: env.client.get(url, headers=headers()).json()
+    assert detail()["execution_progress"] is None
+    offer = _offer(env, url, case_id)
+    _accept(env, url, offer)
+    proposal = _proposal(env, case_id)
+    assert proposal.status_code == 201, proposal.text
+    assert _approve(env, case_id, proposal.json()).status_code == 201
+    assert detail()["execution_progress"] is None
+    result = _execute(env, case_id, proposal.json())
+    assert result.status_code == 200, result.text
+    execution_id = result.json()["id"]
+    progress = detail()["execution_progress"]
+    assert progress == {
+        "id": execution_id,
+        "case_id": case_id,
+        "action": "REFUND",
+        "status": "SUCCEEDED",
+        "lines": [{"line_id": "L01", "amount_cents": 39800}],
+        "amount_cents": 39800,
+        "simulated": True,
+        "receipt_confirmed": True,
+        "updated_at": progress["updated_at"],
+    }
+    assert env.client.get(url, headers=headers(OTHER)).status_code == 404
+    with Session(env.db) as db, db.begin():
+        row = db.get_one(Execution, execution_id)
+        valid_receipt = row.receipt
+        row.receipt = {**valid_receipt, "amount_cents": 1}
+    assert detail()["execution_progress"]["status"] == "UNKNOWN"
+    assert not detail()["execution_progress"]["receipt_confirmed"]
+    with Session(env.db) as db, db.begin():
+        row = db.get_one(Execution, execution_id)
+        row.status, row.receipt = "SUBMITTING", None
+    assert detail()["execution_progress"]["status"] == "SUBMITTING"
+    with Session(env.db) as db, db.begin():
+        row = db.get_one(Execution, execution_id)
+        row.status, row.receipt = "FAILED", valid_receipt
+    assert detail()["execution_progress"]["status"] == "FAILED"
+    with Session(env.db) as db, db.begin():
+        db.get_one(Conversation, url.rsplit("/", 1)[-1]).analysis_issue_id = str(uuid4())
+    assert detail()["execution_progress"] is None
+    env.client.app.state.conversations.decisions_enabled = False
+    assert "execution_progress" not in detail()

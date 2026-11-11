@@ -115,3 +115,26 @@ test('fixture: a failed recheck on a previously checked candidate is visible to 
   await expect(page.getByText('复核已记录，暂未向客户发送方案。')).toBeVisible();
   await expect(page.getByText('方案包含当前售后事项无法使用的材料。')).toBeVisible();
 });
+
+test('fixture: customer sees current case simulated ledger progress and no success before a receipt', async ({page, fixtureApi}) => {
+  fixtureApi.chatCreated = true;
+  const executionProgress = {id: 'execution-1', case_id: 'active-case', action: 'REFUND',
+    status: 'SUBMITTING', receipt_confirmed: false, simulated: true, amount_cents: 825,
+    lines: [{line_id: 'L01', amount_cents: 825}], updated_at: '2026-11-11T00:00:00Z'};
+  fixtureApi.chatDecision = {conversation: {active_case_id: 'active-case'}, executionProgress};
+  await signIn(page, 'customer');
+  await page.goto(`/?conversation=${chatId}`);
+  await expect(page.getByText('模拟退款 · 等待回执')).toBeVisible();
+  expect(fixtureApi.chatDecisionPosts).toHaveLength(0);
+  executionProgress.status = 'SUCCEEDED';
+  await page.getByRole('button', {name: '刷新消息'}).click();
+  await expect(page.getByText('模拟退款 · 结果待核对')).toBeVisible();
+  executionProgress.receipt_confirmed = true;
+  await page.getByRole('button', {name: '刷新消息'}).click();
+  await expect(page.getByText('模拟退款 · 执行成功')).toBeVisible();
+  await expect(page.getByText(/执行编号 execution-1/)).toBeVisible();
+
+  fixtureApi.chatDecision.conversation = {active_case_id: 'other-case', revision: 2};
+  await page.getByRole('button', {name: '刷新消息'}).click();
+  await expect(page.getByText('本次售后执行进度')).toHaveCount(0);
+});

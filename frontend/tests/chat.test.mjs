@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {chatMessageBody, mergeChatMessages, validChatFiles} from '../src/chat.ts';
+import {chatMessageBody, mergeChatMessages, mergeExecutionProgress, validChatFiles} from '../src/chat.ts';
 
 test('conversation pages and replayed messages merge in sequence without duplicate display', () => {
   const first = {sequence: 1, id: 'first'};
@@ -39,4 +39,19 @@ test('a late response cannot revert analysis or revive an earlier request', asyn
   assert.equal(analysisStatus({...base, pending_uploads: 0}), '正在整理已收到的消息。');
   assert.equal(analysisStatus(base), '正在接收照片。');
   assert.equal(analysisStatus(undefined), '');
+});
+
+test('execution progress preserves omitted same-case mutation fields and rejects stale scope reads', () => {
+  const input = (revision, active_case_id, execution_progress) => ({
+    conversation: {revision, active_case_id, active_order_id: 'order'},
+    features: {chat_decisions: true}, execution_progress,
+  });
+  const old = {id: 'old-execution', case_id: 'old-case'};
+  const initial = mergeExecutionProgress(undefined, input(1, 'old-case', old), 2);
+  const omitted = mergeExecutionProgress(initial, input(2, 'old-case', undefined), 3);
+  assert.equal(omitted.value, old);
+  const switched = mergeExecutionProgress(omitted, input(3, 'new-case', undefined), 4);
+  assert.equal(switched.value, undefined);
+  assert.equal(mergeExecutionProgress(switched, input(2, 'old-case', old), 5), switched);
+  assert.equal(mergeExecutionProgress(switched, input(3, 'new-case', null), 6).value, null);
 });

@@ -2,7 +2,7 @@ import { ChatDecisions } from './ChatDecisions';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Checkbox, Input, Modal, Space, Tag } from 'antd';
 import { ApiError, errorMessage, segment, type Client } from './api';
-import { analysisStatus, CHAT_PAGE_SIZE, chatMessageBody, isCurrentEvidenceRequest, mergeChatAnalysis, mergeChatMessages, validChatFiles, type ChatAttachment, type ChatCard, type ChatPage, type ChatUpdate, type Conversation, type OrderCandidate } from './chat';
+import { analysisStatus, CHAT_PAGE_SIZE, chatMessageBody, isCurrentEvidenceRequest, mergeChatAnalysis, mergeChatMessages, mergeExecutionProgress, validChatFiles, type ChatAttachment, type ChatCard, type ChatExecutionProgress, type ChatPage, type ChatUpdate, type Conversation, type OrderCandidate } from './chat';
 import type { Items, User } from './contracts';
 import { useActions, useResource } from './hooks';
 import { Feedback, money, time } from './ui';
@@ -13,6 +13,19 @@ type Outgoing = {id: string; text: string; files: File[]};
 type ComposeDraft = {text: string; files: File[]; error: string; outgoing?: Outgoing};
 const emptyDraft: ComposeDraft = {text: '', files: [], error: ''};
 const refundStatus: Record<string, string> = {SUCCEEDED: '模拟退款执行成功', UNKNOWN: '状态待核对', SUBMITTING: '处理中', FAILED: '模拟退款执行失败'};
+function ExecutionProgress({progress}: {progress: ChatExecutionProgress}) {
+  const action = progress.action === 'REFUND' ? '退款' : '换发';
+  const status = progress.status === 'SUBMITTING' ? '等待回执' :
+    progress.receipt_confirmed && progress.status === 'SUCCEEDED' ? '执行成功' :
+    progress.receipt_confirmed && progress.status === 'FAILED' ? '执行失败' : '结果待核对';
+  return <Card size="small" title="本次售后执行进度">
+    <p>模拟{action} · {status}</p>
+    <p>{progress.action === 'REFUND' ? money(progress.amount_cents) :
+      `${progress.lines.reduce((total, line) => total + (line.quantity ?? 0), 0)} 件`}</p>
+    <p className="muted">执行编号 {progress.id} · 更新于 {time(progress.updated_at)}</p>
+  </Card>;
+}
+
 function refundLabel(status: string, receiptConfirmed?: boolean) {
   if (['SUCCEEDED', 'FAILED'].includes(status) && receiptConfirmed !== true) return '状态待核对';
   return refundStatus[status] ?? '状态待核对';
@@ -66,7 +79,7 @@ export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCa
 
 function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; id: string; user: User; drafts: Map<string, ComposeDraft>; refreshList: () => void; onCase: (id: string) => void}) {
   const base = `/conversations/${segment(id)}`;
-  const [state, setState] = useState<ChatUpdate & {analysisRead: ReturnType<typeof mergeChatAnalysis>}>();
+  const [state, setState] = useState<ChatUpdate & {analysisRead: ReturnType<typeof mergeChatAnalysis>; executionRead: ReturnType<typeof mergeExecutionProgress>}>();
   const [more, setMore] = useState(false);
   const [readError, setReadError] = useState('');
   const [reading, setReading] = useState(false);
@@ -90,6 +103,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
     conversation: !old || update.conversation.revision >= old.conversation.revision ? update.conversation : old.conversation,
     features: !old || update.conversation.revision >= old.conversation.revision ? update.features : old.features,
     messages: mergeChatMessages(old?.messages ?? [], update.messages),
+    executionRead: mergeExecutionProgress(old?.executionRead, update, request),
     analysisRead: mergeChatAnalysis(old?.analysisRead, {
       revision: update.conversation.revision, request, value: update.analysis,
     }),
@@ -180,6 +194,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
   const conversation = state?.conversation;
   const analysis = state?.analysisRead.value;
   const statusText = analysisStatus(analysis);
+  const progress = state?.executionRead.value;
   const attachments = new Map(state?.messages.flatMap((row) => row.attachments.map((attachment) =>
     [attachment.id, attachment.filename] as const)));
   const latestOrderPrompt = state?.messages.slice().reverse().find((row) => row.cards.some((card) => card.type === 'order_candidates'))?.sequence;
@@ -219,6 +234,8 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
     {conversation && !readError && state?.features?.chat_decisions === true &&
       <ChatDecisions key={JSON.stringify([conversation.revision, conversation.active_order_id, conversation.active_case_id, analysis?.issue_id])} api={api} base={base} user={user} orderId={conversation.active_order_id}
         issueId={analysis?.issue_id} revision={conversation.revision} refreshChat={load} />}
+    {conversation && !readError && progress?.case_id === conversation.active_case_id &&
+      progress?.simulated === true && <ExecutionProgress progress={progress} />}
     {conversation && <div className="chat-compose">
       <Input.TextArea aria-label={user.role === 'support' ? '公开回复' : '描述售后问题'} autoSize={{minRows: 2, maxRows: 5}}
         value={text} maxLength={2000} showCount disabled={blocked || sending} onChange={(event) => save({...draft, text: event.target.value, error: ''})}

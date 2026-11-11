@@ -21,10 +21,29 @@ export type ChatAnalysis = ChatAnalysisKey & {
 };
 export type ChatMessage = {id: string; conversation_id: string; sequence: number; role: 'customer' | 'support' | 'assistant';
   text: string; created_at: string; attachments: ChatAttachment[]; cards: ChatCard[]};
-export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; analysis?: ChatAnalysis; features?: {chat_decisions?: boolean}};
+export type ChatExecutionProgress = {
+  id: string; case_id: string; action: 'REFUND' | 'REPLACE';
+  status: 'SUBMITTING' | 'UNKNOWN' | 'SUCCEEDED' | 'FAILED';
+  amount_cents: number; lines: {line_id: string; amount_cents?: number; quantity?: number}[];
+  simulated: boolean; receipt_confirmed: boolean; updated_at: string;
+};
+export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; analysis?: ChatAnalysis; features?: {chat_decisions?: boolean}; execution_progress?: ChatExecutionProgress | null};
 export type ChatPage = ChatUpdate & {has_more: boolean; next_after: number};
 
 export const CHAT_PAGE_SIZE = 50;
+
+type ExecutionRead = {revision: number; request: number; scope: string; value?: ChatExecutionProgress | null};
+export function mergeExecutionProgress(previous: ExecutionRead | undefined, update: ChatUpdate, request: number): ExecutionRead {
+  const {revision, active_case_id, active_order_id} = update.conversation;
+  const scope = JSON.stringify([active_case_id, active_order_id]);
+  const incoming = {revision, request, scope, value: update.execution_progress};
+  if (!previous) return incoming;
+  if (revision < previous.revision || (revision === previous.revision && request < previous.request)) return previous;
+  if (scope === previous.scope && update.features?.chat_decisions === true && update.execution_progress === undefined) {
+    return {...previous, revision};
+  }
+  return incoming;
+}
 
 type AnalysisRead = {revision: number; request: number; value?: ChatAnalysis};
 export function mergeChatAnalysis(previous: AnalysisRead | undefined, incoming: AnalysisRead): AnalysisRead {

@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aftercare.business.errors import BusinessError
-from aftercare.business.models import Case, Customer, Order
+from aftercare.business.models import Case, Customer, Execution, Order
 from aftercare.business.refund_lookup import locate_refund, resolve_refund_text, targeted_refund
 from aftercare.business.rules import digest, utc
 from aftercare.business.storage import MAX_BYTES, validate_image, verify_object
@@ -213,11 +213,70 @@ class ConversationService:
                 )
             )
             page = rows[:limit]
+            result = self._response(db, row, page)
+            if self.decisions_enabled:
+                result["execution_progress"] = self._execution_progress(db, row)
             return {
-                **self._response(db, row, page),
+                **result,
                 "has_more": len(rows) > limit,
                 "next_after": page[-1].sequence if page else after,
             }
+
+    @staticmethod
+    def _execution_progress(db, row):
+        if not row.active_case_id or not row.active_order_id or not row.analysis_issue_id:
+            return None
+        execution = db.scalar(
+            select(Execution)
+            .join(Case, Case.id == Execution.case_id)
+            .join(CaseLink, CaseLink.case_id == Case.id)
+            .where(
+                CaseLink.conversation_id == row.id,
+                Case.id == row.active_case_id,
+                Case.customer_id == row.customer_id,
+                Case.order_id == row.active_order_id,
+                Case.decision_conversation_id == row.id,
+                Case.decision_issue_id == row.analysis_issue_id,
+                Execution.order_id == row.active_order_id,
+                Execution.action.in_(("REFUND", "REPLACE")),
+            )
+            .order_by(Execution.updated_at.desc(), Execution.id.desc())
+            .limit(1)
+        )
+        if execution is None:
+            return None
+        receipt = execution.receipt if isinstance(execution.receipt, dict) else {}
+        receipt_id = receipt.get("id")
+        terminal = execution.status in {"SUCCEEDED", "FAILED"}
+        matching_receipt = (
+            receipt.get("amount_cents") == execution.amount_cents
+            if execution.action == "REFUND"
+            else receipt.get("result") == "STOCK_RECORDED"
+            and receipt.get("lines") == execution.lines
+        )
+        confirmed = (
+            terminal
+            and receipt.get("mode") == "SIMULATED"
+            and isinstance(receipt_id, str)
+            and bool(receipt_id.strip())
+            and matching_receipt
+        )
+        measure = "amount_cents" if execution.action == "REFUND" else "quantity"
+        return {
+            "id": execution.id,
+            "case_id": execution.case_id,
+            "action": execution.action,
+            "status": execution.status
+            if confirmed or execution.status == "SUBMITTING"
+            else "UNKNOWN",
+            "lines": [
+                {"line_id": line["line_id"], measure: line[measure]} for line in execution.lines
+            ],
+            "amount_cents": execution.amount_cents,
+            "simulated": True,
+            "receipt_confirmed": confirmed,
+            "updated_at": _iso(execution.updated_at),
+        }
 
     @staticmethod
     def _photos(files):
