@@ -36,3 +36,11 @@
 ## 后续核对：审批表述反馈（2026-11-11）
 
 上述审计正文保留历史状态。现有 graph.py 已使用 material_review 对象并标记 financial_approval=NOT_CHECKED，提示词区分材料审核、资格与财务批准。用户已将 DEV-HR-01 原内部笔记中的审批表述评为不准确、易误导；该判断绑定原报告及 trace_seq=30，不回填为整案评分，也不证明当前模型自由文本不再出错。[单句反馈](../reports/human-review-dev-hr01-approval-wording.json)。本次未新增模型调用。
+
+## 2026-11-11 用户要求直接报告查询结果
+
+用户明确否定空记录回复后的额外解释，要求只回复：“目前没查到这笔订单的退款处理记录”。后端普通空记录分支、指定编号未命中分支及前端空记录提示已简化；普通空记录不再自动追加索要编号。指定编号未命中仍明确范围是该编号。历史模型输出和原始报告保持原样。
+
+62项后端相关测试、37项前端测试和构建通过。新镜像在独立离线环境经实际 Nginx/API/Celery/PostgreSQL 验证，单/三 Agent 均完成且最终回复精确为“目前没查到这笔订单的退款处理记录。”；模型尝试、方案、审批、执行和模拟支付均0，临时环境已清理。该修改是用户的文案要求，不记录为整案质量或正式发布批准。[反馈](../reports/concise-refund-feedback-20261111.json) · [实际接口](../reports/concise-refund-http.json)。
+
+体验版5186已部署 `acceptance-20261111-concise`；GitHub常规和浏览器检查均通过。37张原表内容摘要、登录凭据及迁移版本保持，PG/Redis/S3容器未重建。API/Worker/前端健康，Beat运行；实际HTTP页面资源与本地构建一致，容器加载的空记录回复与用户要求一致。旧工单的历史运行输出不重写。[部署](../reports/deployment/concise-app.json) · [自动检查](https://github.com/abiua/aftercare-agent/actions/runs/42952772970)。
