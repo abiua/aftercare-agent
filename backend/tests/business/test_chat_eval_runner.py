@@ -80,10 +80,20 @@ def _controlled_transport(context, calls, protocol="compact-v6", *, conflict=Tru
             and role in {"strong_single", "fact"}
             and isinstance(messages[-1], ToolMessage)
         ):
-            assert any(
-                "recorded-order-payment" in message.content and "paid_at" in message.content
+            records = [
+                record
                 for message in messages
                 if isinstance(message, ToolMessage)
+                for record in json.loads(message.content).get("data", {}).get("records", [])
+            ]
+            assert any(
+                (
+                    view["available_evidence"][record["ref"]]
+                    if type(record["ref"]) is int
+                    else record["ref"]
+                )[1] == "recorded-order-payment"
+                and "paid_at" in record["data"]
+                for record in records
             )
         if role == "strong_single":
             if not isinstance(messages[-1], ToolMessage):
@@ -120,7 +130,12 @@ def _controlled_transport(context, calls, protocol="compact-v6", *, conflict=Tru
                 return _call("read_policy_clause", policy_args)
             return _reply({"claims": [_claim("clause", ref, "适用")]})
         assert role == "verifier"
-        fact = next(claim for claim in sent["upstream_claims"] if claim["id"] == "fact/amount")
+        upstream = sent["upstream_claims"]
+        if protocol == "compact-v7" and isinstance(upstream, dict):
+            upstream = [
+                dict(zip(upstream["columns"], row, strict=True)) for row in upstream["rows"]
+            ]
+        fact = next(claim for claim in upstream if claim["id"] == "fact/amount")
         mismatch = fact["value"] != str(amount)
         assessments = [
             {

@@ -195,7 +195,12 @@ def test_real_sdk_serialization_is_admitted_only_under_native_binding(kind, tmp_
                     }
                 ],
             ),
-            ToolMessage(content="{}", tool_call_id="call_fixture"),
+            ToolMessage(
+                content=json.dumps(
+                    {"data": {"records": [{"ref": 0, "trust": "VERIFIED_RECORD", "data": {}}]}}
+                ),
+                tool_call_id="call_fixture",
+            ),
         ]
         next_binding = {**binding, "native_logical_id": "p4:compact-v7:single:1"}
         with namespace["attempt"](next_binding), pytest.raises(RateLimitError):
@@ -652,3 +657,176 @@ def test_v3_keeps_existing_two_image_vision_preset():
         policy.verify_request(expanded, binding, _request(expanded, binding), KEY)["sent_sha256s"]
         == plan["sent_sha256s"]
     )
+
+
+def test_v3_control_material_review_requires_exact_opt_in_and_reaches_receipt(tmp_path):
+    plan, binding = _scoped(*_fixture("TEXT"), "SINGLE")
+    control = {
+        "provenance": "AUTOMATED_SYNTHETIC_CONTROL",
+        "review_id": "00000000-0000-0000-0000-000000000001",
+        "material_id": "00000000-0000-0000-0000-000000000002",
+        "attachment_id": "00000000-0000-0000-0000-000000000003",
+        "original_sha256": policy.CONTROL_ORIGINAL_SHA256,
+        "kind": "ITEM",
+        "finding": "VISIBLE_DAMAGE",
+        "line_id": "L01",
+        "affected_quantity": 1,
+    }
+    plan.update(
+        protocol=policy.EXPANDED_PROTOCOL,
+        output_tokens=4096,
+        maximum_reservation_microusd=600_000,
+        per_post_reserved_microusd=51_200,
+        original_sha256s=[policy.CONTROL_ORIGINAL_SHA256, "d" * 64],
+        material_review_control=control,
+    )
+    binding.update(native_output_tokens=4096)
+    policy.validate_plan(plan)
+    for edit in (
+        {"affected_quantity": 2},
+        {"affected_quantity": True},
+        {"kind": "PARCEL"},
+        {"line_id": "L02"},
+        {"original_sha256": "d" * 64},
+        {"provenance": "HUMAN_MATERIAL_REVIEW"},
+    ):
+        with pytest.raises(policy.WireDenied, match="PLAN_MATERIAL_REVIEW_CONTROL"):
+            policy.validate_plan({**plan, "material_review_control": {**control, **edit}})
+    complex_plan, _ = _scoped(plan, binding, "MULTI")
+    with pytest.raises(policy.WireDenied, match="PLAN_MATERIAL_REVIEW_CONTROL"):
+        policy.validate_plan({**complex_plan, "protocol": policy.EXPANDED_PROTOCOL})
+    with pytest.raises(policy.WireDenied, match="NATIVE_MATERIAL_REVIEW_CONTROL"):
+        policy.validate_binding(plan, binding)
+    binding.update(material_review_control=control)
+    _lock(tmp_path)
+    policy.send(
+        tmp_path,
+        plan,
+        binding,
+        _request(plan, binding),
+        KEY,
+        lambda _: httpx.Response(200, json={}),
+    )
+    receipt = json.loads((tmp_path / "admission-01.json").read_bytes())
+    assert receipt["material_review_control"] == control
+    without_control = {key: val for key, val in plan.items() if key != "material_review_control"}
+    with pytest.raises(policy.WireDenied, match="NATIVE_MATERIAL_REVIEW_CONTROL"):
+        policy.validate_binding(without_control, binding)
+
+
+def test_v3_multi_wire_accepts_native_verifier_projection_and_rejects_bad_references():
+    from types import SimpleNamespace
+
+    from aftercare.investigation.prompt_evidence import PromptEvidence, verifier_claims
+    from aftercare.investigation.protocol import HUMAN_PAYMENT_V7
+
+    plan, binding = _scoped(*_fixture("TEXT"), "MULTI")
+    plan.update(
+        protocol=policy.EXPANDED_PROTOCOL,
+        output_tokens=4096,
+        maximum_reservation_microusd=600_000,
+        per_post_reserved_microusd=51_200,
+    )
+    clause = ["POLICY", "POL14:1.0", "e" * 64]
+    other = ["POLICY", "POL06:1.0", "f" * 64]
+    binding.update(
+        native_output_tokens=4096,
+        native_logical_id="p4:compact-v7:verify-0:0",
+        role_evidence={**binding["role_evidence"], "verifier": [clause, other]},
+    )
+    scope = [plan[key] for key in ("conversation_id", "issue_id", "case_id")]
+
+    def ref(row):
+        return {
+            "source_kind": row[0],
+            "source_id": row[1],
+            "version_or_sha256": row[2],
+            "scope": scope,
+        }
+
+    records = [
+        {"ref": ref(REF), "trust": "VERIFIED_RECORD", "data": {"paid_cents": 6000}},
+        {
+            "ref": ref(clause),
+            "trust": "POLICY",
+            "data": {"catalogue_sha256": binding["policy_catalogue_sha256"]},
+        },
+    ]
+    source = SimpleNamespace(
+        conversation_id=scope[0],
+        issue_id=scope[1],
+        case_id=scope[2],
+        relevant_input_sha256=binding["relevant_input_sha256"],
+    )
+    projection = PromptEvidence(source, protocol=HUMAN_PAYMENT_V7)
+    view = projection.prompt(
+        {
+            "input_digest": source.relevant_input_sha256,
+            "policy_context": {"catalogue_sha256": binding["policy_catalogue_sha256"]},
+            "available_evidence": [ref(clause), ref(other)],
+            "original_frozen_evidence": records,
+            "original_read_receipts": [
+                {
+                    "name": "read_policy_clause",
+                    "input_digest": source.relevant_input_sha256,
+                    "arguments_sha256": "b" * 64,
+                    "refs": [ref(clause)],
+                    "data": {"records": [records[1]]},
+                }
+            ],
+        }
+    )
+    assert view["available_evidence"] == [1, other]
+    assert view["original_read_receipts"][0]["refs"] == [1]
+    client = ChatOpenAI(
+        model=plan["model"],
+        base_url=policy.URL.removesuffix("/responses"),
+        api_key=KEY,
+        max_retries=0,
+        max_tokens=4096,
+        use_responses_api=True,
+        store=False,
+    )
+
+    def request(projected):
+        messages = [
+            SystemMessage(content="调查角色 verifier。"),
+            HumanMessage(
+                content=json.dumps(
+                    {
+                        "frozen_input": projected,
+                        "upstream_claims": verifier_claims(
+                            [{"id": "fact/package", "value": "B17"}]
+                        ),
+                    }
+                )
+            ),
+        ]
+        body = client._get_request_payload(messages)
+        return httpx.Request(
+            "POST",
+            policy.URL,
+            json=body,
+            headers={"authorization": "Bearer " + KEY, "x-stainless-retry-count": "0"},
+        )
+
+    policy.validate_plan(plan)
+    assert policy.verify_request(plan, binding, request(view), KEY)["phase"] == "verify-0"
+    table = view["original_frozen_evidence"]
+    forged = [*table["rows"][1][0][:2], "0" * 64]
+    variants = (
+        {**view, "available_evidence": [True, other]},
+        {**view, "available_evidence": [2, other]},
+        {**view, "original_frozen_evidence": {**table, "columns": ["ref", "data", "trust"]}},
+        {
+            **view,
+            "original_frozen_evidence": {
+                **table,
+                "rows": [table["rows"][0], [forged, "POLICY", {}]],
+            },
+        },
+        {**view, "original_read_receipts": [{"refs": [-1]}]},
+    )
+    for variant in variants:
+        with pytest.raises(policy.WireDenied, match="TEXT_EVIDENCE"):
+            policy.verify_request(plan, binding, request(variant), KEY)

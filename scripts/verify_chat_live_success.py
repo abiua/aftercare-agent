@@ -80,8 +80,29 @@ ORDINARY_REPEATS = {
         "net": "10.253.253.0/28",
         "ingress": "10.253.253.16/28",
     },
+    8: {
+        "port": 5212,
+        "object_port": 58374,
+        "net": "10.253.253.32/28",
+        "ingress": "10.253.253.48/28",
+    },
+}
+COMPLEX_REPEATS = {
+    2: {
+        "port": 5213,
+        "object_port": 58375,
+        "net": "10.253.253.64/28",
+        "ingress": "10.253.253.80/28",
+    },
 }
 PROTOCOL = driver.WIRE_V3
+CONTROL_OBSERVATION = {
+    "provenance": "AUTOMATED_SYNTHETIC_CONTROL",
+    "kind": "ITEM",
+    "finding": "VISIBLE_DAMAGE",
+    "line_id": "L01",
+    "affected_quantity": 1,
+}
 FINANCIAL = (
     "business_proposals",
     "business_approvals",
@@ -92,12 +113,10 @@ FINANCIAL = (
 
 @contextmanager
 def _target(name, attempt=1):
-    require(
-        attempt == 1 or (name == "ordinary" and attempt in ORDINARY_REPEATS),
-        "LIVE_SUCCESS_ATTEMPT_UNSUPPORTED",
-    )
-    scenario = SCENARIOS[name] if attempt == 1 else {**SCENARIOS[name], **ORDINARY_REPEATS[attempt]}
-    suffix = name if attempt == 1 else f"ordinary-r{attempt}"
+    repeats = ORDINARY_REPEATS if name == "ordinary" else COMPLEX_REPEATS
+    require(attempt == 1 or attempt in repeats, "LIVE_SUCCESS_ATTEMPT_UNSUPPORTED")
+    scenario = SCENARIOS[name] if attempt == 1 else {**SCENARIOS[name], **repeats[attempt]}
+    suffix = name if attempt == 1 else f"{name}-r{attempt}"
     state = ROOT / f".runtime/offline-browser-demo-live-success-{suffix}.json"
     with (
         patch.multiple(
@@ -198,18 +217,25 @@ def _preflight(name, image_receipt, *, attempt=1):
         sent_jpeg_sha256s=[row.sent_sha256 for row in photos],
     )
     plan["protected_state"] = ["5202_WAITING_INDEPENDENT_REVIEW", "5203_FAILED_AND_TAKEOVER"]
-    if attempt >= 2:
-        plan["protected_state"].append("5204_ORIGINAL_ORDINARY_UNKNOWN_NO_REPLAY")
-    if attempt >= 3:
-        plan["protected_state"].append("5206_ORDINARY_R2_PARTIAL_NO_REPLAY")
-    if attempt >= 4:
-        plan["protected_state"].append("5207_ORDINARY_R3_ADAPTER_FAILURE_NO_REPLAY")
-    if attempt >= 5:
-        plan["protected_state"].append("5208_ORDINARY_R4_PREWIRE_DENIAL_NO_REPLAY")
-    if attempt >= 6:
-        plan["protected_state"].append("5209_ORDINARY_R5_OUTPUT_TRUNCATED_NO_REPLAY")
-    if attempt == 7:
-        plan["protected_state"].append("5210_ORDINARY_R6_INVALID_MODEL_OUTPUT_NO_REPLAY")
+    if name == "ordinary":
+        if attempt >= 2:
+            plan["protected_state"].append("5204_ORIGINAL_ORDINARY_UNKNOWN_NO_REPLAY")
+        if attempt >= 3:
+            plan["protected_state"].append("5206_ORDINARY_R2_PARTIAL_NO_REPLAY")
+        if attempt >= 4:
+            plan["protected_state"].append("5207_ORDINARY_R3_ADAPTER_FAILURE_NO_REPLAY")
+        if attempt >= 5:
+            plan["protected_state"].append("5208_ORDINARY_R4_PREWIRE_DENIAL_NO_REPLAY")
+        if attempt >= 6:
+            plan["protected_state"].append("5209_ORDINARY_R5_OUTPUT_TRUNCATED_NO_REPLAY")
+        if attempt >= 7:
+            plan["protected_state"].append("5210_ORDINARY_R6_INVALID_MODEL_OUTPUT_NO_REPLAY")
+        if attempt == 8:
+            plan["protected_state"].append("5211_ORDINARY_R7_HUMAN_HANDOFF_NO_REPLAY")
+            plan["control_observation"] = CONTROL_OBSERVATION
+            plan["phases"][2]["success"] = "SINGLE_ITEM_TYPED_SYNTHETIC_CONTROL_OBSERVATION"
+    elif attempt == 2:
+        plan["protected_state"].append("5205_COMPLEX_R1_VERIFIER_PROMPT_LIMIT_NO_REPLAY")
     plan["gates"]["success_driver_sha256"] = _hash(Path(__file__))
     plan["complex_fixture_sha256"] = _hash(CASES) if case else None
     plan["completion"] = (
@@ -358,7 +384,11 @@ with engine.connect() as db, db.begin():
                 if kind=='POLICY':
                     clause=data['clause']; data={{k:clause[k] for k in ('id','version') if k in clause}}
                 else:
+                    observation_rows=data.get('observations',[]) if kind=='REVIEW' else []
                     data={{k:data[k] for k in fields.get(kind,()) if k in data}}
+                    if observation_rows:
+                        keys=('material_id','finding','line_id','affected_quantity','source','material_sha256')
+                        data['observations']=[{{k:row[k] for k in keys if k in row}} for row in observation_rows]
                 safe.append(dict(ref=ref,data=data))
             audit['receipts'].append(dict(seq=seq,role=p['role'],phase_id=p['phase_id'],tool=receipt['name'],
                 receipt_sha256=p['receipt_sha256'],refs=receipt['refs'],records=safe))
@@ -475,6 +505,42 @@ def _complex_outcome(trace, *, customer_statement_bound):
     }
 
 
+def _verify_typed_control(snapshot, trace, report):
+    control = report["material_review_control"]
+    readback = report["material_review_control_readback"]
+    expected = {
+        **readback["observations"][0],
+        "material_sha256": control["original_sha256"],
+    }
+    (review,) = [
+        row
+        for row in snapshot["input"]["frozen_context"]["reviews"]
+        if row["effective"] and row["id"] == control["review_id"]
+    ]
+    require(
+        review["materials_version"] == readback["materials_version"]
+        and review["observations"]
+        == [
+            {
+                **expected,
+                "original_attachments": [
+                    {
+                        "attachment_id": control["attachment_id"],
+                        "message_id": readback["message_id"],
+                        "sha256": control["original_sha256"],
+                    }
+                ],
+            }
+        ],
+        "LIVE_SUCCESS_TYPED_CONTROL_FROZEN_BINDING_CHANGED",
+    )
+    return any(
+        row["ref"]["source_id"] == control["review_id"]
+        and row["data"].get("observations") == [expected]
+        for row in _records(trace, role="strong_single", kind="REVIEW")
+    )
+
+
 def _execute(plan, report, output):
     require(
         all(_hash(ROOT / "scripts" / key) == val for key, val in plan["helpers"].items())
@@ -514,6 +580,7 @@ def _execute(plan, report, output):
                 attachments,
                 assets,
                 originals,
+                control_observation=plan.get("control_observation"),
             )
             text = driver._paid_phase(
                 stack, state, plan, report, output, "TEXT", turn, photos, project=True
@@ -594,6 +661,11 @@ def _execute(plan, report, output):
             }
             model_candidate = driver._model_candidate(text, snapshot)
             report["model_validated_candidate"] = model_candidate
+            if plan.get("control_observation"):
+                report["typed_control_actually_read_by_model"] = _verify_typed_control(
+                    snapshot, trace, report
+                )
+                report["typed_control_frozen"] = True
             driver._checkpoint(report, output, "REAL_NATIVE_CANDIDATE_READBACK")
             if complex_case:
                 customer_statement_bound = any(
@@ -625,6 +697,12 @@ def _execute(plan, report, output):
                 )
             if not model_candidate or not _ordinary_ready(trace, snapshot):
                 report["business_completion"] = "NOT_RUN_NO_FULLY_EVIDENCED_AGENT_REFUND"
+                return "PARTIAL"
+            if (
+                plan.get("control_observation")
+                and not report["typed_control_actually_read_by_model"]
+            ):
+                report["business_completion"] = "NOT_RUN_NO_NATIVE_TYPED_CONTROL_TOOL_READ"
                 return "PARTIAL"
             completed = driver._complete_business(
                 clients,

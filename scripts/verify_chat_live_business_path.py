@@ -512,6 +512,9 @@ def _complete_business(clients, case, conversation, snapshot, report, output, *,
 def _native(stack, report):
     conversation = str(UUID(report["conversation_id"]))
     case = str(UUID(report["case_id"]))
+    review_observation_column = (
+        ",observations" if report.get("plan", {}).get("control_observation") else ""
+    )
     reserve_check = (
         "assert settings.chat_investigation_output_reserve == 4096"
         if report.get("plan", {}).get("wire_protocol") == WIRE_V3
@@ -559,7 +562,7 @@ with engine.connect() as db, db.begin():
     validated=many("SELECT e.run_id,e.payload->'selected_option_ids' AS option_ids "
                    "FROM agent_run_events e JOIN agent_runs r ON r.id=e.run_id "
                    "WHERE r.case_id=:case AND e.kind='investigation_result'")
-    reviews=many("SELECT id,materials_version,observations IS NULL AS no_observations "
+    reviews=many("SELECT id,materials_version,observations IS NULL AS no_observations{review_observation_column} "
                  "FROM business_material_reviews WHERE case_id=:case")
     messages=scalar("SELECT count(*) FROM chat_messages WHERE conversation_id=:conversation AND role='customer'")
 print(json.dumps(dict(counts=counts,turns=turns,vision=vision,observations=observations,runs=runs,
@@ -786,6 +789,9 @@ def _paid_phase(stack, state, plan, report, output, phase, turn, photos, *, proj
             original_sha256s=plan["fixture"]["original_sha256s"],
             sent_sha256s=plan["fixture"]["sent_jpeg_sha256s"],
         )
+    if phase == "TEXT" and plan.get("control_observation"):
+        require(protocol == WIRE_V3, "LIVE_BUSINESS_TYPED_CONTROL_PROTOCOL_REQUIRED")
+        gate_plan["material_review_control"] = report["material_review_control"]
     staged_gate = stage / "gate"
     staged_gate.mkdir(mode=0o700)
     for path, target, key in (
@@ -1230,8 +1236,40 @@ def _enable_investigation(stack):
     _wait_worker(stack, worker)
 
 
+def _typed_control_review(spec, materials):
+    expected = {
+        "provenance": "AUTOMATED_SYNTHETIC_CONTROL",
+        "kind": "ITEM",
+        "finding": "VISIBLE_DAMAGE",
+        "line_id": "L01",
+        "affected_quantity": 1,
+    }
+    require(
+        spec == expected and type(spec["affected_quantity"]) is int,
+        "LIVE_BUSINESS_TYPED_CONTROL_SCOPE_CHANGED",
+    )
+    items = [row for row in materials if row["kind"] == spec["kind"]]
+    require(len(items) == 1, "LIVE_BUSINESS_TYPED_CONTROL_ITEM_LINK_AMBIGUOUS")
+    (item,) = items
+    observation = {
+        "material_id": item["material_id"],
+        **{key: spec[key] for key in ("finding", "line_id", "affected_quantity")},
+    }
+    return item, observation
+
+
 def _material_control(
-    stack, support, report, output, case, conversation, attachments, assets, originals
+    stack,
+    support,
+    report,
+    output,
+    case,
+    conversation,
+    attachments,
+    assets,
+    originals,
+    *,
+    control_observation=None,
 ):
     path = f"conversations/{conversation}/decision-materials"
     report["materials"] = []
@@ -1275,6 +1313,17 @@ def _material_control(
         report["materials"].append({**source, "material_id": material["id"], "kind": kind})
     before = read(support, f"cases/{case}")
     require(not before["reviews"], "LIVE_BUSINESS_PRIOR_REVIEW_UNEXPECTED")
+    item = observation = None
+    if control_observation is not None:
+        item, observation = _typed_control_review(control_observation, report["materials"])
+        require(
+            item["attachment_id"] == report["attachment_ids"][0]
+            and item["sha256"] == report["plan"]["fixture"]["original_sha256s"][0],
+            "LIVE_BUSINESS_TYPED_CONTROL_ORIGINAL_CHANGED",
+        )
+    expected_observations = (
+        [{**observation, "source": "HUMAN_MATERIAL_REVIEW"}] if observation is not None else None
+    )
     review, _ = _mutation(
         support,
         report,
@@ -1285,17 +1334,52 @@ def _material_control(
         {
             "expected_version": before["case"]["version"],
             "decision": "APPROVED",
-            "notes": CONTROL + "两张合成素材用于测试流程，不作真人图片判断。",
+            "notes": CONTROL
+            + (
+                "商品合成原图记录可见破损、L01、受影响总数一件。包装图未登记归属、数量或原因。"
+                if observation is not None
+                else "两张合成素材用于测试流程，不作真人图片判断。"
+            ),
+            **({"observations": [observation]} if observation is not None else {}),
         },
     )
     report["material_review_id"] = review["id"]
+    if item is not None:
+        detail = read(support, f"cases/{case}")
+        (saved,) = [row for row in detail["reviews"] if row["id"] == review["id"]]
+        version = before["case"]["materials_version"]
+        require(
+            review["materials_version"]
+            == detail["case"]["materials_version"]
+            == saved["materials_version"]
+            == version
+            and review["observations"] == saved["observations"] == expected_observations
+            and saved["effective"]
+            and saved["decision"] == "APPROVED",
+            "LIVE_BUSINESS_TYPED_CONTROL_HTTP_READBACK_CHANGED",
+        )
+        report["material_review_control"] = {
+            **control_observation,
+            "review_id": review["id"],
+            "material_id": item["material_id"],
+            "attachment_id": item["attachment_id"],
+            "original_sha256": item["sha256"],
+        }
+        report["material_review_control_readback"] = {
+            "materials_version": version,
+            "message_id": item["message_id"],
+            "observations": expected_observations,
+        }
+        _checkpoint(report, output, "CONTROL_TYPED_MATERIAL_REVIEW_VERIFIED")
     native = _native(stack, report)
     require(
         native["customer_messages"] == 2
         and native["counts"]["chat_model_attempts"] == 1
         and len(native["reviews"]) == 1
         and native["reviews"][0]["id"] == review["id"]
-        and native["reviews"][0]["no_observations"]
+        and native["reviews"][0]["no_observations"] is (observation is None)
+        and native["reviews"][0].get("observations") == expected_observations
+        and (observation is None or native["reviews"][0]["materials_version"] == version)
         and not native["counts"]["agent_runs"],
         "LIVE_BUSINESS_CONTROL_REVIEW_NOT_BOUND",
     )

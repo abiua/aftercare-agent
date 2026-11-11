@@ -811,6 +811,8 @@ def test_targeted_policy_recheck_can_read_another_frozen_version(investigation):
 
     def revised(kwargs):
         payload = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        scope = json.loads(kwargs["messages"][0].content.rsplit("\n", 1)[-1])
+        assert scope["citable_evidence_ids"] == ["POL01:v0"]
         assert (
             payload["check_receipt"]["data"]["records"][0]["data"]["clause"]["text"]
             == "独立旧版全文"
@@ -991,17 +993,153 @@ def test_v7_shared_prompt_constraints_expand_to_same_schema():
         compact = _share_prompt_constraints(full)
         shared = {name: compact["$defs"][name] for name in ("K", "P", "T")}
 
-        def expand(value):
+        def expand(value, shared=shared):
             if isinstance(value, list):
-                return [expand(item) for item in value]
+                return [expand(item, shared) for item in value]
             if isinstance(value, dict):
                 ref = value.get("$ref")
                 if len(value) == 1 and ref in {f"#/$defs/{key}" for key in shared}:
                     return shared[ref.rsplit("/", 1)[1]]
-                return {key: expand(item) for key, item in value.items()}
+                return {key: expand(item, shared) for key, item in value.items()}
             return value
 
         expanded = expand(compact)
         for name in shared:
             del expanded["$defs"][name]
         assert expanded == full
+
+
+def test_v7_verifier_indexes_only_full_matching_refs_and_roundtrips_claims(investigation):
+    from aftercare.investigation.prompt_evidence import verifier_claims
+
+    tools = InvestigationTools(investigation)
+    receipt = tools.call(
+        "policy",
+        "read_policy_clause",
+        {"policy_id": "POL01", "version": "v1", "product_id": "product"},
+    ).model_dump(mode="json")
+    corpus = "f" * 64
+    matching = receipt["data"]["records"][0]
+    matching["data"]["catalogue_sha256"] = corpus
+    foreign = {
+        **matching,
+        "ref": {**matching["ref"], "source_id": "POL02:v1"},
+        "data": {**matching["data"], "catalogue_sha256": "e" * 64},
+    }
+    view = {
+        **investigation.role_view("verifier"),
+        "policy_context": {"catalogue_sha256": corpus},
+        "original_frozen_evidence": [matching, foreign],
+        "original_read_receipts": [receipt, receipt],
+        "available_evidence": [
+            receipt["refs"][0],
+            {**receipt["refs"][0], "version_or_sha256": "other"},
+        ],
+    }
+    legacy = PromptEvidence(investigation).prompt(view)
+    compact = PromptEvidence(investigation, protocol=HUMAN_PAYMENT_V7).prompt(view)
+    assert compact["verifier_encoding"] == "verifier-record-index-v1"
+    encoded_records = compact["original_frozen_evidence"]
+    records = [
+        dict(zip(encoded_records["columns"], row, strict=True)) for row in encoded_records["rows"]
+    ]
+    assert compact["policy_corpus_rows"] == [0]
+    assert "catalogue_sha256" not in records[0]["data"]
+    assert records[1]["data"]["catalogue_sha256"] == "e" * 64
+    for position in compact["policy_corpus_rows"]:
+        records[position]["data"]["catalogue_sha256"] = compact["policy_context"][
+            "catalogue_sha256"
+        ]
+    assert records == legacy["original_frozen_evidence"]
+
+    def expand(refs):
+        return [records[ref]["ref"] if type(ref) is int else ref for ref in refs]
+
+    assert compact["available_evidence"][0] == 0
+    assert compact["available_evidence"][1] == legacy["available_evidence"][1]
+    assert expand(compact["available_evidence"]) == legacy["available_evidence"]
+    assert [
+        {**row, "refs": expand(row["refs"])} for row in compact["original_read_receipts"]
+    ] == legacy["original_read_receipts"]
+    claims = [_claim("first", "line"), _claim("second", "line", depends=("first",))]
+    encoded = verifier_claims(claims)
+    assert [dict(zip(encoded["columns"], row, strict=True)) for row in encoded["rows"]] == claims
+
+
+def test_v7_strong_receipts_reuse_exact_available_ref_and_corpus(investigation):
+    raw = (
+        InvestigationTools(investigation)
+        .call(
+            "strong_single",
+            "read_policy_clause",
+            {"policy_id": "POL01", "version": "v1", "product_id": "product"},
+        )
+        .model_dump(mode="json")
+    )
+    record = raw["data"]["records"][0]
+    corpus = "a" * 64
+    record["data"]["catalogue_sha256"] = corpus
+    projection = PromptEvidence(investigation, protocol=HUMAN_PAYMENT_V7, index_reads=True)
+    view = projection.prompt(
+        {
+            "available_evidence": raw["refs"],
+            "policy_context": {"catalogue_sha256": corpus},
+        }
+    )
+    assert view["tool_record_encoding"] == "tool-record-index-v1"
+    first = projection.tool_receipt(raw)["data"]
+    assert first["records"][0]["ref"] == 0
+    assert first["policy_corpus_rows"] == [0]
+    assert first["records"][0]["data"] == {
+        key: value for key, value in record["data"].items() if key != "catalogue_sha256"
+    }
+    assert projection.tool_receipt(raw)["data"]["record_links"] == [[0, 0]]
+    restored = {
+        **first["records"][0],
+        "ref": view["available_evidence"][0],
+        "data": {**first["records"][0]["data"], "catalogue_sha256": corpus},
+    }
+    assert restored == projection.record(record)
+
+
+def test_targeted_request_does_not_make_unread_refs_citable(investigation):
+    from aftercare.investigation.orchestration import run_phase
+
+    check = _call(
+        "request_targeted_check",
+        claim_id="fact/f",
+        conflicting_refs=["line2"],
+        target_tool="read_order_lines",
+        reason="核对另一订单行。",
+    )
+
+    def verify(kwargs):
+        scope = json.loads(kwargs["messages"][0].content.rsplit("\n", 1)[-1])
+        assert scope["citable_evidence_ids"] == ["line"]
+        assert json.loads(kwargs["messages"][-1].content)["refs"][0][1] == "line2"
+        result = _review(("fact/f", "line"))
+        result["assessments"][0]["evidence_refs"] = ["line2"]
+        return result
+
+    model = Script({"p4:compact-v7:verify-0:0": [check], "p4:compact-v7:verify-0:1": verify})
+    ctx = InvestigationContext(
+        investigation,
+        None,
+        model,
+        Audit(),
+        InvestigationTools(investigation),
+        None,
+        "analysis",
+        protocol=HUMAN_PAYMENT_V7,
+    )
+    with pytest.raises(InvalidOutput, match="VERIFICATION_EVIDENCE_INCOMPLETE"):
+        run_phase(
+            ctx,
+            "verifier",
+            "verify-0",
+            prompt=investigation.role_view("verifier"),
+            known_evidence=["line"],
+            upstream=[_claim("fact/f", "line")],
+            max_rounds=2,
+            tool_limit=1,
+        )

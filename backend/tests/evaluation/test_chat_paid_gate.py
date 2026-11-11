@@ -476,3 +476,42 @@ def test_v7_live_source_links_two_frozen_observations_to_one_vision_wire(fault):
             entry._check_v3_vision(source, vision)
     else:
         entry._check_v3_vision(source, vision)
+
+
+def test_p5_v7_verifier_expands_only_scoped_original_record_references():
+    clause = ["POLICY", "POL14:1.0", "a" * 64]
+    fact = ["ORDER_LINE", "L02", "b" * 64]
+    plan = {"role_evidence": {"verifier": [clause], "fact": [fact]}}
+    table = {
+        "columns": ["ref", "trust", "data"],
+        "rows": [
+            [fact, "VERIFIED_RECORD", {}],
+            [clause, "POLICY", {}],
+        ],
+    }
+    view = {
+        "evidence_encoding": "compact-v7",
+        "verifier_encoding": "verifier-record-index-v1",
+        "original_frozen_evidence": table,
+        "available_evidence": [1],
+        "original_read_receipts": [{"refs": [0, 1]}],
+        "policy_corpus_rows": [1],
+    }
+    gate.validate_v7_references(plan, "verifier", view)
+    for variant in (
+        {**view, "evidence_encoding": "compact-v6"},
+        {**view, "available_evidence": [True]},
+        {**view, "available_evidence": [2]},
+        {
+            **view,
+            "original_frozen_evidence": {
+                **table,
+                "rows": [
+                    [fact, "VERIFIED_RECORD", {}],
+                    [["POLICY", "POL14:1.0", "c" * 64], "POLICY", {}],
+                ],
+            },
+        },
+    ):
+        with pytest.raises(RuntimeError, match="V7_EVIDENCE_BINDING_REJECTED"):
+            gate.validate_v7_references(plan, "verifier", variant)

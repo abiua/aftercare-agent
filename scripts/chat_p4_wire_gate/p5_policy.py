@@ -144,14 +144,101 @@ def admit(directory, plan, write, request_bytes, tool_names, *, role, recheck=Fa
         return index, row["id"]
 
 
+def _indexed_v7_refs(view, role, approved, valid_ref):
+    """Resolve verifier-only indices without trusting evidence outside the pinned scope."""
+    if (
+        role != "verifier"
+        or view.get("evidence_encoding") != "compact-v7"
+        or view.get("verifier_encoding") != "verifier-record-index-v1"
+    ):
+        return None
+    table = view.get("original_frozen_evidence")
+    if (
+        not isinstance(table, dict)
+        or table.keys() != {"columns", "rows"}
+        or table["columns"] != ["ref", "trust", "data"]
+        or not isinstance(table["rows"], list)
+    ):
+        return None
+
+    def complete(ref):
+        return (
+            valid_ref(ref)
+            and len(ref) in (3, 4)
+            and (len(ref) == 3 or isinstance(ref[3], str) and bool(ref[3]))
+            and tuple(ref[:3]) in approved
+        )
+
+    original = []
+    for row in table["rows"]:
+        if (
+            not isinstance(row, list)
+            or len(row) != 3
+            or not complete(row[0])
+            or row[1]
+            not in ("VERIFIED_RECORD", "CUSTOMER_ATTACHMENT", "UNVERIFIED_OBSERVATION", "POLICY")
+            or not isinstance(row[2], dict)
+        ):
+            return None
+        original.append(row[0])
+    if len({tuple(ref[:3]) for ref in original}) != len(original):
+        return None
+
+    def expand(refs):
+        if not isinstance(refs, list):
+            return None
+        resolved = []
+        for ref in refs:
+            if type(ref) is int:
+                if not 0 <= ref < len(original):
+                    return None
+                ref = original[ref]
+            if not complete(ref):
+                return None
+            resolved.append(ref[:3])
+        return resolved
+
+    receipts = view.get("original_read_receipts")
+    if not isinstance(receipts, list) or any(
+        not isinstance(receipt, dict) or expand(receipt.get("refs")) is None for receipt in receipts
+    ):
+        return None
+    corpus_rows = view.get("policy_corpus_rows", [])
+    if (
+        not isinstance(corpus_rows, list)
+        or not all(
+            type(index) is int and 0 <= index < len(original) and original[index][0] == "POLICY"
+            for index in corpus_rows
+        )
+        or len(set(corpus_rows)) != len(corpus_rows)
+    ):
+        return None
+    return expand(view.get("available_evidence"))
+
+
 def validate_v7_references(plan, role, view):
     expected = plan["role_evidence"][role]
-    actual = view.get("available_evidence")
-    if not isinstance(actual, list) or any(
-        not isinstance(ref, list) or len(ref) < 3 for ref in actual
-    ):
-        raise RuntimeError("P4_WIRE_V7_EVIDENCE_BINDING_REJECTED")
-    if [ref[:3] for ref in actual] != expected:
+    refs = view.get("available_evidence")
+    if "verifier_encoding" in view:
+        approved = {tuple(ref) for role_refs in plan["role_evidence"].values() for ref in role_refs}
+
+        def valid_ref(ref):
+            return (
+                isinstance(ref, list)
+                and len(ref) >= 3
+                and all(isinstance(value, str) and bool(value) for value in ref[:3])
+                and re.fullmatch(r"[a-f0-9]{64}", ref[2]) is not None
+            )
+
+        actual = _indexed_v7_refs(view, role, approved, valid_ref)
+    else:
+        actual = (
+            [ref[:3] for ref in refs]
+            if isinstance(refs, list)
+            and all(isinstance(ref, list) and len(ref) >= 3 for ref in refs)
+            else None
+        )
+    if actual != expected:
         raise RuntimeError("P4_WIRE_V7_EVIDENCE_BINDING_REJECTED")
     if (
         role in {"fact", "strong_single"}

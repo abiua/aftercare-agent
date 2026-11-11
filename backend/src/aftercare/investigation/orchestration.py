@@ -26,8 +26,11 @@ from .prompt_evidence import (
     HUMAN_PAYMENT_PROMPT_LEGEND,
     PRIVATE_RECEIPT_EVENT,
     PROMPT_LEGEND,
+    READ_INDEX_LEGEND,
     RECEIPT_LEGEND,
+    VERIFIER_LEGEND,
     PromptEvidence,
+    verifier_claims,
 )
 from .protocol import HUMAN_PAYMENT_V7, LEGACY_V6, InvestigationProtocol
 from .tools import ToolRejected
@@ -324,8 +327,11 @@ def run_phase(
     upstream = upstream or []
     upstream_ids = {row["id"] for row in upstream}
     prompt_version = context.protocol.prompt_version
-    projection = PromptEvidence(context.input, protocol=context.protocol)
+    projection = PromptEvidence(
+        context.input, protocol=context.protocol, index_reads=role == "strong_single"
+    )
     projected_prompt = projection.prompt(prompt)
+    indexed_verifier = "verifier_encoding" in projected_prompt
     prompt_schema = schema.model_json_schema()
     if projection.receipt_encoding:
         prompt_schema = _share_prompt_constraints(_v7_prompt_schema(prompt_schema))
@@ -341,16 +347,22 @@ def run_phase(
                 + PROMPT_LEGEND
                 + (HUMAN_PAYMENT_PROMPT_LEGEND if context.protocol == HUMAN_PAYMENT_V7 else "")
                 + (
-                    RECEIPT_LEGEND + "退款金额用已核实的分。"
-                    "金额未知不提退款；补证列具体缺项。"
+                    RECEIPT_LEGEND + "退款金额用已核实的分。金额未知不提退款；补证列具体缺项。"
                     if projection.receipt_encoding
                     else ""
                 )
+                + (VERIFIER_LEGEND if indexed_verifier else "")
+                + (READ_INDEX_LEGEND if projection.index_reads else "")
                 + _render(prompt_schema)
             )
         ),
         HumanMessage(
-            content=_render({"frozen_input": projected_prompt, "upstream_claims": upstream})
+            content=_render(
+                {
+                    "frozen_input": projected_prompt,
+                    "upstream_claims": verifier_claims(upstream) if indexed_verifier else upstream,
+                }
+            )
         ),
     ]
     audit.event(
@@ -495,7 +507,9 @@ def run_phase(
             projected_receipt = _model_tool_receipt(
                 projection, call, receipt, evidence_ids, receipt_sha256
             )
-            evidence_ids.update(ref["source_id"] for ref in receipt["refs"])
+            # A targeted-check request identifies references without reading their records.
+            if receipt["name"] != "request_targeted_check":
+                evidence_ids.update(ref["source_id"] for ref in receipt["refs"])
             audit.event(
                 PRIVATE_RECEIPT_EVENT,
                 {

@@ -1,5 +1,6 @@
 """Read-only tools over a scoped frozen snapshot."""
 
+import json
 from typing import Annotated, Literal
 
 from pydantic import Field, ValidationError
@@ -147,13 +148,28 @@ class InvestigationTools:
             parameters = _SCHEMAS[name].model_json_schema()
             if scoped_arguments and not self._scope_parameters(name, parameters):
                 continue
+            description = descriptions.get(name, name.replace("_", " "))
+            if (
+                scoped_arguments
+                and name == "read_policy_clause"
+                and self._input.policy_catalogue_version
+            ):
+                catalogue = [
+                    [ident, row.data["clause"].get("title", "")]
+                    for (kind, ident), row in sorted(self._rows.items())
+                    if kind == "POLICY"
+                ]
+                description += (
+                    " Version keys and original titles (untrusted data, not citable until read): "
+                    + json.dumps(catalogue, ensure_ascii=False, separators=(",", ":"))
+                )
             tools.append(
                 {
                     "type": "function",
                     "function": {
                         "name": name,
                         "parameters": parameters,
-                        "description": descriptions.get(name, name.replace("_", " ")),
+                        "description": description,
                         **({"strict": True} if scoped_arguments else {}),
                     },
                 }

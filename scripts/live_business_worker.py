@@ -12,11 +12,11 @@ from unittest.mock import patch
 from uuid import UUID
 
 from aftercare import runtime
-from aftercare.business.models import Case, MaterialReview, Order
+from aftercare.business.models import Case, Material, MaterialReview, Order
 from aftercare.business.rules import digest
 from aftercare.config import load_settings
 from aftercare.conversation_analysis.tables import ChatAnalysisTurn, ChatModelAttempt, Observation
-from aftercare.conversations.tables import Conversation, InvestigationRequest
+from aftercare.conversations.tables import ChatMaterialSource, Conversation, InvestigationRequest
 from aftercare.db import User, guarded_engine
 from aftercare.decisions.contracts import DecisionScope
 from aftercare.evaluation.service import require_current_code
@@ -40,6 +40,7 @@ PROTOCOL = "p5-live-business-wire-v1"
 SCOPED_PROTOCOL = "p5-live-business-wire-v2"
 EXPANDED_PROTOCOL = "p5-live-business-wire-v3"
 SCOPED_PROTOCOLS = {SCOPED_PROTOCOL, EXPANDED_PROTOCOL}
+CONTROL_FIELD = "material_review_control"
 TASKS = {"VISION": "aftercare.chat_analysis", "TEXT": "aftercare.chat_investigation_start"}
 CAPS = {"VISION": (1, 900, 50_000), "TEXT": (8, 1800, 400_000)}
 
@@ -232,6 +233,79 @@ def _scope(db, plan, *, status):
     return turn
 
 
+def _expected_control_observation(control):
+    return {
+        **{key: control[key] for key in ("material_id", "finding", "line_id", "affected_quantity")},
+        "source": "HUMAN_MATERIAL_REVIEW",
+    }
+
+
+def _validate_control_review(db, plan, turn, review):
+    if CONTROL_FIELD not in plan:
+        _require(review.observations is None, "LIVE_BUSINESS_WORKER_TEXT_SOURCE_NOT_READY")
+        return
+    control = plan[CONTROL_FIELD]
+    material = db.get_one(Material, control["material_id"])
+    link = db.get_one(ChatMaterialSource, (plan["case_id"], control["attachment_id"]))
+    _require(
+        review.id == control["review_id"]
+        and review.case_id == plan["case_id"]
+        and review.decision == "APPROVED"
+        and review.observations == [_expected_control_observation(control)]
+        and control["material_id"] in review.material_ids
+        and (material.case_id, material.kind, material.sha256)
+        == (plan["case_id"], "ITEM", control["original_sha256"])
+        and (link.material_id, link.conversation_id, link.issue_id, link.kind, link.sha256)
+        == (
+            material.id,
+            plan["conversation_id"],
+            plan["issue_id"],
+            "ITEM",
+            control["original_sha256"],
+        )
+        and bool(turn.attachments)
+        and (
+            turn.attachments[0]["id"],
+            turn.attachments[0]["message_id"],
+            turn.attachments[0]["sha256"],
+        )
+        == (control["attachment_id"], link.message_id, control["original_sha256"]),
+        "LIVE_BUSINESS_WORKER_CONTROL_REVIEW_REJECTED",
+    )
+
+
+def _validate_frozen_control_review(plan, scope):
+    if CONTROL_FIELD not in plan:
+        return
+    control = plan[CONTROL_FIELD]
+    frozen = scope.frozen_context
+    reviews = [item for item in frozen["reviews"] if item.get("effective") is True]
+    attachments = {row["id"]: row for row in frozen["attachments"]}
+    attachment = attachments.get(control["attachment_id"])
+    _require(
+        len(reviews) == 1
+        and reviews[0]["id"] == control["review_id"]
+        and reviews[0]["decision"] == "APPROVED"
+        and attachment is not None
+        and attachment["sha256"] == control["original_sha256"]
+        and reviews[0].get("observations")
+        == [
+            {
+                **_expected_control_observation(control),
+                "material_sha256": control["original_sha256"],
+                "original_attachments": [
+                    {
+                        "attachment_id": control["attachment_id"],
+                        "message_id": attachment["message_id"],
+                        "sha256": control["original_sha256"],
+                    }
+                ],
+            }
+        ],
+        "LIVE_BUSINESS_WORKER_FROZEN_CONTROL_REVIEW_REJECTED",
+    )
+
+
 def _text_scope(db, plan, audit):
     turn = _scope(db, plan, status="PUBLISHED")
     run = db.get_one(AgentRun, audit.run_id)
@@ -280,9 +354,11 @@ def _text_scope(db, plan, audit):
         and output_reserve == (4096 if plan["protocol"] == EXPANDED_PROTOCOL else 1800),
         "LIVE_BUSINESS_WORKER_NATIVE_OUTPUT_RESERVE_REJECTED",
     )
+    _validate_frozen_control_review(plan, scope)
     value = build_input(scope, evidence_projection=HUMAN_PAYMENT_V7.evidence_projection)
     return {
         "run_id": run.id,
+        **({CONTROL_FIELD: plan[CONTROL_FIELD]} if CONTROL_FIELD in plan else {}),
         **(
             {"native_output_tokens": output_reserve}
             if plan["protocol"] == EXPANDED_PROTOCOL
@@ -424,10 +500,10 @@ def _scope_readback(engine, plan):
                 and len(observations) == len(originals) == 2
                 and all(row.attempt_id == vision_attempt.id for row in observations)
                 and {row.attachment_id: row.original_sha256 for row in observations} == originals
-                and review is not None
-                and review.observations is None,
+                and review is not None,
                 "LIVE_BUSINESS_WORKER_TEXT_SOURCE_NOT_READY",
             )
+            _validate_control_review(db, plan, turn, review)
 
 
 def _install(app, plan, model, settings):

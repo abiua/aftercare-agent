@@ -1,5 +1,6 @@
 """Check versioned observation freeze and tool/QA projections without a DB or API."""
 
+import json
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
@@ -31,6 +32,7 @@ def _freeze(
     observations=True,
     protocol=None,
     paid_at=None,
+    policy_title=None,
 ):
     row = SimpleNamespace(id="chat", analysis_issue_id="issue", customer_id="customer", sequence=1)
     case = SimpleNamespace(
@@ -85,7 +87,13 @@ def _freeze(
         observation = reviews[1]["observations"][1]
         observation["finding"] = "UNCERTAIN"
         observation.pop("affected_quantity")
-    clause = {"id": "POL14", "version": "1.0", "text": "损坏材料审核后可提交方案。"}
+    clause = {
+        "id": "POL14",
+        "version": "1.0",
+        "text": "损坏材料审核后可提交方案。",
+    }
+    if policy_title is not None:
+        clause["title"] = policy_title
     context = {
         "case": {
             "id": "case",
@@ -370,7 +378,7 @@ def test_v7_responses_wire_tools_expose_exact_scoped_argument_values():
     from langchain_core.utils.function_calling import convert_to_openai_tool
     from langchain_openai.chat_models.base import _construct_responses_api_payload
 
-    scope = _freeze(protocol="compact-v7", paid_at=STAMP.isoformat())
+    scope = _freeze(protocol="compact-v7", paid_at=STAMP.isoformat(), policy_title="损坏材料")
     value = build_input(scope, evidence_projection=HUMAN_PAYMENT_V7.evidence_projection)
     tools = InvestigationTools(value)
     legacy = {item["function"]["name"]: item["function"] for item in tools.schemas("strong_single")}
@@ -397,6 +405,13 @@ def test_v7_responses_wire_tools_expose_exact_scoped_argument_values():
     assert search["properties"]["condition_keys"]["items"]["enum"] == sorted(
         row.ref.source_id for row in value.evidence if row.ref.source_kind == "CONDITION"
     )
+    title = next(
+        row.data["clause"]["title"] for row in value.evidence if row.ref.source_kind == "POLICY"
+    )
+    assert title not in legacy["read_policy_clause"]["description"]
+    assert wire["read_policy_clause"]["description"].endswith(
+        json.dumps([["POL14:1.0", title]], ensure_ascii=False, separators=(",", ":"))
+    )
     clause = wire["read_policy_clause"]["parameters"]["properties"]
     assert clause["product_id"]["enum"] == ["mug"]
     assert clause["version"]["enum"] == ["1.0"]
@@ -416,6 +431,16 @@ def test_v7_responses_wire_tools_expose_exact_scoped_argument_values():
         }
     )
     pair_tools = InvestigationTools(value.model_copy(update={"evidence": (*value.evidence, other)}))
+    (clause_tool,) = [
+        item["function"]
+        for item in pair_tools.schemas("policy", scoped_arguments=True)
+        if item["function"]["name"] == "read_policy_clause"
+    ]
+    assert clause_tool["description"].endswith(
+        json.dumps(
+            [["POL14:1.0", title], ["POL15:2.0", title]], ensure_ascii=False, separators=(",", ":")
+        )
+    )
     with pytest.raises(ToolRejected, match="EVIDENCE_NOT_AVAILABLE"):
         pair_tools.validate_call(
             "policy",

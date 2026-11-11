@@ -10,11 +10,14 @@ import os
 import re
 import stat
 from contextlib import contextmanager
+from uuid import UUID
 
 PROTOCOL = "p5-live-business-wire-v1"
 SCOPED_PROTOCOL = "p5-live-business-wire-v2"
 EXPANDED_PROTOCOL = "p5-live-business-wire-v3"
 SCOPED_PROTOCOLS = {SCOPED_PROTOCOL, EXPANDED_PROTOCOL}
+CONTROL_FIELD = "material_review_control"
+CONTROL_ORIGINAL_SHA256 = "6e4390e0e3afcec897eb0969e43d9666b64ac4f4d8238c0654219d3fe92a6939"
 SCOPES = {
     "SINGLE": ("C001", "O9902", ["L01"]),
     "MULTI": ("C001", "DEV-ORDER-04", ["L01", "L02"]),
@@ -73,6 +76,45 @@ def _hashes(value):
     )
 
 
+def _uuid(value):
+    try:
+        return isinstance(value, str) and str(UUID(value)) == value
+    except ValueError:
+        return False
+
+
+def _validate_material_control(plan):
+    control = plan[CONTROL_FIELD]
+    original = plan.get("original_sha256s")
+    _require(
+        plan["protocol"] == EXPANDED_PROTOCOL
+        and plan["kind"] == "TEXT"
+        and plan.get("expected_route") == "SINGLE"
+        and isinstance(control, dict)
+        and control.keys()
+        == {
+            "provenance",
+            "review_id",
+            "material_id",
+            "attachment_id",
+            "original_sha256",
+            "kind",
+            "finding",
+            "line_id",
+            "affected_quantity",
+        }
+        and control["provenance"] == "AUTOMATED_SYNTHETIC_CONTROL"
+        and all(_uuid(control[key]) for key in ("review_id", "material_id", "attachment_id"))
+        and _hashes(original)
+        and control["original_sha256"] == original[0] == CONTROL_ORIGINAL_SHA256
+        and (control["kind"], control["finding"], control["line_id"])
+        == ("ITEM", "VISIBLE_DAMAGE", "L01")
+        and type(control["affected_quantity"]) is int
+        and control["affected_quantity"] == 1,
+        "PLAN_MATERIAL_REVIEW_CONTROL",
+    )
+
+
 def validate_plan(plan):
     _require(isinstance(plan, dict), "PLAN")
     kind = plan.get("kind")
@@ -115,6 +157,8 @@ def validate_plan(plan):
         _require(
             "case_scope" not in plan and "expected_route" not in plan, "PLAN_NATIVE_CASE_SCOPE"
         )
+    if CONTROL_FIELD in plan:
+        _validate_material_control(plan)
     if kind == "VISION":
         _require(
             all(_hashes(plan.get(key)) for key in ("original_sha256s", "sent_sha256s")),
@@ -181,6 +225,11 @@ def validate_binding(plan, binding):
             and binding.get("expected_route") == plan["expected_route"],
             "NATIVE_CASE_SCOPE_CHANGED",
         )
+    _require(
+        (CONTROL_FIELD in binding) == (CONTROL_FIELD in plan)
+        and binding.get(CONTROL_FIELD) == plan.get(CONTROL_FIELD),
+        "NATIVE_MATERIAL_REVIEW_CONTROL",
+    )
     if plan["kind"] == "VISION":
         _require(
             re.fullmatch(r"vision:[a-f0-9]{64}", logical)
@@ -325,6 +374,78 @@ def _check_transcript(items, role):
     _require(calls == outputs, "TEXT_TRANSCRIPT_TOOL")
 
 
+def _indexed_v7_refs(view, role, approved, valid_ref):
+    """Resolve verifier-only indices without trusting evidence outside the pinned scope."""
+    if (
+        role != "verifier"
+        or view.get("evidence_encoding") != "compact-v7"
+        or view.get("verifier_encoding") != "verifier-record-index-v1"
+    ):
+        return None
+    table = view.get("original_frozen_evidence")
+    if (
+        not isinstance(table, dict)
+        or table.keys() != {"columns", "rows"}
+        or table["columns"] != ["ref", "trust", "data"]
+        or not isinstance(table["rows"], list)
+    ):
+        return None
+
+    def complete(ref):
+        return (
+            valid_ref(ref)
+            and len(ref) in (3, 4)
+            and (len(ref) == 3 or isinstance(ref[3], str) and bool(ref[3]))
+            and tuple(ref[:3]) in approved
+        )
+
+    original = []
+    for row in table["rows"]:
+        if (
+            not isinstance(row, list)
+            or len(row) != 3
+            or not complete(row[0])
+            or row[1]
+            not in ("VERIFIED_RECORD", "CUSTOMER_ATTACHMENT", "UNVERIFIED_OBSERVATION", "POLICY")
+            or not isinstance(row[2], dict)
+        ):
+            return None
+        original.append(row[0])
+    if len({tuple(ref[:3]) for ref in original}) != len(original):
+        return None
+
+    def expand(refs):
+        if not isinstance(refs, list):
+            return None
+        resolved = []
+        for ref in refs:
+            if type(ref) is int:
+                if not 0 <= ref < len(original):
+                    return None
+                ref = original[ref]
+            if not complete(ref):
+                return None
+            resolved.append(ref[:3])
+        return resolved
+
+    receipts = view.get("original_read_receipts")
+    if not isinstance(receipts, list) or any(
+        not isinstance(receipt, dict) or expand(receipt.get("refs")) is None for receipt in receipts
+    ):
+        return None
+    corpus_rows = view.get("policy_corpus_rows", [])
+    if (
+        not isinstance(corpus_rows, list)
+        or not all(
+            type(index) is int and 0 <= index < len(original) and original[index][0] == "POLICY"
+            for index in corpus_rows
+        )
+        or len(set(corpus_rows)) != len(corpus_rows)
+    ):
+        return None
+    return expand(view.get("available_evidence"))
+
+
 def _text_payload(plan, binding, payload, raw):
     system, content, remainder = _messages(payload)
     role_match = re.match(r"^调查角色 (strong_single|fact|policy|verifier)。", system)
@@ -381,12 +502,18 @@ def _text_payload(plan, binding, payload, raw):
         "TEXT_CATALOGUE",
     )
     refs = view.get("available_evidence")
-    _require(
-        isinstance(refs, list)
-        and all(map(_valid_ref, refs))
-        and [ref[:3] for ref in refs] == binding["role_evidence"][role],
-        "TEXT_EVIDENCE",
-    )
+    if "verifier_encoding" in view:
+        approved = {
+            tuple(ref) for role_refs in binding["role_evidence"].values() for ref in role_refs
+        }
+        actual = _indexed_v7_refs(view, role, approved, _valid_ref)
+    else:
+        actual = (
+            [ref[:3] for ref in refs]
+            if isinstance(refs, list) and all(map(_valid_ref, refs))
+            else None
+        )
+    _require(actual == binding["role_evidence"][role], "TEXT_EVIDENCE")
     for row in _objects(view):
         if isinstance(row.get("scope"), list):
             _require(row["scope"] == scope, "TEXT_EVIDENCE_SCOPE")
@@ -516,6 +643,7 @@ def send(directory, plan, binding, request, api_key, transport, *, observe_stage
                 and row["campaign_id"] == plan["campaign_id"]
                 and row["wire_reserved_microusd"] == plan["per_post_reserved_microusd"]
                 and row["output_tokens"] == plan["output_tokens"]
+                and row.get(CONTROL_FIELD) == plan.get(CONTROL_FIELD)
                 and (
                     plan["protocol"] != EXPANDED_PROTOCOL
                     or plan["kind"] != "TEXT"
@@ -575,6 +703,7 @@ def send(directory, plan, binding, request, api_key, transport, *, observe_stage
             "model": plan["model"],
             "output_tokens": plan["output_tokens"],
             "native_scope_pin": pin,
+            **({CONTROL_FIELD: binding[CONTROL_FIELD]} if CONTROL_FIELD in plan else {}),
             **(
                 {"native_output_tokens": binding["native_output_tokens"]}
                 if plan["protocol"] == EXPANDED_PROTOCOL and plan["kind"] == "TEXT"

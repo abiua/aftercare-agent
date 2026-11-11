@@ -11,6 +11,16 @@ RECEIPT_LEGEND = (
     "record_links 的 [原位置,ref] 指向同阶段已展示的原始记录。"
     "仍须按本轮 citable_evidence_ids 判断能否引用。"
 )
+READ_INDEX_ENCODING = "tool-record-index-v1"
+READ_INDEX_LEGEND = (
+    "工具记录或链接中的整数 ref 指向 available_evidence 的零基位置，数组 ref 直接解读。"
+    "policy_corpus_rows 所列 data.records 位置共享 policy_context.catalogue_sha256。"
+)
+VERIFIER_ENCODING = "verifier-record-index-v1"
+VERIFIER_LEGEND = (
+    "核验输入整数 ref 指向 original_frozen_evidence 零基位置，数组直接解读。"
+    "证据及主张 columns/rows 按列对齐。policy_corpus_rows 所列位置的 data.catalogue_sha256 等于 policy_context 同字段。输出仍用原 ID。"
+)
 PRIVATE_RECEIPT_EVENT = "investigation_receipt"
 PROMPT_LEGEND = (
     "证据结构：scope 依次为会话、事项、工单。"
@@ -38,12 +48,15 @@ def _failure():
 
 
 class PromptEvidence:
-    def __init__(self, source, *, protocol=LEGACY_V6):
+    def __init__(self, source, *, protocol=LEGACY_V6, index_reads=False):
         self.prompt_version = protocol.prompt_version
         self.scope = [source.conversation_id, source.issue_id, source.case_id]
         self.input_digest = source.relevant_input_sha256
         self.receipt_encoding = RECEIPT_ENCODING if protocol == HUMAN_PAYMENT_V7 else None
         self._shown_records = {}
+        self.index_reads = index_reads and self.receipt_encoding is not None
+        self._available_positions = {}
+        self._catalogue_sha256 = None
 
     def ref(self, value):
         if value["scope"] != self.scope:
@@ -111,12 +124,45 @@ class PromptEvidence:
             data["records"] = novel
             if links:
                 data["record_links"] = links
+            if self.index_reads:
+                corpus_rows = []
+                for position, row in enumerate(novel):
+                    ref = row["ref"]
+                    payload = row["data"]
+                    if (
+                        self._catalogue_sha256
+                        and ref[0] == "POLICY"
+                        and payload.get("catalogue_sha256") == self._catalogue_sha256
+                    ):
+                        payload = {
+                            key: item for key, item in payload.items() if key != "catalogue_sha256"
+                        }
+                        corpus_rows.append(position)
+                    novel[position] = {
+                        **row,
+                        "ref": self._available_positions.get(tuple(ref), ref),
+                        "data": payload,
+                    }
+                if corpus_rows:
+                    data["policy_corpus_rows"] = corpus_rows
+                if links:
+                    data["record_links"] = [
+                        [position, self._available_positions.get(tuple(ref), ref)]
+                        for position, ref in links
+                    ]
         return projected
 
     def prompt(self, view):
         view = dict(view)
         if "available_evidence" in view:
             view["available_evidence"] = [self.ref(ref) for ref in view["available_evidence"]]
+        if self.index_reads:
+            self._available_positions = {
+                tuple(ref): position
+                for position, ref in enumerate(view.get("available_evidence", ()))
+            }
+            self._catalogue_sha256 = view.get("policy_context", {}).get("catalogue_sha256")
+            view["tool_record_encoding"] = READ_INDEX_ENCODING
         for key in ("customer_statements", "attachments", "unverified_observations"):
             if key in view:
                 view[key] = [self.record(row) for row in view[key]]
@@ -134,8 +180,37 @@ class PromptEvidence:
                 receipts.append(projected)
             view["original_read_receipts"] = receipts
             view["original_frozen_evidence"] = list(originals.values())
+            if self.receipt_encoding is not None:
+                positions = {tuple(row["ref"]): i for i, row in enumerate(originals.values())}
+                for receipt in receipts:
+                    receipt["refs"] = [positions.get(tuple(ref), ref) for ref in receipt["refs"]]
+                view["available_evidence"] = [
+                    positions.get(tuple(ref), ref) for ref in view.get("available_evidence", [])
+                ]
+                corpus = view.get("policy_context", {}).get("catalogue_sha256")
+                rows, corpus_rows = [], []
+                for position, row in enumerate(originals.values()):
+                    data = row["data"]
+                    if (
+                        corpus
+                        and row["ref"][0] == "POLICY"
+                        and data.get("catalogue_sha256") == corpus
+                    ):
+                        data = {
+                            key: item for key, item in data.items() if key != "catalogue_sha256"
+                        }
+                        corpus_rows.append(position)
+                    rows.append([row["ref"], row["trust"], data])
+                view["original_frozen_evidence"] = {
+                    "columns": ["ref", "trust", "data"],
+                    "rows": rows,
+                }
+                if corpus_rows:
+                    view["policy_corpus_rows"] = corpus_rows
+                self._shown_records.update(originals)
+                view["verifier_encoding"] = VERIFIER_ENCODING
         if self.receipt_encoding is not None:
-            for field in ("attachments", "unverified_observations", "original_frozen_evidence"):
+            for field in ("attachments", "unverified_observations"):
                 for row in view.get(field, ()):
                     self._add(self._shown_records, row)
             view["receipt_encoding"] = self.receipt_encoding
@@ -147,3 +222,12 @@ class PromptEvidence:
         existing = index.setdefault(key, row)
         if existing != row:
             _failure()
+
+
+def verifier_claims(upstream):
+    if not upstream:
+        return upstream
+    columns = list(upstream[0])
+    if any(row.keys() != upstream[0].keys() for row in upstream):
+        return upstream
+    return {"columns": columns, "rows": [[row[key] for key in columns] for row in upstream]}

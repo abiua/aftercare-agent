@@ -212,3 +212,65 @@ def test_v3_registry_budget_is_derived_without_changing_historical_or_issue_caps
     registry = driver._phase_registry(spec, plan, "TEXT", photos)
     assert registry["models"][0]["output_tokens"] == 4096
     assert registry["max_run_usd"] == "0.60"
+
+
+def test_r8_and_complex_r2_have_independent_state_and_networks(success):
+    with success._target("ordinary", 8) as ordinary:
+        assert ordinary.name.endswith("ordinary-r8.json")
+        assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5212, 58374)
+        assert set(success.driver.SUBNETS.values()) == {"10.253.253.32/28", "10.253.253.48/28"}
+    with success._target("complex", 2) as complex_state:
+        assert complex_state.name.endswith("complex-r2.json")
+        assert success.offline_demo.STATE == success.driver.STATE == complex_state
+        assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5213, 58375)
+        assert set(success.driver.SUBNETS.values()) == {"10.253.253.64/28", "10.253.253.80/28"}
+        assert success.SCENARIOS["complex"]["lines"] == ["L01", "L02"]
+
+
+def test_typed_control_only_submits_item_observation(success):
+    spec = success.CONTROL_OBSERVATION
+    item = {"kind": "ITEM", "material_id": "m-item"}
+    packaging = {"kind": "PACKAGE", "material_id": "m-package"}
+    bound, observation = success.driver._typed_control_review(spec, [packaging, item])
+    assert bound == item
+    assert observation == {
+        "material_id": "m-item",
+        "finding": "VISIBLE_DAMAGE",
+        "line_id": "L01",
+        "affected_quantity": 1,
+    }
+    for change in ({"line_id": "L02"}, {"affected_quantity": True}, {"affected_quantity": 2}):
+        with pytest.raises(success.VerificationError, match="TYPED_CONTROL_SCOPE_CHANGED"):
+            success.driver._typed_control_review({**spec, **change}, [item])
+    with pytest.raises(success.VerificationError, match="TYPED_CONTROL_ITEM_LINK_AMBIGUOUS"):
+        success.driver._typed_control_review(spec, [item, item])
+
+
+def test_typed_control_frozen_binding_does_not_substitute_for_actual_tool_read(success):
+    control = {"review_id": "r1", "attachment_id": "a1", "original_sha256": "original"}
+    observation = {
+        "material_id": "m1",
+        "finding": "VISIBLE_DAMAGE",
+        "source": "HUMAN_MATERIAL_REVIEW",
+    }
+    readback = {"observations": [observation], "materials_version": 2, "message_id": "msg"}
+    report = {"material_review_control": control, "material_review_control_readback": readback}
+    expected = {**observation, "material_sha256": "original"}
+    original = {"attachment_id": "a1", "message_id": "msg", "sha256": "original"}
+    review = {
+        "effective": True,
+        "id": "r1",
+        "materials_version": 2,
+        "observations": [{**expected, "original_attachments": [original]}],
+    }
+    snapshot = {"input": {"frozen_context": {"reviews": [review]}}}
+    record = {
+        "ref": {"source_id": "r1", "source_kind": "REVIEW"},
+        "data": {"observations": [expected]},
+    }
+    assert not success._verify_typed_control(snapshot, {"receipts": []}, report)
+    trace = {"receipts": [{"role": "strong_single", "records": [record]}]}
+    assert success._verify_typed_control(snapshot, trace, report)
+    original["attachment_id"] = "another-attachment"
+    with pytest.raises(success.VerificationError, match="TYPED_CONTROL_FROZEN_BINDING_CHANGED"):
+        success._verify_typed_control(snapshot, trace, report)

@@ -270,3 +270,79 @@ def test_v2_rejects_unplanned_escalation_before_native_reservation():
         audit = worker._GateAudit(Audit(), gate, {"protocol": worker.SCOPED_PROTOCOL}, stack)
         with pytest.raises(ModelFailure, match="UNPLANNED_NATIVE_PHASE"):
             audit.begin_attempt("p4:compact-v7:fact:0", 1, None, Decimal("0.01"), None)
+
+
+def test_control_review_exact_native_and_frozen_original_binding():
+    control = {
+        "review_id": "review",
+        "material_id": "material",
+        "attachment_id": "attachment",
+        "original_sha256": "b" * 64,
+        "kind": "ITEM",
+        "finding": "VISIBLE_DAMAGE",
+        "line_id": "L01",
+        "affected_quantity": 1,
+        "provenance": "AUTOMATED_SYNTHETIC_CONTROL",
+    }
+    plan = {
+        "case_id": "case",
+        "conversation_id": "chat",
+        "issue_id": "issue",
+        "material_review_control": control,
+    }
+    raw = worker._expected_control_observation(control)
+    material = SimpleNamespace(id="material", case_id="case", kind="ITEM", sha256="b" * 64)
+    link = SimpleNamespace(
+        material_id="material",
+        conversation_id="chat",
+        issue_id="issue",
+        message_id="message",
+        kind="ITEM",
+        sha256="b" * 64,
+    )
+    review = SimpleNamespace(
+        id="review",
+        case_id="case",
+        decision="APPROVED",
+        material_ids=["material", "parcel"],
+        observations=[raw],
+    )
+    attachment = {"id": "attachment", "message_id": "message", "sha256": "b" * 64}
+    turn = SimpleNamespace(attachments=[attachment])
+    db = SimpleNamespace(get_one=lambda table, _: material if table is worker.Material else link)
+    worker._validate_control_review(db, plan, turn, review)
+    with pytest.raises(ValueError, match="TEXT_SOURCE_NOT_READY"):
+        worker._validate_control_review(db, {}, turn, review)
+    worker._validate_control_review(db, {}, turn, SimpleNamespace(observations=None))
+    link.kind = "PARCEL"
+    with pytest.raises(ValueError, match="CONTROL_REVIEW_REJECTED"):
+        worker._validate_control_review(db, plan, turn, review)
+    link.kind = "ITEM"
+    review.observations = [{**raw, "affected_quantity": 2}]
+    with pytest.raises(ValueError, match="CONTROL_REVIEW_REJECTED"):
+        worker._validate_control_review(db, plan, turn, review)
+
+    observed = {
+        **raw,
+        "material_sha256": "b" * 64,
+        "original_attachments": [
+            {"attachment_id": "attachment", "message_id": "message", "sha256": "b" * 64}
+        ],
+    }
+    scope = SimpleNamespace(
+        frozen_context={
+            "attachments": [attachment],
+            "reviews": [
+                {
+                    "id": "review",
+                    "decision": "APPROVED",
+                    "effective": True,
+                    "observations": [observed],
+                }
+            ],
+        }
+    )
+    worker._validate_frozen_control_review(plan, scope)
+    observed["original_attachments"][0]["attachment_id"] = "wrong"
+    with pytest.raises(ValueError, match="FROZEN_CONTROL_REVIEW_REJECTED"):
+        worker._validate_frozen_control_review(plan, scope)
