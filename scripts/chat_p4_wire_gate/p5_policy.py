@@ -142,3 +142,20 @@ def admit(directory, plan, write, request_bytes, tool_names, *, role, recheck=Fa
             },
         )
         return index, row["id"]
+
+
+def validate_v7_references(plan, role, view):
+    expected = plan["role_evidence"][role]
+    actual = view.get("available_evidence")
+    if not isinstance(actual, list) or any(
+        not isinstance(ref, list) or len(ref) < 3 for ref in actual
+    ):
+        raise RuntimeError("P4_WIRE_V7_EVIDENCE_BINDING_REJECTED")
+    if [ref[:3] for ref in actual] != expected:
+        raise RuntimeError("P4_WIRE_V7_EVIDENCE_BINDING_REJECTED")
+    if (
+        role in {"fact", "strong_single"}
+        and [row.get("ref", [])[:3] for row in view.get("unverified_observations", [])]
+        != plan["observation_commitments"]
+    ):
+        raise RuntimeError("P4_WIRE_V7_OBSERVATION_BINDING_REJECTED")

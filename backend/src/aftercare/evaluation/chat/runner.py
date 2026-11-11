@@ -43,7 +43,7 @@ from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
 from aftercare.investigation.input import build_input
 from aftercare.investigation.issue_budget import IssueBudget
 from aftercare.investigation.prompt_evidence import PROMPT_VERSION
-from aftercare.investigation.protocol import LEGACY_V6, protocol_for_scope
+from aftercare.investigation.protocol import HUMAN_PAYMENT_V7, LEGACY_V6, protocol_for_scope
 from aftercare.investigation.routing import route_input
 from aftercare.investigation.tools import InvestigationTools
 
@@ -538,6 +538,7 @@ class ChatEvaluationRunner:
         ):
             raise ValueError("CHAT_EVAL_FIXED_MODEL_REQUIRED")
         self._paid_scope = None
+        self._paid_protocol = None
         self._wire_row = None
         self._configure(model, checkpointer, calls, budget)
 
@@ -558,14 +559,37 @@ class ChatEvaluationRunner:
         gate = modules.get("sitecustomize")
         plan = getattr(gate, "PLAN", None)
         gate_policy = getattr(gate, "p5_policy", None)
+        protocol = (
+            {
+                ("p5-paid-text-v2", "chat-p5-paid-terra-ordinary-v2", "compact-v6", None): LEGACY_V6,
+                (
+                    "p5-paid-text-v3",
+                    "chat-p5-paid-terra-multimodal-v3",
+                    "compact-v7",
+                    "human-material-payment-v1",
+                ): HUMAN_PAYMENT_V7,
+            }.get(
+                tuple(
+                    plan.get(key)
+                    for key in ("protocol", "campaign", "prompt_version", "evidence_projection")
+                )
+            )
+            if isinstance(plan, dict)
+            and all(
+                isinstance(plan.get(key), str)
+                for key in ("protocol", "campaign", "prompt_version")
+            )
+            and (
+                plan.get("evidence_projection") is None
+                or isinstance(plan.get("evidence_projection"), str)
+            )
+            else None
+        )
         if (
             not isinstance(plan, dict)
             or getattr(gate, "READY", False) is not True
-            or getattr(gate, "PROTOCOL", None) != "p5-paid-text-v2"
-            or plan.get("protocol") != "p5-paid-text-v2"
-            or plan.get("campaign") != "chat-p5-paid-terra-ordinary-v2"
-            or PROMPT_VERSION != "compact-v6"
-            or plan.get("prompt_version") != PROMPT_VERSION
+            or protocol is None
+            or getattr(gate, "PROTOCOL", None) != plan.get("protocol")
             or getattr(gate, "STATE", None) != Path("/p4-wire")
             or gate_policy is not modules.get("p5_policy")
             or not callable(getattr(gate_policy, "active_row", None))
@@ -606,6 +630,7 @@ class ChatEvaluationRunner:
             raise ValueError("CHAT_EVAL_PAID_ADMISSION_INVALID")
         runner = cls.__new__(cls)
         runner._paid_scope = scope_sha256
+        runner._paid_protocol = protocol
         runner._paid_campaign = plan["campaign"]
         runner._wire_row = partial(gate_policy.active_row, gate.STATE, plan, gate._write)
         runner._configure(model, None, 8, Decimal("0.40"))
@@ -663,7 +688,7 @@ class ChatEvaluationRunner:
             if len(protocols) > 1:
                 raise ValueError("CHAT_EVAL_PROTOCOL_MISMATCH")
             protocol = next(iter(protocols), LEGACY_V6)
-            if self._paid_scope is not None and protocol != LEGACY_V6:
+            if self._paid_scope is not None and protocol != self._paid_protocol:
                 raise ValueError("CHAT_EVAL_PAID_PROTOCOL_NOT_ADMITTED")
             self.controls["prompt"] = protocol.prompt_version
             self.controls.pop("evidence_projection", None)

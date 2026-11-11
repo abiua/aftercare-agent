@@ -389,3 +389,90 @@ def test_wire_does_not_resend_identical_unknown_body(tmp_path):
             2,
             row["id"],
         )
+
+
+def test_v7_wire_requires_exact_role_refs_and_original_observation_reference():
+    observation = ["OBSERVATION", "vision-1", "a" * 64]
+    human_review = ["REVIEW", "review-1", "b" * 64]
+    payment = ["CONDITION", "recorded-order-payment", "c" * 64]
+    plan = {
+        "observation_commitments": [observation],
+        "role_evidence": {
+            "fact": [observation, human_review],
+            "policy": [payment],
+        },
+    }
+    fact_view = {
+        "available_evidence": [observation, human_review],
+        "unverified_observations": [{"ref": observation}],
+    }
+    gate.validate_v7_references(plan, "fact", fact_view)
+    gate.validate_v7_references(plan, "policy", {"available_evidence": [payment]})
+    with pytest.raises(RuntimeError, match="V7_EVIDENCE_BINDING_REJECTED"):
+        gate.validate_v7_references(plan, "policy", {"available_evidence": [human_review]})
+    with pytest.raises(RuntimeError, match="V7_EVIDENCE_BINDING_REJECTED"):
+        gate.validate_v7_references(
+            plan, "fact", {**fact_view, "available_evidence": [observation]}
+        )
+    with pytest.raises(RuntimeError, match="V7_OBSERVATION_BINDING_REJECTED"):
+        gate.validate_v7_references(plan, "fact", {**fact_view, "unverified_observations": []})
+
+
+@pytest.mark.parametrize("fault", [None, "missing", "mixed_attempt", "wire_order", "duplicate"])
+def test_v7_live_source_links_two_frozen_observations_to_one_vision_wire(fault):
+    path = ROOT / "scripts/verify_chat_p5_paid.py"
+    module_spec = importlib.util.spec_from_file_location("chat_p5_paid_entry", path)
+    entry = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(entry)
+    observations = [
+        {
+            "attempt_id": "vision-1",
+            "attachment_id": f"attachment-{index}",
+            "original_sha256": str(index) * 64,
+            "sent_sha256": str(index + 2) * 64,
+        }
+        for index in (1, 2)
+    ]
+    sent = [row["sent_sha256"] for row in observations]
+    originals = [row["original_sha256"] for row in observations]
+    attachments = [row["attachment_id"] for row in observations]
+    source = {
+        "images": [
+            {"position": index, "id": attachment, "sha256": original}
+            for index, (attachment, original) in enumerate(zip(attachments, originals, strict=True))
+        ],
+        "scope": {"frozen_context": {"observations": list(reversed(observations))}},
+    }
+    vision = {
+        "plan": {
+            "attachment_ids": attachments,
+            "original_image_sha256s": originals,
+            "sent_sha256s": sent,
+        },
+        "wire_response": {"http_status": 200},
+        "wire": {"sent_sha256s": list(sent)},
+        "audit": {
+            "attempts": [
+                {
+                    "attempt_id": "vision-1",
+                    "state": "SUCCEEDED",
+                    "turn_state": "PUBLISHED",
+                    "response_evidence": {"validated_result_sha256": "c" * 64},
+                }
+            ],
+            "observations": [dict(row) for row in observations],
+        },
+    }
+    if fault == "missing":
+        vision["audit"]["observations"].pop()
+    elif fault == "mixed_attempt":
+        vision["audit"]["observations"][0]["attempt_id"] = "vision-2"
+    elif fault == "wire_order":
+        vision["wire"]["sent_sha256s"].reverse()
+    elif fault == "duplicate":
+        vision["audit"]["observations"][1]["attachment_id"] = attachments[0]
+    if fault:
+        with pytest.raises(ValueError, match="V3_NATIVE_VISION_BINDING_REQUIRED"):
+            entry._check_v3_vision(source, vision)
+    else:
+        entry._check_v3_vision(source, vision)

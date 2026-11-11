@@ -12,7 +12,11 @@ from openai import _base_client
 STATE = Path("/p4-wire")
 PLAN = json.loads((STATE / "plan.json").read_text())
 PROTOCOL = PLAN.get("protocol", "original")
-P5_PROMPTS = {"p5-paid-text-v1": "compact-v5", "p5-paid-text-v2": "compact-v6"}
+P5_PROMPTS = {
+    "p5-paid-text-v1": "compact-v5",
+    "p5-paid-text-v2": "compact-v6",
+    "p5-paid-text-v3": "compact-v7",
+}
 if PROTOCOL in P5_PROMPTS:
     import p5_policy
 OUTPUT_CAPS = {
@@ -137,6 +141,8 @@ def _handle(transport, request):
         raise RuntimeError("P4_WIRE_TEXT_ONLY")
     if PROTOCOL in P5_PROMPTS:
         role, recheck = p5_policy.request_role(messages, views[0], PLAN["policy_catalogue_sha256"])
+        if PROTOCOL == "p5-paid-text-v3":
+            p5_policy.validate_v7_references(PLAN, role, views[0])
         index, row_id = p5_policy.admit(
             STATE,
             PLAN,
@@ -184,6 +190,10 @@ if (
     PROTOCOL not in OUTPUT_CAPS
     or type(PLAN["output_tokens"]) is not int
     or PLAN["output_tokens"] != OUTPUT_CAPS[PROTOCOL]
+    or (
+        PROTOCOL == "p5-paid-text-v3"
+        and PLAN.get("evidence_projection") != "human-material-payment-v1"
+    )
     or (PROTOCOL in P5_PROMPTS and PLAN.get("prompt_version") != P5_PROMPTS[PROTOCOL])
 ):
     raise RuntimeError("P4_WIRE_PLAN_OUTPUT_REJECTED")

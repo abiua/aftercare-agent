@@ -19,6 +19,10 @@ PAID_PROMPT = "compact-v6"
 CASE = "DAMAGE-ORDINARY"
 MODEL = "gpt-6.1-terra"
 PROTOCOL = "p5-paid-text-v2"
+V3_PROTOCOL = "p5-paid-text-v3"
+V3_PROMPT = "compact-v7"
+V3_PROJECTION = "human-material-payment-v1"
+V3_CAMPAIGN = "chat-p5-paid-terra-multimodal-v3"
 GATE = ROOT / "scripts/chat_p4_wire_gate"
 CALLS, ROW_USD = 8, Decimal("0.40")
 TOTAL_CALLS, TOTAL_USD = 24, Decimal("1.20")
@@ -62,7 +66,147 @@ def _ids(campaign, arms):
     ]
 
 
-def _plan(controlled_path, image):
+def _v3_commitments(source):
+    from aftercare.decisions.contracts import DecisionScope
+    from aftercare.investigation.input import build_input
+
+    scope = DecisionScope.model_validate(source["scope"])
+    projected = build_input(scope, evidence_projection=V3_PROJECTION)
+    _check(
+        projected.relevant_input_sha256 == source["relevant_input_sha256"],
+        "P5_PAID_V3_RELEVANT_INPUT_CHANGED",
+    )
+
+    def refs(kind, ident=None):
+        return [
+            [row.ref.source_kind, row.ref.source_id, row.ref.version_or_sha256]
+            for row in projected.evidence
+            if row.ref.source_kind == kind
+            and (ident is None or row.ref.source_id == ident)
+            and (kind != "REVIEW" or row.data.get("observations"))
+        ]
+
+    observations = refs("OBSERVATION")
+    human_reviews = refs("REVIEW")
+    payment = refs("CONDITION", "recorded-order-payment")
+    _check(observations and human_reviews and len(payment) == 1, "P5_PAID_V3_SOURCE_INCOMPLETE")
+    return {
+        "original_image_sha256s": [row["sha256"] for row in source["images"]],
+        "observation_commitments": observations,
+        "human_review_commitments": human_reviews,
+        "payment_fact_commitment": payment[0],
+        "role_evidence": {
+            role: [
+                [ref["source_kind"], ref["source_id"], ref["version_or_sha256"]]
+                for ref in projected.role_view(role)["available_evidence"]
+            ]
+            for role in ("strong_single", "fact", "policy", "verifier")
+        },
+    }
+
+
+def _check_v3_vision(source, vision):
+    native = source["scope"]["frozen_context"]["observations"]
+    audit = vision["audit"]
+    images = sorted(source["images"], key=lambda image: image["position"])
+    plan = vision["plan"]
+    attachments = [image["id"] for image in images]
+    originals = [image["sha256"] for image in images]
+    sent = plan["sent_sha256s"]
+    attempts = audit["attempts"]
+    code = "P5_PAID_V3_NATIVE_VISION_BINDING_REQUIRED"
+    _check(
+        len(set(attachments)) == len(set(originals)) == len(set(sent)) == 2
+        and len(images) == len(sent) == len(native) == len(audit["observations"]) == 2
+        and len(attempts) == 1
+        and plan["attachment_ids"] == attachments
+        and plan["original_image_sha256s"] == originals
+        and vision["wire"]["sent_sha256s"] == sent
+        and vision["wire_response"]["http_status"] == 200,
+        code,
+    )
+    (attempt,) = attempts
+    _check(
+        attempt["state"] == "SUCCEEDED"
+        and attempt["turn_state"] == "PUBLISHED"
+        and bool(attempt["response_evidence"].get("validated_result_sha256")),
+        code,
+    )
+    expected = {
+        attachment: (attempt["attempt_id"], original, transformed)
+        for attachment, original, transformed in zip(attachments, originals, sent, strict=True)
+    }
+    for rows in (native, audit["observations"]):
+        actual = {
+            row["attachment_id"]: (row["attempt_id"], row["original_sha256"], row["sent_sha256"])
+            for row in rows
+        }
+        _check(actual == expected, code)
+
+
+def _paid_topology(stack, images, *, v3):
+    from unittest.mock import patch
+
+    import verify_chat_p5_pg as pg
+
+    if v3:
+        with patch.multiple(pg, PORT=5202, OBJECT_PORT=58364):
+            return pg._topology(
+                stack, {pg.BACKEND: images["backend"], pg.FRONTEND: images["frontend"]}
+            )
+    return pg._topology(stack, images)
+
+
+def _v3_source(baseline, path, state):
+    import offline_demo
+    from aftercare.business.rules import digest
+
+    _check(
+        baseline.get("status") == "PASSED"
+        and baseline.get("protocol") == "p5-v7-live-source-v1"
+        and baseline.get("owned_stack") == state["run_id"]
+        and baseline.get("owned_url") == state["url"] == "http://127.0.0.1:5202"
+        and state["profile"] == "test"
+        and state["status"] == "READY",
+        "P5_PAID_V3_LIVE_SOURCE_REQUIRED",
+    )
+    stack = offline_demo.restore(state)
+    campaign = baseline["source_campaign"]
+    source = baseline["source"]
+    vision_path = Path(baseline["vision_report_path"])
+    vision = _private(vision_path)
+    _check(
+        re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}", campaign)
+        and campaign not in {SOURCE_CAMPAIGN, CAMPAIGN, V3_CAMPAIGN}
+        and not (stack.directory / V3_CAMPAIGN).exists()
+        and source["case_id"] == CASE
+        and source["repetition"] == 1
+        and re.fullmatch(r"[a-f0-9]{64}", source["source_sha256"])
+        and baseline["source_record_sha256"] == digest(source)
+        and vision["status"] == "PASSED"
+        and sha256(vision_path.read_bytes()).hexdigest() == baseline["vision_report_sha256"],
+        "P5_PAID_V3_SOURCE_BINDING_INVALID",
+    )
+    _check_v3_vision(source, vision)
+    commitments = _v3_commitments(source)
+    _check(
+        all(baseline[key] == value for key, value in commitments.items() if key != "role_evidence"),
+        "P5_PAID_V3_EVIDENCE_CHANGED",
+    )
+    return (
+        stack,
+        source,
+        campaign,
+        {
+            "evidence_projection": V3_PROJECTION,
+            "source_report_sha256": sha256(path.read_bytes()).hexdigest(),
+            "vision_report_sha256": baseline["vision_report_sha256"],
+            **commitments,
+        },
+    )
+
+
+def _plan(controlled_path, image, *, state_path=STATE, v3=False):
     import offline_demo
     from aftercare.business.rules import digest
     from aftercare.evaluation.chat.manifest import ARMS
@@ -70,41 +214,54 @@ def _plan(controlled_path, image):
     from aftercare.investigation.issue_budget import to_microusd
     from aftercare.investigation.prompt_evidence import PROMPT_VERSION
     from verify_chat_p2_offline import owned_container
-    from verify_chat_p5_pg import _topology
     from verify_streaming_compatibility import _configuration
 
     baseline = _private(controlled_path)
-    state = _private(STATE)
+    state = _private(state_path)
+    campaign, protocol, paid_prompt, source_prompt = (
+        (V3_CAMPAIGN, V3_PROTOCOL, V3_PROMPT, V3_PROMPT)
+        if v3
+        else (CAMPAIGN, PROTOCOL, PAID_PROMPT, SOURCE_PROMPT)
+    )
     evidence = baseline["acceptance"]
-    _check(
-        baseline["status"] == "PASSED"
-        and baseline["plan_sha256"] == digest(baseline["plan"])
-        and baseline["owned_stack"] == state["run_id"]
-        and baseline["owned_url"] == state["url"] == "http://127.0.0.1:5200"
-        and state["profile"] == "test"
-        and state["status"] == "READY"
-        and "CONTROLLED_WORKER_CORE" in evidence["boundary"],
-        "P5_PAID_CONTROLLED_SOURCE_REQUIRED",
-    )
-    stack = offline_demo.restore(state)
-    _check(
-        Path(baseline["private_manifest_directory"])
-        == stack.directory / "p5-pg-recovery-output/manifest"
-        and not (stack.directory / CAMPAIGN).exists(),
-        "P5_PAID_SOURCE_OR_ADMISSION_EXISTS",
-    )
-    source_plan_path = Path(baseline["private_manifest_directory"]) / "plan.json"
-    source_plan = _private(source_plan_path)
-    _check(
-        digest(source_plan) == evidence["receipt"]["plan_sha256"]
-        and source_plan["campaign"] == SOURCE_CAMPAIGN
-        and source_plan["controls"]["prompt"] == SOURCE_PROMPT
-        and PROMPT_VERSION == PAID_PROMPT,
-        "P5_PAID_SOURCE_PLAN_MISMATCH",
-    )
-    (source,) = (
-        row for row in source_plan["cases"] if row["case_id"] == CASE and row["repetition"] == 1
-    )
+    extra = {}
+    if v3:
+        stack, source, source_campaign, extra = _v3_source(baseline, controlled_path, state)
+    else:
+        _check(
+            baseline["status"] == "PASSED"
+            and baseline["plan_sha256"] == digest(baseline["plan"])
+            and baseline["owned_stack"] == state["run_id"]
+            and baseline["owned_url"] == state["url"] == "http://127.0.0.1:5200"
+            and state["profile"] == "test"
+            and state["status"] == "READY"
+            and "CONTROLLED_WORKER_CORE" in evidence["boundary"],
+            "P5_PAID_CONTROLLED_SOURCE_REQUIRED",
+        )
+        stack = offline_demo.restore(state)
+        _check(
+            Path(baseline["private_manifest_directory"])
+            == stack.directory / "p5-pg-recovery-output/manifest"
+            and not (stack.directory / CAMPAIGN).exists(),
+            "P5_PAID_SOURCE_OR_ADMISSION_EXISTS",
+        )
+        source_plan_path = Path(baseline["private_manifest_directory"]) / "plan.json"
+        source_plan = _private(source_plan_path)
+        _check(
+            digest(source_plan) == evidence["receipt"]["plan_sha256"]
+            and source_plan["campaign"] == SOURCE_CAMPAIGN
+            and source_plan["controls"]["prompt"] == SOURCE_PROMPT
+            and PROMPT_VERSION == PAID_PROMPT,
+            "P5_PAID_SOURCE_PLAN_MISMATCH",
+        )
+        (source,) = (
+            row for row in source_plan["cases"] if row["case_id"] == CASE and row["repetition"] == 1
+        )
+        source_campaign = SOURCE_CAMPAIGN
+        extra = {
+            "controlled_report_sha256": sha256(controlled_path.read_bytes()).hexdigest(),
+            "controlled_manifest_sha256": sha256(source_plan_path.read_bytes()).hexdigest(),
+        }
     scope = source["scope"]
     _check(
         digest(scope) == source["scope_sha256"]
@@ -149,7 +306,7 @@ def _plan(controlled_path, image):
     )
     registry = models.Registry.model_validate(
         {
-            "version": PROTOCOL,
+            "version": protocol,
             "models": [derived.model_dump(mode="json")],
             "allowed_providers": ["openai"],
             "native_streaming": False,
@@ -172,7 +329,7 @@ def _plan(controlled_path, image):
         and (not os.environ.get("DOCKER_HOST") or os.environ["DOCKER_HOST"].startswith("unix://")),
         "P5_PAID_LOCAL_DOCKER_REQUIRED",
     )
-    _, system_id = _topology(stack, baseline["plan"]["images"])
+    _, system_id = _paid_topology(stack, baseline["plan"]["images"], v3=v3)
     for role in ("api", "worker", "beat"):
         mark = stack.docker(
             "P5_PAID_OFFLINE_ROLE",
@@ -184,6 +341,17 @@ def _plan(controlled_path, image):
             log_output=False,
         ).stdout.strip()
         _check(mark == "yes", "P5_PAID_BACKGROUND_MODEL_ENABLED")
+        if v3:
+            service_state = stack.docker(
+                "P5_PAID_BACKGROUND_STATE",
+                "container",
+                "inspect",
+                "--format",
+                "{{.State.Running}} {{.State.Paused}}",
+                owned_container(stack, role),
+                log_output=False,
+            ).stdout.strip()
+            _check(service_state == "true false", "P5_PAID_BACKGROUND_NOT_RUNNING")
     observed_image = stack.docker(
         "P5_PAID_IMAGE",
         "image",
@@ -200,8 +368,9 @@ def _plan(controlled_path, image):
         "P5_PAID_STACK_NOT_READY",
     )
     return {
-        "protocol": PROTOCOL,
-        "campaign": CAMPAIGN,
+        "protocol": protocol,
+        "campaign": campaign,
+        **({"source_campaign": source_campaign} if v3 else {}),
         "profile": "test",
         "boundary": "REAL_PROVIDER_TEXT_ONLY_ONE_DEVELOPMENT_CASE",
         "independent_judgment": False,
@@ -215,8 +384,7 @@ def _plan(controlled_path, image):
         "stack_images": baseline["plan"]["images"],
         "verifier_image": image,
         "sentinel_sha256": evidence["object_sentinel_sha256"],
-        "controlled_report_sha256": sha256(controlled_path.read_bytes()).hexdigest(),
-        "controlled_manifest_sha256": sha256(source_plan_path.read_bytes()).hexdigest(),
+        **extra,
         "source": source,
         "scope_sha256": source["scope_sha256"],
         "conversation_id": scope["conversation_id"],
@@ -224,10 +392,10 @@ def _plan(controlled_path, image):
         "issue_id": scope["issue_id"],
         "relevant_input_sha256": source["relevant_input_sha256"],
         "policy_catalogue_sha256": source["catalogue_sha256"],
-        "prompt_version": PROMPT_VERSION,
-        "source_prompt_version": SOURCE_PROMPT,
+        "prompt_version": paid_prompt,
+        "source_prompt_version": source_prompt,
         "latency_version": "runtime-utc-v1",
-        "wire_rows": _ids(CAMPAIGN, ARMS),
+        "wire_rows": _ids(campaign, ARMS),
         "model": MODEL,
         "output_tokens": 1800,
         "registry": registry.model_dump(mode="json"),
@@ -292,22 +460,23 @@ def _worker(expected_digest):
     from aftercare.evaluation.chat.runner import ChatEvaluationRunner, FrozenCase, _populate
     from aftercare.evaluation.runner import _namespace
     from aftercare.intelligence.models import ModelRunner, Registry
-    from aftercare.investigation.prompt_evidence import PROMPT_VERSION
     from sqlalchemy import text
 
+    plan = sitecustomize.PLAN
+    v3 = plan.get("protocol") == V3_PROTOCOL
     _check(
         sitecustomize.READY
-        and sitecustomize.PROTOCOL == PROTOCOL
+        and sitecustomize.PROTOCOL == (V3_PROTOCOL if v3 else PROTOCOL)
         and callable(getattr(ChatEvaluationRunner, "_admitted_paid_text", None)),
         "P5_PAID_GATE_OR_IMAGE_NOT_READY",
     )
     wire = sitecustomize.STATE
-    plan = sitecustomize.PLAN
     _check(
         digest(plan) == expected_digest
-        and plan["campaign"] == CAMPAIGN
-        and plan["prompt_version"] == PROMPT_VERSION == PAID_PROMPT
-        and plan["source_prompt_version"] == SOURCE_PROMPT
+        and plan["campaign"] == (V3_CAMPAIGN if v3 else CAMPAIGN)
+        and plan["prompt_version"] == (V3_PROMPT if v3 else PAID_PROMPT)
+        and plan["source_prompt_version"] == (V3_PROMPT if v3 else SOURCE_PROMPT)
+        and plan.get("evidence_projection") == (V3_PROJECTION if v3 else None)
         and plan["model"] == MODEL
         and plan["stack_id"] == os.environ.get("P5_PAID_STACK_ID")
         and digest(plan["registry"]) == plan["registry_sha256"]
@@ -323,6 +492,8 @@ def _worker(expected_digest):
     )
     settings = load_settings("test").model_copy(
         update={
+            "chat_investigation_protocol": plan["prompt_version"],
+            **({"chat_analysis_enabled": False, "chat_investigation_enabled": True} if v3 else {}),
             "chat_investigation_issue_max_calls": CALLS,
             "chat_investigation_issue_max_microusd": 400_000,
         }
@@ -383,7 +554,9 @@ def _worker(expected_digest):
                 source_record["provenance"],
             )
 
-        with open_pg_runtime(settings, stamp, SOURCE_CAMPAIGN) as original:
+        with open_pg_runtime(
+            settings, stamp, plan.get("source_campaign", SOURCE_CAMPAIGN)
+        ) as original:
             with original.source(
                 CASE, 1, source_record["source_sha256"], require_existing=True
             ) as (
@@ -400,7 +573,14 @@ def _worker(expected_digest):
                 and frozen.record["paired_sha256"] == source_record["paired_sha256"],
                 "P5_PAID_FROZEN_SOURCE_CHANGED",
             )
-            with open_pg_runtime(settings, stamp, CAMPAIGN) as paid:
+            if v3:
+                _check(
+                    all(
+                        plan[key] == value for key, value in _v3_commitments(frozen.record).items()
+                    ),
+                    "P5_PAID_V3_EVIDENCE_CHANGED",
+                )
+            with open_pg_runtime(settings, stamp, plan["campaign"]) as paid:
                 with paid.source(
                     CASE, 1, digest([expected_digest, source_record["source_sha256"]])
                 ) as (engine, storage, fresh):
@@ -581,7 +761,9 @@ def _workflow(row, required, prompt_version):
 
 
 def _outcomes(rows, wire, *, prompt_version):
-    _check(prompt_version in {SOURCE_PROMPT, PAID_PROMPT}, "P5_PAID_UNKNOWN_PROMPT_VERSION")
+    _check(
+        prompt_version in {SOURCE_PROMPT, PAID_PROMPT, V3_PROMPT}, "P5_PAID_UNKNOWN_PROMPT_VERSION"
+    )
     evidence = {row["row_id"]: row for row in wire["rows"]}
     outcomes = []
     required_phases = {
@@ -656,17 +838,16 @@ def _outcomes(rows, wire, *, prompt_version):
     }
 
 
-def _execute(plan, checksum, report):
+def _execute(plan, checksum, report, *, state_path=STATE):
     from unittest.mock import patch
 
     import offline_demo
     from verify_chat_p2_vision_worker import _one_file
-    from verify_chat_p5_pg import _topology
     from verify_fresh_bootstrap import LABEL
 
-    state = _private(STATE)
+    state = _private(state_path)
     stack = offline_demo.restore(state)
-    net, system = _topology(stack, plan["stack_images"])
+    net, system = _paid_topology(stack, plan["stack_images"], v3=plan["protocol"] == V3_PROTOCOL)
     ingress = f"aftercare-fresh-{stack.run_id}-ingress"
     _check(
         stack.run_id == plan["stack_id"]
@@ -674,7 +855,7 @@ def _execute(plan, checksum, report):
         and stack.owned("network", ingress),
         "P5_PAID_TOPOLOGY_CHANGED",
     )
-    root = stack.directory / CAMPAIGN
+    root = stack.directory / plan["campaign"]
     root.mkdir(mode=0o700)
     wire, gate, secret, output, code = (
         root / name for name in ("wire", "gate", "secret", "output", "code")
@@ -701,7 +882,7 @@ def _execute(plan, checksum, report):
         stack.secrets.append(api_key)
         _one_file(secret_path, json.dumps({"api_key": api_key}))
         state["resources"].append(["container", target])
-        with patch.object(offline_demo, "STATE", STATE):
+        with patch.object(offline_demo, "STATE", state_path):
             offline_demo.save(state)
         journaled = True
         mounts = (
@@ -810,7 +991,7 @@ def _execute(plan, checksum, report):
                     stack.docker("P5_PAID_REMOVE", "rm", "-f", target, log_output=False)
                 _check(stack.owned("container", target) is None, "P5_PAID_VERIFIER_NOT_REMOVED")
                 state["resources"].remove(["container", target])
-                with patch.object(offline_demo, "STATE", STATE):
+                with patch.object(offline_demo, "STATE", state_path):
                     offline_demo.save(state)
                 report["paid_verifier_removed"] = True
         finally:
@@ -831,17 +1012,33 @@ def main():
     from verify_streaming_compatibility import _save
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--controlled-report", type=Path, required=True)
+    sources = parser.add_mutually_exclusive_group(required=True)
+    sources.add_argument("--controlled-report", type=Path)
+    sources.add_argument("--live-source-report", type=Path)
+    parser.add_argument("--state", type=Path)
     parser.add_argument("--verifier-image-id", required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--expected-plan-sha256")
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
+    if args.live_source_report and args.state is None:
+        parser.error("--live-source-report requires the dedicated owned test stack --state")
+    args.state = args.state or STATE
     if not re.fullmatch(r"sha256:[0-9a-f]{64}", args.verifier_image_id):
         parser.error("supply the complete immutable verifier image ID")
     if args.execute and (not args.expected_plan_sha256 or args.report is None):
         parser.error("--execute requires the reviewed plan digest and a new report")
-    plan = _plan(args.controlled_report, args.verifier_image_id)
+    source_path = args.live_source_report or args.controlled_report
+
+    def reviewed_plan():
+        return _plan(
+            source_path,
+            args.verifier_image_id,
+            state_path=args.state,
+            v3=bool(args.live_source_report),
+        )
+
+    plan = reviewed_plan()
     checksum = digest(plan)
     if not args.execute:
         private = {"source", "registry"}
@@ -862,6 +1059,15 @@ def main():
         "prompt_version": plan["prompt_version"],
         "source_prompt_version": plan["source_prompt_version"],
         "scope_sha256": plan["scope_sha256"],
+        **(
+            {
+                "source_report_sha256": plan["source_report_sha256"],
+                "vision_report_sha256": plan["vision_report_sha256"],
+                "evidence_projection": plan["evidence_projection"],
+            }
+            if args.live_source_report
+            else {}
+        ),
         "execution_harness_verified": False,
         "provider_compatibility": "NOT_VERIFIED",
         "candidate_availability": "UNKNOWN",
@@ -875,12 +1081,12 @@ def main():
         stream.flush()
         os.fsync(stream.fileno())
     try:
-        with lifecycle_lock(STATE):
+        with lifecycle_lock(args.state):
             _check(
-                _plan(args.controlled_report, args.verifier_image_id) == plan,
+                reviewed_plan() == plan,
                 "P5_PAID_PLAN_CHANGED",
             )
-            _execute(plan, checksum, report)
+            _execute(plan, checksum, report, state_path=args.state)
         report.update(stage="RECORDED", execution_harness_verified=True)
         report.update(
             _outcomes(
