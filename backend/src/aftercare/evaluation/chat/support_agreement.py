@@ -82,6 +82,7 @@ class AgreementInput:
     snapshot: FrozenSnapshot | None = None
     review: FrozenSupportReview | None = None
     result: FrozenSnapshot | None = None
+    extraction_exclusion: str | None = None
 
 
 @dataclass(frozen=True)
@@ -154,7 +155,21 @@ def _review_option(original, candidate, review, result, resulting_candidate):
     return None
 
 
+def native_review_request(payload: dict) -> Review:
+    # These server-added fields remain in the private native record. Neither is
+    # included in DecisionService's request digest.
+    return Review.model_validate(
+        {
+            key: value
+            for key, value in payload.items()
+            if key not in {"program_check", "evidence_gaps"}
+        }
+    )
+
+
 def score_agreement(item: AgreementInput) -> AgreementRow:
+    if item.extraction_exclusion is not None:
+        return _excluded(item.row, item.extraction_exclusion)
     snapshot, record, result = item.snapshot, item.review, item.result
     if snapshot is None:
         return _excluded(item.row, "NO_CANDIDATE")
@@ -165,9 +180,7 @@ def score_agreement(item: AgreementInput) -> AgreementRow:
     try:
         original_scope, candidate = snapshot.verify()
         result_scope, resulting_candidate = result.verify()
-        review = Review.model_validate(
-            {k: v for k, v in record.review.items() if k != "program_check"}
-        )
+        review = native_review_request(record.review)
         if (
             snapshot.origin != "AGENT"
             or snapshot.ref != item.expected_snapshot
