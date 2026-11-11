@@ -81,6 +81,8 @@ def start(args):
             return {**current, 'reused': True}
         require(state['status'] == 'STOPPED' and current['owned_resources_present'] == 0,
                 'EXISTING_DEMO_REQUIRES_STATUS_OR_STOP')
+    require(not os.environ.get('DOCKER_HOST') or os.environ['DOCKER_HOST'].startswith('unix://'),
+            'LOCAL_DOCKER_REQUIRED')
     require(args.port != args.object_port, 'PORTS_MUST_DIFFER')
     directory = Path(tempfile.mkdtemp(prefix='browser-demo-', dir=STATE.parent))
     stack = FreshStack(directory)

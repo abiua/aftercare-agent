@@ -46,6 +46,18 @@ class DemoSafetyTests(unittest.TestCase):
                 with self.assertRaisesRegex(Exception, 'INVALID_RESOURCE_NAME'):
                     demo.restore(state)
 
+    def test_start_rejects_remote_docker_override_before_creating_resources(self):
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch.object(demo, 'STATE', root / 'state.json'), \
+                 patch.dict(demo.os.environ, {'DOCKER_HOST': 'tcp://remote:2375'}), \
+                 patch.object(demo, 'FreshStack') as stack:
+                with self.assertRaisesRegex(Exception, 'LOCAL_DOCKER_REQUIRED'):
+                    demo.start(SimpleNamespace(port=5190, object_port=58352))
+                stack.assert_not_called()
+                self.assertEqual(list(root.iterdir()), [])
+
     def test_state_persistence_is_private(self):
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory) / 'state.json'
