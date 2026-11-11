@@ -28,7 +28,7 @@ GATE = Path(__file__).with_name("chat_p4_wire_gate") / "sitecustomize.py"
 ADMISSION = ROOT / ".runtime" / "chat-p4-text-live-admission.json"
 LIMIT, OUTPUT, CAP = 8, 900, Decimal("0.40")
 URL = "http://127.0.0.1:5195"
-PROMPTS = {"compact-v2": "compact-v2", "catalogue-v3": "compact-v3"}
+PROMPTS = {"compact-v2": "compact-v2", "catalogue-v3": "compact-v3", "references-v4": "compact-v4"}
 CATALOGUE_VERSION = "ac-investigation-policy-catalogue-v1"
 
 
@@ -132,7 +132,7 @@ engine.dispose()
 
 def _plan(offline_path, protocol="original"):
     context = p4.PROTOCOLS[protocol]
-    catalogue = protocol == "catalogue-v3"
+    catalogue = protocol in p4.CATALOGUE_PROTOCOLS
     output = 1800 if catalogue else OUTPUT
     url = f"http://127.0.0.1:{context.port}"
     state, stack, config = _stack(context)
@@ -147,6 +147,39 @@ def _plan(offline_path, protocol="original"):
         and scenario["staff_selected_path"] in {"SINGLE", "MULTI"},
         "P4_OFFLINE_EVIDENCE_REQUIRED",
     )
+    if protocol == "references-v4":
+        frozen = evidence["plan"]
+        require(evidence["plan_sha256"] == models.digest(frozen), "P4_OFFLINE_PLAN_DIGEST_CHANGED")
+        if offline_path.resolve() == context.recovery_report:
+            resumed = frozen["resume_readback"]
+            original_plan = {
+                key: value
+                for key, value in frozen.items()
+                if key not in {"resume_source_sha256", "resume_readback"}
+            }
+            source, source_hash = p4._resume_source(context.offline_report, context, original_plan)
+            require(
+                source_hash == frozen["resume_source_sha256"]
+                and evidence["resume_readback"] == resumed
+                and resumed["stack_id"] == stack.run_id
+                and resumed["auto_run_id"] == scenario["auto_run_id"]
+                and resumed["auto_snapshot_id"] == scenario["auto_snapshot_id"]
+                and all(
+                    scenario[key] == source["scenario"][key]
+                    for key in ("case_id", "conversation_id", "order_id")
+                )
+                and len(resumed["originals"]) == len(scenario["materials"]) == 2
+                and [(row["id"], row["sha256"]) for row in resumed["originals"]]
+                == [(row["attachment_id"], row["sha256"]) for row in scenario["materials"]],
+                "P4_RECOVERY_REPORT_BINDING_MISMATCH",
+            )
+        else:
+            require(
+                offline_path.resolve() == context.offline_report
+                and "resume_source_sha256" not in frozen
+                and "resume_readback" not in frozen,
+                "P4_OFFLINE_REPORT_PATH_MISMATCH",
+            )
     case_id, conversation_id, old_run = map(
         _uuid, (scenario["case_id"], scenario["conversation_id"], scenario["staff_run_id"])
     )
@@ -355,7 +388,7 @@ def _exercise(stack, plan, report, report_path):
 
 
 def _execute(state, stack, spec, plan, report, report_path, context=p4.PROTOCOLS["original"]):
-    catalogue = plan.get("protocol") == "catalogue-v3"
+    catalogue = plan.get("protocol") in p4.CATALOGUE_PROTOCOLS
     worker = owned_container(stack, "worker")
     net, egress = (f"{stack.prefix}-{name}" for name in ("net", "ingress"))
     require(
@@ -390,7 +423,7 @@ def _execute(state, stack, spec, plan, report, report_path, context=p4.PROTOCOLS
         total = plan["estimated_total_at_maximum_posts_usd"]
         registry = models.Registry.model_validate(
             {
-                "version": "ac-p4-isolated-synthetic-terra-text-catalogue-v3"
+                "version": f"ac-p4-isolated-synthetic-terra-text-{plan['protocol']}"
                 if catalogue
                 else "ac-p4-isolated-synthetic-terra-text",
                 "models": [model],
@@ -603,7 +636,7 @@ def _business_result(report):
         and set(option["evidence_ids"]) <= tool_refs
         and bool(option["lines"])
         and (
-            protocol != "catalogue-v3"
+            protocol not in p4.CATALOGUE_PROTOCOLS
             or all(
                 any(ref.startswith(f"{policy}:") for ref in option["evidence_ids"])
                 for policy in option["policy_ids"]
@@ -648,6 +681,12 @@ def main():
     # Validate the private state before creating its sibling lock, then read it
     # again under the lock as part of the plan.
     context = p4.PROTOCOLS[args.protocol]
+    if args.protocol == "references-v4":
+        require(context.revision is not None, "P4_REFERENCES_REVISION_NOT_PINNED")
+        if args.offline_report.resolve() not in {context.offline_report, context.recovery_report}:
+            parser.error("references-v4 requires its dedicated offline or recovery report path")
+        if args.report is not None and args.report.resolve() != context.live_report:
+            parser.error("references-v4 requires its dedicated live report path")
     _private_json(context.state)
     with offline_demo.lifecycle_lock(context.state, shared=not args.execute):
         return _run(args)

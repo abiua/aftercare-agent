@@ -12,8 +12,8 @@ from openai import _base_client
 STATE = Path("/p4-wire")
 PLAN = json.loads((STATE / "plan.json").read_text())
 PROTOCOL = PLAN.get("protocol", "original")
-OUTPUT_CAPS = {"original": 900, "compact-v2": 900, "catalogue-v3": 1800}
-PROMPTS = {"compact-v2": "compact-v2", "catalogue-v3": "compact-v3"}
+OUTPUT_CAPS = {"original": 900, "compact-v2": 900, "catalogue-v3": 1800, "references-v4": 1800}
+PROMPTS = {"compact-v2": "compact-v2", "catalogue-v3": "compact-v3", "references-v4": "compact-v4"}
 URL = "https://api.openai.com/v1/responses"
 SEND, HANDLE = httpx.Client.send, httpx.HTTPTransport.handle_request
 ALLOWED = {
@@ -104,7 +104,7 @@ def _handle(transport, request):
         or views[0].get("scope") != [PLAN["conversation_id"], PLAN["issue_id"], PLAN["case_id"]]
     ):
         raise RuntimeError("P4_WIRE_COMPACT_ENCODING_REQUIRED")
-    if PROTOCOL == "catalogue-v3" and (
+    if PROTOCOL in {"catalogue-v3", "references-v4"} and (
         views[0].get("policy_context", {}).get("catalogue_sha256")
         != PLAN["policy_catalogue_sha256"]
     ):

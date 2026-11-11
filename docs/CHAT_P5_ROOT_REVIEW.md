@@ -50,3 +50,5 @@ root执行 `reports/chat-p5-backup-restore-20261111.json` 通过：真实test源
 新增manifest/runner以同一精确scope、业务时钟、完整政策和原图，逐案交错运行strong_single/single_staged/multi，实际调用AgentService worker核心及P3投影。受控普通退款候选三臂均经过程序规则；multi展示反例后只补查事实角色。程序硬门禁模型调用为零。不是Celery/PG/S3或真实模型三臂验收。
 
 root与独立审查发现并修复：完整性错误不能被重读成功账本吞掉，缺路由或错误候选绑定不能计可评分，ready后缺运行绑定不能当零费用失败。当前明确SQLite-only，未验证PG写路径已移除；恢复只对账不重发，受损候选保留ID并标UNUSABLE，未知账本/费用仍未知。三臂跨库盲审登记、真实源拓扑与正式指标仍待接入。
+
+root独立执行新runner控制验收通过，日志 `.runtime/chat-p5-runner-root.log`。提交9cc3fb7托管检查42976685218成功。其余后端回归为955通过、2可选跳过、40 PG未选；新增runner的定向控制覆盖单独记录。无新增真实三臂质量结果。

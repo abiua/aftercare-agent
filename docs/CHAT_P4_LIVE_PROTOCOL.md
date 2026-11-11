@@ -51,3 +51,9 @@
 独立5198/58360使用84121cb冻结镜像。`--protocol catalogue-v3` 先执行离线路径，实际报告为 `reports/chat-p4-catalogue-offline-20261111.json`，再由 `verify_chat_p4_live.py` 预检同报告并以精确计划摘要单次执行。旧5195/5196报告与一次性记录不变。
 
 此协议将已登记Terra规格派生为本轮私有analysis规格：仅文字会话，输出1800，源规格摘要与派生摘要分别绑定，不改共享900注册表。出站同时校验compact-v3输入、精确事项和完整原始政策目录摘要。最多8次POST，登记整上下文加输出的最大估算0.392美元，应用原事项0.20美元上限继续生效；没有自动重试新一轮。报告保留兼容与业务候选两个结论。业务通过还需真实多步工具调用、带版本条款引用、完整对象金额或数量、程序校验通过及无未解决项。真实结果以新报告为准，离线通过不代表模型方案通过。
+
+## references-v4 引用修复复验与离线恢复
+
+独立5199/58361冻结5693f89，`--protocol references-v4`要求compact-v4提示、完整目录和与catalogue-v3一致的费用/输出上限，使用专属state/admission/report。首次离线报告 `reports/chat-p4-references-offline-20261111.json` 在自动调查GET等待时记录HTTP_TIMEOUT_OUTCOME_UNKNOWN。事后实际数据库与接口确认原消息、两原图和PROGRAM候选已经落库，模型/材料关联/审核/执行均为零，不能从现有证据确定超时原因。
+
+已审查的 `--resume-source reports/chat-p4-references-offline-20261111.json` 只允许该协议/失败阶段。它绑定原报告摘要与同镜像、同会话、消息请求摘要、原图字节和零后续操作；先只读预检，再以精确计划摘要和专属恢复路径执行。它不重建栈、不重发聊天或照片，从尚未发生的材料关联继续。`reports/chat-p4-references-offline-recovered-20261111.json` 实际通过，原FAILED不改。真实模型入口接受此专属恢复报告并重新核对来源摘要链。
