@@ -29,6 +29,7 @@ from .prompt_evidence import (
     PromptEvidence,
 )
 from .protocol import HUMAN_PAYMENT_V7, LEGACY_V6, InvestigationProtocol
+from .tools import ToolRejected
 
 INVESTIGATION_INPUT_TOKEN_LIMIT = P4_INPUT_LIMIT
 MAX_TOOL_BATCH = 4
@@ -229,7 +230,12 @@ def run_phase(
         "synthesizer": SynthesisResult,
     }.get(role, InvestigationResult)
     tool_role = "verifier" if role == "synthesizer" else role
-    tools = context.tools.schemas(tool_role) if tools_enabled else []
+    scoped_arguments = context.protocol == HUMAN_PAYMENT_V7
+    tools = (
+        context.tools.schemas(tool_role, **({"scoped_arguments": True} if scoped_arguments else {}))
+        if tools_enabled
+        else []
+    )
     available = {item["function"]["name"] for item in tools}
     evidence_ids = set(known_evidence)
     upstream = upstream or []
@@ -265,6 +271,7 @@ def run_phase(
             "prompt_version": prompt_version,
             "upstream_claim_ids": sorted(upstream_ids),
             "tools": sorted(available),
+            **({"tool_schema_sha256": digest(tools)} if scoped_arguments else {}),
         },
     )
     seen_ids, reads, receipts = set(), {}, []
@@ -349,6 +356,13 @@ def run_phase(
                     raise InvalidOutput("TOOL_CALL_FORBIDDEN", "tool_calls")
                 try:
                     context.tools.validate_call(tool_role, name, args)
+                except ToolRejected as error:
+                    if scoped_arguments:
+                        field = f"tool_calls.arguments.{name}"
+                        if error.field is not None:
+                            field = f"{field}.{error.field}"
+                        raise InvalidOutput(error.issue_type or error.code, field) from None
+                    raise InvalidOutput("TOOL_ARGUMENTS_INVALID", "tool_calls.arguments") from None
                 except ValueError:
                     raise InvalidOutput("TOOL_ARGUMENTS_INVALID", "tool_calls.arguments") from None
                 batch_ids.add(ident)

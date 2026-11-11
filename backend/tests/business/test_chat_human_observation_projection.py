@@ -363,3 +363,115 @@ def test_v7_rejects_order_payment_tampering_even_if_input_digest_is_recomputed(c
             DecisionScope.model_validate(scope),
             evidence_projection=HUMAN_PAYMENT_V7.evidence_projection,
         )
+
+
+def test_v7_responses_wire_tools_expose_exact_scoped_argument_values():
+    from langchain_core.messages import HumanMessage
+    from langchain_core.utils.function_calling import convert_to_openai_tool
+    from langchain_openai.chat_models.base import _construct_responses_api_payload
+
+    scope = _freeze(protocol="compact-v7", paid_at=STAMP.isoformat())
+    value = build_input(scope, evidence_projection=HUMAN_PAYMENT_V7.evidence_projection)
+    tools = InvestigationTools(value)
+    legacy = {item["function"]["name"]: item["function"] for item in tools.schemas("strong_single")}
+    assert "strict" not in legacy["read_order_lines"]
+    assert "read_refund_execution" in legacy
+
+    payload = _construct_responses_api_payload(
+        [HumanMessage(content="controlled fixture")],
+        {
+            "tools": [
+                convert_to_openai_tool(item)
+                for item in tools.schemas("strong_single", scoped_arguments=True)
+            ]
+        },
+    )
+    wire = {item["name"]: item for item in payload["tools"]}
+    assert "read_refund_execution" not in wire
+    assert all(item["strict"] is True for item in wire.values())
+    assert wire["read_order_lines"]["parameters"]["properties"]["line_ids"]["items"]["enum"] == [
+        "L01"
+    ]
+    search = wire["search_applicable_policy"]["parameters"]
+    assert set(search["required"]) == {"query", "condition_keys"}
+    assert search["properties"]["condition_keys"]["items"]["enum"] == sorted(
+        row.ref.source_id for row in value.evidence if row.ref.source_kind == "CONDITION"
+    )
+    clause = wire["read_policy_clause"]["parameters"]["properties"]
+    assert clause["product_id"]["enum"] == ["mug"]
+    assert clause["version"]["enum"] == ["1.0"]
+    assert clause["policy_id"]["enum"] == ["POL14"]
+    (verifier,) = tools.schemas("verifier", scoped_arguments=True)
+    assert (
+        "enum" not in verifier["function"]["parameters"]["properties"]["conflicting_refs"]["items"]
+    )
+    original = next(row for row in value.evidence if row.ref.source_kind == "POLICY")
+    other = original.model_copy(
+        update={
+            "ref": original.ref.model_copy(update={"source_id": "POL15:2.0"}),
+            "data": {
+                **original.data,
+                "clause": {**original.data["clause"], "id": "POL15", "version": "2.0"},
+            },
+        }
+    )
+    pair_tools = InvestigationTools(value.model_copy(update={"evidence": (*value.evidence, other)}))
+    with pytest.raises(ToolRejected, match="EVIDENCE_NOT_AVAILABLE"):
+        pair_tools.validate_call(
+            "policy",
+            "read_policy_clause",
+            {
+                "policy_id": "POL14",
+                "version": "2.0",
+                "product_id": "mug",
+            },
+        )
+
+    assert tools.validate_call(
+        "policy", "search_applicable_policy", {"query": "损坏", "condition_keys": []}
+    )
+    with pytest.raises(ToolRejected, match="EVIDENCE_NOT_AVAILABLE"):
+        tools.validate_call(
+            "policy",
+            "read_policy_clause",
+            {"policy_id": "POL14", "version": "2.0", "product_id": "mug"},
+        )
+
+
+@pytest.mark.parametrize(
+    ("args", "code", "field"),
+    [
+        ({"line_ids": "private-value"}, "ARRAY_REQUIRED", "line_ids"),
+        ({"line_ids": ["outside-order"]}, "EVIDENCE_NOT_AVAILABLE", "line_ids"),
+        ({"line_ids": ["L01", "L01"]}, "DUPLICATE_EVIDENCE_REFERENCE", "line_ids"),
+        ({"line_ids": ["L01"], "private-name": "secret"}, "UNEXPECTED_FIELD", None),
+    ],
+)
+def test_v7_validation_diagnostic_contains_no_model_argument_values(args, code, field):
+    from aftercare.intelligence.models import InvalidOutput, _validation_fields
+    from aftercare.investigation.orchestration import InvestigationContext, run_phase
+
+    scope = _freeze(protocol="compact-v7")
+    value = build_input(scope, evidence_projection=HUMAN_PAYMENT_V7.evidence_projection)
+
+    def model_call(_audit, _logical, **kwargs):
+        return kwargs["validate"](
+            [{"name": "read_order_lines", "id": "test-tool-call", "args": args}], ""
+        )
+
+    context = InvestigationContext(
+        value,
+        None,
+        SimpleNamespace(call=model_call),
+        SimpleNamespace(event=lambda *_: None),
+        InvestigationTools(value),
+        None,
+        "analysis",
+        protocol=HUMAN_PAYMENT_V7,
+    )
+    with pytest.raises(InvalidOutput) as failure:
+        run_phase(context, "fact", "fact", prompt=value.role_view("fact"))
+    path = "tool_calls.arguments.read_order_lines"
+    assert _validation_fields(failure.value) == [
+        {"code": code, "field": f"{path}.{field}" if field else path}
+    ]

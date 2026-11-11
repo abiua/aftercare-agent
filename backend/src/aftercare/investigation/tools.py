@@ -61,7 +61,9 @@ class ToolReceipt(Contract):
 
 
 class ToolRejected(ValueError):
-    pass
+    def __init__(self, code, *, field=None, issue_type=None):
+        super().__init__(code)
+        self.code, self.field, self.issue_type = code, field, issue_type
 
 
 _SCHEMAS = {
@@ -83,13 +85,41 @@ _ALLOWED = {
 _MATERIAL = ("ATTACHMENT", "OBSERVATION", "MATERIAL", "REVIEW")
 
 
+_ARGUMENT_TARGETS = {
+    "read_order_lines": ("line_ids", ("ORDER_LINE",)),
+    "read_material_evidence": ("evidence_ids", _MATERIAL),
+    "read_refund_execution": ("execution_id", ("EXECUTION",)),
+    "search_applicable_policy": ("condition_keys", ("CONDITION",)),
+}
+_ARGUMENT_HELP = {
+    "line_ids": "Copy the exact ORDER_LINE source IDs, as an array.",
+    "evidence_ids": "Copy the exact ATTACHMENT, OBSERVATION, MATERIAL or REVIEW source IDs, as an array.",
+    "execution_id": "Copy the exact EXECUTION source ID.",
+    "condition_keys": "Copy exact CONDITION source IDs. Use [] when no condition is requested.",
+    "policy_id": "Use the policy ID alone from the search result, without the version suffix.",
+    "version": "Copy the exact version string belonging to policy_id from the search result.",
+    "product_id": "Copy the product ID from the frozen policy context, not an order or line ID.",
+}
+_SHAPE_ISSUES = {
+    "missing": "REQUIRED",
+    "extra_forbidden": "UNEXPECTED_FIELD",
+    "list_type": "ARRAY_REQUIRED",
+    "string_type": "STRING_REQUIRED",
+    "literal_error": "VALUE_INVALID",
+    "too_short": "LENGTH_INVALID",
+    "too_long": "LENGTH_INVALID",
+    "string_too_short": "LENGTH_INVALID",
+    "string_too_long": "LENGTH_INVALID",
+}
+
+
 class InvestigationTools:
     def __init__(self, value: InvestigationInput, *, policy_search: PolicySearch | None = None):
         self._input = value.model_copy(deep=True)
         self._rows = {(row.ref.source_kind, row.ref.source_id): row for row in self._input.evidence}
         self._search = policy_search
 
-    def schemas(self, role: Role) -> list[dict]:
+    def schemas(self, role: Role, *, scoped_arguments=False) -> list[dict]:
         descriptions = (
             {
                 "search_applicable_policy": "Rank raw frozen policy candidates, including historical and inapplicable versions. No applicability judgment.",
@@ -112,59 +142,108 @@ class InvestigationTools:
                 "human observations. Observations do not establish image authenticity, cause, "
                 "eligibility, or approval."
             )
-        return [
-            {
-                "type": "function",
-                "function": {
-                    "name": name,
-                    "parameters": _SCHEMAS[name].model_json_schema(),
-                    "description": descriptions.get(name, name.replace("_", " ")),
-                },
-            }
-            for name in _ALLOWED.get(role, ())
-        ]
+        tools = []
+        for name in _ALLOWED.get(role, ()):
+            parameters = _SCHEMAS[name].model_json_schema()
+            if scoped_arguments and not self._scope_parameters(name, parameters):
+                continue
+            tools.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": name,
+                        "parameters": parameters,
+                        "description": descriptions.get(name, name.replace("_", " ")),
+                        **({"strict": True} if scoped_arguments else {}),
+                    },
+                }
+            )
+        return tools
+
+    def _scope_parameters(self, name, parameters):
+        properties = parameters["properties"]
+        # Responses strict function tools require every property to be present.
+        # An empty array is the explicit equivalent of the old optional condition list.
+        parameters["required"] = list(properties)
+        for field, schema in properties.items():
+            if field in _ARGUMENT_HELP:
+                schema["description"] = _ARGUMENT_HELP[field]
+        if name in _ARGUMENT_TARGETS:
+            field, kinds = _ARGUMENT_TARGETS[name]
+            ids = sorted({ident for kind, ident in self._rows if kind in kinds})
+            schema = properties[field]
+            if not ids:
+                if name != "search_applicable_policy":
+                    return False
+                schema["maxItems"] = 0
+            else:
+                (schema["items"] if schema["type"] == "array" else schema)["enum"] = ids
+        elif name == "read_policy_clause":
+            policy_rows = [row.data for (kind, _), row in self._rows.items() if kind == "POLICY"]
+            policies = [row["clause"] for row in policy_rows]
+            products = (
+                {row["id"] for row in self._input.policy_context.get("products", ())}
+                if self._input.policy_catalogue_version
+                else {product for row in policy_rows for product in row.get("selected_for", ())}
+            )
+            if not policies or not products:
+                return False
+            properties["policy_id"]["enum"] = sorted({row["id"] for row in policies})
+            properties["version"]["enum"] = sorted({row["version"] for row in policies})
+            properties["product_id"]["enum"] = sorted(products)
+        return True
 
     def validate_call(self, role: Role, name: str, args: dict):
         if name not in _ALLOWED.get(role, ()):
             raise ToolRejected("TOOL_NOT_ALLOWED")
         try:
             args = _SCHEMAS[name].model_validate(args)
-        except ValidationError:
-            raise ToolRejected("INVALID_TOOL_ARGUMENTS") from None
+        except ValidationError as error:
+            issue = error.errors(include_input=False, include_context=False, include_url=False)[0]
+            fields = _SCHEMAS[name].model_fields
+            loc = issue["loc"]
+            field = loc[0] if loc and loc[0] in fields else None
+            raise ToolRejected(
+                "INVALID_TOOL_ARGUMENTS",
+                field=field,
+                issue_type=_SHAPE_ISSUES.get(issue["type"], "SCHEMA_INVALID"),
+            ) from None
         self._selected(name, args)
         return args
 
-    def _select(self, kinds, ids):
+    def _select(self, kinds, ids, *, field):
         if len(set(ids)) != len(ids):
-            raise ToolRejected("DUPLICATE_EVIDENCE_REFERENCE")
+            raise ToolRejected("DUPLICATE_EVIDENCE_REFERENCE", field=field)
         selected = []
         for ident in ids:
             matches = [self._rows[(kind, ident)] for kind in kinds if (kind, ident) in self._rows]
             if len(matches) != 1:
-                raise ToolRejected("EVIDENCE_NOT_AVAILABLE")
+                raise ToolRejected("EVIDENCE_NOT_AVAILABLE", field=field)
             selected.extend(matches)
         return selected
 
     def _selected(self, name, args):
         if name == "read_order_lines":
-            return self._select(("ORDER_LINE",), args.line_ids)
+            return self._select(("ORDER_LINE",), args.line_ids, field="line_ids")
         if name == "read_material_evidence":
-            return self._select(_MATERIAL, args.evidence_ids)
+            return self._select(_MATERIAL, args.evidence_ids, field="evidence_ids")
         if name == "read_refund_execution":
-            return self._select(("EXECUTION",), [args.execution_id])
+            return self._select(("EXECUTION",), [args.execution_id], field="execution_id")
         if name == "search_applicable_policy":
-            return self._select(("CONDITION",), args.condition_keys)
+            return self._select(("CONDITION",), args.condition_keys, field="condition_keys")
         if name == "read_policy_clause":
-            rows = self._select(("POLICY",), [f"{args.policy_id}:{args.version}"])
+            rows = self._select(("POLICY",), [f"{args.policy_id}:{args.version}"], field="version")
             products = (
                 {row["id"] for row in self._input.policy_context["products"]}
                 if self._input.policy_catalogue_version
                 else set(rows[0].data["selected_for"])
             )
             if args.product_id not in products:
-                raise ToolRejected("EVIDENCE_NOT_AVAILABLE")
+                raise ToolRejected("EVIDENCE_NOT_AVAILABLE", field="product_id")
             return rows
-        return self._select(tuple({kind for kind, _ in self._rows}), args.conflicting_refs)
+        return self._select(
+            tuple({kind for kind, _ in self._rows}), args.conflicting_refs, field="conflicting_refs"
+        )
 
     def call(self, role: Role, name: str, args: dict) -> ToolReceipt:
         validated = self.validate_call(role, name, args)
