@@ -287,6 +287,7 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
         spec.input_usd_per_million = Decimal(1)
         spec.output_usd_per_million = Decimal(1)
     transcripts = []
+    reference_error = {"field": "claims.0.supporting_refs", "code": "UNKNOWN_SUPPORTING_EVIDENCE"}
 
     def transport(_spec, messages, _tools, *_):
         transcripts.append(messages)
@@ -304,7 +305,17 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
                     },
                 ],
             )
-        assert "1300" in messages[-2].content and "商品损坏" in messages[-1].content
+        assert json.loads(messages[0].content.rsplit("\n", 1)[1]) == {
+            "citable_evidence_ids": ["L1", "P1:1.0"],
+            "upstream_claim_ids": [],
+        }
+        evidence_refs = ["L1", "P1:1.0"]
+        if len(transcripts) == 2:
+            assert "1300" in messages[-2].content and "商品损坏" in messages[-1].content
+            evidence_refs = ["L1", "P1"]
+        else:
+            assert len(transcripts) == 3
+            assert messages[-1].content.endswith(json.dumps([reference_error], ensure_ascii=False))
         return AIMessage(
             content=json.dumps(
                 {
@@ -315,7 +326,7 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
                             "predicate": "eligible",
                             "value": "材料已通过现有规则审查",
                             "state": "SUPPORTED",
-                            "supporting_refs": ["L1", "P1:1.0"],
+                            "supporting_refs": evidence_refs,
                         }
                     ],
                     "options": [
@@ -353,16 +364,26 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
         assert option["evidence_ids"] == ["L1", "P1:1.0"]
         assert decision["checks"]["refund"]["status"] == expected
         assert bool(candidate["unresolved"]) == (expected == "BLOCKED")
-    assert len(transcripts) == 2
+        validations = list(
+            db.scalars(
+                select(RunEvent).where(
+                    RunEvent.run_id == run["id"], RunEvent.kind == "model_validation"
+                )
+            )
+        )
+        assert len(validations) == 1
+        assert validations[0].payload["errors"] == [reference_error]
+    assert len(transcripts) == 3
     from aftercare.intelligence.models import ModelFailure
     from aftercare.intelligence.service import RunAudit
+    from aftercare.investigation.prompt_evidence import PROMPT_VERSION
 
     # Exercise the attempt-level guard separately from the graph version guard.
     with Session(system.engine, expire_on_commit=False) as db, db.begin():
         persisted = db.get_one(AgentRun, run["id"])
         persisted.status = "RUNNING"
     audit = RunAudit(system.engine, persisted)
-    logical_id = "p4:compact-v3:single:0"
+    logical_id = f"p4:{PROMPT_VERSION}:single:0"
     assert audit.replay(logical_id, expected_output_reserve=1800)["calls"]
     with pytest.raises(ModelFailure, match="REPLAY_OUTPUT_BUDGET_CHANGED"):
         audit.replay(logical_id, expected_output_reserve=900)

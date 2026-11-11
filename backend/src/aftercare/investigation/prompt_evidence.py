@@ -3,12 +3,16 @@
 from aftercare.business.rules import digest
 from aftercare.intelligence.models import ModelFailure
 
-PROMPT_VERSION = "compact-v3"
+PROMPT_VERSION = "compact-v4"
 PRIVATE_RECEIPT_EVENT = "investigation_receipt"
 PROMPT_LEGEND = (
     "证据结构：scope 依次为会话、事项、工单。"
     "ref 数组依次为来源类型、ID、版本或摘要、可选观察时间；所有 ref 继承该 scope。"
-    "available_evidence 只列可读引用。请用 ref 中的 ID 引用已读取证据。"
+    "available_evidence 仅用于选择工具读取。客户陈述、附件和观察即使出现在输入中，也不会自动成为可引用证据。"
+    "supporting_refs、conflicting_refs、evidence_refs、evidence_ids 只能逐字使用本轮 citable_evidence_ids 中的 ID。"
+    "在这些证据字段中，条款使用完整版本键，例如 POL06:1.0。缺少可引用证据时保留未解决项。"
+    "depends_on_claims 只能填写本次输出其他主张的 id 或 upstream_claim_ids 中的 id。"
+    "不要在主张依赖中填写证据 ID，也不要依赖自身或形成循环。"
     "original_read_receipts 的 ref 对应 original_frozen_evidence 的原始数据。"
     "工具 data.retrieval 中的 proof_sha256 对应系统另存的完整检索诊断。"
 )

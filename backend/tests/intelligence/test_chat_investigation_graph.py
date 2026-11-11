@@ -14,6 +14,7 @@ from aftercare.investigation.contracts import (
 )
 from aftercare.investigation.graph import build_investigation_graph
 from aftercare.investigation.orchestration import InvestigationContext, InvestigationResult, _result
+from aftercare.investigation.prompt_evidence import PROMPT_VERSION
 from aftercare.investigation.tools import InvestigationTools
 
 
@@ -161,27 +162,52 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
                 barrier.wait(timeout=3)
             return super().call(role, name, args)
 
+    def round_response(ids, response):
+        def check(kwargs):
+            system = kwargs["messages"][0].content
+            scope = json.loads(system.rsplit("\n", 1)[1])
+            assert scope == {"citable_evidence_ids": ids, "upstream_claim_ids": []}
+            assert "depends_on_claims" in system
+            assert "POL06:1.0" in system
+            visible = json.loads(kwargs["messages"][1].content)["frozen_input"]
+            assert visible["customer_statements"][0]["ref"][1] == "m"
+            assert "m" not in scope["citable_evidence_ids"]
+            return response
+
+        return check
+
     model = Script(
         {
-            "p4:compact-v3:single:0": [
-                _call("read_order_lines", line_ids=["line"]),
-                _call("read_order_lines", line_ids=["line2"]),
-            ],
-            "p4:compact-v3:single:1": [
-                _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product")
-            ],
-            "p4:compact-v3:single:2": {
-                "claims": [_claim("one", "line")],
-                "options": [
-                    {
-                        "id": "hold",
-                        "action": "HUMAN_HANDOFF",
-                        "target_line_ids": ["line"],
-                        "rationale": "订单证据待客服核对。",
-                        "evidence_ids": ["line", "POL01:v1"],
-                    }
+            f"p4:{PROMPT_VERSION}:single:0": round_response(
+                [],
+                [
+                    _call("read_order_lines", line_ids=["line"]),
+                    _call("read_order_lines", line_ids=["line2"]),
                 ],
-            },
+            ),
+            f"p4:{PROMPT_VERSION}:single:1": round_response(
+                ["line", "line2"],
+                [
+                    _call(
+                        "read_policy_clause", policy_id="POL01", version="v1", product_id="product"
+                    )
+                ],
+            ),
+            f"p4:{PROMPT_VERSION}:single:2": round_response(
+                ["POL01:v1", "line", "line2"],
+                {
+                    "claims": [_claim("one", "line")],
+                    "options": [
+                        {
+                            "id": "hold",
+                            "action": "HUMAN_HANDOFF",
+                            "target_line_ids": ["line"],
+                            "rationale": "订单证据待客服核对。",
+                            "evidence_ids": ["line", "POL01:v1"],
+                        }
+                    ],
+                },
+            ),
         }
     )
     result, events = _run(investigation, "SINGLE", model, tools=ConcurrentTools(investigation))
@@ -232,21 +258,23 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
 
     model = Script(
         {
-            "p4:compact-v3:fact:0": start("fact", _call("read_order_lines", line_ids=["line"])),
-            "p4:compact-v3:fact:1": {
+            f"p4:{PROMPT_VERSION}:fact:0": start(
+                "fact", _call("read_order_lines", line_ids=["line"])
+            ),
+            f"p4:{PROMPT_VERSION}:fact:1": {
                 "claims": [
                     _claim("f", "line", value="未交付"),
                     _claim("child", "line", depends=("f",)),
                 ]
             },
-            "p4:compact-v3:policy:0": start(
+            f"p4:{PROMPT_VERSION}:policy:0": start(
                 "policy",
                 _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product"),
             ),
-            "p4:compact-v3:policy:1": {"claims": [_claim("p", "POL01:v1")]},
-            "p4:compact-v3:verify-0:0": first_verifier,
-            "p4:compact-v3:recheck:0": {"claims": [_claim("f", "line", value="已交付")]},
-            "p4:compact-v3:verify-1:0": final_verifier,
+            f"p4:{PROMPT_VERSION}:policy:1": {"claims": [_claim("p", "POL01:v1")]},
+            f"p4:{PROMPT_VERSION}:verify-0:0": first_verifier,
+            f"p4:{PROMPT_VERSION}:recheck:0": {"claims": [_claim("f", "line", value="已交付")]},
+            f"p4:{PROMPT_VERSION}:verify-1:0": final_verifier,
         }
     )
     result, events = _run(investigation, "MULTI", model)
@@ -255,6 +283,32 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
         payload["target_role"] for kind, payload in events if kind == "investigation_recheck"
     ] == ["fact"]
     assert len(model.calls) == 7
+
+
+@pytest.mark.parametrize(
+    ("updates", "field", "code"),
+    [
+        ({"supporting_refs": ["m"]}, "supporting_refs", "UNKNOWN_SUPPORTING_EVIDENCE"),
+        ({"conflicting_refs": ["POL01"]}, "conflicting_refs", "UNKNOWN_CONFLICTING_EVIDENCE"),
+        ({"depends_on_claims": ["line"]}, "depends_on_claims", "UNKNOWN_CLAIM_DEPENDENCY"),
+        ({"depends_on_claims": ["second"]}, "depends_on_claims", "SELF_CLAIM_DEPENDENCY"),
+    ],
+)
+def test_claim_repair_diagnostic_only_reports_field_index_and_code(updates, field, code):
+    from aftercare.intelligence.models import _validation_fields
+
+    original = {"claims": [_claim("first", "line"), {**_claim("second", "line"), **updates}]}
+    kwargs = {"role": "strong_single", "evidence_ids": {"line", "POL01:v1"}, "upstream_ids": set()}
+    with pytest.raises(InvalidOutput) as caught:
+        _result(json.dumps(original), InvestigationResult, **kwargs)
+    assert _validation_fields(caught.value) == [{"field": f"claims.1.{field}", "code": code}]
+
+    repaired = {
+        "claims": [_claim("first", "line"), _claim("second", "POL01:v1", depends=["first"])]
+    }
+    assert _result(json.dumps(repaired), InvestigationResult, **kwargs)["result"]["claims"][1][
+        "depends_on_claims"
+    ] == ["first"]
 
 
 def test_claim_cycles_rejected():
@@ -423,7 +477,7 @@ def test_p4_current_batch_limit_in_prompt_rejects_before_any_tool_read(investiga
         _run(
             investigation,
             "SINGLE",
-            Script({"p4:compact-v3:single:0": excess}),
+            Script({f"p4:{PROMPT_VERSION}:single:0": excess}),
             tools=NoReads(investigation),
         )
     assert _validation_fields(error.value) == [
@@ -524,7 +578,7 @@ def test_targeted_policy_recheck_can_read_another_frozen_version(investigation):
         )
         return {"claims": [_claim("claim", "POL01:v0")]}
 
-    script = Script({"p4:compact-v3:recheck:0": revised})
+    script = Script({f"p4:{PROMPT_VERSION}:recheck:0": revised})
     audit = Audit()
     ctx = InvestigationContext(
         value, None, script, audit, InvestigationTools(value), None, "analysis"
@@ -551,4 +605,4 @@ def test_targeted_policy_recheck_can_read_another_frozen_version(investigation):
     )
     assert result["path"] == "MULTI" and result["recheck_count"] == 1
     assert result["active_claims"][0]["supporting_refs"] == ["POL01:v0"]
-    assert script.calls == ["p4:compact-v3:recheck:0"]
+    assert script.calls == [f"p4:{PROMPT_VERSION}:recheck:0"]

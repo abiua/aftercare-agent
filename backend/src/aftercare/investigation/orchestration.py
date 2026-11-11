@@ -146,13 +146,16 @@ def _result(raw, schema, *, role, evidence_ids, upstream_ids):
         if len({item.id for item in claims}) != len(claims):
             raise InvalidOutput("DUPLICATE_CLAIM", "claims")
         known = {claim.id for claim in claims} | upstream_ids
-        for claim in claims:
-            if (
-                not set(claim.supporting_refs + claim.conflicting_refs) <= evidence_ids
-                or not set(claim.depends_on_claims) <= known
-                or claim.id in claim.depends_on_claims
-            ):
-                raise InvalidOutput("UNKNOWN_CLAIM_DEPENDENCY", "claims")
+        for index, claim in enumerate(claims):
+            field = f"claims.{index}"
+            if not set(claim.supporting_refs) <= evidence_ids:
+                raise InvalidOutput("UNKNOWN_SUPPORTING_EVIDENCE", f"{field}.supporting_refs")
+            if not set(claim.conflicting_refs) <= evidence_ids:
+                raise InvalidOutput("UNKNOWN_CONFLICTING_EVIDENCE", f"{field}.conflicting_refs")
+            if claim.id in claim.depends_on_claims:
+                raise InvalidOutput("SELF_CLAIM_DEPENDENCY", f"{field}.depends_on_claims")
+            if not set(claim.depends_on_claims) <= known:
+                raise InvalidOutput("UNKNOWN_CLAIM_DEPENDENCY", f"{field}.depends_on_claims")
         try:
             tuple(
                 TopologicalSorter({row.id: row.depends_on_claims for row in claims}).static_order()
@@ -232,10 +235,20 @@ def run_phase(
         bound = tools if index < max_rounds - 1 and used < tool_limit else []
         remaining_tools = tool_limit - used
 
-        def with_budget(allowed, *, remaining_tools=remaining_tools):
+        reference_scope = _render(
+            {
+                "citable_evidence_ids": sorted(evidence_ids),
+                "upstream_claim_ids": sorted(upstream_ids),
+            }
+        )
+
+        def with_budget(
+            allowed, *, remaining_tools=remaining_tools, reference_scope=reference_scope
+        ):
             hint = (
                 f"本轮最多调用 {allowed} 个工具，当前阶段剩余 {remaining_tools} 次工具读取。"
                 "工具不足时提交结构化结果并保留尚未解决的证据缺口。"
+                f"\n{reference_scope}"
             )
             return [
                 messages[0].model_copy(update={"content": messages[0].content + hint}),
