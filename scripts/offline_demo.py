@@ -7,14 +7,31 @@ import fcntl
 import json
 import os
 import re
+import stat
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from urllib.request import urlopen
 
 from setup_runtime import ROOT
-from verify_fresh_bootstrap import API_CHECK, FreshStack, IMAGES, require
+from verify_fresh_bootstrap import API_CHECK, IMAGES, FreshStack, require
 
 STATE = ROOT / '.runtime/offline-browser-demo.json'
+
+
+@contextmanager
+def lifecycle_lock(state_path, *, shared=False):
+    flags = os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW
+    fd = os.open(state_path.with_suffix('.lock'), flags, 0o600)
+    with os.fdopen(fd, 'r+') as lock:
+        metadata = os.fstat(lock.fileno())
+        require(
+            stat.S_ISREG(metadata.st_mode) and metadata.st_uid == os.getuid()
+            and metadata.st_mode & 0o077 == 0,
+            'PRIVATE_STATE_LOCK_REQUIRED',
+        )
+        fcntl.flock(lock, (fcntl.LOCK_SH if shared else fcntl.LOCK_EX) | fcntl.LOCK_NB)
+        yield
 
 
 def save(state):
@@ -174,26 +191,24 @@ def main():
     require(1024 <= args.port <= 65535 and 1024 <= args.object_port <= 65535, 'INVALID_PORT')
     STATE.parent.mkdir(exist_ok=True)
     # Serialize lifecycle changes; never launch two stacks on the same state path.
-    fd = os.open(STATE.with_suffix('.lock'), os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
-    with os.fdopen(fd, 'w') as lock:
-        try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            print(json.dumps({'status': 'BUSY', 'message': '演示环境正在启动或停止，请稍后查询；未执行新的操作。'}, ensure_ascii=False))
-            return 1
-        if args.command == 'start':
-            result = start(args)
-        elif not STATE.exists():
-            result = {'status': 'NOT_STARTED'}
-        else:
-            state = json.loads(STATE.read_text())
-            if args.command == 'stop':
-                state['cleanup_leftovers'] = restore(state).cleanup(False)
-                state['status'] = 'STOPPED' if not state['cleanup_leftovers'] else 'CLEANUP_INCOMPLETE'
-                save(state)
-            result = status(state)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0 if result.get('status') not in ('FAILED', 'CLEANUP_INCOMPLETE') else 1
+    try:
+        with lifecycle_lock(STATE):
+            if args.command == 'start':
+                result = start(args)
+            elif not STATE.exists():
+                result = {'status': 'NOT_STARTED'}
+            else:
+                state = json.loads(STATE.read_text())
+                if args.command == 'stop':
+                    state['cleanup_leftovers'] = restore(state).cleanup(False)
+                    state['status'] = 'STOPPED' if not state['cleanup_leftovers'] else 'CLEANUP_INCOMPLETE'
+                    save(state)
+                result = status(state)
+    except BlockingIOError:
+        print(json.dumps({'status': 'BUSY', 'message': '演示环境正在启动或停止，请稍后查询；未执行新的操作。'}, ensure_ascii=False))
+        return 1
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result.get('status') not in ('FAILED', 'CLEANUP_INCOMPLETE') else 1
 
 
 if __name__ == '__main__':

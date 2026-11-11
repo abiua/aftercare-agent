@@ -1,7 +1,6 @@
-"""Verify production backup/restore against the disposable 5190 chat demo."""
+"""Verify production backup/restore against an owned, disposable chat demo."""
 
 import argparse
-import fcntl
 import json
 import os
 import re
@@ -20,7 +19,7 @@ from aftercare.business.service import BusinessService
 from aftercare.business.storage import S3ObjectStore
 from aftercare.config import TARGETS, Settings
 from aftercare.conversations.service import ConversationService
-from offline_demo import STATE, restore, status
+from offline_demo import STATE, lifecycle_lock, restore, status
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 from verify_fresh_bootstrap import IMAGES, FreshStack, VerificationError, private_write, require
@@ -79,16 +78,53 @@ def private_json(path):
     return json.loads(path.read_text())
 
 
-def source_resources():
-    state = private_json(STATE)
-    require(state["url"] == "http://127.0.0.1:5190", "DEMO_URL_REJECTED")
+def _validate_state_path(state_path):
+    require(
+        state_path.parent.resolve() == STATE.parent.resolve()
+        and re.fullmatch(
+            r"offline-browser-demo(?:-[a-z0-9][a-z0-9-]{0,30})?\.json", state_path.name
+        ),
+        "DEMO_STATE_PATH_REJECTED",
+    )
+
+
+def source_resources(state_path=STATE):
+    _validate_state_path(state_path)
+    state = private_json(state_path)
+    address = re.fullmatch(r"http://127\.0\.0\.1:([0-9]{1,5})", state["url"])
+    require(
+        address is not None
+        and 1024 <= int(address[1]) <= 65535
+        and int(address[1]) not in {5186, 5187, 55450, 55451, 58350, 58351}
+        and (state_path.name != STATE.name or int(address[1]) == 5190),
+        "DEMO_URL_REJECTED",
+    )
     source = restore(state)
-    require(status(state)["healthy_now"], "DEMO_UNAVAILABLE")
     prefix = f"aftercare-fresh-{state['run_id']}"
-    names = {suffix: f"{prefix}-{suffix}" for suffix in ("pg", "objects", "ingress", "net")}
+    names = {
+        suffix: f"{prefix}-{suffix}"
+        for suffix in ("pg", "objects", "ingress", "net", "frontend", "api")
+    }
     for suffix, name in names.items():
-        kind = "container" if suffix in {"pg", "objects"} else "network"
+        kind = "network" if suffix in {"ingress", "net"} else "container"
         require((kind, name) in source.resources and source.owned(kind, name), "SOURCE_NOT_OWNED")
+    require(
+        published_port(source, names["frontend"], 8080) == int(address[1]),
+        "SOURCE_INGRESS_BINDING_MISMATCH",
+    )
+    names["backend_image_id"] = source.docker(
+        "SOURCE_BACKEND_IMAGE",
+        "container",
+        "inspect",
+        "--format",
+        "{{.Image}}",
+        names["api"],
+        log_output=False,
+    ).stdout.strip()
+    require(
+        re.fullmatch(r"sha256:[0-9a-f]{64}", names["backend_image_id"]), "SOURCE_IMAGE_REJECTED"
+    )
+    require(status(state)["healthy_now"], "DEMO_UNAVAILABLE")
     return state, source, names
 
 
@@ -242,7 +278,106 @@ class IsolatedTopology:
             contexts.enter_context(patch.object(backup, field, replacement))
 
 
-def restore_readback(topology, target, archive_dir, manifest, result):
+def source_fingerprints(topology, settings):
+    engine = topology.engine(settings)
+    try:
+        with engine.connect() as connection, connection.begin():
+            connection.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY"))
+            connection.execute(text("SET LOCAL TIME ZONE 'UTC'"))
+            return backup._fingerprints(connection)
+    finally:
+        engine.dispose()
+
+
+def _material_sources(connection):
+    return (
+        connection.execute(
+            text("""
+        SELECT s.attachment_id, s.material_id, s.case_id, s.conversation_id, s.message_id,
+               s.issue_id, s.kind, s.sha256, conv.customer_id, a.object_key AS original_key,
+               m.object_key AS material_key, a.size, a.content_type
+        FROM chat_material_sources s
+        JOIN chat_attachments a ON a.id = s.attachment_id AND a.sha256 = s.sha256
+        JOIN chat_messages msg ON msg.id = a.message_id AND msg.id = s.message_id
+        JOIN chat_conversations conv ON conv.id = msg.conversation_id AND conv.id = s.conversation_id
+        JOIN business_cases c ON c.id = s.case_id AND c.customer_id = conv.customer_id
+        JOIN business_materials m ON m.id = s.material_id AND m.case_id = c.id
+             AND m.kind = s.kind AND m.sha256 = s.sha256
+             AND m.size = a.size AND m.content_type = a.content_type
+        WHERE msg.sequence IS NOT NULL AND msg.discarded_at IS NULL
+              AND msg.analysis_issue_id = s.issue_id AND msg.role = 'customer'
+              AND c.decision_conversation_id = conv.id AND c.decision_issue_id = s.issue_id
+        ORDER BY s.case_id, s.attachment_id
+    """)
+        )
+        .mappings()
+        .all()
+    )
+
+
+def _verify_material_sources(rows, business, chat, source_store, archive_dir, manifest):
+    archived = {item.key: item for item in manifest.materials}
+    evidence = []
+    for row in rows:
+        owner = UserContext(
+            user_id="restore-verification", role="customer", customer_id=row["customer_id"]
+        )
+        foreign = owner.model_copy(update={"customer_id": "restore-verification-foreign"})
+        original_args = row["conversation_id"], row["attachment_id"]
+        material_args = row["case_id"], row["material_id"]
+        original_bytes, original_kind = chat.content(*original_args, owner)
+        typed_bytes, typed_kind = business.material_content(*material_args, owner)
+        keys = row["original_key"], row["material_key"]
+        require(
+            keys[0] != keys[1]
+            and archived[keys[0]].table_name == "chat_attachments"
+            and archived[keys[1]].table_name == "business_materials"
+            and archived[keys[0]].sha256 == archived[keys[1]].sha256 == row["sha256"],
+            "MATERIAL_SOURCE_ARCHIVE_LINK_MISMATCH",
+        )
+        archived_bytes = (archive_dir / backup.OBJECTS / row["sha256"]).read_bytes()
+        require(
+            original_bytes == typed_bytes == archived_bytes
+            and sha256(typed_bytes).hexdigest() == row["sha256"]
+            and len(typed_bytes) == row["size"]
+            and original_kind == typed_kind == row["content_type"]
+            and all(source_store.get(key, row["size"]) == archived_bytes for key in keys),
+            "MATERIAL_SOURCE_BYTES_MISMATCH",
+        )
+        for read, identifiers in (
+            (chat.content, original_args),
+            (business.material_content, material_args),
+        ):
+            try:
+                read(*identifiers, foreign)
+            except BusinessError as error:
+                require(error.status == 404, "MATERIAL_SOURCE_AUTH_MISMATCH")
+            else:
+                raise VerificationError("MATERIAL_SOURCE_AUTH_MISMATCH")
+        evidence.append(
+            {
+                **{
+                    key: row[key]
+                    for key in (
+                        "conversation_id",
+                        "issue_id",
+                        "case_id",
+                        "message_id",
+                        "attachment_id",
+                        "material_id",
+                        "kind",
+                        "sha256",
+                    )
+                },
+                "bytes": len(typed_bytes),
+                "foreign_original_status": 404,
+                "foreign_material_status": 404,
+            }
+        )
+    return evidence
+
+
+def restore_readback(topology, target, archive_dir, manifest, result, *, require_material_sources):
     engine = backup.restored_engine(target, result["database"])
     try:
         with engine.connect() as connection, connection.begin():
@@ -283,8 +418,26 @@ def restore_readback(topology, target, archive_dir, manifest, result):
             """)
             )
             require(link_count > 0, "CHAT_CASE_LINK_REQUIRED")
+            rows = _material_sources(connection) if require_material_sources else []
+            if require_material_sources:
+                require(
+                    len(rows)
+                    == manifest.database[f"public.{backup.CHAT_MATERIAL_SOURCE_TABLE}"].rows
+                    and len({(row["conversation_id"], row["issue_id"]) for row in rows}) > 0
+                    and any(
+                        sum(item["message_id"] == row["message_id"] for item in rows) >= 2
+                        for row in rows
+                    ),
+                    "SCOPED_MATERIAL_SOURCE_PAIR_REQUIRED",
+                )
+                connection.execute(text("SET LOCAL TIME ZONE 'UTC'"))
+                require(
+                    backup._fingerprints(connection) == manifest.database,
+                    "RESTORE_READBACK_FINGERPRINT_MISMATCH",
+                )
         store = S3ObjectStore(topology.restore_bucket(target, result["bucket"]))
-        service = ConversationService(BusinessService(engine, target, storage=store))
+        business = BusinessService(engine, target, storage=store)
+        service = ConversationService(business)
         archived = {item.key: item for item in manifest.materials}
         evidence = []
         for item in attachments[:2]:
@@ -312,21 +465,38 @@ def restore_readback(topology, target, archive_dir, manifest, result):
         require(
             attachments[0]["message_id"] == attachments[1]["message_id"], "PHOTOS_NOT_SAME_MESSAGE"
         )
-        return {
+        readback = {
             "photo_originals": evidence,
             "case_links": link_count,
             "foreign_attachment_read": 404,
         }
+        if require_material_sources:
+            readback["material_sources"] = _verify_material_sources(
+                rows,
+                business,
+                service,
+                S3ObjectStore(topology.settings["app"]),
+                archive_dir,
+                manifest,
+            )
+            readback["restored_database_fingerprints_match_archive"] = True
+        return readback
     finally:
         engine.dispose()
 
 
-def execute(report):
-    state, source, names = source_resources()
-    directory = Path(tempfile.mkdtemp(prefix="chat-backup-restore-", dir=STATE.parent))
+def execute(report, state_path=STATE, *, require_material_sources=False):
+    state, source, names = source_resources(state_path)
+    directory = Path(tempfile.mkdtemp(prefix="chat-backup-restore-", dir=state_path.parent))
     stack = FreshStack(directory)
     report.update(
-        {"status": "RUNNING", "private_run_directory": str(directory), "source_ready": True}
+        {
+            "status": "RUNNING",
+            "private_run_directory": str(directory),
+            "source_ready": True,
+            "source_url": state["url"],
+            "source_backend_image_id": names["backend_image_id"],
+        }
     )
     failed = True
     try:
@@ -346,7 +516,7 @@ def execute(report):
             "LOCAL_DOCKER_REQUIRED",
         )
         bridge = stack.run(
-            state["backend_image"],
+            names["backend_image_id"],
             "source-read-bridge",
             names["ingress"],
             (
@@ -443,9 +613,26 @@ def execute(report):
                 topology.identities["app"][1] != topology.identities["test"][1],
                 "SOURCE_AND_DESTINATION_SAME_SYSTEM",
             )
+            if require_material_sources:
+                before = source_fingerprints(topology, src)
+                required = (
+                    backup.CHAT_TABLES
+                    | backup.CHAT_ANALYSIS_TABLES
+                    | backup.CHAT_DECISION_TABLES
+                    | {backup.CHAT_INVESTIGATION_TABLE, backup.CHAT_MATERIAL_SOURCE_TABLE}
+                )
+                require(
+                    all(f"public.{table}" in before for table in required)
+                    and before[f"public.{backup.CHAT_MATERIAL_SOURCE_TABLE}"].rows >= 2
+                    and before[f"public.{backup.CHAT_INVESTIGATION_TABLE}"].rows >= 1,
+                    "P4_SOURCE_EVIDENCE_REQUIRED",
+                )
             report["stage"] = "ARCHIVING"
             manifest = backup.create_backup(src, archive)
             require(backup.verify_backup(archive) == manifest, "ARCHIVE_VERIFICATION_MISMATCH")
+            if require_material_sources:
+                require(manifest.database == before, "SOURCE_CHANGED_BEFORE_ARCHIVE")
+            tables = required if require_material_sources else backup.CHAT_TABLES
             report["archive"] = {
                 "format": manifest.format,
                 "sha256": manifest.archive_sha256,
@@ -456,12 +643,12 @@ def execute(report):
                     item.table_name == "chat_attachments" for item in manifest.materials
                 ),
                 "chat_table_rows": {
-                    table: manifest.database[f"public.{table}"].rows
-                    for table in sorted(backup.CHAT_TABLES)
+                    table: manifest.database[f"public.{table}"].rows for table in sorted(tables)
                 },
             }
             report["stage"] = "RESTORING"
             result = backup.restore_backup(target, archive)
+            require(result["status"] == "RESTORE_VERIFIED", "RESTORE_STATUS_MISMATCH")
             report["restore"] = {
                 "status": result["status"],
                 "database": result["database"],
@@ -470,7 +657,23 @@ def execute(report):
                 "fingerprinted_tables": len(result["table_rows"]),
             }
             report["stage"] = "READBACK"
-            report["readback"] = restore_readback(topology, target, archive, manifest, result)
+            report["readback"] = restore_readback(
+                topology,
+                target,
+                archive,
+                manifest,
+                result,
+                require_material_sources=require_material_sources,
+            )
+            if require_material_sources:
+                require(
+                    source_fingerprints(topology, src) == before, "SOURCE_CHANGED_AFTER_RESTORE"
+                )
+                report["source_unchanged"] = {
+                    "before_archive_after_database_fingerprints_match": True,
+                    "fingerprinted_tables": len(before),
+                    "original_and_typed_source_bytes_match_archived_snapshot": True,
+                }
         require(status(state)["healthy_now"], "SOURCE_READINESS_CHANGED")
         report.update(status="PASSED", stage="COMPLETE", source_ready_after=True)
         failed = False
@@ -493,14 +696,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--source-state", type=Path, default=STATE)
+    parser.add_argument("--require-material-sources", action="store_true")
     args = parser.parse_args()
     if not args.execute:
-        source_resources()
-        print(
-            json.dumps(
-                {"status": "READY", "source": "offline browser demo on port 5190", "writes": 0}
-            )
-        )
+        state, _, _ = source_resources(args.source_state)
+        print(json.dumps({"status": "READY", "source": state["url"], "writes": 0}))
         return
     if args.output is None:
         parser.error("--execute requires a new --output")
@@ -511,7 +712,7 @@ def main():
         "stage": "PREFLIGHT",
         "provider_calls": 0,
         "topology_adaptations": [
-            "Source is the owned offline 5190 demo via an ephemeral loopback-only PG bridge and source S3 binding",
+            "Source is the selected owned offline demo via an ephemeral loopback-only PG bridge and source S3 binding",
             "Target is a fresh owned PG cluster and S3 service with loopback-only random ports",
             "Script-local settings and Docker PG CLI routing replace the production shared-compose route",
             "Production identity SQL is compared across SQLAlchemy and container psql for both systems",
@@ -526,9 +727,16 @@ def main():
     }
     with os.fdopen(fd, "w") as output:
         try:
-            with STATE.with_suffix(".lock").open("r+") as lock:
-                fcntl.flock(lock, fcntl.LOCK_SH | fcntl.LOCK_NB)
-                execute(report)
+            _validate_state_path(args.source_state)
+            private_json(args.source_state)
+            with lifecycle_lock(args.source_state, shared=True):
+                execute(
+                    report,
+                    args.source_state,
+                    require_material_sources=args.require_material_sources,
+                )
+        except BlockingIOError:
+            report.update(status="FAILED", failure_code="DEMO_LIFECYCLE_BUSY")
         except (VerificationError, backup.BackupError) as error:
             report.update(status="FAILED", failure_code=str(error))
         except Exception as error:  # noqa: BLE001 - never persist arbitrary exception text or credentials
