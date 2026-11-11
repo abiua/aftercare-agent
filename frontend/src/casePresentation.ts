@@ -33,8 +33,8 @@ function refundLedgerNotice(refunds: Execution[], readFailed: boolean) {
     description: '请刷新工单后再核对该订单的退款执行账本。',
   };
   if (!refunds.length) return {
-    type: 'info' as const, title: '未查到该订单的退款执行记录',
-    description: '是否曾申请、是否处理失败或是否实际到账，需另行核对。',
+    type: 'info' as const, title: '目前没查到这笔订单的退款处理记录。',
+    description: undefined,
   };
   const unknown = refunds.filter(({status}) => status === 'UNKNOWN').length;
   const submitting = refunds.filter(({status}) => status === 'SUBMITTING').length;

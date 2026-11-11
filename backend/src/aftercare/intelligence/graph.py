@@ -503,7 +503,7 @@ def _missing_material_notes(eligibility: dict) -> str:
 
 def _refund_status_notes(ledger: list[dict]) -> str:
     if not ledger:
-        return "该订单的退款执行账本未查到执行记录。是否曾申请、是否失败或到账，需另行核对。"
+        return "目前没查到这笔订单的退款处理记录。"
     statuses = {row.get("status") for row in ledger}
     descriptions = [label for status, label in REFUND_RECORD_STATES.items() if status in statuses]
     if statuses - REFUND_RECORD_STATES.keys():
@@ -521,9 +521,10 @@ def _refund_lookup_notes(lookup: dict, ledger: list[dict]) -> str:
         case "INVALID_REFERENCE":
             return "退款执行编号格式不正确，请提供完整编号。"
         case "NOT_FOUND":
-            return "未在本订单查到该编号的退款执行记录。是否曾申请、是否失败或到账，需另行核对。"
+            return "目前没查到这笔订单中该编号的退款处理记录。"
         case _:
-            return f"{_refund_status_notes(ledger)}要查询指定退款，请提供退款执行编号。"
+            notes = _refund_status_notes(ledger)
+            return f"{notes}要查询指定退款，请提供退款执行编号。" if ledger else notes
 
 
 def _output(context: GraphContext, *, reason: str, status: str, decision=None) -> GraphState:

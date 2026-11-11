@@ -24,8 +24,8 @@ test('keeps historical totals separate from a checked empty order ledger or a fa
   const historical = orderRefundPresentation({ledger: [], order: order(35900)}, false);
   assert.deepEqual(zero.notice, {
     type: 'info',
-    title: '未查到该订单的退款执行记录',
-    description: '是否曾申请、是否处理失败或是否实际到账，需另行核对。',
+    title: '目前没查到这笔订单的退款处理记录。',
+    description: undefined,
   });
   assert.equal(zero.historicalRefundedCents, 0);
   assert.deepEqual(historical, {...zero, historicalRefundedCents: 35900});

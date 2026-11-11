@@ -1073,8 +1073,8 @@ def test_wrong_item_wait_uses_only_missing_photos_or_review_guidance(
 @pytest.mark.parametrize(
     ("statuses", "historical", "summary"),
     [
-        ([], 0, "未查到执行记录"),
-        ([], 2400, "未查到执行记录"),
+        ([], 0, "目前没查到这笔订单的退款处理记录。"),
+        ([], 2400, "目前没查到这笔订单的退款处理记录。"),
         (["UNKNOWN"], 0, "结果待确认"),
         (["SUBMITTING"], 0, "提交中"),
         (["SUCCEEDED", "FAILED", "UNKNOWN"], 2400, "执行成功、执行失败、结果待确认"),
@@ -1094,8 +1094,11 @@ def test_refund_status_public_notes_follow_ledger_not_historical_total(
     run = _start(_service(environment), actor, mode="single")
     assert run["status"] == "COMPLETED" and run["reason"] == "STATUS_ONLY"
     output = run["output"]
-    assert "该订单的退款执行账本" in output["notes"] and summary in output["notes"]
-    assert "到账，需另行核对" in output["notes"] or "到账情况需另行核对" in output["notes"]
+    if not statuses:
+        assert output["notes"] == summary
+    else:
+        assert "该订单的退款执行账本" in output["notes"] and summary in output["notes"]
+        assert "到账情况需另行核对" in output["notes"]
     assert output["historical_refunded_cents"] == historical
     assert output["ledger"] == business.ledger
     assert output["action"] is None and output["lines"] == []
@@ -1183,7 +1186,7 @@ def test_refund_publication_preserves_verified_quotes_but_assesses_empty_ledger(
     assert output["citations"] == citations
     assert [row["condition_status"] for row in output["citation_assessments"]] == ["UNMET", "UNMET"]
     assert all(row["scope"]["execution_ids"] == [] for row in output["citation_assessments"])
-    assert "未查到执行记录" in output["notes"] and "超时" not in output["notes"]
+    assert output["notes"] == "目前没查到这笔订单的退款处理记录。"
     assert output["action"] is None and output["ledger"] == []
     history = service.events("case-1", run["id"], actor, 0)
     assert history[-1]["payload"]["output"] == output

@@ -274,7 +274,7 @@ def verify_case(
     if refund:
         evidence["checks"].update(
             status_only=run["status"] == "COMPLETED" and run["reason"] == "STATUS_ONLY",
-            explicitly_no_execution_record="退款执行账本未查到执行记录" in notes,
+            explicitly_no_execution_record=notes == "目前没查到这笔订单的退款处理记录。",
             historical_refund_separate="historical_refunded_cents" in output
             and output["historical_refunded_cents"] == before["order"]["refunded_cents"],
             hybrid=any(
