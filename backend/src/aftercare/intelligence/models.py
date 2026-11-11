@@ -528,6 +528,8 @@ def _estimate_input(messages, tools, *, vision):
 
 
 class ModelRunner:
+    _logical_attempt_limit = MAX_LOGICAL_ATTEMPTS
+
     def __init__(
         self,
         registry: Registry,
@@ -677,7 +679,7 @@ class ModelRunner:
         transcript = list(messages)
         code = "MODEL_FAILED"
         ordinal = 0
-        attempt_limit = 1 if vision else MAX_LOGICAL_ATTEMPTS
+        attempt_limit = 1 if vision else min(MAX_LOGICAL_ATTEMPTS, self._logical_attempt_limit)
         while ordinal < attempt_limit:
             attempt_input = task.input_tokens(selected) + (256 if transcript != messages else 0)
             if data_scope == "customer_conversation":

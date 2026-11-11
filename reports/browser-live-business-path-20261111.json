@@ -1,0 +1,69 @@
+{
+  "status": "PASSED",
+  "scope": "NATIVE_BROWSER_READ_ONLY_FAILED_DRIVER_READBACK",
+  "end_to_end_status": "FAILED",
+  "original_driver_report_sha256": "16cbe8ceb6bc1f153d8d91ec5f061346c60e7da0b6acacfc14adc882e6eb6386",
+  "url": "http://127.0.0.1:5203",
+  "case_id": "8f7e45ab-3e1c-42c3-8db3-b54b93c4abd8",
+  "conversation_id": "a45fc8d3-12a5-4d5d-b66d-3be309854df4",
+  "customer": {
+    "original_messages": 2,
+    "rendered_originals": [
+      {
+        "attachment_id": "4eed822b-97b4-4d47-91c3-179346a7cfbe",
+        "http_status": 200
+      },
+      {
+        "attachment_id": "4a0b7426-aaca-41d1-b3f2-2126d5917597",
+        "http_status": 200
+      }
+    ],
+    "visual_observations": [
+      {
+        "issue_id": "f9dde49d-d947-46b6-8f5c-d47265a0f263",
+        "generation": 2,
+        "attachment_refs": [
+          "4eed822b-97b4-4d47-91c3-179346a7cfbe"
+        ],
+        "summary": "可见商品、疑似裂纹",
+        "certainty": "OBSERVED"
+      },
+      {
+        "issue_id": "f9dde49d-d947-46b6-8f5c-d47265a0f263",
+        "generation": 2,
+        "attachment_refs": [
+          "4a0b7426-aaca-41d1-b3f2-2126d5917597"
+        ],
+        "summary": "可见包裹、疑似凹痕、疑似破口、可见标签、可见印刷标记",
+        "certainty": "OBSERVED"
+      }
+    ],
+    "progress": "PENDING_SUPPORT",
+    "offer_present": false,
+    "simulated_execution_visible": false
+  },
+  "support": {
+    "snapshot_id": "02b1e016-fea8-46e2-9353-50a6d64a945d",
+    "run_id": "66375250-0921-40b7-9e95-2ea2bc570f2f",
+    "candidate_action": "HUMAN_HANDOFF",
+    "fallback_reason": "LIVE_BUSINESS_WORKER_RETRY_OR_UNPRICED_ATTEMPT",
+    "control_material_review_id": "dbdae4dd-4617-4157-b1de-9b75c01d073e",
+    "control_notice_visible": true,
+    "structured_human_observations": false,
+    "support_candidate_review_present": false,
+    "customer_confirmation_present": false,
+    "proposals": 0,
+    "financial_approvals": 0,
+    "executions": 0
+  },
+  "capture": {
+    "id": "dcc579b0d1f10",
+    "requests": 72,
+    "errors": 0,
+    "dropped_requests": 0
+  },
+  "business_write_requests": 0,
+  "owned_browser_session_logged_out_and_closed": true,
+  "private_artifact_directory": ".runtime/browser-demo-di54k1r3/live-business-browser",
+  "limits": "Two synthetic images and published observations; real text call did not yield a validated candidate. No independent human review or financial chain was exercised."
+}

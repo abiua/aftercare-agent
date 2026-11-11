@@ -1,0 +1,49 @@
+{
+  "status": "PARTIAL",
+  "scope": "REAL_NATIVE_CELERY_VISION_TEXT_AND_FALLBACK_WIRING",
+  "original_receipt_sha256": "16cbe8ceb6bc1f153d8d91ec5f061346c60e7da0b6acacfc14adc882e6eb6386",
+  "original_status_preserved": "FAILED",
+  "original_failure_code": "LIVE_BUSINESS_TEXT_NATIVE_BINDING_CHANGED",
+  "conversation_id": "a45fc8d3-12a5-4d5d-b66d-3be309854df4",
+  "case_id": "8f7e45ab-3e1c-42c3-8db3-b54b93c4abd8",
+  "vision_observations": 2,
+  "provider_posts": 2,
+  "http_statuses": [
+    200,
+    200
+  ],
+  "text_validation_error": "TOOL_ARGUMENTS_INVALID",
+  "model_candidate_validated": false,
+  "fallback_candidate": {
+    "id": "02b1e016-fea8-46e2-9353-50a6d64a945d",
+    "version": 1,
+    "sha256": "73c614bd10a8019d8bd6e761d6658c93f1f7186aba99f8b37c05de8ea37ee3dd"
+  },
+  "fallback_actions": [
+    "HUMAN_HANDOFF"
+  ],
+  "native_run_reason": "LIVE_BUSINESS_WORKER_RETRY_OR_UNPRICED_ATTEMPT",
+  "counts": {
+    "chat_conversations": 1,
+    "chat_model_attempts": 1,
+    "chat_observations": 2,
+    "agent_runs": 1,
+    "agent_model_attempts": 1,
+    "intake_model_audits": 0,
+    "business_material_reviews": 1,
+    "chat_decision_snapshots": 1,
+    "chat_support_decisions": 0,
+    "chat_customer_decisions": 0,
+    "business_proposals": 0,
+    "business_approvals": 0,
+    "business_executions": 0,
+    "business_simulated_payments": 0
+  },
+  "estimated_total_usd": "0.00913575",
+  "provider_bill_verified": false,
+  "paid_workers_and_keys_removed": true,
+  "readback_unchanged": true,
+  "business_completion": "NOT_RUN_MODEL_FALLBACK",
+  "human_quality_labels": 0,
+  "financial_operations": "SIMULATED_ONLY_NONE_EXECUTED"
+}
