@@ -482,17 +482,26 @@ def test_scoped_fault_journal_classifies_safe_stage_without_raw_data(
     assert not list(tmp_path.glob("response-*.json"))
 
 
-@pytest.mark.parametrize("isolate_cookies", [False, True])
-def test_default_private_sdk_reuses_response_cookie_across_rounds(
-    isolate_cookies, tmp_path, monkeypatch
-):
+@pytest.mark.parametrize(
+    "protocol", [policy.PROTOCOL, policy.SCOPED_PROTOCOL, policy.EXPANDED_PROTOCOL]
+)
+def test_default_private_sdk_reuses_response_cookie_across_rounds(protocol, tmp_path, monkeypatch):
     from langchain_openai.chat_models import _client_utils
 
     from aftercare.intelligence.models import ModelSpec, _private_transport
 
     plan, binding = _fixture("TEXT")
+    isolate_cookies = protocol != policy.PROTOCOL
     if isolate_cookies:
         plan, binding = _scoped(plan, binding, "SINGLE")
+    if protocol == policy.EXPANDED_PROTOCOL:
+        plan.update(
+            protocol=protocol,
+            output_tokens=4096,
+            maximum_reservation_microusd=600_000,
+            per_post_reserved_microusd=51_200,
+        )
+        binding.update(native_output_tokens=4096, reserved_microusd=51_200)
     _lock(tmp_path)
     raw = json.dumps(plan).encode()
     plan_path = tmp_path / "plan.json"
@@ -548,7 +557,7 @@ def test_default_private_sdk_reuses_response_cookie_across_rounds(
             "interface": "responses",
             "api_key_env": "AFTERCARE_OPENAI_KEY",
             "context_tokens": 32000,
-            "output_tokens": 1800,
+            "output_tokens": plan["output_tokens"],
             "input_usd_per_million": "1",
             "output_usd_per_million": "1",
             "price_date": "2026-11-11",
@@ -557,7 +566,7 @@ def test_default_private_sdk_reuses_response_cookie_across_rounds(
         }
     )
     with namespace["attempt"](binding):
-        response = _private_transport(spec, _messages(plan, binding), [], 5, 1800)
+        response = _private_transport(spec, _messages(plan, binding), [], 5, plan["output_tokens"])
         assert response.content[0]["text"] == "{}"
     followup = [
         *_messages(plan, binding),
@@ -572,7 +581,7 @@ def test_default_private_sdk_reuses_response_cookie_across_rounds(
     next_binding = {**binding, "native_logical_id": "p4:compact-v7:single:1"}
     if isolate_cookies:
         with namespace["attempt"](next_binding):
-            response = _private_transport(spec, followup, [], 5, 1800)
+            response = _private_transport(spec, followup, [], 5, plan["output_tokens"])
             assert response.content[0]["text"] == "{}"
             assert response.usage_metadata["total_tokens"] == 15
         assert provider_calls == [False, False]
@@ -589,7 +598,7 @@ def test_default_private_sdk_reuses_response_cookie_across_rounds(
             namespace["attempt"](next_binding),
             pytest.raises(policy.WireDenied, match="REQUEST_COOKIE"),
         ):
-            _private_transport(spec, followup, [], 5, 1800)
+            _private_transport(spec, followup, [], 5, plan["output_tokens"])
         assert provider_calls == [False]
 
 
@@ -610,3 +619,36 @@ def test_request_header_failures_have_distinct_safe_codes(header, value, code):
     request.headers[header] = value
     with pytest.raises(policy.WireDenied, match=f"^LIVE_BUSINESS_WIRE_{code}$"):
         policy.verify_request(plan, binding, request, KEY)
+
+
+def test_v3_budget_and_native_output_are_bound_without_legacy_upgrade():
+    plan, binding = _scoped(*_fixture("TEXT"), "SINGLE")
+    expanded = {
+        **plan,
+        "protocol": policy.EXPANDED_PROTOCOL,
+        "output_tokens": 4096,
+        "maximum_reservation_microusd": 600_000,
+        "per_post_reserved_microusd": 51_200,
+    }
+    policy.validate_plan(expanded)
+    policy.validate_plan(plan)
+    with pytest.raises(policy.WireDenied, match="PLAN_LIMITS"):
+        policy.validate_plan({**expanded, "protocol": policy.SCOPED_PROTOCOL})
+    with pytest.raises(policy.WireDenied, match="PLAN_LIMITS"):
+        policy.validate_plan({**expanded, "per_post_reserved_microusd": 39_720})
+    with pytest.raises(policy.WireDenied, match="NATIVE_OUTPUT_RESERVE"):
+        policy.validate_binding(expanded, {**binding, "native_output_tokens": 1800})
+    native = {**binding, "native_output_tokens": 4096, "reserved_microusd": 51_200}
+    policy.verify_request(expanded, native, _request(expanded, native), KEY)
+    with pytest.raises(policy.WireDenied, match="REQUEST_OPTIONS"):
+        policy.verify_request(expanded, native, _request(plan, binding), KEY)
+
+
+def test_v3_keeps_existing_two_image_vision_preset():
+    plan, binding = _scoped(*_fixture("VISION"), "SINGLE")
+    expanded = {**plan, "protocol": policy.EXPANDED_PROTOCOL}
+    policy.validate_plan(expanded)
+    assert (
+        policy.verify_request(expanded, binding, _request(expanded, binding), KEY)["sent_sha256s"]
+        == plan["sent_sha256s"]
+    )

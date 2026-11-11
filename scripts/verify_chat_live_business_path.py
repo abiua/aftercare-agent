@@ -33,7 +33,8 @@ STATE = ROOT / ".runtime/offline-browser-demo-live-business.json"
 WIRE_GATE = ROOT / "scripts/chat_live_business_wire_gate"
 WORKER = ROOT / "scripts/live_business_worker.py"
 WIRE_CAPS = {"VISION": (1, 50_000, 44_500, 900), "TEXT": (8, 400_000, 39_720, 1800)}
-MAX_TEXT_CALLS = 8
+WIRE_V1, WIRE_V2, WIRE_V3 = (f"p5-live-business-wire-v{version}" for version in (1, 2, 3))
+WIRE_V3_TEXT = (8, 600_000, 51_200, 4096)
 MAX_TEXT_USD = Decimal("0.40")
 MAX_VISION_USD = Decimal("0.05")
 ISSUE_MICROUSD = 200_000
@@ -50,8 +51,14 @@ def _micro(value):
     return int((value * 1_000_000).to_integral_value(rounding=ROUND_CEILING))
 
 
-def _budgets(spec, photos):
-    text_output = models.P4_OUTPUT_RESERVE
+def _wire_caps(phase, protocol=WIRE_V1):
+    require(protocol in {WIRE_V1, WIRE_V2, WIRE_V3}, "LIVE_BUSINESS_WIRE_PROTOCOL_UNSUPPORTED")
+    return WIRE_V3_TEXT if phase == "TEXT" and protocol == WIRE_V3 else WIRE_CAPS[phase]
+
+
+def _budgets(spec, photos, *, wire_protocol=WIRE_V1):
+    text_calls, text_cap_micro, wire_reserve, text_output = _wire_caps("TEXT", wire_protocol)
+    text_cap = Decimal(text_cap_micro).scaleb(-6).quantize(Decimal("0.00"))
     text_input = models.P4_INPUT_LIMIT
     photo_input, _ = models._estimate_input(vision._messages(photos), [], vision=True)
     vision_reserve = models._reserve_price(spec, spec.context_tokens, VISION_OUTPUT)
@@ -71,12 +78,11 @@ def _budgets(spec, photos):
     )
     vision_micro, text_micro = _micro(vision_reserve), _micro(text_reserve)
     require(
-        (vision_micro, text_micro) == (WIRE_CAPS["VISION"][2], WIRE_CAPS["TEXT"][2]),
+        (vision_micro, text_micro) == (WIRE_CAPS["VISION"][2], wire_reserve),
         "LIVE_BUSINESS_WIRE_RESERVATION_CHANGED",
     )
     require(
-        vision_micro <= _micro(MAX_VISION_USD)
-        and text_micro * MAX_TEXT_CALLS <= _micro(MAX_TEXT_USD),
+        vision_micro <= _micro(MAX_VISION_USD) and text_micro * text_calls <= text_cap_micro,
         "LIVE_BUSINESS_ESTIMATED_RESERVATION_CAP_EXCEEDED",
     )
     return {
@@ -91,10 +97,10 @@ def _budgets(spec, photos):
             "reserve_basis_input_tokens": spec.context_tokens,
         },
         "text": {
-            "maximum_posts": MAX_TEXT_CALLS,
-            "maximum_estimated_usd": str(MAX_TEXT_USD),
+            "maximum_posts": text_calls,
+            "maximum_estimated_usd": str(text_cap),
             "reserve_per_post_microusd": text_micro,
-            "reserve_at_post_limit_microusd": text_micro * MAX_TEXT_CALLS,
+            "reserve_at_post_limit_microusd": text_micro * text_calls,
             "input_tokens": text_input,
             "output_tokens": text_output,
         },
@@ -102,7 +108,7 @@ def _budgets(spec, photos):
             "calls": ISSUE_CALLS,
             "microusd": ISSUE_MICROUSD,
             "upper_text_posts_if_vision_full_reserve_remains_booked": min(
-                MAX_TEXT_CALLS, (ISSUE_MICROUSD - vision_micro) // text_micro
+                text_calls, (ISSUE_MICROUSD - vision_micro) // text_micro
             ),
             "runtime_uses_remaining_native_ledger_headroom": True,
         },
@@ -145,7 +151,7 @@ def _network_pins():
     return SUBNETS
 
 
-def _preflight(image_receipt, *, control_modify=False):
+def _preflight(image_receipt, *, control_modify=False, wire_protocol=WIRE_V1):
     require(not STATE.exists(), "LIVE_BUSINESS_STATE_ALREADY_EXISTS")
     endpoint = os.environ.get("DOCKER_HOST")
     require(
@@ -159,9 +165,10 @@ def _preflight(image_receipt, *, control_modify=False):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind(("127.0.0.1", port))
     seed, assets, _, photos = _inputs()
-    budget = _budgets(_configuration()["gpt-6.1-terra"], photos)
+    budget = _budgets(_configuration()["gpt-6.1-terra"], photos, wire_protocol=wire_protocol)
     return {
         "protocol": "chat-live-business-path-plan-v1",
+        **({"wire_protocol": wire_protocol} if wire_protocol != WIRE_V1 else {}),
         "target": {
             "profile": "test",
             "port": PORT,
@@ -505,6 +512,11 @@ def _complete_business(clients, case, conversation, snapshot, report, output, *,
 def _native(stack, report):
     conversation = str(UUID(report["conversation_id"]))
     case = str(UUID(report["case_id"]))
+    reserve_check = (
+        "assert settings.chat_investigation_output_reserve == 4096"
+        if report.get("plan", {}).get("wire_protocol") == WIRE_V3
+        else ""
+    )
     return stack.json_exec(
         "LIVE_BUSINESS_NATIVE_READBACK",
         owned_container(stack, "api"),
@@ -516,6 +528,7 @@ from aftercare.db import guarded_engine
 settings=load_settings('test')
 assert settings.container and settings.chat_analysis_enabled and settings.chat_decisions_enabled
 assert settings.chat_investigation_protocol=='compact-v7'
+{reserve_check}
 assert not any((settings.model_enabled,settings.chat_vision_enabled,settings.embedding_enabled))
 engine=guarded_engine(settings,test_only=True)
 P={{'conversation':{conversation!r},'case':{case!r}}}
@@ -619,11 +632,12 @@ def _phase_registry(spec, plan, phase, photos):
     cap = (
         str(Decimal(budget["reserved_microusd"]) / 1_000_000)
         if phase == "VISION"
-        else str(MAX_TEXT_USD)
+        else budget["maximum_estimated_usd"]
     )
+    suffix = "v3" if phase == "TEXT" and plan.get("wire_protocol") == WIRE_V3 else "v1"
     return models.Registry.model_validate(
         {
-            "version": "p5-live-business-" + phase.lower() + "-v1",
+            "version": f"p5-live-business-{phase.lower()}-{suffix}",
             "models": [spec_data],
             "allowed_providers": ["openai"],
             "native_streaming": False,
@@ -731,18 +745,22 @@ def _paid_phase(stack, state, plan, report, output, phase, turn, photos, *, proj
     stage.mkdir(mode=0o700)
     name = f"{stack.prefix}-live-{phase.lower()}"
     require(stack.owned("container", name) is None, "LIVE_BUSINESS_PAID_WORKER_ALREADY_EXISTS")
-    count, cap, reserve, tokens = WIRE_CAPS[phase]
+    protocol = plan.get("wire_protocol", WIRE_V1)
+    count, cap, reserve, tokens = _wire_caps(phase, protocol)
+    budget = plan["budget"][phase.lower()]
+    require(
+        budget["maximum_posts"] == count
+        and budget["output_tokens"] == tokens
+        and _micro(Decimal(budget["maximum_estimated_usd"])) == cap
+        and budget.get("reserve_per_post_microusd", budget.get("reserved_microusd")) == reserve,
+        "LIVE_BUSINESS_PHASE_BUDGET_MISMATCH",
+    )
     spec = _configuration()["gpt-6.1-terra"]
     require(
         digest(spec.model_dump(mode="json")) == plan["budget"]["source_model_spec_sha256"],
         "LIVE_BUSINESS_MODEL_SPEC_CHANGED",
     )
     registry = _phase_registry(spec, plan, phase, photos)
-    protocol = plan.get("wire_protocol", "p5-live-business-wire-v1")
-    require(
-        protocol in {"p5-live-business-wire-v1", "p5-live-business-wire-v2"},
-        "LIVE_BUSINESS_WIRE_PROTOCOL_UNSUPPORTED",
-    )
     gate_plan = {
         "protocol": protocol,
         "kind": phase,
@@ -761,9 +779,9 @@ def _paid_phase(stack, state, plan, report, output, phase, turn, photos, *, proj
         "worker_script_sha256": plan["gates"]["worker_script_sha256"],
         "gate_script_sha256": plan["gates"]["gate_script_sha256"],
     }
-    if protocol == "p5-live-business-wire-v2":
+    if protocol in {WIRE_V2, WIRE_V3}:
         gate_plan.update(case_scope=plan["case_scope"], expected_route=plan["expected_route"])
-    if phase == "VISION" or protocol == "p5-live-business-wire-v2":
+    if phase == "VISION" or protocol in {WIRE_V2, WIRE_V3}:
         gate_plan.update(
             original_sha256s=plan["fixture"]["original_sha256s"],
             sent_sha256s=plan["fixture"]["sent_jpeg_sha256s"],
@@ -963,7 +981,8 @@ def _assert_wire(report, phase):
     )
     ledger = cleanup["wire"]
     admissions, responses = ledger["admissions"], ledger["responses"]
-    count, cap, _, _ = WIRE_CAPS[phase]
+    protocol = report.get("plan", {}).get("wire_protocol", WIRE_V1)
+    count, cap, reserve, tokens = _wire_caps(phase, protocol)
     require(
         0 < len(admissions) == len(responses) <= count
         and not ledger["delivery_unknown"]
@@ -972,7 +991,8 @@ def _assert_wire(report, phase):
             admission["index"] == response["index"]
             and admission["request_sha256"] == response["request_sha256"]
             and response["http_status"] == 200
-            and 0 < admission["reserved_microusd"] <= admission["wire_reserved_microusd"]
+            and 0 < admission["reserved_microusd"] <= admission["wire_reserved_microusd"] == reserve
+            and admission["output_tokens"] == tokens
             and admission["kind"] == phase
             and all(
                 admission[key] == report[key] for key in ("conversation_id", "case_id", "issue_id")
@@ -1014,6 +1034,8 @@ def _boot(plan, report, output, seed):
                 chat_investigation_issue_max_calls=ISSUE_CALLS,
                 chat_investigation_issue_max_microusd=ISSUE_MICROUSD,
             )
+            if plan.get("wire_protocol") == WIRE_V3:
+                values["app"]["chat_investigation_output_reserve"] = _wire_caps("TEXT", WIRE_V3)[3]
             staged = config.with_suffix(".live-business")
             private_write(staged, json.dumps(values))
             staged.replace(config)

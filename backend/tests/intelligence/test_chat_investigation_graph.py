@@ -132,7 +132,17 @@ def _review(*claims, request=None):
     }
 
 
-def _run(value, path, script, *, tools=None, arm="auto", extra=None, protocol=LEGACY_V6):
+def _run(
+    value,
+    path,
+    script,
+    *,
+    tools=None,
+    arm="auto",
+    extra=None,
+    protocol=LEGACY_V6,
+    output_reserve=1800,
+):
     audit = Audit()
     ctx = InvestigationContext(
         value,
@@ -146,6 +156,7 @@ def _run(value, path, script, *, tools=None, arm="auto", extra=None, protocol=LE
         frozenset({"line", "POL01:v1"}),
         arm=arm,
         protocol=protocol,
+        output_reserve=output_reserve,
     )
     graph = build_investigation_graph(InMemorySaver())
     config = {"configurable": {"thread_id": "controlled"}, "recursion_limit": 30}
@@ -844,9 +855,11 @@ def test_v7_tool_receipts_link_previously_shown_records(investigation):
     projection = PromptEvidence(investigation, protocol=HUMAN_PAYMENT_V7)
     view = projection.prompt(investigation.role_view("strong_single"))
     assert view["receipt_encoding"] == "phase-record-links-v1"
-    receipt = InvestigationTools(investigation).call(
-        "strong_single", "read_order_lines", {"line_ids": ["line2"]}
-    ).model_dump(mode="json")
+    receipt = (
+        InvestigationTools(investigation)
+        .call("strong_single", "read_order_lines", {"line_ids": ["line2"]})
+        .model_dump(mode="json")
+    )
     original = deepcopy(receipt)
     first = projection.tool_receipt(receipt)["data"]
     second = projection.tool_receipt(receipt)["data"]
@@ -882,3 +895,31 @@ def test_v7_output_schema_omits_only_schema_titles():
         "required": ["title"],
     }
     assert schema["title"] == "Root"
+
+
+def test_extended_reserve_uses_only_bound_v7_value_in_provider_call_and_trace(investigation):
+    from aftercare.intelligence.models import ModelFailure
+    from aftercare.intelligence.service import _bound_output_reserve
+
+    assert _bound_output_reserve({}, LEGACY_V6) == 1800
+    assert _bound_output_reserve({}, HUMAN_PAYMENT_V7) == 1800
+    binding = {"investigation_output_reserve": 4096}
+    with pytest.raises(ModelFailure, match="INVESTIGATION_OUTPUT_RESERVE_INVALID"):
+        _bound_output_reserve(binding, LEGACY_V6)
+    with pytest.raises(ModelFailure, match="INVESTIGATION_OUTPUT_RESERVE_INVALID"):
+        _bound_output_reserve({"investigation_output_reserve": "4096"}, HUMAN_PAYMENT_V7)
+
+    def complete(kwargs):
+        assert kwargs["output_reserve"] == 4096
+        return {"claims": [], "options": [], "unresolved": ["missing evidence"]}
+
+    model = Script({"p4:compact-v7:single:0": complete})
+    _, events = _run(
+        investigation,
+        "SINGLE",
+        model,
+        protocol=HUMAN_PAYMENT_V7,
+        output_reserve=_bound_output_reserve(binding, HUMAN_PAYMENT_V7),
+    )
+    (trace,) = [row for kind, row in events if kind == "investigation_prompt_budget"]
+    assert trace["max_output_tokens"] == 4096

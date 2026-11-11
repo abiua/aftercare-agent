@@ -68,8 +68,14 @@ ORDINARY_REPEATS = {
         "net": "10.253.252.192/28",
         "ingress": "10.253.252.208/28",
     },
+    6: {
+        "port": 5210,
+        "object_port": 58372,
+        "net": "10.253.252.224/28",
+        "ingress": "10.253.252.240/28",
+    },
 }
-PROTOCOL = "p5-live-business-wire-v2"
+PROTOCOL = driver.WIRE_V3
 FINANCIAL = (
     "business_proposals",
     "business_approvals",
@@ -164,7 +170,7 @@ def _fixture(name):
 
 
 def _preflight(name, image_receipt, *, attempt=1):
-    plan = driver._preflight(image_receipt, control_modify=False)
+    plan = driver._preflight(image_receipt, control_modify=False, wire_protocol=PROTOCOL)
     seed, assets, _, photos, case = _fixture(name)
     scenario = SCENARIOS[name]
     plan["protocol"] = "chat-live-success-plan-v1"
@@ -192,8 +198,10 @@ def _preflight(name, image_receipt, *, attempt=1):
         plan["protected_state"].append("5206_ORDINARY_R2_PARTIAL_NO_REPLAY")
     if attempt >= 4:
         plan["protected_state"].append("5207_ORDINARY_R3_ADAPTER_FAILURE_NO_REPLAY")
-    if attempt == 5:
+    if attempt >= 5:
         plan["protected_state"].append("5208_ORDINARY_R4_PREWIRE_DENIAL_NO_REPLAY")
+    if attempt == 6:
+        plan["protected_state"].append("5209_ORDINARY_R5_OUTPUT_TRUNCATED_NO_REPLAY")
     plan["gates"]["success_driver_sha256"] = _hash(Path(__file__))
     plan["complex_fixture_sha256"] = _hash(CASES) if case else None
     plan["completion"] = (

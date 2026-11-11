@@ -241,6 +241,14 @@ def test_v2_requires_observed_native_route_and_frozen_order_scope(monkeypatch):
     )
     audit = SimpleNamespace(run_id="run", cycle=0)
     assert worker._text_scope(db, plan, audit)["run_id"] == "run"
+    expanded = {**plan, "protocol": worker.EXPANDED_PROTOCOL}
+    with pytest.raises(ValueError, match="NATIVE_OUTPUT_RESERVE_REJECTED"):
+        worker._text_scope(db, expanded, audit)
+    binding["investigation_output_reserve"] = 4096
+    assert worker._text_scope(db, expanded, audit)["native_output_tokens"] == 4096
+    with pytest.raises(ValueError, match="NATIVE_OUTPUT_RESERVE_REJECTED"):
+        worker._text_scope(db, plan, audit)
+    del binding["investigation_output_reserve"]
     route["selected_path"] = "SINGLE"
     with pytest.raises(ValueError, match="NATIVE_ROUTE_REJECTED"):
         worker._text_scope(db, plan, audit)

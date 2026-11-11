@@ -21,7 +21,13 @@ from aftercare.db import User, guarded_engine
 from aftercare.decisions.contracts import DecisionScope
 from aftercare.evaluation.service import require_current_code
 from aftercare.intelligence.decision_candidate import load_binding
-from aftercare.intelligence.models import ModelFailure, ModelRunner, Registry
+from aftercare.intelligence.models import (
+    P4_INPUT_LIMIT,
+    ModelFailure,
+    ModelRunner,
+    Registry,
+    _reserve_price,
+)
 from aftercare.intelligence.tables import AgentRun, ModelAttempt, RunEvent
 from aftercare.investigation.input import build_input
 from aftercare.investigation.protocol import HUMAN_PAYMENT_V7, protocol_for_binding
@@ -32,6 +38,8 @@ from sqlalchemy.orm import Session
 WIRE = Path("/live-business-wire")
 PROTOCOL = "p5-live-business-wire-v1"
 SCOPED_PROTOCOL = "p5-live-business-wire-v2"
+EXPANDED_PROTOCOL = "p5-live-business-wire-v3"
+SCOPED_PROTOCOLS = {SCOPED_PROTOCOL, EXPANDED_PROTOCOL}
 TASKS = {"VISION": "aftercare.chat_analysis", "TEXT": "aftercare.chat_investigation_start"}
 CAPS = {"VISION": (1, 900, 50_000), "TEXT": (8, 1800, 400_000)}
 
@@ -75,7 +83,7 @@ def _preflight(gate):
     plan_sha = sha256(plan_bytes).hexdigest()
     kind = plan["kind"]
     _require(
-        plan["protocol"] in {PROTOCOL, SCOPED_PROTOCOL}
+        plan["protocol"] in {PROTOCOL, *SCOPED_PROTOCOLS}
         and getattr(gate, "PLAN", None) == plan
         and kind in CAPS
         and os.environ.get("P5_LIVE_BUSINESS_PLAN_SHA256") == plan_sha
@@ -101,7 +109,8 @@ def _preflight(gate):
         and bool(re.fullmatch(r"[A-Za-z0-9_-]{1,80}", plan["campaign_id"])),
         "LIVE_BUSINESS_WORKER_SCOPE_REJECTED",
     )
-    calls, output, cap = CAPS[kind]
+    expanded = plan["protocol"] == EXPANDED_PROTOCOL
+    calls, output, cap = (8, 4096, 600_000) if expanded and kind == "TEXT" else CAPS[kind]
     registry = Registry.model_validate_json(_private(WIRE / "registry.json"))
     _require(
         len(registry.models) == 1
@@ -132,6 +141,16 @@ def _preflight(gate):
         == {"customer_attachment" if kind == "VISION" else "customer_conversation"},
         "LIVE_BUSINESS_WORKER_MODEL_REJECTED",
     )
+    if expanded:
+        token_basis = spec.context_tokens if kind == "VISION" else P4_INPUT_LIMIT
+        cost = _reserve_price(spec, token_basis, output)
+        _require(
+            cost is not None
+            and plan["per_post_reserved_microusd"]
+            == int((cost * 1_000_000).to_integral_value(rounding=ROUND_CEILING))
+            and calls * plan["per_post_reserved_microusd"] <= cap,
+            "LIVE_BUSINESS_WORKER_WIRE_RESERVE_REJECTED",
+        )
     settings = load_settings("test")
     _require(
         settings.container
@@ -140,6 +159,9 @@ def _preflight(gate):
         and settings.chat_decisions_enabled
         and settings.chat_investigation_enabled is (kind == "TEXT")
         and settings.chat_investigation_protocol == "compact-v7"
+        and (
+            kind != "TEXT" or getattr(settings, "chat_investigation_output_reserve", 1800) == output
+        )
         and settings.chat_investigation_issue_max_calls == 16
         and settings.chat_investigation_issue_max_microusd == 200_000
         and not any(
@@ -174,7 +196,7 @@ def _scope(db, plan, *, status):
         "order_id": "O9902",
         "line_ids": ["L01"],
     }
-    if plan["protocol"] == SCOPED_PROTOCOL:
+    if plan["protocol"] in SCOPED_PROTOCOLS:
         order = db.get_one(Order, scope["order_id"])
         _require(
             order.customer_id == scope["customer_id"]
@@ -230,7 +252,7 @@ def _text_scope(db, plan, audit):
         and protocol_for_binding(binding, scope) == HUMAN_PAYMENT_V7,
         "LIVE_BUSINESS_WORKER_NATIVE_RUN_REJECTED",
     )
-    if plan["protocol"] == SCOPED_PROTOCOL:
+    if plan["protocol"] in SCOPED_PROTOCOLS:
         planned = plan["case_scope"]
         routes = list(
             db.scalars(
@@ -252,9 +274,20 @@ def _text_scope(db, plan, audit):
             and scope.business_versions.get("order") == planned["order_version"],
             "LIVE_BUSINESS_WORKER_NATIVE_ROUTE_REJECTED",
         )
+    output_reserve = binding.get("investigation_output_reserve", 1800)
+    _require(
+        type(output_reserve) is int
+        and output_reserve == (4096 if plan["protocol"] == EXPANDED_PROTOCOL else 1800),
+        "LIVE_BUSINESS_WORKER_NATIVE_OUTPUT_RESERVE_REJECTED",
+    )
     value = build_input(scope, evidence_projection=HUMAN_PAYMENT_V7.evidence_projection)
     return {
         "run_id": run.id,
+        **(
+            {"native_output_tokens": output_reserve}
+            if plan["protocol"] == EXPANDED_PROTOCOL
+            else {}
+        ),
         "scope_sha256": digest(scope.model_dump(mode="json")),
         "relevant_input_sha256": value.relevant_input_sha256,
         "policy_catalogue_sha256": value.policy_context["catalogue_sha256"],
@@ -276,7 +309,7 @@ def _attempt_binding(plan, audit, logical_id, ordinal, reserve):
         "native_ordinal": ordinal,
         "reserved_microusd": micro,
     }
-    if plan["protocol"] == SCOPED_PROTOCOL:
+    if plan["protocol"] in SCOPED_PROTOCOLS:
         binding.update(case_scope=plan["case_scope"], expected_route=plan["expected_route"])
     engine = audit.service.engine if plan["kind"] == "VISION" else audit.engine
     with Session(engine) as db, db.begin():
@@ -304,7 +337,12 @@ def _attempt_binding(plan, audit, logical_id, ordinal, reserve):
             _require(
                 attempt.status == "STARTED"
                 and Decimal(attempt.metadata_json["reserved_cost_usd"]) == reserve
-                and attempt.metadata_json["transport_evidence"]["path"] == "DEFAULT_SYNC",
+                and attempt.metadata_json["transport_evidence"]["path"] == "DEFAULT_SYNC"
+                and (
+                    plan["protocol"] != EXPANDED_PROTOCOL
+                    or attempt.metadata_json["transport_evidence"].get("max_output_tokens")
+                    == plan["output_tokens"]
+                ),
                 "LIVE_BUSINESS_WORKER_NATIVE_TEXT_ATTEMPT_REJECTED",
             )
     return binding
@@ -322,7 +360,9 @@ class _GateAudit:
             raise ModelFailure("LIVE_BUSINESS_WORKER_RETRY_OR_UNPRICED_ATTEMPT")
         if self.plan.get(
             "protocol"
-        ) == SCOPED_PROTOCOL and not self.gate.policy.admitted_logical_phase(self.plan, logical_id):
+        ) in SCOPED_PROTOCOLS and not self.gate.policy.admitted_logical_phase(
+            self.plan, logical_id
+        ):
             raise ModelFailure("LIVE_BUSINESS_WORKER_UNPLANNED_NATIVE_PHASE")
         remaining = self.audit.begin_attempt(logical_id, ordinal, spec, reserve, registry, **kwargs)
         self.stack.enter_context(

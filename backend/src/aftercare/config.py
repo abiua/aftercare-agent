@@ -32,6 +32,7 @@ class Settings(BaseModel):
     chat_analysis_enabled: bool = False
     chat_decisions_enabled: bool = False
     chat_investigation_enabled: bool = False
+    chat_investigation_output_reserve: Literal[1800, 4096] = 1800
     chat_investigation_protocol: Literal["compact-v6", "compact-v7"] = "compact-v6"
     chat_investigation_issue_max_calls: int = Field(default=16, strict=True, ge=1, le=144)
     chat_investigation_issue_max_microusd: int = Field(default=200_000, strict=True, ge=1, le=10_000_000)

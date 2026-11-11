@@ -139,11 +139,61 @@ def test_ordinary_attempts_use_disjoint_targets_and_keep_business_scope(success)
         assert (first_subnets | second_subnets | third_subnets | fourth_subnets).isdisjoint(
             success.driver.SUBNETS.values()
         )
+        fifth_subnets = set(success.driver.SUBNETS.values())
+    with success._target("ordinary", 6) as sixth:
+        assert sixth not in {first, second, third, fourth, fifth}
+        assert sixth.name.endswith("ordinary-r6.json")
+        assert success.offline_demo.STATE == success.driver.STATE == sixth
+        assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5210, 58372)
+        assert set(success.driver.SUBNETS.values()) == {"10.253.252.224/28", "10.253.252.240/28"}
+        assert (
+            first_subnets | second_subnets | third_subnets | fourth_subnets | fifth_subnets
+        ).isdisjoint(success.driver.SUBNETS.values())
     with success._target("complex"):
         assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5205, 58367)
     assert success.driver.STATE == prior
     with (
         pytest.raises(success.VerificationError, match="LIVE_SUCCESS_ATTEMPT_UNSUPPORTED"),
-        success._target("complex", 5),
+        success._target("complex", 6),
     ):
         pytest.fail("complex retry should not be admitted")
+
+
+def test_v3_registry_budget_is_derived_without_changing_historical_or_issue_caps(success):
+    driver = success.driver
+    spec = driver.models.ModelSpec.model_validate(
+        {
+            "alias": "economy",
+            "provider": "openai",
+            "model": "gpt-6.1-terra",
+            "endpoint": "https://api.openai.com/v1",
+            "interface": "responses",
+            "api_key_env": "AFTERCARE_OPENAI_KEY",
+            "context_tokens": 32000,
+            "output_tokens": 900,
+            "input_usd_per_million": "1",
+            "output_usd_per_million": "5",
+            "cache_read_usd_per_million": "0.10",
+            "cache_write_usd_per_million": "1.25",
+            "cache_write_ttl": "30m",
+            "price_date": "2026-11-11",
+            "source": "offline fixture",
+            "data_scopes": ["customer_attachment"],
+        }
+    )
+    _, _, _, photos = driver._inputs()
+    historical = driver._budgets(spec, photos)
+    updated = driver._budgets(spec, photos, wire_protocol=success.PROTOCOL)
+    assert historical["text"]["output_tokens"] == 1800
+    assert historical["text"]["maximum_estimated_usd"] == "0.40"
+    assert updated["vision"] == historical["vision"]
+    assert updated["text"]["output_tokens"] == 4096
+    assert updated["text"]["maximum_estimated_usd"] == "0.60"
+    assert updated["text"]["maximum_posts"] == 8
+    assert updated["text"]["reserve_per_post_microusd"] == 51_200
+    assert updated["text"]["reserve_at_post_limit_microusd"] == 409_600
+    assert updated["native_shared_issue"] == historical["native_shared_issue"]
+    plan = {"budget": updated, "wire_protocol": success.PROTOCOL}
+    registry = driver._phase_registry(spec, plan, "TEXT", photos)
+    assert registry["models"][0]["output_tokens"] == 4096
+    assert registry["max_run_usd"] == "0.60"

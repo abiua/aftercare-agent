@@ -131,6 +131,7 @@ class InvestigationContext:
     policy_authority: dict | None = None
     protocol: InvestigationProtocol = LEGACY_V6
     counterexample_ablation: bool = False
+    output_reserve: int = P4_OUTPUT_RESERVE
 
 
 class ProtectedAudit:
@@ -338,7 +339,7 @@ def run_phase(
                 "limit": INVESTIGATION_INPUT_TOKEN_LIMIT,
                 "evidence_count": len(evidence_ids),
                 "tool_receipt_count": len(receipts),
-                "max_output_tokens": P4_OUTPUT_RESERVE,
+                "max_output_tokens": context.output_reserve,
                 "allowed_tool_batch": allowed
                 if with_tools <= INVESTIGATION_INPUT_TOKEN_LIMIT
                 else 0,
@@ -397,7 +398,7 @@ def run_phase(
             validate=validate,
             fixed=context.strategy != "routed",
             data_scope="customer_conversation",
-            output_reserve=P4_OUTPUT_RESERVE,
+            output_reserve=context.output_reserve,
         )
         if "result" in response:
             return response["result"], sorted(evidence_ids), receipts, used

@@ -31,6 +31,7 @@ from aftercare.intelligence.decision_candidate import (
 from aftercare.intelligence.graph import GraphContext, build_graph
 from aftercare.intelligence.model_limits import ProviderLimiter
 from aftercare.intelligence.models import (
+    P4_EXTENDED_OUTPUT_RESERVE,
     P4_OUTPUT_RESERVE,
     ModelFailure,
     ModelRunner,
@@ -570,6 +571,19 @@ class RunAudit:
                 _event(session, run, "attempt", self._audit_payload(attempt))
 
 
+def _bound_output_reserve(binding, protocol):
+    if "investigation_output_reserve" not in binding:
+        return P4_OUTPUT_RESERVE
+    value = binding["investigation_output_reserve"]
+    if (
+        protocol.evidence_projection is None
+        or type(value) is not int
+        or value != P4_EXTENDED_OUTPUT_RESERVE
+    ):
+        raise ModelFailure("INVESTIGATION_OUTPUT_RESERVE_INVALID")
+    return value
+
+
 class AgentService:
     def __init__(
         self,
@@ -828,6 +842,14 @@ class AgentService:
                     binding["investigation_prompt_version"] = protocol.prompt_version
                     if protocol.evidence_projection is not None:
                         binding["investigation_evidence_projection"] = protocol.evidence_projection
+                    if (
+                        protocol.evidence_projection is not None
+                        and getattr(
+                            self.settings, "chat_investigation_output_reserve", P4_OUTPUT_RESERVE
+                        )
+                        == P4_EXTENDED_OUTPUT_RESERVE
+                    ):
+                        binding["investigation_output_reserve"] = P4_EXTENDED_OUTPUT_RESERVE
                     binding["investigation_policy_catalogue_version"] = CATALOGUE_VERSION
                 if decision_turn_id is not None and not auto_turn_current(
                     session, decision_scope, user.user_id, decision_turn_id
@@ -1260,6 +1282,7 @@ class AgentService:
                     scope,
                     binding["investigation_arm"],
                     protocol=protocol,
+                    output_reserve=_bound_output_reserve(binding, protocol),
                     counterexample_ablation=binding.get(
                         "investigation_counterexample_ablation", False
                     ),
@@ -1307,7 +1330,14 @@ class AgentService:
             raise ModelFailure("INVESTIGATION_POLICY_CATALOGUE_CHANGED")
 
     def _investigation_context(
-        self, legacy, scope, arm, *, protocol=LEGACY_V6, counterexample_ablation=False
+        self,
+        legacy,
+        scope,
+        arm,
+        *,
+        protocol=LEGACY_V6,
+        counterexample_ablation=False,
+        output_reserve=P4_OUTPUT_RESERVE,
     ):
         try:
             value = (
@@ -1324,11 +1354,22 @@ class AgentService:
         model, reserve = None, None
         if legacy.model and route.path != "PROGRAM":
             registry = legacy.model.registry
+            if output_reserve == P4_EXTENDED_OUTPUT_RESERVE and not any(
+                spec.alias == "analysis"
+                and "customer_conversation" in spec.data_scopes
+                and spec.output_tokens >= output_reserve
+                and spec.cache_write_ttl != "12h"
+                and spec.context_tokens >= INVESTIGATION_INPUT_TOKEN_LIMIT + output_reserve
+                and _reserve_price(spec, INVESTIGATION_INPUT_TOKEN_LIMIT, output_reserve)
+                is not None
+                for spec in registry.models
+            ):
+                raise ModelFailure("INVESTIGATION_OUTPUT_RESERVE_UNAVAILABLE")
             caps = [cap for cap in (registry.max_usd, registry.max_run_usd) if cap is not None]
             if caps and min(caps) > 0:
                 model = legacy.model.with_evaluation_limits(calls=8, budget=min(caps))
                 costs = [
-                    _reserve_price(spec, INVESTIGATION_INPUT_TOKEN_LIMIT, P4_OUTPUT_RESERVE)
+                    _reserve_price(spec, INVESTIGATION_INPUT_TOKEN_LIMIT, output_reserve)
                     for spec in registry.models
                     if "customer_conversation" in spec.data_scopes and spec.cache_write_ttl != "12h"
                 ]
@@ -1354,6 +1395,7 @@ class AgentService:
             scope.frozen_context if (scope.frozen_context or {}).get("policy_catalogue") else None,
             protocol=protocol,
             counterexample_ablation=counterexample_ablation,
+            output_reserve=output_reserve,
         )
 
     def _finish(self, run, status, reason, output, *, decision_context=None, decision_guard=None):

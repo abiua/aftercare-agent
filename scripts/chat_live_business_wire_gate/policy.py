@@ -13,6 +13,8 @@ from contextlib import contextmanager
 
 PROTOCOL = "p5-live-business-wire-v1"
 SCOPED_PROTOCOL = "p5-live-business-wire-v2"
+EXPANDED_PROTOCOL = "p5-live-business-wire-v3"
+SCOPED_PROTOCOLS = {SCOPED_PROTOCOL, EXPANDED_PROTOCOL}
 SCOPES = {
     "SINGLE": ("C001", "O9902", ["L01"]),
     "MULTI": ("C001", "DEV-ORDER-04", ["L01", "L02"]),
@@ -75,9 +77,14 @@ def validate_plan(plan):
     _require(isinstance(plan, dict), "PLAN")
     kind = plan.get("kind")
     _require(kind in CAPS, "PLAN_KIND")
-    posts, total, reserve, output = CAPS[kind]
+    protocol = plan.get("protocol")
+    posts, total, reserve, output = (
+        (8, 600_000, 51_200, 4096)
+        if protocol == EXPANDED_PROTOCOL and kind == "TEXT"
+        else CAPS[kind]
+    )
     _require(
-        plan.get("protocol") in {PROTOCOL, SCOPED_PROTOCOL}
+        protocol in {PROTOCOL, *SCOPED_PROTOCOLS}
         and plan.get("model") == MODEL
         and all(_identity(plan.get(key)) for key in (*_BINDING_IDS, "campaign_id"))
         and all(
@@ -91,7 +98,7 @@ def validate_plan(plan):
         ),
         "PLAN_LIMITS",
     )
-    if plan["protocol"] == SCOPED_PROTOCOL:
+    if plan["protocol"] in SCOPED_PROTOCOLS:
         route = plan.get("expected_route")
         scope = plan.get("case_scope")
         _require(
@@ -148,7 +155,7 @@ def _valid_text_pin(binding):
 
 def admitted_logical_phase(plan, logical_id):
     """Test the expected v2 text phase before starting a native reservation."""
-    if plan["protocol"] != SCOPED_PROTOCOL or plan["kind"] != "TEXT":
+    if plan["protocol"] not in SCOPED_PROTOCOLS or plan["kind"] != "TEXT":
         return True
     match = re.fullmatch(r"p4:compact-v7:([a-z0-9-]+):[0-7]", logical_id)
     return bool(match and match[1] in _ROUTE_PHASES[plan["expected_route"]])
@@ -168,7 +175,7 @@ def validate_binding(plan, binding):
         and 0 < reserve <= plan["per_post_reserved_microusd"],
         "NATIVE_ATTEMPT_BINDING",
     )
-    if plan["protocol"] == SCOPED_PROTOCOL:
+    if plan["protocol"] in SCOPED_PROTOCOLS:
         _require(
             binding.get("case_scope") == plan["case_scope"]
             and binding.get("expected_route") == plan["expected_route"],
@@ -188,7 +195,14 @@ def validate_binding(plan, binding):
         "NATIVE_TEXT_SCOPE",
     )
 
-    if plan["protocol"] == SCOPED_PROTOCOL:
+    if plan["protocol"] == EXPANDED_PROTOCOL:
+        _require(
+            type(binding.get("native_output_tokens")) is int
+            and binding["native_output_tokens"] == plan["output_tokens"],
+            "NATIVE_OUTPUT_RESERVE",
+        )
+
+    if plan["protocol"] in SCOPED_PROTOCOLS:
         _require(
             admitted_logical_phase(plan, logical),
             "NATIVE_ROUTE_PHASE",
@@ -501,9 +515,15 @@ def send(directory, plan, binding, request, api_key, transport, *, observe_stage
                 and row["kind"] == plan["kind"]
                 and row["campaign_id"] == plan["campaign_id"]
                 and row["wire_reserved_microusd"] == plan["per_post_reserved_microusd"]
+                and row["output_tokens"] == plan["output_tokens"]
+                and (
+                    plan["protocol"] != EXPANDED_PROTOCOL
+                    or plan["kind"] != "TEXT"
+                    or row.get("native_output_tokens") == plan["output_tokens"]
+                )
                 and all(row[key] == plan[key] for key in _BINDING_IDS)
                 and (
-                    plan["protocol"] != SCOPED_PROTOCOL
+                    plan["protocol"] not in SCOPED_PROTOCOLS
                     or (
                         row.get("case_scope") == plan["case_scope"]
                         and row.get("expected_route") == plan["expected_route"]
@@ -556,8 +576,13 @@ def send(directory, plan, binding, request, api_key, transport, *, observe_stage
             "output_tokens": plan["output_tokens"],
             "native_scope_pin": pin,
             **(
+                {"native_output_tokens": binding["native_output_tokens"]}
+                if plan["protocol"] == EXPANDED_PROTOCOL and plan["kind"] == "TEXT"
+                else {}
+            ),
+            **(
                 {"case_scope": plan["case_scope"], "expected_route": plan["expected_route"]}
-                if plan["protocol"] == SCOPED_PROTOCOL
+                if plan["protocol"] in SCOPED_PROTOCOLS
                 else {}
             ),
             "wire_reserved_microusd": plan["per_post_reserved_microusd"],
@@ -583,7 +608,7 @@ def send(directory, plan, binding, request, api_key, transport, *, observe_stage
             observe_stage("read", index=index, admitted=True)
         response.read()
         cookie_receipt = {}
-        if plan["protocol"] == SCOPED_PROTOCOL:
+        if plan["protocol"] in SCOPED_PROTOCOLS:
             discarded = "set-cookie" in response.headers
             if discarded:
                 del response.headers["set-cookie"]

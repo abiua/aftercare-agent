@@ -197,6 +197,7 @@ class Registry(BaseModel):
 
 
 P4_OUTPUT_RESERVE = 1800
+P4_EXTENDED_OUTPUT_RESERVE = 4096
 P4_INPUT_LIMIT = 24_576
 
 
@@ -594,7 +595,7 @@ class ModelRunner:
             and (
                 data_scope != "customer_conversation"
                 or vision
-                or output_reserve != P4_OUTPUT_RESERVE
+                or output_reserve not in {P4_OUTPUT_RESERVE, P4_EXTENDED_OUTPUT_RESERVE}
             )
         ):
             raise ModelFailure("MODEL_OUTPUT_BUDGET_UNSUPPORTED")
