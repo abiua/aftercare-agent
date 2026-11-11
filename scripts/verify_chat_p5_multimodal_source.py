@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 import socket
 from hashlib import sha256
 from pathlib import Path
@@ -172,6 +173,7 @@ def _prepare(seed, assets, originals, plan, report, output):
         (owner,) = [
             row for row in rows if row["role"] == "customer" and row["customer_id"] == "C001"
         ]
+        (support_actor,) = [row for row in rows if row["role"] == "support"]
         beat = owned_container(stack, "beat")
         stack.docker("P5_MULTIMODAL_PAUSE_OWN_BEAT", "pause", beat, log_output=False)
         report["beat_paused_for_pending_p2"] = True
@@ -222,7 +224,15 @@ def _prepare(seed, assets, originals, plan, report, output):
                     and fetched.content == originals[asset["id"]],
                     "P5_MULTIMODAL_ORIGINAL_READBACK_MISMATCH",
                 )
-            context = read(client, f"conversations/{conversation}/decision-materials")
+            with httpx.Client(
+                base_url=URL + "/api/",
+                headers={"Authorization": f"Bearer {support_actor['token']}"},
+                follow_redirects=False,
+                trust_env=False,
+                timeout=12,
+            ) as support:
+                require(read(support, "me")["role"] == "support", "P5_MULTIMODAL_SUPPORT_REQUIRED")
+                context = read(support, f"conversations/{conversation}/decision-materials")
             require(
                 context["case_id"] == case
                 and {row["attachment_id"] for row in context["items"]}
@@ -311,7 +321,10 @@ def main():
                 failure_code=code if code.isupper() and " " not in code else "VERIFICATION_ERROR",
             )
         except Exception as error:  # noqa: BLE001 - private environment must stay out of reports
+            code = str(error)
             report.update(status="FAILED", failure_type=type(error).__name__)
+            if re.fullmatch(r"[A-Z][A-Z0-9_]{0,120}", code):
+                report["failure_code"] = code
         finally:
             _save(args.report, report)
         print(report["status"])
