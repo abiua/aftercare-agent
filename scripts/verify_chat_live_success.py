@@ -86,6 +86,12 @@ ORDINARY_REPEATS = {
         "net": "10.253.253.32/28",
         "ingress": "10.253.253.48/28",
     },
+    9: {
+        "port": 5214,
+        "object_port": 58376,
+        "net": "10.253.253.96/28",
+        "ingress": "10.253.253.112/28",
+    },
 }
 COMPLEX_REPEATS = {
     2: {
@@ -230,10 +236,12 @@ def _preflight(name, image_receipt, *, attempt=1):
             plan["protected_state"].append("5209_ORDINARY_R5_OUTPUT_TRUNCATED_NO_REPLAY")
         if attempt >= 7:
             plan["protected_state"].append("5210_ORDINARY_R6_INVALID_MODEL_OUTPUT_NO_REPLAY")
-        if attempt == 8:
+        if attempt in (8, 9):
             plan["protected_state"].append("5211_ORDINARY_R7_HUMAN_HANDOFF_NO_REPLAY")
             plan["control_observation"] = CONTROL_OBSERVATION
             plan["phases"][2]["success"] = "SINGLE_ITEM_TYPED_SYNTHETIC_CONTROL_OBSERVATION"
+        if attempt == 9:
+            plan["protected_state"].append("5212_ORDINARY_R8_BOOT_WORKER_NOT_READY_NO_REPLAY")
     elif attempt == 2:
         plan["protected_state"].append("5205_COMPLEX_R1_VERIFIER_PROMPT_LIMIT_NO_REPLAY")
     plan["gates"]["success_driver_sha256"] = _hash(Path(__file__))

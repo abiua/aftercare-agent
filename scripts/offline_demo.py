@@ -187,7 +187,8 @@ def start(args):
                    "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/api/readyz',timeout=4).close()")
         worker = stack.run(args.backend_image, 'worker', network, readonly,
             ('celery', '-A', 'aftercare.worker', 'worker', '--pool=solo', '--concurrency=1', '--loglevel=WARNING'))
-        stack.wait('WORKER_READY', 'exec', worker, 'celery', '-A', 'aftercare.worker', 'inspect', '--timeout', '2', 'ping')
+        stack.wait('WORKER_READY', 'exec', worker, 'celery', '-A', 'aftercare.worker', 'inspect', '--timeout', '2', 'ping',
+                   seconds=90, command_timeout=20)
         stack.run(args.backend_image, 'beat', network, readonly,
             ('celery', '-A', 'aftercare.worker', 'beat', '--loglevel=WARNING', '--schedule=/tmp/demo-beat'))
         front = stack.run(args.frontend_image, 'frontend', ingress,

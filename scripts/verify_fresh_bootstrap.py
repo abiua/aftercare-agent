@@ -273,10 +273,12 @@ class FreshStack:
         result = self.docker(label, "exec", name, "python", "-c", code, log_output=False)
         return json.loads(result.stdout.strip().splitlines()[-1])
 
-    def wait(self, label, *args, expected=None, seconds=45):
+    def wait(self, label, *args, expected=None, seconds=45, command_timeout=8):
         deadline = monotonic() + seconds
         while monotonic() < deadline:
-            result = self.docker(label, *args, timeout=8, required=False, log_output=False)
+            result = self.docker(
+                label, *args, timeout=command_timeout, required=False, log_output=False
+            )
             if result and result.returncode == 0 and (
                 expected is None or result.stdout.strip() == expected
             ):

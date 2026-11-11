@@ -274,3 +274,16 @@ def test_typed_control_frozen_binding_does_not_substitute_for_actual_tool_read(s
     original["attachment_id"] = "another-attachment"
     with pytest.raises(success.VerificationError, match="TYPED_CONTROL_FROZEN_BINDING_CHANGED"):
         success._verify_typed_control(snapshot, trace, report)
+
+
+def test_ordinary_r9_has_own_state_and_networks(success):
+    with success._target("ordinary", 9) as ninth:
+        assert ninth.name.endswith("ordinary-r9.json")
+        assert success.offline_demo.STATE == success.driver.STATE == ninth
+        assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5214, 58376)
+        assert set(success.driver.SUBNETS.values()) == {"10.253.253.96/28", "10.253.253.112/28"}
+    with (
+        pytest.raises(success.VerificationError, match="LIVE_SUCCESS_ATTEMPT_UNSUPPORTED"),
+        success._target("complex", 9),
+    ):
+        pytest.fail("ordinary retry must not affect complex targets")
