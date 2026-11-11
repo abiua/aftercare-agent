@@ -139,6 +139,22 @@ def _render(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _model_tool_receipt(projection, call, receipt, known_evidence, receipt_sha256):
+    projected, _ = projection.receipt(receipt)
+    name = "request_targeted_check"
+    if call["name"] != name or receipt["name"] != name:
+        return projected
+    referenced = {ref["source_id"] for ref in receipt["refs"]}
+    if (
+        referenced <= known_evidence
+        and referenced == set(call["args"].get("conflicting_refs", ()))
+        and receipt["arguments_sha256"] == digest(call["args"])
+        and receipt["data"] == {**call["args"], "status": "REQUESTED"}
+    ):
+        return {"status": "REQUESTED", "receipt_sha256": receipt_sha256}
+    return projected
+
+
 def _result(raw, schema, *, role, evidence_ids, upstream_ids):
     parsed = schema.model_validate_json(raw)
     if isinstance(parsed, InvestigationResult):
@@ -349,15 +365,18 @@ def run_phase(
             receipt = reads[key].model_dump(mode="json")
             if receipt not in receipts:
                 receipts.append(receipt)
+            receipt_sha256 = digest(receipt)
+            projected_receipt = _model_tool_receipt(
+                projection, call, receipt, evidence_ids, receipt_sha256
+            )
             evidence_ids.update(ref["source_id"] for ref in receipt["refs"])
-            projected_receipt, _ = projection.receipt(receipt)
             audit.event(
                 PRIVATE_RECEIPT_EVENT,
                 {
                     "role": role,
                     "phase_id": phase_id,
                     "call_id": call["id"],
-                    "receipt_sha256": digest(receipt),
+                    "receipt_sha256": receipt_sha256,
                     "receipt": receipt,
                 },
             )
@@ -372,7 +391,7 @@ def run_phase(
                     "evidence_ids": [ref["source_id"] for ref in receipt["refs"]],
                     "evidence_refs": receipt["refs"],
                     "input_sha256": key,
-                    "receipt_sha256": digest(receipt),
+                    "receipt_sha256": receipt_sha256,
                 },
             )
     raise ModelFailure("INVESTIGATION_ROUND_LIMIT")

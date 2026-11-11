@@ -12,11 +12,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / ".runtime/offline-browser-demo-p5-pg.json"
-CAMPAIGN = "chat-p5-paid-terra-ordinary-v1"
+CAMPAIGN = "chat-p5-paid-terra-ordinary-v2"
 SOURCE_CAMPAIGN = "chat-p5-controlled-pg-v1"
+SOURCE_PROMPT = "compact-v5"
+PAID_PROMPT = "compact-v6"
 CASE = "DAMAGE-ORDINARY"
 MODEL = "gpt-6.1-terra"
-PROTOCOL = "p5-paid-text-v1"
+PROTOCOL = "p5-paid-text-v2"
 GATE = ROOT / "scripts/chat_p4_wire_gate"
 CALLS, ROW_USD = 8, Decimal("0.40")
 TOTAL_CALLS, TOTAL_USD = 24, Decimal("1.20")
@@ -96,7 +98,8 @@ def _plan(controlled_path, image):
     _check(
         digest(source_plan) == evidence["receipt"]["plan_sha256"]
         and source_plan["campaign"] == SOURCE_CAMPAIGN
-        and source_plan["controls"]["prompt"] == PROMPT_VERSION == "compact-v5",
+        and source_plan["controls"]["prompt"] == SOURCE_PROMPT
+        and PROMPT_VERSION == PAID_PROMPT,
         "P5_PAID_SOURCE_PLAN_MISMATCH",
     )
     (source,) = (
@@ -222,6 +225,7 @@ def _plan(controlled_path, image):
         "relevant_input_sha256": source["relevant_input_sha256"],
         "policy_catalogue_sha256": source["catalogue_sha256"],
         "prompt_version": PROMPT_VERSION,
+        "source_prompt_version": SOURCE_PROMPT,
         "latency_version": "runtime-utc-v1",
         "wire_rows": _ids(CAMPAIGN, ARMS),
         "model": MODEL,
@@ -288,6 +292,7 @@ def _worker(expected_digest):
     from aftercare.evaluation.chat.runner import ChatEvaluationRunner, FrozenCase, _populate
     from aftercare.evaluation.runner import _namespace
     from aftercare.intelligence.models import ModelRunner, Registry
+    from aftercare.investigation.prompt_evidence import PROMPT_VERSION
     from sqlalchemy import text
 
     _check(
@@ -301,6 +306,8 @@ def _worker(expected_digest):
     _check(
         digest(plan) == expected_digest
         and plan["campaign"] == CAMPAIGN
+        and plan["prompt_version"] == PROMPT_VERSION == PAID_PROMPT
+        and plan["source_prompt_version"] == SOURCE_PROMPT
         and plan["model"] == MODEL
         and plan["stack_id"] == os.environ.get("P5_PAID_STACK_ID")
         and digest(plan["registry"]) == plan["registry_sha256"]
@@ -537,7 +544,7 @@ def _wire_report(directory, rows):
     }
 
 
-def _workflow(row, required):
+def _workflow(row, required, prompt_version):
     native_required = {"verify-0" if phase == "verify" else phase for phase in required}
     phases = set(row.get("phases", ()))
     if row["arm"] == "multi" and phases & {"recheck", "verify-1"}:
@@ -545,7 +552,8 @@ def _workflow(row, required):
     latest = {}
     for attempt in row["attempts"]:
         logical = re.fullmatch(
-            r"p4:compact-v5:([a-z0-9-]+):([0-9]+)", attempt.get("logical_id", "")
+            rf"p4:{re.escape(prompt_version)}:([a-z0-9-]+):([0-9]+)",
+            attempt.get("logical_id", ""),
         )
         ordinal = attempt.get("ordinal")
         if logical is None or logical[1] not in phases or type(ordinal) is not int or ordinal < 1:
@@ -572,7 +580,8 @@ def _workflow(row, required):
     }
 
 
-def _outcomes(rows, wire):
+def _outcomes(rows, wire, *, prompt_version):
+    _check(prompt_version in {SOURCE_PROMPT, PAID_PROMPT}, "P5_PAID_UNKNOWN_PROMPT_VERSION")
     evidence = {row["row_id"]: row for row in wire["rows"]}
     outcomes = []
     required_phases = {
@@ -617,7 +626,7 @@ def _outcomes(rows, wire):
                 "provider_compatibility": compatibility,
                 "candidate_status": row["candidate_status"],
                 "business_rule_checks": row.get("program_checks", {}),
-                **_workflow(row, required_phases[row["arm"]]),
+                **_workflow(row, required_phases[row["arm"]], prompt_version),
             }
         )
     results = {item["provider_compatibility"] for item in outcomes}
@@ -848,6 +857,11 @@ def main():
         "status": "IN_PROGRESS",
         "stage": "PREFLIGHT",
         "plan_sha256": checksum,
+        "protocol": plan["protocol"],
+        "campaign": plan["campaign"],
+        "prompt_version": plan["prompt_version"],
+        "source_prompt_version": plan["source_prompt_version"],
+        "scope_sha256": plan["scope_sha256"],
         "execution_harness_verified": False,
         "provider_compatibility": "NOT_VERIFIED",
         "candidate_availability": "UNKNOWN",
@@ -868,7 +882,13 @@ def main():
             )
             _execute(plan, checksum, report)
         report.update(stage="RECORDED", execution_harness_verified=True)
-        report.update(_outcomes(report["receipt"]["rows"], report["wire"]))
+        report.update(
+            _outcomes(
+                report["receipt"]["rows"],
+                report["wire"],
+                prompt_version=plan["prompt_version"],
+            )
+        )
     except Exception as error:  # noqa: BLE001 - never print credentials or arbitrary exception text
         report.update(status="FAILED", failure_code=_safe(error))
     finally:

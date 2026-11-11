@@ -175,6 +175,7 @@ def _gated_controlled_run(runner, manifest, case, directory):
         initial = next(item for item in payload["input"] if item.get("role") == "user")
         view = json.loads(initial["content"])["frozen_input"]
         assert view["input_digest"] == frozen["relevant_input_sha256"]
+        assert view["evidence_encoding"] == "compact-v6"
         role, recheck = gate.request_role(payload["input"], view, frozen["catalogue_sha256"])
         index, row = gate.admit(
             directory,

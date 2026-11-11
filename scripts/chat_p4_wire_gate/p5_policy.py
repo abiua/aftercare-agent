@@ -6,7 +6,6 @@ import json
 import re
 from contextlib import contextmanager
 
-PROTOCOL = "p5-paid-text-v1"
 MAX_ROW_POSTS = 8
 MAX_CAMPAIGN_POSTS = 24
 MAX_ROW_MICROUSD = 400_000

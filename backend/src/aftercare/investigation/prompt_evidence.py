@@ -3,7 +3,7 @@
 from aftercare.business.rules import digest
 from aftercare.intelligence.models import ModelFailure
 
-PROMPT_VERSION = "compact-v5"
+PROMPT_VERSION = "compact-v6"
 PRIVATE_RECEIPT_EVENT = "investigation_receipt"
 PROMPT_LEGEND = (
     "证据结构：scope 依次为会话、事项、工单。"

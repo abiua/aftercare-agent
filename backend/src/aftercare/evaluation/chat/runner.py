@@ -529,9 +529,11 @@ class ChatEvaluationRunner:
         if (
             not isinstance(plan, dict)
             or getattr(gate, "READY", False) is not True
-            or getattr(gate, "PROTOCOL", None) != "p5-paid-text-v1"
-            or plan.get("protocol") != "p5-paid-text-v1"
-            or plan.get("campaign") != "chat-p5-paid-terra-ordinary-v1"
+            or getattr(gate, "PROTOCOL", None) != "p5-paid-text-v2"
+            or plan.get("protocol") != "p5-paid-text-v2"
+            or plan.get("campaign") != "chat-p5-paid-terra-ordinary-v2"
+            or PROMPT_VERSION != "compact-v6"
+            or plan.get("prompt_version") != PROMPT_VERSION
             or getattr(gate, "STATE", None) != Path("/p4-wire")
             or gate_policy is not modules.get("p5_policy")
             or not callable(getattr(gate_policy, "active_row", None))

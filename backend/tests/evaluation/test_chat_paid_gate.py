@@ -113,8 +113,9 @@ def test_paid_constructor_requires_loaded_gate_and_owned_runtime(monkeypatch):
         ChatEvaluationRunner(ModelRunner(registry), None, calls=8, budget=None)
     runner_model = ModelRunner(registry)
     plan = {
-        "protocol": "p5-paid-text-v1",
-        "campaign": "chat-p5-paid-terra-ordinary-v1",
+        "protocol": "p5-paid-text-v2",
+        "campaign": "chat-p5-paid-terra-ordinary-v2",
+        "prompt_version": "compact-v6",
         "scope_sha256": "a" * 64,
         "registry_sha256": runner_model.base_registry_digest,
     }
@@ -152,6 +153,20 @@ def test_paid_constructor_requires_loaded_gate_and_owned_runtime(monkeypatch):
         ChatEvaluationRunner._admitted_paid_text(runner_model, **options)
     monkeypatch.setattr(httpx.Client, "send", loaded._send)
     monkeypatch.setattr(httpx.HTTPTransport, "handle_request", loaded._handle)
+    historical = {
+        **plan,
+        "protocol": "p5-paid-text-v1",
+        "campaign": "chat-p5-paid-terra-ordinary-v1",
+        "prompt_version": "compact-v5",
+    }
+    loaded.PROTOCOL = historical["protocol"]
+    loaded.PLAN = historical
+    with pytest.raises(ValueError, match="PAID_GATE_REQUIRED"):
+        ChatEvaluationRunner._admitted_paid_text(
+            runner_model, **{**options, "approval_sha256": digest(historical)}
+        )
+    loaded.PROTOCOL = plan["protocol"]
+    loaded.PLAN = plan
     with pytest.raises(ValueError, match="PAID_GATE_REQUIRED"):
         ChatEvaluationRunner._admitted_paid_text(
             runner_model, **{**options, "approval_sha256": "b" * 64}
@@ -174,13 +189,26 @@ def test_paid_constructor_requires_loaded_gate_and_owned_runtime(monkeypatch):
     assert admitted.controls["latency_version"] == "runtime-utc-v1"
 
 
-def test_p5_http_gate_rejects_image_and_binds_real_wire_receipt_shape(tmp_path, monkeypatch):
+@pytest.mark.parametrize(
+    ("protocol", "prompt_version"),
+    [
+        ("p5-paid-text-v1", "compact-v5"),
+        ("p5-paid-text-v2", "compact-v6"),
+    ],
+)
+def test_p5_http_gate_rejects_image_and_binds_real_wire_receipt_shape(
+    tmp_path,
+    monkeypatch,
+    protocol,
+    prompt_version,
+):
     from langchain_openai._compat import httpx
 
     rows, plan = _plan(tmp_path)
     scope = ["conversation", "issue", "case"]
     plan.update(
-        protocol="p5-paid-text-v1",
+        protocol=protocol,
+        prompt_version=prompt_version,
         relevant_input_sha256="b" * 64,
         policy_catalogue_sha256="c" * 64,
         conversation_id=scope[0],
@@ -207,7 +235,7 @@ def test_p5_http_gate_rejects_image_and_binds_real_wire_receipt_shape(tmp_path, 
                 "frozen_input": {
                     "input_digest": plan["relevant_input_sha256"],
                     "scope": scope,
-                    "evidence_encoding": "compact-v5",
+                    "evidence_encoding": prompt_version,
                     "policy_context": {"catalogue_sha256": plan["policy_catalogue_sha256"]},
                 }
             }
@@ -236,6 +264,10 @@ def test_p5_http_gate_rejects_image_and_binds_real_wire_receipt_shape(tmp_path, 
             )
         with pytest.raises(RuntimeError, match="SCOPE_REJECTED"):
             namespace["_handle"](None, request({**payload, "input": []}))
+        wrong = "compact-v6" if prompt_version == "compact-v5" else "compact-v5"
+        mixed = {**message, "content": message["content"].replace(prompt_version, wrong)}
+        with pytest.raises(RuntimeError, match="COMPACT_ENCODING_REQUIRED"):
+            namespace["_handle"](None, request({**payload, "input": [payload["input"][0], mixed]}))
         assert namespace["_handle"](None, request(payload)).status_code == 200
     assert len(sends) == 1
     assert json.loads((tmp_path / "response-01.json").read_bytes()) == {
@@ -274,7 +306,7 @@ def test_outcomes_distinguish_http_failures_unknown_and_missing_candidates():
             "attempts": [
                 {
                     "status": "SUCCEEDED",
-                    "logical_id": f"p4:compact-v5:{phase}:0",
+                    "logical_id": f"p4:compact-v6:{phase}:0",
                     "ordinal": 1,
                     "usage": {"total_tokens": 200},
                     "estimated_cost_usd": "0.01",
@@ -296,12 +328,17 @@ def test_outcomes_distinguish_http_failures_unknown_and_missing_candidates():
             for row, status, group in zip(rows, statuses, families, strict=True)
             for phase in group
         ]
-        return entry._outcomes(rows, {"rows": groups, "admissions": admissions})
+        return entry._outcomes(
+            rows, {"rows": groups, "admissions": admissions}, prompt_version="compact-v6"
+        )
 
     assert result((401, 401, 401))["status"] == "FAILED"
     unknown = result((None, None, None))
     assert unknown["status"] == "PARTIAL" and unknown["provider_compatibility"] == "UNKNOWN"
     assert result((200, 200, 200))["status"] == "PASSED"
+    rows[2]["attempts"][0]["logical_id"] = "p4:compact-v5:fact:0"
+    assert result((200, 200, 200))["status"] == "PARTIAL"
+    rows[2]["attempts"][0]["logical_id"] = "p4:compact-v6:fact:0"
     rows[0]["candidate_status"] = "MISSING"
     missing = result((200, 200, 200))
     assert missing["status"] == "PARTIAL" and missing["provider_compatibility"] == "VERIFIED"
@@ -328,7 +365,7 @@ def test_outcomes_distinguish_http_failures_unknown_and_missing_candidates():
     assert no_final["arm_outcomes"][2]["missing_validated_phase_results"] == ["fact"]
     rows[2]["validated_phase_results"].append("fact")
     assert result((200, 200, 200))["status"] == "PASSED"
-    rows[2]["attempts"].append({**fact, "logical_id": "p4:compact-v5:fact:1"})
+    rows[2]["attempts"].append({**fact, "logical_id": "p4:compact-v6:fact:1"})
     assert result((200, 200, 200))["arm_outcomes"][2]["workflow_completion"] == "INCOMPLETE"
     rows[2]["attempts"].pop()
     rows[2].update(status="NEEDS_REVIEW", reason="INVALID_MODEL_OUTPUT")

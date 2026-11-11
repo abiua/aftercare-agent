@@ -4,6 +4,7 @@ from threading import Barrier
 import pytest
 from langgraph.checkpoint.memory import InMemorySaver
 
+from aftercare.business.rules import digest
 from aftercare.intelligence.models import InvalidOutput
 from aftercare.investigation.contracts import (
     CustomerMessage,
@@ -13,8 +14,13 @@ from aftercare.investigation.contracts import (
     RouteDecision,
 )
 from aftercare.investigation.graph import build_investigation_graph
-from aftercare.investigation.orchestration import InvestigationContext, InvestigationResult, _result
-from aftercare.investigation.prompt_evidence import PROMPT_VERSION
+from aftercare.investigation.orchestration import (
+    InvestigationContext,
+    InvestigationResult,
+    _model_tool_receipt,
+    _result,
+)
+from aftercare.investigation.prompt_evidence import PROMPT_VERSION, PromptEvidence
 from aftercare.investigation.tools import InvestigationTools
 
 
@@ -229,8 +235,32 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
 
         return check
 
+    check_call = _call(
+        "request_targeted_check",
+        claim_id="fact/f",
+        conflicting_refs=["line"],
+        target_tool="read_order_lines",
+        reason="原订单字段与事实判断冲突。",
+    )
+    raw_check = (
+        InvestigationTools(investigation)
+        .call("verifier", check_call["name"], check_call["args"])
+        .model_dump(mode="json")
+    )
+
     def first_verifier(kwargs):
-        payload = json.loads(kwargs["messages"][1].content)
+        assert len(kwargs["messages"]) == 2
+        return [check_call]
+
+    def after_check_request(kwargs):
+        messages = kwargs["messages"]
+        assert messages[-2].tool_calls == [dict(check_call, type="tool_call")]
+        assert messages[-1].tool_call_id == check_call["id"]
+        assert json.loads(messages[-1].content) == {
+            "status": "REQUESTED",
+            "receipt_sha256": digest(raw_check),
+        }
+        payload = json.loads(messages[1].content)
         originals = payload["frozen_input"]["original_frozen_evidence"]
         assert any(row["data"].get("delivered") is True for row in originals)
         assert any(row["value"] == "未交付" for row in payload["upstream_claims"])
@@ -273,6 +303,7 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
             ),
             f"p4:{PROMPT_VERSION}:policy:1": {"claims": [_claim("p", "POL01:v1")]},
             f"p4:{PROMPT_VERSION}:verify-0:0": first_verifier,
+            f"p4:{PROMPT_VERSION}:verify-0:1": after_check_request,
             f"p4:{PROMPT_VERSION}:recheck:0": {"claims": [_claim("f", "line", value="已交付")]},
             f"p4:{PROMPT_VERSION}:verify-1:0": final_verifier,
         }
@@ -282,7 +313,21 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
     assert [
         payload["target_role"] for kind, payload in events if kind == "investigation_recheck"
     ] == ["fact"]
-    assert len(model.calls) == 7
+    (raw_event,) = [
+        payload
+        for kind, payload in events
+        if kind == "investigation_receipt" and payload.get("call_id") == check_call["id"]
+    ]
+    assert raw_event["receipt"] == raw_check
+    assert raw_event["receipt_sha256"] == digest(raw_check)
+    (tool_event,) = [
+        payload
+        for kind, payload in events
+        if kind == "investigation_tool" and payload.get("call_id") == check_call["id"]
+    ]
+    assert tool_event["evidence_refs"] == raw_check["refs"]
+    assert tool_event["receipt_sha256"] == digest(raw_check)
+    assert len(model.calls) == 8
 
 
 @pytest.mark.parametrize(
@@ -361,9 +406,7 @@ def test_chat_private_transport_uses_no_inherited_callbacks(monkeypatch):
 def test_compact_evidence_roundtrip_preserves_records_scope_and_duplicate_verifier_reads(
     investigation,
 ):
-    from aftercare.business.rules import digest
     from aftercare.intelligence.models import ModelFailure
-    from aftercare.investigation.prompt_evidence import PromptEvidence
 
     projection = PromptEvidence(investigation)
     scope = [investigation.conversation_id, investigation.issue_id, investigation.case_id]
@@ -441,6 +484,56 @@ def test_compact_evidence_roundtrip_preserves_records_scope_and_duplicate_verifi
         projection.prompt({**verifier_view, "original_frozen_evidence": [conflicting]})
     with pytest.raises(ModelFailure, match="INVESTIGATION_EVIDENCE_INCONSISTENT"):
         projection.ref({**original["ref"], "scope": ["different", *scope[1:]]})
+
+
+def test_targeted_check_compaction_keeps_new_or_extra_evidence_and_other_tools(investigation):
+    tools = InvestigationTools(investigation)
+    projection = PromptEvidence(investigation)
+    check = _call(
+        "request_targeted_check",
+        claim_id="fact/f",
+        conflicting_refs=["line2"],
+        target_tool="read_order_lines",
+        reason="核对另一订单行。",
+    )
+    receipt = tools.call("verifier", check["name"], check["args"]).model_dump(mode="json")
+    assert _model_tool_receipt(projection, check, receipt, {"line2"}, digest(receipt)) == {
+        "status": "REQUESTED",
+        "receipt_sha256": digest(receipt),
+    }
+    assert (
+        _model_tool_receipt(
+            projection,
+            check,
+            receipt,
+            {"line"},
+            digest(receipt),
+        )
+        == projection.receipt(receipt)[0]
+    )
+    extra = {**receipt, "data": {**receipt["data"], "business_result": "保留新业务数据"}}
+    assert (
+        _model_tool_receipt(
+            projection,
+            check,
+            extra,
+            {"line2"},
+            digest(extra),
+        )
+        == projection.receipt(extra)[0]
+    )
+    line_call = _call("read_order_lines", line_ids=["line2"])
+    line_receipt = tools.call("fact", line_call["name"], line_call["args"]).model_dump(mode="json")
+    assert (
+        _model_tool_receipt(
+            projection,
+            line_call,
+            line_receipt,
+            {"line2"},
+            digest(line_receipt),
+        )
+        == projection.receipt(line_receipt)[0]
+    )
 
 
 def test_compact_prompt_overflow_is_audited_before_transport(investigation):

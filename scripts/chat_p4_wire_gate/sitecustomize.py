@@ -12,21 +12,21 @@ from openai import _base_client
 STATE = Path("/p4-wire")
 PLAN = json.loads((STATE / "plan.json").read_text())
 PROTOCOL = PLAN.get("protocol", "original")
-P5_PROTOCOL = "p5-paid-text-v1"
-if PROTOCOL == P5_PROTOCOL:
+P5_PROMPTS = {"p5-paid-text-v1": "compact-v5", "p5-paid-text-v2": "compact-v6"}
+if PROTOCOL in P5_PROMPTS:
     import p5_policy
 OUTPUT_CAPS = {
     "original": 900,
     "compact-v2": 900,
     "catalogue-v3": 1800,
     "references-v4": 1800,
-    P5_PROTOCOL: 1800,
+    **dict.fromkeys(P5_PROMPTS, 1800),
 }
 PROMPTS = {
     "compact-v2": "compact-v2",
     "catalogue-v3": "compact-v3",
     "references-v4": "compact-v4",
-    P5_PROTOCOL: "compact-v5",
+    **P5_PROMPTS,
 }
 URL = "https://api.openai.com/v1/responses"
 SEND, HANDLE = httpx.Client.send, httpx.HTTPTransport.handle_request
@@ -135,7 +135,7 @@ def _handle(transport, request):
     data = request.content.decode()
     if "data:image/" in data or "base64," in data:
         raise RuntimeError("P4_WIRE_TEXT_ONLY")
-    if PROTOCOL == P5_PROTOCOL:
+    if PROTOCOL in P5_PROMPTS:
         role, recheck = p5_policy.request_role(messages, views[0], PLAN["policy_catalogue_sha256"])
         index, row_id = p5_policy.admit(
             STATE,
@@ -184,6 +184,7 @@ if (
     PROTOCOL not in OUTPUT_CAPS
     or type(PLAN["output_tokens"]) is not int
     or PLAN["output_tokens"] != OUTPUT_CAPS[PROTOCOL]
+    or (PROTOCOL in P5_PROMPTS and PLAN.get("prompt_version") != P5_PROMPTS[PROTOCOL])
 ):
     raise RuntimeError("P4_WIRE_PLAN_OUTPUT_REJECTED")
 if getattr(_base_client, "httpx2", None) is not httpx:
