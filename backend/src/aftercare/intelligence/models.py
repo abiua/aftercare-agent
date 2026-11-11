@@ -190,6 +190,10 @@ class Registry(BaseModel):
         return cls.model_validate_json(path.read_text())
 
 
+P4_OUTPUT_RESERVE = 1800
+P4_INPUT_LIMIT = 24_576
+
+
 @dataclass(frozen=True)
 class TaskSpec:
     preferred: str
@@ -212,8 +216,8 @@ class ModelFailure(Exception):
 
 
 class InvalidOutput(ValueError):
-    def __init__(self, code: str, field: str = "output"):
-        self.code, self.field = code, field
+    def __init__(self, code: str, field: str = "output", *, tool_counts=None):
+        self.code, self.field, self.tool_counts = code, field, tool_counts
         super().__init__(code)
 
 
@@ -235,7 +239,11 @@ def _validation_fields(error):
             )[:8]
         ]
     if isinstance(error, InvalidOutput):
-        return [{"field": error.field, "code": error.code}]
+        issue = {"field": error.field, "code": error.code}
+        if error.code == "TOOL_BATCH_LIMIT" and error.tool_counts is not None:
+            attempted, allowed = error.tool_counts
+            issue.update(attempted=attempted, allowed=allowed)
+        return [issue]
     return [{"field": "output", "code": "INVALID_JSON"}]
 
 
@@ -324,7 +332,7 @@ def _private_transport(spec, messages, tools, timeout, output):
             kwargs = client.bind_tools(tools).kwargs if tools else {}
             generation = client._generate(messages, run_manager=None, **kwargs).generations[0]
             message = generation.message
-            for key in ("finish_reason", "status"):
+            for key in ("finish_reason", "status", "incomplete_details"):
                 if key in (generation.generation_info or {}):
                     message.response_metadata.setdefault(key, generation.generation_info[key])
             return message
@@ -349,6 +357,22 @@ def _transport(
     return _client(spec, tools, timeout, output).invoke(messages)
 
 
+def _safe_termination(metadata):
+    fields = {
+        "status": {"completed", "incomplete", "failed", "cancelled", "in_progress", "queued"},
+        "finish_reason": {"stop", "length", "content_filter", "tool_calls", "function_call"},
+        "incomplete_reason": {"max_output_tokens", "content_filter"},
+    }
+    details = metadata.get("incomplete_details")
+    reason = details.get("reason") if isinstance(details, dict) else None
+    values = {**metadata, "incomplete_reason": reason}
+    return {
+        key: values[key] if values[key] in allowed else "OTHER"
+        for key, allowed in fields.items()
+        if isinstance(values.get(key), str)
+    }
+
+
 def _stream_transport(spec, messages, tools, timeout, output, on_delta):
     client = _client(spec, tools, timeout, output)
     opts = {"stream_usage": spec.streaming_usage} if spec.interface == "chat" else {}
@@ -369,7 +393,10 @@ def finish_transport_evidence(metadata, evidence):
     if (
         evidence is not None
         and isinstance(started, dict)
-        and all(started.get(key) == evidence[key] for key in ("version", "path"))
+        and all(
+            started.get(key) == evidence.get(key)
+            for key in ("version", "path", "max_output_tokens")
+        )
     ):
         return {**metadata, "transport_evidence": evidence}
     return metadata
@@ -546,8 +573,18 @@ class ModelRunner:
         fixed: bool,
         vision: bool = False,
         data_scope: str = "simulated_case",
+        output_reserve: int = 900,
     ) -> dict:
         registry = self.registry
+        if type(output_reserve) is not int or (
+            output_reserve != 900
+            and (
+                data_scope != "customer_conversation"
+                or vision
+                or output_reserve != P4_OUTPUT_RESERVE
+            )
+        ):
+            raise ModelFailure("MODEL_OUTPUT_BUDGET_UNSUPPORTED")
         if vision and not any(
             value is not None and value > 0 for value in (registry.max_usd, registry.max_run_usd)
         ):
@@ -560,6 +597,7 @@ class ModelRunner:
         task = TaskSpec(
             preferred,
             prompt_tokens,
+            output_reserve=output_reserve,
             tools=bool(tools) or any(isinstance(message, ToolMessage) for message in messages),
             streaming=registry.native_streaming
             and not vision
@@ -578,7 +616,11 @@ class ModelRunner:
                 {spec.alias: "FIXED_STRATEGY" for spec in candidates if spec.alias != preferred}
             )
             candidates = [spec for spec in candidates if spec.alias == preferred]
-        existing = audit.replay(logical_id)
+        existing = (
+            audit.replay(logical_id, expected_output_reserve=task.output_reserve)
+            if data_scope == "customer_conversation"
+            else audit.replay(logical_id)
+        )
         if existing is not None:
             audit.confirm_admission()
             try:
@@ -626,9 +668,16 @@ class ModelRunner:
         ordinal = 0
         attempt_limit = 1 if vision else MAX_LOGICAL_ATTEMPTS
         while ordinal < attempt_limit:
+            attempt_input = task.input_tokens(selected) + (256 if transcript != messages else 0)
+            if data_scope == "customer_conversation":
+                attempt_input = _estimate_input(transcript, tools, vision=False)[0]
+                if attempt_input > P4_INPUT_LIMIT:
+                    raise ModelFailure("INVESTIGATION_PROMPT_LIMIT")
+                if attempt_input + task.output_reserve > selected.context_tokens:
+                    raise ModelFailure("MODEL_CONTEXT_INSUFFICIENT")
             reserve = _reserve_price(
                 selected,
-                task.input_tokens(selected) + (256 if transcript != messages else 0),
+                attempt_input,
                 task.output_reserve,
             )
             try:
@@ -660,6 +709,8 @@ class ModelRunner:
                 "path": f"{'DEFAULT' if default else 'INJECTED'}_{'STREAM' if native_streaming else 'SYNC'}",
                 "response": "UNOBSERVED",
             }
+            if data_scope == "customer_conversation":
+                transport_evidence["max_output_tokens"] = task.output_reserve
             try:
                 remaining = audit.begin_attempt(
                     logical_id,
@@ -696,6 +747,10 @@ class ModelRunner:
                     response = transport(*args, emit) if native_streaming else transport(*args)
                 if default and isinstance(response, AIMessage):
                     transport_evidence = {**transport_evidence, "response": "SDK_RETURNED"}
+                if data_scope == "customer_conversation" and isinstance(response, AIMessage):
+                    transport_evidence["termination"] = _safe_termination(
+                        response.response_metadata
+                    )
                 usage = response.usage_metadata
                 if usage:
                     price = _estimated_price(selected, usage)

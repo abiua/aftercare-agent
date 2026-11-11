@@ -31,6 +31,7 @@ from aftercare.intelligence.decision_candidate import (
 from aftercare.intelligence.graph import GraphContext, build_graph
 from aftercare.intelligence.model_limits import ProviderLimiter
 from aftercare.intelligence.models import (
+    P4_OUTPUT_RESERVE,
     ModelFailure,
     ModelRunner,
     Registry,
@@ -359,7 +360,7 @@ class RunAudit:
             )
             return {item.metadata_json["alias"] for item in limited}
 
-    def replay(self, logical_id: str) -> dict | None:
+    def replay(self, logical_id: str, *, expected_output_reserve=None) -> dict | None:
         with Session(self.engine) as session, session.begin():
             run = self._active(session)
             attempts = list(
@@ -375,6 +376,12 @@ class RunAudit:
                 return None
             last = attempts[-1]
             if last.status == "SUCCEEDED":
+                evidence = last.metadata_json.get("transport_evidence", {})
+                if (
+                    expected_output_reserve is not None
+                    and evidence.get("max_output_tokens") != expected_output_reserve
+                ):
+                    raise ModelFailure("REPLAY_OUTPUT_BUDGET_CHANGED")
                 return last.result
             if last.status == "STARTED":
                 last.status, last.error_code = "UNKNOWN", "INTERRUPTED_MODEL_CALL"
@@ -1202,7 +1209,7 @@ class AgentService:
             if caps and min(caps) > 0:
                 model = legacy.model.with_evaluation_limits(calls=8, budget=min(caps))
                 costs = [
-                    _reserve_price(spec, INVESTIGATION_INPUT_TOKEN_LIMIT, 900)
+                    _reserve_price(spec, INVESTIGATION_INPUT_TOKEN_LIMIT, P4_OUTPUT_RESERVE)
                     for spec in registry.models
                     if "customer_conversation" in spec.data_scopes and spec.cache_write_ttl != "12h"
                 ]

@@ -43,6 +43,11 @@ _REVIEW_REASONS = {
     "INVESTIGATION_ISSUE_COST_UNKNOWN": "本事项存在尚未确认的模型费用。",
     "INVESTIGATION_ISSUE_BUDGET_VIOLATION": "本事项有模型请求超出预留费用，需要人工核对。",
     "FACTS_CHANGED_DURING_RUN": "处理期间业务事实发生变化，需重新核对。",
+    "MODEL_INCOMPLETE": "模型未完成本轮输出，尚未形成完整方案，需要客服继续核对。",
+    "INVESTIGATION_PROMPT_LIMIT": "本轮待核对内容超过调查输入上限，调查已停止，需要客服继续核对。",
+    "INVESTIGATION_MODEL_UNAVAILABLE": "当前没有可用的调查模型，需要客服继续核对。",
+    "NO_COMPATIBLE_MODEL": "当前模型配置不满足本轮调查要求，需要客服继续核对。",
+    "INVESTIGATION_PROMPT_VERSION_CHANGED": "调查配置已更新，原运行已停止，需要核对资料后重新调查。",
 }
 
 
@@ -180,7 +185,7 @@ def _options(run, scope):
     else:
         action = "HUMAN_HANDOFF"
         reason = _REVIEW_REASONS.get(
-            run.reason, "当前证据不足以确定动作、金额或数量，需由客服核对。"
+            run.reason, "本轮调查尚未形成可审核的完整方案，需要客服继续核对。"
         )
     return (
         NonExecutingOption(

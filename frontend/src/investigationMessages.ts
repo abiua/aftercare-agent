@@ -1,4 +1,5 @@
 const investigationReasons: Record<string, string> = {
+  MODEL_INCOMPLETE: '模型未完成本轮输出，尚未形成完整方案。请由客服继续核对。',
   INVESTIGATION_PROMPT_LIMIT: '本轮需要核对的内容超过一次调查可处理的范围，调查已停止。请由客服查看已有记录。',
   INVESTIGATION_INPUT_TOKEN_LIMIT: '本轮输入超过调查可处理的范围。请由客服核对现有材料。',
   INVESTIGATION_MODEL_UNAVAILABLE: '当前没有可用于本轮调查的模型。请由客服继续核对。',

@@ -280,6 +280,7 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
     registry = test_intelligence.registry(max_usd="0.1")
     for spec in registry.models:
         spec.data_scopes = ["customer_conversation"]
+        spec.output_tokens = 1800
         spec.input_usd_per_million = Decimal(1)
         spec.output_usd_per_million = Decimal(1)
     transcripts = []
@@ -350,6 +351,18 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
         assert decision["checks"]["refund"]["status"] == expected
         assert bool(candidate["unresolved"]) == (expected == "BLOCKED")
     assert len(transcripts) == 2
+    from aftercare.intelligence.models import ModelFailure
+    from aftercare.intelligence.service import RunAudit
+
+    # Exercise the attempt-level guard separately from the graph version guard.
+    with Session(system.engine, expire_on_commit=False) as db, db.begin():
+        persisted = db.get_one(AgentRun, run["id"])
+        persisted.status = "RUNNING"
+    audit = RunAudit(system.engine, persisted)
+    logical_id = "p4:compact-v3:single:0"
+    assert audit.replay(logical_id, expected_output_reserve=1800)["calls"]
+    with pytest.raises(ModelFailure, match="REPLAY_OUTPUT_BUDGET_CHANGED"):
+        audit.replay(logical_id, expected_output_reserve=900)
 
 
 def test_p4_refuses_unapproved_data_scope_before_model_transport(system, monkeypatch):
@@ -398,7 +411,8 @@ def test_p4_refuses_unapproved_data_scope_before_model_transport(system, monkeyp
     assert set(route["excluded"].values()) == {"DATA_SCOPE_RESTRICTED"}
 
 
-def test_p4_old_prompt_binding_hands_off_before_model(system):
+@pytest.mark.parametrize("old_version", [None, "compact-v2"])
+def test_p4_old_prompt_binding_hands_off_before_model(system, old_version):
     from langgraph.checkpoint.memory import InMemorySaver
 
     from aftercare.intelligence.service import AgentService
@@ -424,6 +438,8 @@ def test_p4_old_prompt_binding_hands_off_before_model(system):
             for key, value in binding.payload.items()
             if key != "investigation_prompt_version"
         }
+        if old_version:
+            binding.payload = {**binding.payload, "investigation_prompt_version": old_version}
     system.service.process(run["id"])
     row = system.service.get("case-1", run["id"], system.actor)
     assert (
@@ -434,3 +450,105 @@ def test_p4_old_prompt_binding_hands_off_before_model(system):
         event["kind"] in {"decision_ready", "model_attempt"}
         for event in system.service.events("case-1", run["id"], system.actor, 0)
     )
+
+
+def test_p4_output_is_explicitly_admitted_reserved_and_audits_incomplete(system, monkeypatch):
+    from langgraph.checkpoint.memory import InMemorySaver
+
+    from aftercare.intelligence.models import _estimate_input, _reserve_price
+    from aftercare.intelligence.service import AgentService
+    from aftercare.intelligence.tables import ModelAttempt
+    from aftercare.investigation.contracts import InvestigationInput
+    from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
+
+    value = InvestigationInput(
+        conversation_id="chat",
+        issue_id="issue",
+        case_id="case-1",
+        order_id="order",
+        input_through_seq=2,
+        source_snapshot_sha256="a" * 64,
+        relevant_input_sha256="b" * 64,
+        messages=(),
+        evidence=(),
+        eligibility={"status": "ELIGIBLE"},
+        policy_blockers=(),
+        business_versions={},
+        intent="damaged",
+    )
+    monkeypatch.setattr("aftercare.intelligence.service.build_input", lambda _: value)
+    registry = test_intelligence.registry(max_usd="0.1")
+    for spec in registry.models:
+        spec.data_scopes = ["customer_conversation"]
+        spec.input_usd_per_million = Decimal(1)
+        spec.output_usd_per_million = Decimal(5)
+    observed = []
+
+    def provider(spec, messages, tools, _timeout, output):
+        observed.append(
+            (
+                output,
+                _reserve_price(spec, _estimate_input(messages, tools, vision=False)[0], output),
+            )
+        )
+        return AIMessage(
+            content="PRIVATE_RESPONSE_SENTINEL",
+            response_metadata={
+                "status": "incomplete",
+                "finish_reason": "length",
+                "incomplete_details": {"reason": "max_output_tokens", "untrusted": "DO_NOT_RECORD"},
+            },
+            usage_metadata={
+                "input_tokens": 200,
+                "output_tokens": 1800,
+                "total_tokens": 2000,
+                "output_token_details": {"reasoning": 400},
+            },
+        )
+
+    def service():
+        return AgentService(
+            system.engine,
+            SimpleNamespace(model_enabled=False, chat_investigation_enabled=True),
+            system.business,
+            InMemorySaver(),
+            dispatch=lambda _: None,
+            model=ModelRunner(registry, transport=provider),
+        )
+
+    system.service = service()
+    rejected = _start(system, graph_profile=CHAT_GRAPH_PROFILE)
+    system.service.process(rejected["id"])
+    assert (
+        system.service.get("case-1", rejected["id"], system.actor)["reason"]
+        == "NO_COMPATIBLE_MODEL"
+    )
+    route = next(
+        row["payload"]
+        for row in system.service.events("case-1", rejected["id"], system.actor, 0)
+        if row["kind"] == "route"
+    )
+    assert set(route["excluded"].values()) == {"OUTPUT_LIMIT"}
+    assert observed == []
+    for spec in registry.models:
+        spec.output_tokens = 1800
+    system.service = service()
+    run = _start(system, graph_profile=CHAT_GRAPH_PROFILE, idempotency_key="new-output")
+    system.service.process(run["id"])
+    final = system.service.get("case-1", run["id"], system.actor)
+    assert final["reason"] == "MODEL_INCOMPLETE"
+    assert len(observed) == 1 and observed[0][0] == 1800
+    with Session(system.engine) as db:
+        attempt = db.scalar(select(ModelAttempt).where(ModelAttempt.run_id == run["id"]))
+        assert attempt.status == "FAILED" and attempt.result is None
+        assert attempt.usage["output_token_details"]["reasoning"] == 400
+        assert Decimal(attempt.metadata_json["reserved_cost_usd"]) == observed[0][1]
+        evidence = attempt.metadata_json["transport_evidence"]
+        assert evidence["max_output_tokens"] == 1800
+        assert evidence["termination"] == {
+            "status": "incomplete",
+            "finish_reason": "length",
+            "incomplete_reason": "max_output_tokens",
+        }
+        assert "DO_NOT_RECORD" not in str(attempt.metadata_json)
+        assert "PRIVATE_RESPONSE_SENTINEL" not in str(attempt.metadata_json)

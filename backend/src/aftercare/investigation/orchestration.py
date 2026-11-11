@@ -13,11 +13,18 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from aftercare.business.rules import digest
 from aftercare.decisions.contracts import CandidateOption, Key
-from aftercare.intelligence.models import InvalidOutput, ModelFailure, _estimate_input, tool_reply
+from aftercare.intelligence.models import (
+    P4_INPUT_LIMIT,
+    P4_OUTPUT_RESERVE,
+    InvalidOutput,
+    ModelFailure,
+    _estimate_input,
+    tool_reply,
+)
 
 from .prompt_evidence import PRIVATE_RECEIPT_EVENT, PROMPT_LEGEND, PROMPT_VERSION, PromptEvidence
 
-INVESTIGATION_INPUT_TOKEN_LIMIT = 24_576
+INVESTIGATION_INPUT_TOKEN_LIMIT = P4_INPUT_LIMIT
 MAX_TOOL_BATCH = 4
 MAX_MODEL_ROUNDS = 8
 MAX_TOOL_CALLS = 8
@@ -222,8 +229,24 @@ def run_phase(
     used = 0
     for index in range(max_rounds):
         bound = tools if index < max_rounds - 1 and used < tool_limit else []
-        with_tools = _estimate_input(messages, bound, vision=False)[0]
-        without_tools = _estimate_input(messages, [], vision=False)[0] if bound else with_tools
+        remaining_tools = tool_limit - used
+
+        def with_budget(allowed, *, remaining_tools=remaining_tools):
+            hint = (
+                f"本轮最多调用 {allowed} 个工具，当前阶段剩余 {remaining_tools} 次工具读取。"
+                "工具不足时提交结构化结果并保留尚未解决的证据缺口。"
+            )
+            return [
+                messages[0].model_copy(update={"content": messages[0].content + hint}),
+                *messages[1:],
+            ]
+
+        allowed = min(MAX_TOOL_BATCH, remaining_tools) if bound else 0
+        bounded_messages = with_budget(allowed)
+        with_tools = _estimate_input(bounded_messages, bound, vision=False)[0]
+        without_tools = (
+            _estimate_input(with_budget(0), [], vision=False)[0] if bound else with_tools
+        )
         audit.event(
             "investigation_prompt_budget",
             {
@@ -236,6 +259,10 @@ def run_phase(
                 "limit": INVESTIGATION_INPUT_TOKEN_LIMIT,
                 "evidence_count": len(evidence_ids),
                 "tool_receipt_count": len(receipts),
+                "max_output_tokens": P4_OUTPUT_RESERVE,
+                "allowed_tool_batch": allowed
+                if with_tools <= INVESTIGATION_INPUT_TOKEN_LIMIT
+                else 0,
                 "preflight": "OVER_LIMIT"
                 if without_tools > INVESTIGATION_INPUT_TOKEN_LIMIT
                 else "FIT_WITHOUT_TOOLS"
@@ -246,15 +273,18 @@ def run_phase(
         if without_tools > INVESTIGATION_INPUT_TOKEN_LIMIT:
             raise ModelFailure("INVESTIGATION_PROMPT_LIMIT")
         if with_tools > INVESTIGATION_INPUT_TOKEN_LIMIT:
-            bound = []
+            bound, allowed = [], 0
+            bounded_messages = with_budget(allowed)
 
-        def validate(calls, raw, *, bound=bound, used=used):
+        def validate(calls, raw, *, allowed=allowed):
             if not calls:
                 return _result(
                     raw, schema, role=role, evidence_ids=evidence_ids, upstream_ids=upstream_ids
                 )
-            if not bound or len(calls) > min(MAX_TOOL_BATCH, tool_limit - used):
-                raise InvalidOutput("TOOL_BATCH_LIMIT", "tool_calls")
+            if len(calls) > allowed:
+                raise InvalidOutput(
+                    "TOOL_BATCH_LIMIT", "tool_calls", tool_counts=(len(calls), allowed)
+                )
             batch_ids = set()
             for call in calls:
                 name, ident, args = call["name"], call["id"], call["args"]
@@ -276,11 +306,12 @@ def run_phase(
             audit,
             f"p4:{PROMPT_VERSION}:{phase_id}:{index}",
             preferred="analysis" if context.strategy == "routed" else context.strategy,
-            messages=messages,
+            messages=bounded_messages,
             tools=bound,
             validate=validate,
             fixed=context.strategy != "routed",
             data_scope="customer_conversation",
+            output_reserve=P4_OUTPUT_RESERVE,
         )
         if "result" in response:
             return response["result"], sorted(evidence_ids), receipts, used

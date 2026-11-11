@@ -263,6 +263,7 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
                     "output_usd_per_million": "1",
                     "context_tokens": 32000,
                     "data_scopes": ["customer_conversation"],
+                    "output_tokens": 1800,
                 }
             ],
         }

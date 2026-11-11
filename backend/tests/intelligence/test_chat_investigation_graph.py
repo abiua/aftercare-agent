@@ -163,14 +163,14 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
 
     model = Script(
         {
-            "p4:compact-v2:single:0": [
+            "p4:compact-v3:single:0": [
                 _call("read_order_lines", line_ids=["line"]),
                 _call("read_order_lines", line_ids=["line2"]),
             ],
-            "p4:compact-v2:single:1": [
+            "p4:compact-v3:single:1": [
                 _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product")
             ],
-            "p4:compact-v2:single:2": {
+            "p4:compact-v3:single:2": {
                 "claims": [_claim("one", "line")],
                 "options": [
                     {
@@ -232,21 +232,21 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
 
     model = Script(
         {
-            "p4:compact-v2:fact:0": start("fact", _call("read_order_lines", line_ids=["line"])),
-            "p4:compact-v2:fact:1": {
+            "p4:compact-v3:fact:0": start("fact", _call("read_order_lines", line_ids=["line"])),
+            "p4:compact-v3:fact:1": {
                 "claims": [
                     _claim("f", "line", value="未交付"),
                     _claim("child", "line", depends=("f",)),
                 ]
             },
-            "p4:compact-v2:policy:0": start(
+            "p4:compact-v3:policy:0": start(
                 "policy",
                 _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product"),
             ),
-            "p4:compact-v2:policy:1": {"claims": [_claim("p", "POL01:v1")]},
-            "p4:compact-v2:verify-0:0": first_verifier,
-            "p4:compact-v2:recheck:0": {"claims": [_claim("f", "line", value="已交付")]},
-            "p4:compact-v2:verify-1:0": final_verifier,
+            "p4:compact-v3:policy:1": {"claims": [_claim("p", "POL01:v1")]},
+            "p4:compact-v3:verify-0:0": first_verifier,
+            "p4:compact-v3:recheck:0": {"claims": [_claim("f", "line", value="已交付")]},
+            "p4:compact-v3:verify-1:0": final_verifier,
         }
     )
     result, events = _run(investigation, "MULTI", model)
@@ -404,3 +404,33 @@ def test_compact_prompt_overflow_is_audited_before_transport(investigation):
     (budget,) = [payload for kind, payload in events if kind == "investigation_prompt_budget"]
     assert budget["preflight"] == "OVER_LIMIT"
     assert budget["estimated_without_tools"] > budget["limit"] == 24_576
+
+
+def test_p4_current_batch_limit_in_prompt_rejects_before_any_tool_read(investigation):
+    from aftercare.intelligence.models import _validation_fields
+
+    def excess(kwargs):
+        assert "本轮最多调用 4 个工具" in kwargs["messages"][0].content
+        assert "剩余 8 次工具读取" in kwargs["messages"][0].content
+        assert kwargs["output_reserve"] == 1800
+        return [_call("read_order_lines", line_ids=["line"])] * 5
+
+    class NoReads(InvestigationTools):
+        def call(self, *_):
+            pytest.fail("oversize batch issued a tool read")
+
+    with pytest.raises(InvalidOutput) as error:
+        _run(
+            investigation,
+            "SINGLE",
+            Script({"p4:compact-v3:single:0": excess}),
+            tools=NoReads(investigation),
+        )
+    assert _validation_fields(error.value) == [
+        {
+            "field": "tool_calls",
+            "code": "TOOL_BATCH_LIMIT",
+            "attempted": 5,
+            "allowed": 4,
+        }
+    ]
