@@ -8,7 +8,7 @@ from fastapi.responses import Response
 
 from aftercare.business.api import Actor, BusinessRoute, Key
 
-from .contracts import InitialJudgment, PostLabels, Versioned
+from .contracts import InitialJudgment, PostLabels, PostOptionLabelsV2, Versioned
 from .service import BlindReviewService
 
 
@@ -70,5 +70,7 @@ def reveal(task_id: UUID, body: Versioned, service: Service, actor: Actor, key: 
 
 
 @router.post("/{task_id}/labels")
-def labels(task_id: UUID, body: PostLabels, service: Service, actor: Actor, key: Key):
+def labels(
+    task_id: UUID, body: PostLabels | PostOptionLabelsV2, service: Service, actor: Actor, key: Key
+):
     return service.write(actor, str(task_id), "labels", body, key)

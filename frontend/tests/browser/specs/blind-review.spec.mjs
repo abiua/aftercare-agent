@@ -29,6 +29,10 @@ async function open(page) {
 
 test('fixture: seal before explicit reveal, reopen immutable initial, and label separately', async ({page, fixtureApi}) => {
   const state = seed(fixtureApi);
+  state.candidates[0].options.push({...state.candidates[0].options[0], id: 'second-option',
+    rationale: '第二方案理由', alternatives: [], policy_ids: [], policy_references: [],
+    evidence_ids: [], evidence_references: [],
+  });
   const before = fixtureApi.calls.length;
   await signIn(page, 'tester', '/?eval=blind&eval_experiment=blind-must-not-open&eval_case=hidden-case&eval_repeat=1');
   await open(page);
@@ -76,11 +80,49 @@ test('fixture: seal before explicit reveal, reopen immutable initial, and label 
   await groups.nth(0).getByRole('radio', {name: '可以接受'}).check();
   await expect(groups.nth(1).getByRole('radio', {name: '可以接受'})).toBeDisabled();
   await groups.nth(1).getByRole('radio', {name: '无法判断'}).check();
-  await page.getByRole('button', {name: '保存后置复核'}).click();
+  const submitLabels = page.getByRole('button', {name: '保存后置复核'});
+  const firstOption = page.getByRole('group', {name: '候选 1 的方案 1 可以接受吗？'});
+  const secondOption = page.getByRole('group', {name: '候选 1 的方案 2 可以接受吗？'});
+  await expect(submitLabels).toBeDisabled();
+  await expect(firstOption.getByRole('radio', {checked: true})).toHaveCount(0);
+  await expect(secondOption.getByRole('radio', {checked: true})).toHaveCount(0);
+  await firstOption.getByRole('radio', {name: '可以接受', exact: true}).check();
+  await expect(submitLabels).toBeDisabled();
+  await secondOption.getByRole('radio', {name: '不可以接受'}).check();
+  await submitLabels.click();
   await expect(page.getByText(/后置复核已记录 ·/)).toBeVisible();
   expect(state.posts[2]).toMatchObject({stage: 'labels', body: {expected_version: 3,
-    items: [{candidate_id: 'hidden-candidate', decision: 'ACCEPTABLE'}, {candidate_id: 'unavailable-candidate', decision: 'UNDETERMINED'}]}});
+    label_schema_version: 'chat-blind-labels-v2',
+    items: [{candidate_id: 'hidden-candidate', decision: 'ACCEPTABLE'}, {candidate_id: 'unavailable-candidate', decision: 'UNDETERMINED'}],
+    option_labels: [
+      {candidate_id: 'hidden-candidate', option_id: 'candidate-option', decision: 'ACCEPTABLE'},
+      {candidate_id: 'hidden-candidate', option_id: 'second-option', decision: 'UNACCEPTABLE'},
+    ]}});
+  await page.reload();
+  await open(page);
+  await expect(page.getByText('方案评价 · 可以接受', {exact: true})).toBeVisible();
+  await expect(page.getByText('方案评价 · 不可以接受', {exact: true})).toBeVisible();
+  await expect(page.getByRole('button', {name: '保存后置复核'})).toHaveCount(0);
   expect(state.task.initial.payload.notes).toBe('原图证据仍需核对。');
+});
+
+test('fixture: a completed legacy overall label stays readable without option labels', async ({page, fixtureApi}) => {
+  const state = seed(fixtureApi);
+  Object.assign(state.task, {status: 'LABELED', version: 4,
+    initial: {sha256: 'i'.repeat(64), created_at: '2026-11-11T08:00:00Z', payload: {
+      judgment: 'UNDETERMINED', acceptable_plans: [], required_fact_ids: [], policy_assessments: [], notes: '',
+    }},
+    exposure: {sha256: 'e'.repeat(64), created_at: '2026-11-11T08:01:00Z', candidates: state.candidates},
+    labels: {sha256: 'l'.repeat(64), created_at: '2026-11-11T08:02:00Z', payload: {
+      items: [{candidate_id: 'hidden-candidate', decision: 'ACCEPTABLE', notes: '旧版整体评价'}],
+    }},
+  });
+  await signIn(page, 'tester', '/?eval=blind');
+  await open(page);
+  await expect(page.getByText('可以接受 · 旧版整体评价')).toBeVisible();
+  await expect(page.getByText(/方案评价 ·/)).toHaveCount(0);
+  await expect(page.getByRole('button', {name: '保存后置复核'})).toHaveCount(0);
+  expect(state.posts).toHaveLength(0);
 });
 
 test('fixture: v2 blind review presents structured human material observations', async ({page, fixtureApi}) => {

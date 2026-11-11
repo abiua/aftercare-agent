@@ -21,7 +21,7 @@ from aftercare.investigation.input import build_input
 from aftercare.investigation.material_observations import ORDER_PAYMENT_REF
 
 from ..service import _mutate, _remember
-from .contracts import BlindCandidate, BlindInput
+from .contracts import BlindCandidate, BlindInput, PostOptionLabelsV2
 from .tables import BlindExposure, BlindInitial, BlindLabels, BlindTask
 
 _STATES = {1: "BLIND", 2: "SEALED", 3: "REVEALED", 4: "LABELED"}
@@ -268,6 +268,10 @@ def _references(ids, catalogue):
     ]
 
 
+def _blind_option_id(snapshot_id, option_id):
+    return digest([snapshot_id, option_id])[:32]
+
+
 def _candidate(snapshot, scope, public):
     if (
         snapshot is None
@@ -305,7 +309,7 @@ def _candidate(snapshot, scope, public):
         item = option.model_dump(mode="json", exclude_none=True)
         options.append(
             {
-                "id": digest([snapshot.id, item["id"]])[:32],
+                "id": _blind_option_id(snapshot.id, item["id"]),
                 "action": item["action"],
                 "lines": item.get("lines")
                 or [{"line_id": ident} for ident in item["target_line_ids"]],
@@ -538,3 +542,13 @@ class BlindReviewService:
             for row in body.items
         ):
             _fail("BLIND_REVIEW_CANDIDATE_UNAVAILABLE", 422)
+        if isinstance(body, PostOptionLabelsV2):
+            required = {
+                (ident, option["id"])
+                for ident, candidate in expected.items()
+                if candidate["status"] == "AVAILABLE"
+                for option in candidate["options"]
+            }
+            provided = {(row.candidate_id, row.option_id) for row in body.option_labels}
+            if len(body.option_labels) != len(required) or provided != required:
+                _fail("BLIND_REVIEW_OPTION_LABEL_COVERAGE_REQUIRED", 422)

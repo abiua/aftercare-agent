@@ -179,3 +179,14 @@ class CandidateLabel(Contract):
 
 class PostLabels(Versioned):
     items: Annotated[list[CandidateLabel], Field(min_length=1, max_length=12)]
+
+
+class OptionLabel(Contract):
+    candidate_id: Key
+    option_id: Key
+    decision: Literal["ACCEPTABLE", "UNACCEPTABLE", "UNDETERMINED"]
+
+
+class PostOptionLabelsV2(PostLabels):
+    label_schema_version: Literal["chat-blind-labels-v2"]
+    option_labels: Annotated[list[OptionLabel], Field(max_length=96)]

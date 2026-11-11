@@ -565,7 +565,18 @@ export const test = base.extend({
             task.exposure = {sha256: 'e'.repeat(64), created_at: createdAt, candidates};
             task.status = 'REVEALED';
           } else if (stage === 'labels' && task.status === 'REVEALED') {
-            task.labels = {sha256: 'l'.repeat(64), created_at: createdAt, payload: {items: body.items}};
+            if (body.label_schema_version === 'chat-blind-labels-v2') {
+              const expected = candidates.flatMap((candidate) => candidate.status === 'AVAILABLE' ?
+                candidate.options.map((option) => JSON.stringify([candidate.id, option.id])) : []).sort();
+              const supplied = body.option_labels?.map(({candidate_id, option_id}) =>
+                JSON.stringify([candidate_id, option_id])).sort();
+              if (JSON.stringify(supplied) !== JSON.stringify(expected))
+                return denied(route, 422, 'BLIND_OPTION_LABELS_INVALID', '请逐项评价方案。');
+            }
+            task.labels = {sha256: 'l'.repeat(64), created_at: createdAt, payload: {
+              items: body.items, ...(body.label_schema_version === 'chat-blind-labels-v2' ?
+                {label_schema_version: body.label_schema_version, option_labels: body.option_labels} : {}),
+            }};
             task.status = 'LABELED';
           } else return denied(route, 409, 'BLIND_REVIEW_STAGE_CHANGED', '阶段已变化。');
           task.version++;

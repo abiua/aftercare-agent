@@ -13,6 +13,7 @@ from test_conversations import headers, send
 from test_conversations import system as _system
 
 from aftercare.auth import token_hash
+from aftercare.business.rules import digest
 from aftercare.db import User
 from aftercare.evaluation.api import router
 from aftercare.evaluation.chat.service import BlindReviewService
@@ -168,10 +169,25 @@ def test_blind_input_then_immutable_initial_explicit_reveal_and_labels(task):
         "expected_version": 3,
         "items": [{"candidate_id": candidate["id"], "decision": "ACCEPTABLE"}],
     }
-    labeled = env.client.post(endpoint + "/labels", json=label_body, headers=headers(TESTER))
+    label_key = uuid4().hex
+    labeled = env.client.post(
+        endpoint + "/labels", json=label_body, headers=headers(TESTER, label_key)
+    )
     assert labeled.status_code == 200, labeled.text
     assert labeled.json()["status"] == "LABELED"
     assert labeled.json()["initial"] == sealed.json()["initial"]
+    expected_legacy = {"items": [{**label_body["items"][0], "notes": ""}]}
+    assert labeled.json()["labels"]["payload"] == expected_legacy
+    assert labeled.json()["labels"]["sha256"] == digest(
+        [reveal.json()["exposure"]["sha256"], expected_legacy]
+    )
+    assert (
+        env.client.post(
+            endpoint + "/labels", json=label_body, headers=headers(TESTER, label_key)
+        ).json()
+        == labeled.json()
+    )
+
     assert (
         env.client.post(
             endpoint + "/initial", json=judgment, headers=headers(TESTER, initial_key)
@@ -374,3 +390,66 @@ def test_complete_catalogue_and_selected_bundle_reference_are_distinct(task):
         [ownership_id],
     ]
     assert references[-1]["status"] == "RESOLVED"
+
+
+def test_explicit_option_label_version_requires_reveal_and_exact_opaque_coverage(task):
+    env, task_id, _, _ = task
+    endpoint = f"{BASE}/{task_id}"
+    state = env.client.get(endpoint, headers=headers(TESTER)).json()
+    assert (
+        env.client.post(
+            endpoint + "/initial", json=_initial(state["input"]), headers=headers(TESTER)
+        ).status_code
+        == 200
+    )
+    with Session(env.db) as db:
+        (stored,) = db.get_one(BlindTask, task_id).candidates
+    candidate_id = stored["id"]
+    labels = [
+        {"candidate_id": candidate_id, "option_id": row["id"], "decision": "UNDETERMINED"}
+        for row in stored["options"]
+    ]
+    assert labels
+    body = {
+        "expected_version": 3,
+        "label_schema_version": "chat-blind-labels-v2",
+        "items": [{"candidate_id": candidate_id, "decision": "UNDETERMINED"}],
+        "option_labels": labels,
+    }
+    assert (
+        env.client.post(endpoint + "/labels", json=body, headers=headers(TESTER)).status_code == 409
+    )
+    reveal = env.client.post(
+        endpoint + "/reveal", json={"expected_version": 2}, headers=headers(TESTER)
+    )
+    assert reveal.status_code == 200
+    for invalid in ([], labels + labels, [{**labels[0], "option_id": "foreign"}, *labels[1:]]):
+        response = env.client.post(
+            endpoint + "/labels", json={**body, "option_labels": invalid}, headers=headers(TESTER)
+        )
+        assert response.status_code == 422
+        assert response.json()["detail"]["code"] == "BLIND_REVIEW_OPTION_LABEL_COVERAGE_REQUIRED"
+    marker_missing = {key: value for key, value in body.items() if key != "label_schema_version"}
+    assert (
+        env.client.post(
+            endpoint + "/labels", json=marker_missing, headers=headers(TESTER)
+        ).status_code
+        == 422
+    )
+    key = uuid4().hex
+    saved = env.client.post(endpoint + "/labels", json=body, headers=headers(TESTER, key))
+    assert saved.status_code == 200, saved.text
+    assert saved.json()["labels"]["payload"] == {
+        "label_schema_version": body["label_schema_version"],
+        "items": [{**body["items"][0], "notes": ""}],
+        "option_labels": labels,
+    }
+    assert (
+        env.client.post(endpoint + "/labels", json=body, headers=headers(TESTER, key)).json()
+        == saved.json()
+    )
+    legacy = {field: body[field] for field in ("expected_version", "items")}
+    assert (
+        env.client.post(endpoint + "/labels", json=legacy, headers=headers(TESTER, key)).status_code
+        == 409
+    )

@@ -2,9 +2,11 @@
 
 from datetime import UTC, datetime
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aftercare.business.rules import digest, utc
+from aftercare.decisions.contracts import Candidate
 from aftercare.decisions.tables import DecisionSnapshot
 from aftercare.evaluation.runner import _namespace
 
@@ -15,10 +17,12 @@ from .service import (
     _TEST_CASE_LABEL,
     BlindReviewService,
     _blind_candidate_id,
+    _blind_option_id,
     _fail,
     _frozen_public,
     _image_objects,
 )
+from .tables import BlindTask
 
 _NATIVE_FIELDS = (
     "status",
@@ -163,6 +167,28 @@ def _arm_result(runtime, manifest, source, controls, row):
     return record, snapshot
 
 
+def _option_gate(snapshot):
+    candidate = Candidate.model_validate(snapshot.candidate)
+    checks = snapshot.checks
+    if set(checks) != {option.id for option in candidate.options} or any(
+        checks[option.id].get("status") not in {"PASSED", "BLOCKED", "NON_EXECUTING"}
+        for option in candidate.options
+    ):
+        _fail("BLIND_REVIEW_PAIR_OPTION_GATE_INVALID", 422)
+    return {
+        "snapshot_sha256": snapshot.sha256,
+        "checks_sha256": digest(checks),
+        "options": [
+            {
+                "option_id": _blind_option_id(snapshot.id, option.id),
+                "native_option_id": option.id,
+                "status": checks[option.id]["status"],
+            }
+            for option in candidate.options
+        ],
+    }
+
+
 def _save_binding(manifest, name, binding):
     saved = manifest.read(name)
     if saved is None:
@@ -179,12 +205,13 @@ def register_pg_blind(runtime, manifest, case, *, reviewer_id, case_label):
         target = runtime.registration_business()
         source = runtime.freeze(case)
         plan, rows = _plan_rows(runtime, manifest, source)
-        records, snapshots = [], []
+        records, snapshots, gates = [], [], {}
         for row in rows:
             record, snapshot = _arm_result(runtime, manifest, source, plan["controls"], row)
             records.append(record)
             if snapshot is not None:
                 snapshots.append(snapshot)
+                gates[snapshot.id] = _option_gate(snapshot)
         private = {
             "plan_sha256": digest(plan),
             "controls_sha256": digest(plan["controls"]),
@@ -202,18 +229,46 @@ def register_pg_blind(runtime, manifest, case, *, reviewer_id, case_label):
             logical = _image_objects(db, source.scope, public)
         prefix = f"evaluation/{source.record['source_namespace']}/"
         images = {ident: prefix + key for ident, key in logical.items()}
-        source_sha = digest(
-            [
-                "chat-blind-pg-registration-v1",
-                private,
-                source.record["scope_sha256"],
-                digest(public.model_dump(mode="json")),
-                images,
-            ]
-        )
+        input_sha = digest(public.model_dump(mode="json"))
+
+        def bind(private_mapping):
+            return digest(
+                [
+                    "chat-blind-pg-registration-v1",
+                    private_mapping,
+                    source.record["scope_sha256"],
+                    input_sha,
+                    images,
+                ]
+            )
+
+        legacy_sha = bind(private)
+        arms = [
+            {**row, "option_gate": gates[row["snapshot_id"]]}
+            if row["snapshot_id"] in gates and row["candidate_status"] == "AVAILABLE"
+            else row
+            for row in records
+        ]
+        revised = {
+            **private,
+            "arms": arms,
+            "option_gate_schema_version": "chat-blind-option-gates-v1",
+            "option_gates_sha256": digest(arms),
+        }
         service = BlindReviewService(target)
         with Session(service.engine) as db, db.begin():
             service._reviewer(db, reviewer_id, exclusive=True)
+            existing_sha = db.scalar(
+                select(BlindTask.source_sha256).where(
+                    BlindTask.reviewer_id == reviewer_id, BlindTask.input_sha256 == input_sha
+                )
+            )
+            # Replay or repair a historical registration without inventing gate evidence.
+            if existing_sha == legacy_sha:
+                source_sha = legacy_sha
+            else:
+                private = revised
+                source_sha = bind(private)
             assignment = service._persist_assignment(
                 db,
                 reviewer_id=reviewer_id,

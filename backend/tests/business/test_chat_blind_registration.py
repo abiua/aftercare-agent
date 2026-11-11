@@ -176,6 +176,73 @@ def test_registers_three_native_snapshots_and_resumes_private_mapping_after_comm
         row["blind_candidate_id"] for row in mapping["arms"]
     }
     assert not any(row["snapshot_id"] in str(exposure) for row in mapping["arms"])
+    assert "option_gate" not in str(exposure)
+    assert mapping["option_gate_schema_version"] == "chat-blind-option-gates-v1"
+    assert mapping["option_gates_sha256"] == digest(mapping["arms"])
+    with Session(env.db) as db:
+        task = db.get_one(BlindTask, task_id)
+        private = {
+            key: value for key, value in mapping.items() if key not in {"task_id", "source_sha256"}
+        }
+        assert (
+            task.source_sha256
+            == mapping["source_sha256"]
+            == digest(
+                [
+                    "chat-blind-pg-registration-v1",
+                    private,
+                    mapping["scope_sha256"],
+                    task.input_sha256,
+                    task.image_objects,
+                ]
+            )
+        )
+    by_candidate = {row["id"]: row for row in exposure["candidates"]}
+    for arm, native in zip(mapping["arms"], result["rows"], strict=True):
+        gate = arm["option_gate"]
+        assert gate["snapshot_sha256"] == arm["snapshot_sha256"]
+        assert gate["checks_sha256"] == digest(native["program_checks"])
+        options = by_candidate[arm["blind_candidate_id"]]["options"]
+        assert [row["option_id"] for row in gate["options"]] == [row["id"] for row in options]
+        assert {row["native_option_id"]: row["status"] for row in gate["options"]} == {
+            option_id: check["status"] for option_id, check in native["program_checks"].items()
+        }
+
+
+def test_existing_legacy_registration_map_is_never_backfilled(paired):
+    env, runtime, manifest, case, _, _ = paired
+    assignment = _register(runtime, manifest, case)
+    path = manifest.directory / f"blind-{assignment['id']}.json"
+    mapping = manifest.read(path.name)
+    legacy = {
+        key: value
+        for key, value in mapping.items()
+        if key not in {"option_gate_schema_version", "option_gates_sha256"}
+    }
+    legacy["arms"] = [
+        {key: value for key, value in row.items() if key != "option_gate"}
+        for row in mapping["arms"]
+    ]
+    private = {
+        key: value for key, value in legacy.items() if key not in {"task_id", "source_sha256"}
+    }
+    with Session(env.db) as db, db.begin():
+        task = db.get_one(BlindTask, assignment["id"])
+        task.source_sha256 = digest(
+            [
+                "chat-blind-pg-registration-v1",
+                private,
+                private["scope_sha256"],
+                task.input_sha256,
+                task.image_objects,
+            ]
+        )
+        legacy["source_sha256"] = task.source_sha256
+    path.unlink()
+    manifest._write(path.name, legacy)
+    old_bytes = path.read_bytes()
+    assert _register(runtime, manifest, case) == assignment
+    assert path.read_bytes() == old_bytes
 
 
 def test_partial_and_empty_plans_keep_missing_arms_private(paired):

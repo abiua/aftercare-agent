@@ -5,7 +5,7 @@ import { editableMeasure } from './chatDecisionData';
 import {
   blindActions, blindLabels, blindStages, latestBlindDetail, policyStatuses, visibleBlindExposure,
   type BlindAction, type BlindCandidate, type BlindDetail, type BlindImage, type BlindInput, type BlindJudgment,
-  type BlindLabel, type BlindPage, type BlindPlan, type BlindReference, type InitialPayload, type PolicyStatus,
+  type BlindLabel, type BlindPage, type BlindPlan, type BlindReference, type InitialPayload, type OptionLabelsPayload, type PolicyStatus,
 } from './chatBlindReview';
 import { useActions, useResource } from './hooks';
 import { Evidence, Feedback, Json, label, money, time } from './ui';
@@ -78,7 +78,7 @@ function BlindTask({api, id, back}: {api: Client; id: string; back: () => void})
         <Evidence title="揭示记录摘要"><Json value={exposure.sha256} /></Evidence>
         <PostLabels key={exposure.sha256} candidates={exposure.candidates} recorded={detail.labels}
           editable={detail.status === 'REVEALED'} disabled={resource.loading || actions.busy}
-          onSubmit={(items) => void save('labels', {items})} />
+          onSubmit={(payload) => void save('labels', payload)} />
       </Card>}
     </>}
     {confirmation && <Modal open title={confirmation.stage === 'initial' ? '封存独立判断' : '揭示助手候选'}
@@ -328,27 +328,48 @@ function InitialRecord({record}: {record: NonNullable<BlindDetail['initial']>}) 
 
 function PostLabels({candidates, recorded, editable, disabled, onSubmit}: {
   candidates: BlindCandidate[]; recorded: BlindDetail['labels']; editable: boolean; disabled: boolean;
-  onSubmit: (items: NonNullable<BlindDetail['labels']>['payload']['items']) => void;
+  onSubmit: (payload: OptionLabelsPayload) => void;
 }) {
   const [decisions, setDecisions] = useState<Record<number, BlindLabel>>({});
   const [notes, setNotes] = useState<Record<number, string>>({});
-  const allChosen = candidates.length > 0 && candidates.every((_candidate, index) => decisions[index]);
+  const [optionDecisions, setOptionDecisions] = useState<Record<string, BlindLabel>>({});
+  const optionKey = (candidateId: string, optionId: string) => JSON.stringify([candidateId, optionId]);
+  const optionChoices = [
+    {value: 'ACCEPTABLE', label: '可以接受'},
+    {value: 'UNACCEPTABLE', label: '不可以接受'},
+    {value: 'UNDETERMINED', label: '无法判断'},
+  ];
+  const availableOptions = candidates.flatMap((candidate) => candidate.status === 'AVAILABLE' ?
+    candidate.options.map((option) => ({candidate_id: candidate.id, option_id: option.id})) : []);
+  const savedOptions = recorded?.payload.label_schema_version === 'chat-blind-labels-v2' ?
+    recorded.payload.option_labels : [];
+  const allChosen = candidates.length > 0 && candidates.every((_candidate, index) => decisions[index]) &&
+    availableOptions.every(({candidate_id, option_id}) => optionDecisions[optionKey(candidate_id, option_id)]);
   return <div className="stack">
     {candidates.map((candidate, index) => {
       const saved = recorded?.payload.items.find((item) => item.candidate_id === candidate.id);
       const available = candidate.status === 'AVAILABLE';
       return <Card key={candidate.id} size="small" title={`候选 ${index + 1}`}>
         {!available && <p>这一项没有可供核对的方案。请选「无法判断」。</p>}
-        {available && candidate.options.map((option) => <section key={option.id}>
-          <h4>{blindActions[option.action] ?? '未登记的处理方式'}</h4>
-          {option.lines.map((row) => <p key={row.line_id}>{rowName(row.line_id)}
-            {row.amount_cents != null && ` · ${money(row.amount_cents)}`}{row.quantity != null && ` · ${row.quantity} 件`}</p>)}
-          {!!option.required_evidence.length && <p>补证要求 · {option.required_evidence.join('、')}</p>}
-          <p style={{whiteSpace: 'pre-wrap'}}>理由 · {option.rationale}</p>
-          <CandidateList title="备选" items={option.alternatives} />
-          <CandidateReferences title="引用条款" ids={option.policy_ids} references={option.policy_references} />
-          <CandidateReferences title="引用记录" ids={option.evidence_ids} references={option.evidence_references} />
-        </section>)}
+        {available && candidate.options.map((option, optionIndex) => {
+          const key = optionKey(candidate.id, option.id);
+          const savedOption = savedOptions.find((item) => item.candidate_id === candidate.id && item.option_id === option.id);
+          return <section key={option.id}>
+            <h4>方案 {optionIndex + 1} · {blindActions[option.action] ?? '未登记的处理方式'}</h4>
+            {option.lines.map((row) => <p key={row.line_id}>{rowName(row.line_id)}
+              {row.amount_cents != null && ` · ${money(row.amount_cents)}`}{row.quantity != null && ` · ${row.quantity} 件`}</p>)}
+            {!!option.required_evidence.length && <p>补证要求 · {option.required_evidence.join('、')}</p>}
+            <p style={{whiteSpace: 'pre-wrap'}}>理由 · {option.rationale}</p>
+            <CandidateList title="备选" items={option.alternatives} />
+            <CandidateReferences title="引用条款" ids={option.policy_ids} references={option.policy_references} />
+            <CandidateReferences title="引用记录" ids={option.evidence_ids} references={option.evidence_references} />
+            {savedOption && <p>方案评价 · {optionChoices.find((choice) => choice.value === savedOption.decision)?.label}</p>}
+            {editable && <fieldset><legend>候选 {index + 1} 的方案 {optionIndex + 1} 可以接受吗？</legend>
+              <Radio.Group value={optionDecisions[key]} options={optionChoices}
+                onChange={(event) => setOptionDecisions({...optionDecisions, [key]: event.target.value})} />
+            </fieldset>}
+          </section>;
+        })}
         <CandidateList title="未解决事项" items={candidate.unresolved} />
         {saved && <p>{blindLabels[saved.decision]}{saved.notes && ` · ${saved.notes}`}</p>}
         {editable && <div className="stack">
@@ -362,9 +383,13 @@ function PostLabels({candidates, recorded, editable, disabled, onSubmit}: {
       </Card>;
     })}
     {recorded && <p>后置复核已记录 · {time(recorded.created_at)}</p>}
-    {editable && <Button type="primary" disabled={disabled || !allChosen} onClick={() => onSubmit(
-      candidates.map((candidate, index) => ({candidate_id: candidate.id, decision: decisions[index], notes: notes[index] ?? ''}))
-    )}>保存后置复核</Button>}
+    {editable && <Button type="primary" disabled={disabled || !allChosen} onClick={() => onSubmit({
+      label_schema_version: 'chat-blind-labels-v2',
+      items: candidates.map((candidate, index) => ({candidate_id: candidate.id, decision: decisions[index], notes: notes[index] ?? ''})),
+      option_labels: availableOptions.map((option) => ({
+        ...option, decision: optionDecisions[optionKey(option.candidate_id, option.option_id)],
+      })),
+    })}>保存后置复核</Button>}
   </div>;
 }
 

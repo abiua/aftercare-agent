@@ -20,7 +20,12 @@ export type InitialPayload = {
   judgment: BlindJudgment; acceptable_plans: BlindPlan[]; required_fact_ids: string[];
   policy_assessments: {policy_id: string; version: string; status: PolicyStatus}[]; notes: string;
 };
-export type LabelsPayload = {items: {candidate_id: string; decision: BlindLabel; notes: string}[]};
+type OverallLabel = {candidate_id: string; decision: BlindLabel; notes: string};
+type OptionLabel = {candidate_id: string; option_id: string; decision: BlindLabel};
+export type OptionLabelsPayload = {
+  label_schema_version: 'chat-blind-labels-v2'; items: OverallLabel[]; option_labels: OptionLabel[];
+};
+export type LabelsPayload = {label_schema_version?: 'chat-blind-labels-v1'; items: OverallLabel[]} | OptionLabelsPayload;
 export type BlindReference = {id: string; status: 'RESOLVED' | 'UNRESOLVED'; resolved_ids: string[]};
 export type BlindCandidate = {id: string; status: 'AVAILABLE' | 'UNAVAILABLE'; unresolved: string[]; options: {
   id: string; action: BlindAction; lines: {line_id: string; amount_cents?: number | null; quantity?: number | null}[];
