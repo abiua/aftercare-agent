@@ -1,6 +1,7 @@
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
+from pydantic_core import PydanticCustomError
 
 from aftercare.business.rules import digest
 
@@ -90,12 +91,25 @@ class Option(Contract):
     @model_validator(mode="after")
     def verify_lines(self):
         if len({row.line_id for row in self.lines}) != len(self.lines):
-            raise ValueError("Order lines must be unique")
+            raise PydanticCustomError("OPTION_DUPLICATE_ORDER_LINES", "Order lines must be unique")
         for row in self.lines:
-            if (row.amount_cents is not None) != (self.action == "REFUND") or (
-                row.quantity is not None
-            ) != (self.action == "REPLACE"):
-                raise ValueError("Line measure does not match action")
+            if self.action == "REFUND":
+                if row.amount_cents is None:
+                    raise PydanticCustomError(
+                        "REFUND_AMOUNT_REQUIRED", "Refund lines require amount_cents"
+                    )
+                if row.quantity is not None:
+                    raise PydanticCustomError(
+                        "REFUND_QUANTITY_FORBIDDEN", "Refund lines do not take quantity"
+                    )
+            elif row.amount_cents is not None:
+                raise PydanticCustomError(
+                    "REPLACE_AMOUNT_FORBIDDEN", "Replacement lines do not take amount_cents"
+                )
+            elif row.quantity is None:
+                raise PydanticCustomError(
+                    "REPLACE_QUANTITY_REQUIRED", "Replacement lines require quantity"
+                )
         return self
 
     def business_lines(self):
@@ -114,9 +128,13 @@ class NonExecutingOption(Contract):
     @model_validator(mode="after")
     def verify_gap(self):
         if self.action == "REQUEST_EVIDENCE" and not self.missing_evidence:
-            raise ValueError("Evidence requests require a specific gap")
+            raise PydanticCustomError(
+                "EVIDENCE_GAP_REQUIRED", "Evidence requests require a specific gap"
+            )
         if len(set(self.target_line_ids)) != len(self.target_line_ids):
-            raise ValueError("Target order lines must be unique")
+            raise PydanticCustomError(
+                "OPTION_DUPLICATE_TARGET_LINES", "Target order lines must be unique"
+            )
         return self
 
 

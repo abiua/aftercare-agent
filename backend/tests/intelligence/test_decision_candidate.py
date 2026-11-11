@@ -7,6 +7,7 @@ from types import SimpleNamespace
 import pytest
 import test_intelligence
 from langchain_core.messages import AIMessage
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -14,7 +15,7 @@ from aftercare.business.errors import BusinessError
 from aftercare.decisions.contracts import DecisionScope
 from aftercare.decisions.service import DecisionService
 from aftercare.intelligence.decision_candidate import project_candidate
-from aftercare.intelligence.models import ModelRunner
+from aftercare.intelligence.models import ModelRunner, _validation_fields
 from aftercare.intelligence.tables import AgentRun, RunEvent
 from aftercare.investigation.catalogue import CATALOGUE_VERSION
 
@@ -206,9 +207,12 @@ def test_eligible_legacy_graph_preserves_exact_money_and_trusted_refs(system):
     assert candidate["checks"]["graph-option"]["status"] == "PASSED"
 
 
-@pytest.mark.parametrize("amount,expected", [(1300, "PASSED"), (1400, "BLOCKED")])
+@pytest.mark.parametrize(
+    "amount,expected,repair_shape",
+    [(1300, "PASSED", False), (1400, "BLOCKED", False), (1300, "PASSED", True)],
+)
 def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
-    system, monkeypatch, amount, expected
+    system, monkeypatch, amount, expected, repair_shape
 ):
     from types import SimpleNamespace
 
@@ -287,7 +291,12 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
         spec.input_usd_per_million = Decimal(1)
         spec.output_usd_per_million = Decimal(1)
     transcripts = []
-    reference_error = {"field": "claims.0.supporting_refs", "code": "UNKNOWN_SUPPORTING_EVIDENCE"}
+    expected_error = (
+        {"field": "options.0.REFUND", "code": "REFUND_AMOUNT_REQUIRED"}
+        if repair_shape
+        else {"field": "claims.0.supporting_refs", "code": "UNKNOWN_SUPPORTING_EVIDENCE"}
+    )
+    private_rationale = "fixture private output must not enter repair"
 
     def transport(_spec, messages, _tools, *_):
         transcripts.append(messages)
@@ -310,12 +319,19 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
             "upstream_claim_ids": [],
         }
         evidence_refs = ["L1", "P1:1.0"]
+        line = {"line_id": "L1", "amount_cents": amount}
+        rationale = "按剩余额度和适用条款提出。"
         if len(transcripts) == 2:
             assert "1300" in messages[-2].content and "商品损坏" in messages[-1].content
-            evidence_refs = ["L1", "P1"]
+            if repair_shape:
+                line.pop("amount_cents")
+                rationale = private_rationale
+            else:
+                evidence_refs = ["L1", "P1"]
         else:
             assert len(transcripts) == 3
-            assert messages[-1].content.endswith(json.dumps([reference_error], ensure_ascii=False))
+            assert messages[-1].content.endswith(json.dumps([expected_error], ensure_ascii=False))
+            assert all(private_rationale not in message.content for message in messages)
         return AIMessage(
             content=json.dumps(
                 {
@@ -333,10 +349,10 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
                         {
                             "id": "refund",
                             "action": "REFUND",
-                            "lines": [{"line_id": "L1", "amount_cents": amount}],
+                            "lines": [line],
                             "policy_ids": ["P1"],
                             "evidence_ids": ["L1", "P1:1.0"],
-                            "rationale": "按剩余额度和适用条款提出。",
+                            "rationale": rationale,
                         }
                     ],
                 }
@@ -372,7 +388,8 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
             )
         )
         assert len(validations) == 1
-        assert validations[0].payload["errors"] == [reference_error]
+        assert validations[0].payload["errors"] == [expected_error]
+        assert private_rationale not in json.dumps(validations[0].payload, ensure_ascii=False)
     assert len(transcripts) == 3
     from aftercare.intelligence.models import ModelFailure
     from aftercare.intelligence.service import RunAudit
@@ -387,6 +404,59 @@ def test_p4_model_uses_actual_tools_and_preserves_immutable_amount(
     assert audit.replay(logical_id, expected_output_reserve=1800)["calls"]
     with pytest.raises(ModelFailure, match="REPLAY_OUTPUT_BUDGET_CHANGED"):
         audit.replay(logical_id, expected_output_reserve=900)
+
+
+def test_option_validation_diagnostics_distinguish_constraints_and_redact_unknown_fields():
+    from aftercare.investigation.orchestration import InvestigationResult
+
+    refund = {
+        "id": "local-fixture",
+        "action": "REFUND",
+        "rationale": "private rationale",
+        "lines": [{"line_id": "L01", "amount_cents": 60}],
+        "evidence_ids": ["L01"],
+        "policy_ids": ["POL14"],
+    }
+    cases = [
+        ({**refund, "lines": [{"line_id": "L01"}]}, "REFUND", "REFUND_AMOUNT_REQUIRED"),
+        ({**refund, "lines": refund["lines"] * 2}, "REFUND", "OPTION_DUPLICATE_ORDER_LINES"),
+        (
+            {
+                "id": "local-fixture",
+                "action": "REQUEST_EVIDENCE",
+                "target_line_ids": ["L01"],
+                "rationale": "private rationale",
+            },
+            "REQUEST_EVIDENCE",
+            "EVIDENCE_GAP_REQUIRED",
+        ),
+        (
+            {
+                "id": "local-fixture",
+                "action": "HUMAN_HANDOFF",
+                "target_line_ids": ["L01", "L01"],
+                "rationale": "private rationale",
+            },
+            "HUMAN_HANDOFF",
+            "OPTION_DUPLICATE_TARGET_LINES",
+        ),
+    ]
+    for option, action, code in cases:
+        with pytest.raises(ValidationError) as error:
+            InvestigationResult.model_validate({"claims": [], "options": [option]})
+        assert _validation_fields(error.value) == [{"field": f"options.0.{action}", "code": code}]
+
+    with pytest.raises(ValidationError) as error:
+        InvestigationResult.model_validate(
+            {
+                "claims": [],
+                "options": [
+                    {**refund, "malicious-secret-key": "private value", "notes": "private notes"}
+                ],
+            }
+        )
+    fields = _validation_fields(error.value)
+    assert fields == [{"field": "options.0.REFUND.unknown_field", "code": "extra_forbidden"}] * 2
 
 
 def test_p4_refuses_unapproved_data_scope_before_model_transport(system, monkeypatch):

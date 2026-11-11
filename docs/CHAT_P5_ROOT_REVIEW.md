@@ -116,3 +116,13 @@ root对冻结2988bbb源码完整非PG回归987通过、2可选跳过、40 PG未�
 传输兼容性VERIFIED、候选全部可用，但工作流PARTIAL：strong_single 形成HUMAN_HANDOFF、single_staged 形成REQUEST_EVIDENCE，均完成其角色最终结构；multi因INVESTIGATION_PROMPT_LIMIT在最终核验前转人工，缺verify-0最终结果，不计工作流通过。不得用15次200或存在候选代替三臂成功/决策质量。三臂新candidate_persisted_ms为42923/56831/20931，latency_issue为空，实际UTC计时修复已在本轮验证。无视觉像素发送或独立人审质量结论。
 
 root确认实际p5-paid-text专用容器不存在，临时secret目录无文件，报告记录temporary_local_key_copy_removed=true；旧API/worker仍按原离线配置运行，待独立复核。完整非PG回归994通过/2可选跳过/40 PG未选、定向9项与静态检查通过。原PARTIAL报告保留，正在分别只读诊断核验输入长度、两种单Agent结论与数据来源，不自动重跑。
+
+## compact-v6 真实文本三臂：仍为 PARTIAL
+
+固定 adcfd28 镜像 e4da6f2a…596e，独立 v2 计划 6919515a…35f5，结果保存在 `reports/chat-p5-paid-ordinary-v6-20261111.json`。保持每臂8次/$0.40、总24次/$1.20上限，同一原始输入和模型。实际15个HTTP200，估算$0.11116890，发送预留$0.735；未知响应/用量费用为0，实际账单未知。三臂候选及检查点存在，但业务质量仍为NOT_MEASURED。
+
+strong_single 两次最终结构验证失败（INVALID_MODEL_OUTPUT），保存转人工兜底，不计工作流完成；single_staged 和 multi 均完成角色最终结构并提出 HUMAN_HANDOFF。候选耗时分别42760/51400/31088毫秒，无时钟异常。multi 此次直接完成 verify-0，没有定向补查或第二次核验，因此不能把本次完成归因于回执压缩。上一版本失败输入的精确离线回放与这次真实结果分别保留，不拼接为三臂全部通过。
+
+旧验证提示将不同错误折叠为 `unknown_field.0.unknown_field / value_error`，没有保存非法原始输出，故无法事后确定本次究竟缺哪个字段。后续修复只增加静态安全路径和有限错误码，区分退款缺金额、补证缺具体要求等；不放宽业务校验、不增加重试或预算。此修复尚未经过真实供应方验收，也尚未更新实验版本。
+
+root核对专用p5-paid-text容器已移除、临时凭据副本已清除；独立原生数据库复核另行记录。结构化人工材料观察仍为未集成开发项，尚未进入本次冻结镜像或模型输入，不得据此宣称模型已读取人工看图结论。

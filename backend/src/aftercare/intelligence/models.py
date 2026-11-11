@@ -36,6 +36,12 @@ MAX_VISION_IMAGES = 6
 MAX_VISION_DATA_URL = 256 * 1024 + len(VISION_INPUT_PREFIX)
 SAFE_VALIDATION_FIELDS = {
     "intent",
+    "options",
+    "REFUND",
+    "REPLACE",
+    "REQUEST_EVIDENCE",
+    "NOT_SUPPORTED",
+    "HUMAN_HANDOFF",
     "notes",
     "action",
     "lines",
@@ -227,9 +233,14 @@ def _validation_fields(error):
             {
                 "field": ".".join(
                     str(part)
-                    if type(part) is int or part in SAFE_VALIDATION_FIELDS
+                    if (
+                        (type(part) is int or part in SAFE_VALIDATION_FIELDS)
+                        and not (
+                            issue["type"] == "extra_forbidden" and index == len(issue["loc"]) - 1
+                        )
+                    )
                     else "unknown_field"
-                    for part in issue["loc"]
+                    for index, part in enumerate(issue["loc"])
                 )
                 or "output",
                 "code": issue["type"],
