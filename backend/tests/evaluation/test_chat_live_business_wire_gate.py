@@ -155,6 +155,8 @@ def test_real_sdk_serialization_is_admitted_only_under_native_binding(kind, tmp_
 
     monkeypatch.setattr(httpx.HTTPTransport, "handle_request", offline_handle)
     monkeypatch.setattr(httpx.Client, "send", httpx.Client.send)
+    monkeypatch.setattr(ChatOpenAI, "_get_request_payload", ChatOpenAI._get_request_payload)
+    monkeypatch.setattr(ChatOpenAI, "_generate", ChatOpenAI._generate)
     code = (DIRECTORY / "sitecustomize.py").read_text()
     namespace = {}
     exec(code.replace('Path("/live-business-wire")', f"Path({str(tmp_path)!r})"), namespace)  # noqa: S102
@@ -401,3 +403,80 @@ def test_v2_complex_fact_uses_same_wire_caps_and_journals_scoped_route(tmp_path)
         "fact",
     )
     assert receipt["wire_reserved_microusd"] == 39_720
+
+
+@pytest.mark.parametrize(
+    ("stage", "exception_type", "admitted"),
+    [
+        ("serialize", ValueError, False),
+        ("validate", policy.WireDenied, False),
+        ("send", httpx.ConnectError, True),
+        ("read", httpx.ReadError, True),
+    ],
+)
+def test_scoped_fault_journal_classifies_safe_stage_without_raw_data(
+    stage, exception_type, admitted, tmp_path, monkeypatch
+):
+    plan, binding = _fixture("TEXT")
+    _lock(tmp_path)
+    raw = json.dumps(plan).encode()
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_bytes(raw)
+    plan_path.chmod(0o600)
+    monkeypatch.setenv("P5_LIVE_BUSINESS_PLAN_SHA256", hashlib.sha256(raw).hexdigest())
+    monkeypatch.setenv("AFTERCARE_OPENAI_KEY", KEY)
+    monkeypatch.setitem(sys.modules, "policy", policy)
+    mock_calls = []
+    raw_sensitive = "dummy-sensitive-message-never-journal"
+
+    def broken_payload(*_args, **_kwargs):
+        raise ValueError(raw_sensitive)
+
+    class UnreadableResponse:
+        def read(self):
+            raise httpx.ReadError(raw_sensitive)
+
+    def offline_handle(_transport, _request):
+        mock_calls.append(True)
+        if stage == "send":
+            raise httpx.ConnectError(raw_sensitive)
+        if stage == "read":
+            return UnreadableResponse()
+        pytest.fail("validation or serialization sent a provider request")
+
+    monkeypatch.setattr(httpx.HTTPTransport, "handle_request", offline_handle)
+    monkeypatch.setattr(httpx.Client, "send", httpx.Client.send)
+    monkeypatch.setattr(ChatOpenAI, "_get_request_payload", broken_payload)
+    monkeypatch.setattr(ChatOpenAI, "_generate", ChatOpenAI._generate)
+    code = (DIRECTORY / "sitecustomize.py").read_text()
+    namespace = {}
+    exec(code.replace('Path("/live-business-wire")', f"Path({str(tmp_path)!r})"), namespace)  # noqa: S102
+
+    with namespace["attempt"](binding), pytest.raises(exception_type):
+        if stage == "serialize":
+            namespace["_payload"](None)
+        else:
+            request = _request(plan, binding)
+            if stage == "validate":
+                request.headers["authorization"] = "Bearer " + raw_sensitive
+            namespace["_handle"](None, request)
+
+    (fault,) = list(tmp_path.glob("fault-*.json"))
+    saved = fault.read_bytes()
+    assert raw_sensitive.encode() not in saved and KEY.encode() not in saved
+    record = json.loads(saved)
+    assert record == {
+        "kind": "TEXT",
+        "native_logical_id": binding["native_logical_id"],
+        "native_ordinal": 1,
+        "stage": stage,
+        "exception_type": exception_type.__name__,
+        "wire_denial_code": "LIVE_BUSINESS_WIRE_REQUEST_TARGET_OR_HEADERS"
+        if stage == "validate"
+        else None,
+        "admitted": admitted,
+        "admission_index": 1 if admitted else None,
+        "admission_file_present": admitted,
+    }
+    assert bool(mock_calls) is admitted
+    assert not list(tmp_path.glob("response-*.json"))

@@ -116,7 +116,16 @@ def test_ordinary_attempts_use_disjoint_targets_and_keep_business_scope(success)
         assert success.offline_demo.STATE == success.driver.STATE == third
         assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5207, 58369)
         assert set(success.driver.SUBNETS.values()) == {"10.253.252.128/28", "10.253.252.144/28"}
-        assert (first_subnets | second_subnets).isdisjoint(success.driver.SUBNETS.values())
+        third_subnets = set(success.driver.SUBNETS.values())
+        assert (first_subnets | second_subnets).isdisjoint(third_subnets)
+    with success._target("ordinary", 4) as fourth:
+        assert fourth not in {first, second, third} and fourth.name.endswith("ordinary-r4.json")
+        assert success.offline_demo.STATE == success.driver.STATE == fourth
+        assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5208, 58370)
+        assert set(success.driver.SUBNETS.values()) == {"10.253.252.160/28", "10.253.252.176/28"}
+        assert (first_subnets | second_subnets | third_subnets).isdisjoint(
+            success.driver.SUBNETS.values()
+        )
         assert success.SCENARIOS["ordinary"]["order"] == "O9902"
         assert success.SCENARIOS["ordinary"]["lines"] == ["L01"]
     with success._target("complex"):
@@ -124,6 +133,6 @@ def test_ordinary_attempts_use_disjoint_targets_and_keep_business_scope(success)
     assert success.driver.STATE == prior
     with (
         pytest.raises(success.VerificationError, match="LIVE_SUCCESS_ATTEMPT_UNSUPPORTED"),
-        success._target("complex", 3),
+        success._target("complex", 4),
     ):
         pytest.fail("complex retry should not be admitted")

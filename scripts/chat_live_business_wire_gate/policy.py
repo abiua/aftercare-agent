@@ -467,8 +467,10 @@ def _lock(directory):
         yield
 
 
-def send(directory, plan, binding, request, api_key, transport):
+def send(directory, plan, binding, request, api_key, transport, *, observe_stage=None):
     """Serialize delivery so an unclosed request blocks every later admission."""
+    if observe_stage is not None:
+        observe_stage("validate")
     checked = verify_request(plan, binding, request, api_key)
     with _lock(directory):
         admissions = sorted(directory.glob("admission-*.json"))
@@ -564,8 +566,14 @@ def send(directory, plan, binding, request, api_key, transport):
             },
             **checked,
         }
+        if observe_stage is not None:
+            observe_stage("validate", index=index)
         _write(directory, f"admission-{index:02}.json", admitted)
+        if observe_stage is not None:
+            observe_stage("send", index=index, admitted=True)
         response = transport(request)
+        if observe_stage is not None:
+            observe_stage("read", index=index, admitted=True)
         response.read()
         _write(
             directory,

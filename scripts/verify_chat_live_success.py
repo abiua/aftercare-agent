@@ -56,6 +56,12 @@ ORDINARY_REPEATS = {
         "net": "10.253.252.128/28",
         "ingress": "10.253.252.144/28",
     },
+    4: {
+        "port": 5208,
+        "object_port": 58370,
+        "net": "10.253.252.160/28",
+        "ingress": "10.253.252.176/28",
+    },
 }
 PROTOCOL = "p5-live-business-wire-v2"
 FINANCIAL = (
@@ -176,8 +182,10 @@ def _preflight(name, image_receipt, *, attempt=1):
     plan["protected_state"] = ["5202_WAITING_INDEPENDENT_REVIEW", "5203_FAILED_AND_TAKEOVER"]
     if attempt >= 2:
         plan["protected_state"].append("5204_ORIGINAL_ORDINARY_UNKNOWN_NO_REPLAY")
-    if attempt == 3:
+    if attempt >= 3:
         plan["protected_state"].append("5206_ORDINARY_R2_PARTIAL_NO_REPLAY")
+    if attempt == 4:
+        plan["protected_state"].append("5207_ORDINARY_R3_ADAPTER_FAILURE_NO_REPLAY")
     plan["gates"]["success_driver_sha256"] = _hash(Path(__file__))
     plan["complex_fixture_sha256"] = _hash(CASES) if case else None
     plan["completion"] = (
