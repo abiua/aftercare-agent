@@ -101,3 +101,6 @@ root与独立代理审查未发现阻断；root联合运行登记/备份66项通
 真实跨schema登记 `reports/chat-p5-pg-registration-20261111.json` 已通过：复用5200原案例，每例3份原生P3投影到同一初判任务；普通任务ed151253-0fea-46ab-9f5c-6234fe403926完成控制UNDETERMINED初判/揭示/标签，复杂任务c2428b2e-00cc-441b-9064-a6c8dad6db8b登记后BLIND供浏览器验收。仅public盲审tasks+2、initial/exposure/labels各+1、eval_mutations+3，原source/arm全表及48对象字节不变，没有模型或财务写。控制初判不是独立人工金标。
 
 root对冻结2988bbb源码完整非PG回归987通过、2可选跳过、40 PG未选，日志 `.runtime/chat-p5-registration-frozen-regression.log`。随后f637f22新增只读登记必须require_existing源的保护，12项定向通过。真实登记使用该版本固定镜像22ca76e1…e07a；旧API仍原镜像。
+
+
+原生Chrome验收 `reports/browser-chat-p5-pg-20261111.json` PASS：复杂任务两张合成原图实际解码1254×1254和1536×1024，14条完整政策；BLIND/SEALED阶段无候选，显式揭示后三候选。封存/揭示/标签精确三次POST 200，版本1/2/3，29请求0丢失/0错误，普通任务未读取详情，原生刷新后初判/曝光/标签摘要不变。两次弹窗过渡拒绝发生在派发前，核对无POST后再点击，没有重放写。客户端响应核对无arm/run/snapshot标识，专属会话关闭。全部UNDETERMINED为自动化控制记录，非独立人工判断或金标。数据库独立复核待补。
