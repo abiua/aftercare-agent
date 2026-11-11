@@ -692,15 +692,14 @@ class ConversationDecisions:
                     [{"type": "status", "data": {"code": "HUMAN_HANDOFF"}}],
                 )
             elif disposition == "REQUEST_EVIDENCE":
-                current = self.resolve(db, actor, row.id, issue_id)
-                codes = evidence_gaps or current.frozen_context["eligibility"]["missing_materials"]
-                gaps = [EVIDENCE_GAPS[code] for code in codes if code in EVIDENCE_GAPS]
-                if not gaps and selected:
-                    gaps = [
-                        item
-                        for item in selected.get("missing_evidence", [])
-                        if item in EVIDENCE_GAPS.values()
-                    ]
+                if evidence_gaps:
+                    gaps = [EVIDENCE_GAPS[code] for code in evidence_gaps if code in EVIDENCE_GAPS]
+                elif selected:
+                    gaps = [item for item in selected["missing_evidence"] if item.strip()]
+                else:
+                    current = self.resolve(db, actor, row.id, issue_id)
+                    codes = current.frozen_context["eligibility"]["missing_materials"]
+                    gaps = [EVIDENCE_GAPS[code] for code in codes if code in EVIDENCE_GAPS]
                 gaps = list(dict.fromkeys(gaps))
                 if not gaps:
                     _fail("DECISION_EVIDENCE_GAP_REQUIRED", 422)

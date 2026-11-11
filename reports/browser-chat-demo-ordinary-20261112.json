@@ -1,0 +1,36 @@
+{
+  "status": "PARTIAL",
+  "port": 5215,
+  "mode": "OWNED_CHROME_DEMONSTRATION",
+  "refund_receipt": {
+    "status": "PASSED",
+    "url": "http://127.0.0.1:5215/?conversation=0eb6dee5-6604-44f7-ae05-ae1f5b70b6c0",
+    "order_id": "O9902",
+    "case_id": "776e3289-3ce3-4a25-8840-d8b6b13168f2",
+    "customer_label": "模拟 退款 · 执行成功",
+    "amount_cents": 4900,
+    "support_history": [
+      {"version": 1, "origin": "AGENT", "action": "REFUND", "amount_cents": 4900},
+      {"version": 2, "origin": "SUPPORT_MODIFICATION", "action": "REFUND", "amount_cents": 4900}
+    ]
+  },
+  "refund_lookup": {
+    "status": "PARTIAL",
+    "url": "http://127.0.0.1:5215/?conversation=1e6f0579-59c7-4655-a48c-7cc3f602d690",
+    "order_id": "O0079",
+    "customer_text": "帮我查一下订单 O0079 有没有退款记录。",
+    "program_reply": "请说一下商品发生了什么，或你想查询什么。",
+    "customer_status": "正在整理已收到的消息。你可以继续补充。",
+    "refund_lookup_result_visible": false,
+    "provider_attempts_verified_by_browser": false
+  },
+  "capture": {
+    "observed_business_writes": [{"method": "POST", "path": "/api/conversations", "status": 201}],
+    "private_screenshots": [
+      ".runtime/browser-demo-5215-evidence/receipt.png",
+      ".runtime/browser-demo-5215-evidence/history.png",
+      ".runtime/browser-demo-5215-evidence/refund-query.png"
+    ],
+    "logged_out_and_session_closed": true
+  }
+}

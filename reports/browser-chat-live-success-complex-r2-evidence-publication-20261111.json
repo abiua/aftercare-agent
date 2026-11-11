@@ -1,0 +1,20 @@
+{
+  "status": "PASSED_PUBLIC_MESSAGE",
+  "provenance": "AUTOMATED_SYNTHETIC_DEMONSTRATION",
+  "port": 5213,
+  "case_id": "2651f93d-4991-4c47-aa86-acc8d9dce94a",
+  "conversation_id": "176e50c4-91ad-479d-b1e0-0b58b24b511e",
+  "candidate": {"origin": "AGENT", "version": 1, "action": "REQUEST_EVIDENCE", "still_visible_after_publication": true},
+  "publication": {
+    "kind": "SUPPORT_PUBLIC_CHAT_MESSAGE",
+    "observed_write_count": 1,
+    "http_status": 201,
+    "structured_review_submitted": false,
+    "structured_evidence_card_published": false,
+    "reason": "复核发布仅支持固定补证类别。源码显示本案原候选的两项自由文本无法直接发布为结构化复核，会返回 DECISION_EVIDENCE_GAP_REQUIRED。本次未发起该请求，改用公开客服消息明确两项要求，省略未核实的内部复查状态。",
+    "requested_items": ["能辨认受损杯子对应商品的标识或照片", "该款商品的实际受损总数"]
+  },
+  "customer_readback": {"public_message_visible": true, "original_photo_controls_in_same_chat": 2},
+  "private_screenshots": [".runtime/browser-complex-r2-published/support.png", ".runtime/browser-complex-r2-published/customer.png"],
+  "session_logged_out_and_closed": true
+}

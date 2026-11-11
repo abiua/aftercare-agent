@@ -1,0 +1,32 @@
+{
+  "status": "PARTIAL",
+  "mode": "OWNED_CHROME_READ_ONLY",
+  "port": 5213,
+  "case_id": "2651f93d-4991-4c47-aa86-acc8d9dce94a",
+  "conversation_id": "176e50c4-91ad-479d-b1e0-0b58b24b511e",
+  "customer": {
+    "original_photo_controls": 2,
+    "original_photo_previews_observed": 1,
+    "photo_observation_cards_with_original_links": 2,
+    "visible_progress": "已整理好调查结果，等待客服核对。",
+    "customer_statement_with_A17_visible": true,
+    "published_evidence_request_visible": false,
+    "internal_candidate_or_role_trace_visible": false,
+    "refund_completion_visible": false
+  },
+  "support": {
+    "original_agent_candidate_version": 1,
+    "action": "REQUEST_EVIDENCE",
+    "program_check": "NON_EXECUTING",
+    "requested_evidence": ["能关联受损商品与 L01 或 L02 的标识或材料", "对应订单行实际受影响的总数量"],
+    "candidate_evidence_and_frozen_context_visible": true,
+    "candidate_note_mentions_local_recheck_pending": true,
+    "per_role_native_trace_verified_in_browser": false
+  },
+  "capture": {
+    "non_read_http_requests_observed": 0,
+    "private_screenshots": [".runtime/browser-complex-r2/customer.png", ".runtime/browser-complex-r2/support.png"],
+    "session_logged_out_and_closed": true
+  },
+  "limitations": ["客服候选尚未发布给客户，客户页面显示等待客服核对。", "仅观察到一张原图展开预览，另一张核对了原图控件和观察卡链接。", "页面核对记录展示候选引用、程序检查与冻结上下文，未在浏览器逐角色验证原生工具调用或定向复查完成。"]
+}

@@ -792,3 +792,71 @@ def test_chat_proposal_preview_hides_no_longer_accepted_offer(configured, change
     data = env.client.get(f"/api/cases/{case_id}", headers=headers(SUPPORT)).json()["chat_proposal"]
     assert data["status"] == ("WITHDRAWN" if change == "withdraw" else "STALE")
     assert data["offer"] is None
+
+
+@pytest.mark.parametrize("action", ["ACCEPT", "MODIFY"])
+def test_adopting_custom_candidate_gaps_publishes_exact_items(configured, action):
+    from aftercare.conversations.decisions import ConversationDecisions
+    from aftercare.decisions.contracts import Candidate
+
+    env = configured
+    url, case_id = _link(env)
+    _evidence(env.service, case_id)
+    current = env.client.get(url + "/decisions", headers=headers(SUPPORT)).json()
+    decisions = ConversationDecisions(env.service)
+    gaps = ["拍清受损杯子的杯口", "补拍能区分两只杯子的商品标签"]
+    option = {
+        "id": "custom-gap",
+        "action": "REQUEST_EVIDENCE",
+        "target_line_ids": ["L01"],
+        "missing_evidence": gaps,
+        "rationale": "仅核对商品与损坏情况",
+    }
+    with Session(env.db) as db, db.begin():
+        scope = decisions.resolve(db, SUPPORT, url.rsplit("/", 1)[-1], current["issue_id"])
+        candidate = Candidate(
+            run_id=str(uuid4()),
+            graph_version="controlled",
+            route_version="controlled",
+            model_binding_sha256="0" * 64,
+            options=[option],
+        )
+        decisions.records.record_candidate(db, SUPPORT, scope, candidate)
+    original = env.client.get(url + "/decisions", headers=headers(SUPPORT)).json()["snapshot"]
+    review_url = url + "/decisions/review"
+    base = {"ref": _ref(original), "expected_review_id": None}
+    for empty in ([], [""], ["   "]):
+        rejected = env.client.post(
+            review_url,
+            headers=headers(SUPPORT),
+            json={
+                **base,
+                "review": {
+                    "action": "MODIFY",
+                    "reason": "补证",
+                    "replacement": {**option, "missing_evidence": empty},
+                },
+            },
+        )
+        assert rejected.status_code == 422
+    body = {
+        **base,
+        "review": {
+            "action": action,
+            "reason": "内部理由",
+            **({"option_id": option["id"]} if action == "ACCEPT" else {"replacement": option}),
+        },
+    }
+    key = headers(SUPPORT)
+    accepted = env.client.post(review_url, headers=key, json=body)
+    assert accepted.status_code == 200, accepted.text
+    assert env.client.post(review_url, headers=key, json=body).json() == accepted.json()
+    messages = env.client.get(url, headers=headers()).json()["messages"]
+    assert sum(all(gap in row["text"] for gap in gaps) for row in messages) == 1
+    assert "内部理由" not in messages[-1]["text"]
+    assert (
+        env.client.get(
+            url + "/decisions/history/" + original["id"], headers=headers(SUPPORT)
+        ).json()
+        == original
+    )

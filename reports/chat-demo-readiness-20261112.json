@@ -1,0 +1,58 @@
+{
+  "status": "READY_FOR_DEMONSTRATION",
+  "scope": "SYNTHETIC_BUSINESS_AND_AUTOMATED_ROLE_OPERATIONS",
+  "ordinary": {
+    "url": "http://127.0.0.1:5215",
+    "conversation_id": "0eb6dee5-6604-44f7-ae05-ae1f5b70b6c0",
+    "case_id": "776e3289-3ce3-4a25-8840-d8b6b13168f2",
+    "model_validated_candidate": true,
+    "original_report_status": "PARTIAL",
+    "original_report_sha256": "e9231c3f88677722ad1ac4ad7a96037f33741e131e3b04ddfc36be5c6f55823e",
+    "original_model_snapshot": {
+      "id": "96bb6e19-ae6d-420d-afc9-6f19c38ba93d",
+      "version": 1,
+      "sha256": "4314181151bbad890cd52bb791b447480db81a28296bfaa84172a0c2698aaa64"
+    },
+    "support_snapshot": {
+      "id": "a0d5187a-20c3-4c51-8837-9a7fff6f6e5c",
+      "version": 2,
+      "sha256": "040bc686652a600eb144117877b59d0babe19ab03cdbcdf3661d6b8e907bf0b1"
+    },
+    "support_modified_review_state": true,
+    "line_and_amount_unchanged": true,
+    "simulated_execution": {
+      "id": "33cd56a4-caf4-4667-b87e-7ad6b09ccd4a",
+      "amount_cents": 4900,
+      "replay_same_key": true,
+      "customer_receipt_confirmed": true,
+      "ledger_count": 1
+    },
+    "new_provider_calls_for_support_completion": 0
+  },
+  "complex": {
+    "url": "http://127.0.0.1:5213",
+    "scenario": "REQUEST_ITEM_IDENTIFICATION_AND_AFFECTED_QUANTITY",
+    "publication": "SUPPORT_CHAT_MESSAGE",
+    "reference": "browser-chat-live-success-complex-r2-evidence-publication-20261111.json",
+    "automatic_conflict_resolution_claimed": false
+  },
+  "deferred": [
+    "CUSTOMER_STATEMENT_TOOL_EXTENSION",
+    "FORMAL_COMPARATIVE_EVALUATION",
+    "INDEPENDENT_HUMAN_QUALITY_LABELS"
+  ],
+  "credential_material_in_report": false,
+  "refund_query": {
+    "status": "PASSED",
+    "url": "http://127.0.0.1:5215/?conversation=1e6f0579-59c7-4655-a48c-7cc3f602d690",
+    "input": "查询订单 O0079 的退款进度",
+    "reply": "目前没查到这笔订单的退款处理记录。",
+    "native_readback": {
+      "active_case_id": null,
+      "active_order_id": "O0079",
+      "image_attempts": 0,
+      "investigation_requests": 0
+    },
+    "first_phrase_clarification_preserved": true
+  }
+}

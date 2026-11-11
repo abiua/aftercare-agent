@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "url": "http://127.0.0.1:5215/?conversation=1e6f0579-59c7-4655-a48c-7cc3f602d690",
+  "order_id": "O0079",
+  "original_clarification_preserved": true,
+  "new_customer_text": "查询订单 O0079 的退款进度",
+  "program_reply": "目前没查到这笔订单的退款处理记录。",
+  "observed_business_writes": [{"method": "POST", "path": "/api/conversations/1e6f0579-59c7-4655-a48c-7cc3f602d690/messages", "status": 201}],
+  "private_screenshot": ".runtime/browser-demo-5215-evidence/refund-query-followup.png",
+  "logged_out_and_session_closed": true
+}

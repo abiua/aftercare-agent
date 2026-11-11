@@ -1,0 +1,57 @@
+{
+  "status": "PARTIAL",
+  "boundary": "READ_ONLY_SEMANTIC_REVIEW_OF_REAL_PROVIDER_AND_NATIVE_POSTGRES_EVIDENCE",
+  "source_report_sha256": "53e08b5dc299ad5e045f93cfd705aab69c28ff965a79205f2cc908119588c68a",
+  "system_identifier": "7706940411259662374",
+  "run_id": "a42466c6-9039-4eae-85b5-11f5f5f44689",
+  "snapshot_ref": {
+    "id": "a7f6050c-7a4d-4e83-83fe-7b49886864af",
+    "version": 1,
+    "sha256": "007f8f2153e89bad3a1eff03298114f41ab910bc50b4776bd30335eb19649d4a"
+  },
+  "customer_message_ref": "67f8e2d0-a07b-47b6-85ae-7e965488812a",
+  "customer_statement": {
+    "suggested_line": "L02",
+    "reported_parcel_label": "TEST-PARCEL-A17",
+    "label_provenance": "CUSTOMER_STATEMENT_ONLY"
+  },
+  "native_package_mapping": {
+    "L01": "TEST-PARCEL-A17",
+    "L02": "TEST-PARCEL-B17"
+  },
+  "model_evidence": {
+    "independent_fact_policy_then_verifier": true,
+    "native_package_mapping_read_and_confirmed": true,
+    "parcel_label_text_verified_by_vision": false,
+    "explicit_customer_native_package_conflict_identified": "NOT_OBSERVED",
+    "affected_line": "UNRESOLVED",
+    "fact_claim_ids": [
+      "fact/order_line_01",
+      "fact/order_line_02",
+      "fact/parcel_observation",
+      "fact/affected_line"
+    ],
+    "verifier_assessment_event_seq": 43
+  },
+  "candidate": {
+    "id": "request-line-identification",
+    "action": "REQUEST_EVIDENCE",
+    "gate": "NON_EXECUTING",
+    "missing_evidence": [
+      "Evidence linking the affected item to L01 or L02, such as a product identifier or clear label tied to the item.",
+      "Actual total affected quantity for the identified order line."
+    ],
+    "specific_and_relevant": true,
+    "unwarranted_damage_line_or_financial_approval_assertion_observed": false
+  },
+  "local_recheck": {
+    "tool_request_event_seq": 37,
+    "tool_request_target": "policy/ownership_policy",
+    "actual_local_recheck": "NOT_OBSERVED",
+    "caveat": "The candidate describes the request as awaiting a result. The native tool records an intent only; there is no executed local recheck event."
+  },
+  "projection_limit": "Customer statements are visible to initial fact/policy roles but not citable evidence and not passed as original statements to the verifier.",
+  "independent_accuracy_label": false,
+  "business_executions": 0,
+  "api_calls_by_this_review": 0
+}
