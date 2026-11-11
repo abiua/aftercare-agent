@@ -8,7 +8,7 @@ test('fixture: customer retries one message, confirms the order, adds photos and
   await page.getByRole('button', {name: '新对话'}).click();
   const composer = page.getByRole('textbox', {name: '描述售后问题'});
   await composer.fill('我的退款到账了吗？');
-  await page.getByRole('button', {name: /^发\s*送$/}).click();
+  await page.getByRole('button', {name: '发送消息', exact: true}).click();
   await expect(page.getByRole('button', {name: '重试发送'})).toBeVisible();
   await expect(composer).toHaveValue('我的退款到账了吗？');
   await page.getByRole('button', {name: '重试发送'}).click();
@@ -22,9 +22,10 @@ test('fixture: customer retries one message, confirms the order, adds photos and
   await page.getByLabel('添加照片', {exact: true}).setInputFiles(['front.png', 'back.png'].map((name) => ({
     name, mimeType: 'image/png', buffer: Buffer.from('controlled fixture'),
   })));
-  await page.getByRole('button', {name: /^发\s*送$/}).click();
+  await expect(composer).toHaveValue('再补充两张照片。');
+  await page.getByRole('button', {name: '发送消息', exact: true}).click();
   await expect(page.getByText('已收到照片。', {exact: true})).toBeVisible();
-  expect(fixtureApi.chatPosts.at(-1).names).toEqual(['front.png', 'back.png']);
+  expect(fixtureApi.chatPosts.at(-1)).toMatchObject({text: '再补充两张照片。', names: ['front.png', 'back.png']});
   await page.reload();
   await expect(page.getByText('再补充两张照片。', {exact: true})).toBeVisible();
   await expect(page.getByRole('button', {name: '确认订单和商品'})).toHaveCount(0);
@@ -64,16 +65,18 @@ test('fixture: older messages paginate and another order requires explicit confi
   expect(fixtureApi.chatDetails).toContain(50);
 
   const composer = page.getByRole('textbox', {name: '描述售后问题'});
-  const send = page.getByRole('button', {name: /^发\s*送$/});
+  const send = page.getByRole('button', {name: '发送消息', exact: true});
   await composer.fill('先查询第一笔订单退款');
   await send.click();
   await page.locator('.chat-order').filter({hasText: '订单 A1001'}).getByRole('button', {name: '确认订单和商品'}).click();
   await expect(page.getByText('这笔订单的退款账本中未查到执行记录。', {exact: true})).toBeVisible();
   await composer.fill('我还想处理另一笔订单 A1002');
+  await expect(composer).toHaveValue('我还想处理另一笔订单 A1002');
   await send.click();
   await page.locator('.chat-order').filter({hasText: '订单 A1002'}).getByRole('button', {name: '确认订单和商品'}).click();
   const confirmation = page.getByRole('dialog', {name: '确认开始另一项售后'});
   await expect(confirmation).toBeVisible();
+  expect(fixtureApi.chatPosts.at(-1).text).toBe('我还想处理另一笔订单 A1002');
   expect(fixtureApi.chatContext).toHaveLength(1);
   await confirmation.getByRole('button', {name: '确认开始'}).click();
   await expect(confirmation).toHaveCount(0);

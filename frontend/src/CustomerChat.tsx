@@ -173,6 +173,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
   const [resolvedPrompt, setResolvedPrompt] = useState(0);
   const hasLinkedCase = state?.messages.some((row) => row.sequence > (latestOrderPrompt ?? 0) && row.cards.some((card) => card.type === 'case_link' || (card.type === 'status' && card.data.code === 'ORDER_CONFIRMED'))) ?? false;
   const blocked = !conversation || !!readError || conversation.status === 'CLOSED';
+  const sendLabel = retry && error ? '重试发送' : user.role === 'support' ? '发送公开回复' : '发送消息';
   return <Card className="chat-thread" title={user.role === 'support' ? '客户对话 · 公开回复' : '售后聊天'} extra={<Space wrap>
     {conversation && <Tag>{statuses[conversation.status]}</Tag>}
     {conversation?.active_order_id && <Tag>订单 {conversation.active_order_id}</Tag>}
@@ -211,8 +212,8 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
       <Space wrap>{files.map((file, index) => <Tag key={index} closable={!sending && !blocked} onClose={() => save({...draft, files: files.filter((_, i) => i !== index), error: ''})}>{file.name}</Tag>)}</Space>
       <Feedback error={error} />
       <Space wrap>
-        <Button type="primary" loading={sending} disabled={blocked || controls.busy || (!text.trim() && !files.length)} onClick={() => void send()}>
-          {retry && error ? '重试发送' : user.role === 'support' ? '发送公开回复' : '发送'}
+        <Button type="primary" aria-label={sendLabel} aria-busy={sending} disabled={blocked || sending || controls.busy || (!text.trim() && !files.length)} onClick={() => void send()}>
+          {sending ? '发送中…' : sendLabel}
         </Button>
         {conversation.status === 'OPEN' && <Button disabled={blocked || sending || controls.busy} onClick={() => void act('handoff', {expected_revision: conversation.revision})}>{user.role === 'support' ? '接管对话' : '转人工客服'}</Button>}
       </Space>
