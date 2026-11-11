@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import re
+import stat
 import sys
 from hashlib import sha256
 from pathlib import Path
@@ -31,6 +32,14 @@ BOUNDARY = ("CONTROLLED_WORKER_CORE", "NO_PROVIDER_CALLS", "NO_INDEPENDENT_LABEL
 def _check(condition, code):
     if not condition:
         raise ValueError(code)
+
+
+def _safe_worker_code(value):
+    if re.fullmatch(r"(?:P5_PG_|CHAT_EVAL_|DATABASE_)[A-Z0-9_]{1,80}", value):
+        return value
+    if value in {"ValueError", "AssertionError", "TypeError", "KeyError", "RuntimeError"}:
+        return value
+    return None
 
 
 def _controlled_transport(calls):
@@ -159,9 +168,11 @@ def _controlled_transport(calls):
     return transport
 
 
-def _worker(staged, output, stack_id, system_id):
+def _worker(staged, output, stack_id, system_id, *, recover=False):
+    from dataclasses import asdict
     from decimal import Decimal
     from secrets import token_bytes
+    from uuid import NAMESPACE_URL, uuid5
 
     from aftercare.business.rules import digest
     from aftercare.business.storage import S3ObjectStore
@@ -262,15 +273,98 @@ def _worker(staged, output, stack_id, system_id):
                 for table in tables
             }
 
+    def recovery_sources(db, store, pack, attestation):
+        schemas = {}
+        for case in pack["cases"]:
+            case_id = case["id"]
+            if case_id in CASES:
+                schema = _namespace(
+                    str(
+                        uuid5(
+                            NAMESPACE_URL,
+                            digest(["p5-source-v1", CAMPAIGN, case_id, 1]),
+                        )
+                    )
+                )
+                schemas[schema] = {
+                    "version": "p5-pg-owner-v1",
+                    "attestation_sha256": digest(asdict(attestation)),
+                    "campaign": CAMPAIGN,
+                    "namespace": schema,
+                    "object_prefix": f"evaluation/{schema}/",
+                    "source_case": case_id,
+                    "repetition": 1,
+                    "source_sha256": digest([pack, case]),
+                }
+        expected = set(
+            db.scalars(
+                text(
+                    "SELECT nspname FROM pg_catalog.pg_namespace WHERE nspname ~ '^eval_[a-f0-9]{32}$'"
+                )
+            )
+        )
+        _check(expected == schemas.keys(), "P5_PG_RECOVERY_UNEXPECTED_SCHEMA")
+        for schema, claim in schemas.items():
+            owner = db.execute(text(f'SELECT claim, ready FROM "{schema}".p5_owner')).one()
+            _check(owner.claim == claim and owner.ready, "P5_PG_RECOVERY_OWNER_MISMATCH")
+            object_claim = json.dumps(claim, sort_keys=True, separators=(",", ":")).encode()
+            prefix = claim["object_prefix"]
+            _check(
+                store.get(prefix + ".p5-owner.json", len(object_claim)) == object_claim,
+                "P5_PG_RECOVERY_OBJECT_OWNER_MISMATCH",
+            )
+            listed = store.client.list_objects_v2(Bucket=store.bucket, Prefix=prefix)
+            _check(
+                listed.get("KeyCount") == 5 and not listed.get("IsTruncated"),
+                "P5_PG_RECOVERY_OBJECT_COUNT_MISMATCH",
+            )
+            for table in (
+                "agent_runs",
+                "agent_model_attempts",
+                "chat_model_attempts",
+                "business_executions",
+                "chat_decision_snapshots",
+            ):
+                _check(
+                    db.scalar(text(f'SELECT count(*) FROM "{schema}".{table}')) == 0,
+                    "P5_PG_RECOVERY_SOURCE_NOT_PRISTINE",
+                )
+            _check(
+                db.scalar(
+                    text("SELECT to_regclass(:relation)"), {"relation": f"{schema}.checkpoints"}
+                )
+                is None,
+                "P5_PG_RECOVERY_SOURCE_HAS_CHECKPOINTS",
+            )
+        listed = store.client.list_objects_v2(Bucket=store.bucket, Prefix="evaluation/")
+        keys = [item["Key"] for item in listed.get("Contents", [])]
+        sentinel = sentinel_key(attestation.stack_id)
+        _check(
+            not listed.get("IsTruncated")
+            and len(keys) == 1 + 5 * len(schemas)
+            and sentinel in keys
+            and all(
+                key == sentinel
+                or any(key.startswith(claim["object_prefix"]) for claim in schemas.values())
+                for key in keys
+            ),
+            "P5_PG_RECOVERY_UNEXPECTED_OBJECT_PREFIX",
+        )
+        return sorted(schemas)
+
     try:
         before = public_state()
         store = S3ObjectStore(settings)
-        sentinel = token_bytes(64)
         key = sentinel_key(stack_id)
-        response = store.client.list_objects_v2(Bucket=store.bucket, Prefix=key)
-        _check(not response.get("Contents"), "P5_PG_SENTINEL_ALREADY_EXISTS")
-        store.put(key, sentinel, "application/octet-stream")
-        _check(store.get(key, len(sentinel)) == sentinel, "P5_PG_SENTINEL_MISMATCH")
+        if recover:
+            sentinel = store.get(key, 64)
+            _check(len(sentinel) == 64, "P5_PG_RECOVERY_SENTINEL_SIZE")
+        else:
+            sentinel = token_bytes(64)
+            response = store.client.list_objects_v2(Bucket=store.bucket, Prefix=key)
+            _check(not response.get("Contents"), "P5_PG_SENTINEL_ALREADY_EXISTS")
+            store.put(key, sentinel, "application/octet-stream")
+            _check(store.get(key, len(sentinel)) == sentinel, "P5_PG_SENTINEL_MISMATCH")
         attestation = PgAttestation(
             stack_id=stack_id,
             system_identifier=system_id,
@@ -279,6 +373,7 @@ def _worker(staged, output, stack_id, system_id):
             sentinel_size=len(sentinel),
         )
         pack = load_development_cases(staged)
+        recovered_sources = None
         calls = []
         registry = Registry.model_validate(
             {
@@ -311,10 +406,28 @@ def _worker(staged, output, stack_id, system_id):
         manifest = Manifest(output / "manifest")
 
         def run_once(*, expecting_fresh, campaign=CAMPAIGN, selected=CASES, journal=manifest):
+            nonlocal recovered_sources
             cases = []
             frozen_sources = {}
             with open_pg_runtime(settings, attestation, campaign) as runtime:
-                if expecting_fresh and campaign == CAMPAIGN:
+                if recover and campaign == CAMPAIGN and recovered_sources is None:
+                    _check(
+                        all(
+                            before[table]["count"] == 0
+                            for table in (
+                                "agent_runs",
+                                "agent_model_attempts",
+                                "chat_model_attempts",
+                                "intake_model_audits",
+                                "business_executions",
+                            )
+                        ),
+                        "P5_PG_RECOVERY_PUBLIC_NOT_PRISTINE",
+                    )
+                    with public.connect() as db, db.begin():
+                        db.execute(text("SET TRANSACTION READ ONLY"))
+                        recovered_sources = recovery_sources(db, store, pack, attestation)
+                if campaign == CAMPAIGN and not calls:
                     try:
                         with open_pg_runtime(settings, attestation, campaign):
                             raise ValueError("P5_PG_COMPETING_CAMPAIGN_ALLOWED")
@@ -343,7 +456,7 @@ def _worker(staged, output, stack_id, system_id):
                 receipt = runtime.run(journal, runner, cases)
             return receipt, frozen_sources
 
-        first, frozen_before = run_once(expecting_fresh=True)
+        first, frozen_before = run_once(expecting_fresh=not recover)
         count = len(calls)
         resumed, frozen_after = run_once(expecting_fresh=False)
         _check(
@@ -447,6 +560,8 @@ def _worker(staged, output, stack_id, system_id):
             "boundary": list(BOUNDARY),
             "system_identifier": system_id,
             "object_sentinel_sha256": attestation.sentinel_sha256,
+            "recovery_existing_sources": recovered_sources,
+            "recovery_reused_existing_sentinel": recover,
             "public_counts_and_hashes_unchanged": True,
             "source_scope_original_and_typed_material_bytes_unchanged": True,
             "reopened_campaign_issued_no_new_controlled_attempts": True,
@@ -494,6 +609,124 @@ def _host_plan(images):
         "arms": list(ARMS),
         "boundary": list(BOUNDARY),
         "sources": {name: sha256((ROOT / name).read_bytes()).hexdigest() for name in FILES},
+    }
+
+
+def _failed_manifest_hash(path):
+    from aftercare.business.rules import digest
+
+    directory = path.lstat()
+    _check(
+        stat.S_ISDIR(directory.st_mode)
+        and directory.st_uid == os.getuid()
+        and directory.st_mode & 0o077 == 0
+        and {item.name for item in path.iterdir()} == {"lock"},
+        "P5_PG_RECOVERY_PRIOR_JOURNAL_NOT_EMPTY",
+    )
+    lock = path / "lock"
+    entry = lock.lstat()
+    _check(
+        stat.S_ISREG(entry.st_mode) and entry.st_uid == os.getuid() and entry.st_mode & 0o077 == 0,
+        "P5_PG_RECOVERY_PRIOR_JOURNAL_LOCK_REJECTED",
+    )
+    return digest(
+        [
+            [directory.st_dev, directory.st_ino, directory.st_mode, directory.st_mtime_ns],
+            [
+                "lock",
+                entry.st_dev,
+                entry.st_ino,
+                entry.st_mode,
+                entry.st_mtime_ns,
+                sha256(lock.read_bytes()).hexdigest(),
+            ],
+        ]
+    )
+
+
+def _recover_plan(images, failed_report, verifier_image):
+    import offline_demo
+    from aftercare.business.rules import digest
+    from verify_streaming_compatibility import _private_json
+
+    failed = _private_json(failed_report)
+    state = _private_json(STATE)
+    _check(
+        failed["status"] == "FAILED"
+        and failed["stage"] == "CONTROLLED_RUN"
+        and failed["failure_code"] == "P5_PG_CONTROLLED_RUN_FAILED"
+        and failed["plan_sha256"] == digest(failed["plan"])
+        and failed["plan"]["scope"] == "P5_CONTROLLED_PG_S3_WORKER_CORE"
+        and failed["plan"]["campaign"] == CAMPAIGN
+        and failed["plan"]["images"] == images
+        and state["status"] == "READY"
+        and state["profile"] == "test"
+        and failed["owned_stack"] == state["run_id"]
+        and failed["owned_url"] == state["url"] == f"http://127.0.0.1:{PORT}"
+        and verifier_image != images[BACKEND],
+        "P5_PG_RECOVERY_PRIOR_RUN_REJECTED",
+    )
+    stack = offline_demo.restore(state)
+    old_manifest = stack.directory / "p5-pg-output" / "manifest"
+    _check(
+        Path(failed["private_manifest_directory"]) == old_manifest,
+        "P5_PG_RECOVERY_PRIOR_JOURNAL_PATH",
+    )
+    prior_hash = _failed_manifest_hash(old_manifest)
+    _check(
+        not (stack.directory / "p5-pg-recovery-input").exists()
+        and not (stack.directory / "p5-pg-recovery-output").exists(),
+        "P5_PG_RECOVERY_ALREADY_PREPARED",
+    )
+    original_sources = failed["plan"]["sources"]
+    _check(original_sources.keys() == set(FILES), "P5_PG_RECOVERY_SOURCE_SET")
+    sources = {name: sha256((ROOT / name).read_bytes()).hexdigest() for name in FILES}
+    _check(
+        all(sources[name] == original_sources[name] for name in FILES if name != FILES[0])
+        and all(
+            sha256((stack.directory / "p5-pg-input" / name).read_bytes()).hexdigest()
+            == original_sources[name]
+            for name in FILES
+        ),
+        "P5_PG_RECOVERY_SOURCE_CHANGED",
+    )
+    endpoint = stack.docker(
+        "P5_PG_LOCAL_CONTEXT",
+        "context",
+        "inspect",
+        "--format",
+        "{{.Endpoints.docker.Host}}",
+        log_output=False,
+    ).stdout.strip()
+    _check(
+        endpoint.startswith("unix://")
+        and (not os.environ.get("DOCKER_HOST") or os.environ["DOCKER_HOST"].startswith("unix://")),
+        "P5_PG_LOCAL_DOCKER_REQUIRED",
+    )
+    _, system_id = _topology(stack, images)
+    observed = stack.docker(
+        "P5_PG_RECOVERY_IMAGE",
+        "image",
+        "inspect",
+        "--format",
+        "{{.Id}}",
+        verifier_image,
+        log_output=False,
+    ).stdout.strip()
+    _check(observed == verifier_image, "P5_PG_RECOVERY_IMAGE_MISMATCH")
+    return {
+        **failed["plan"],
+        "scope": "P5_CONTROLLED_PG_S3_RECOVERY_FROM_PREPLAN_FAILURE",
+        "sources": sources,
+        "verifier_image": verifier_image,
+        "recovery": {
+            "failed_report": str(failed_report.resolve()),
+            "failed_report_sha256": sha256(failed_report.read_bytes()).hexdigest(),
+            "stack_id": stack.run_id,
+            "system_identifier": system_id,
+            "prior_manifest_directory": str(old_manifest),
+            "prior_manifest_sha256": prior_hash,
+        },
     }
 
 
@@ -592,17 +825,19 @@ def _execute(plan, report):
             config_path.write_text(json.dumps(config))
 
     images = plan["images"]
+    recovering = plan.get("recovery")
     with patch.multiple(offline_demo, STATE=STATE, FreshStack=Stack):
-        _check(not STATE.exists(), "P5_PG_STATE_ALREADY_EXISTS")
-        offline_demo.start(
-            SimpleNamespace(
-                port=PORT,
-                object_port=OBJECT_PORT,
-                profile="test",
-                backend_image=images[BACKEND],
-                frontend_image=images[FRONTEND],
+        if not recovering:
+            _check(not STATE.exists(), "P5_PG_STATE_ALREADY_EXISTS")
+            offline_demo.start(
+                SimpleNamespace(
+                    port=PORT,
+                    object_port=OBJECT_PORT,
+                    profile="test",
+                    backend_image=images[BACKEND],
+                    frontend_image=images[FRONTEND],
+                )
             )
-        )
         state = _private_json(STATE)
         stack = offline_demo.restore(state)
     _check(
@@ -610,8 +845,14 @@ def _execute(plan, report):
         "P5_PG_OWNED_STATE_MISMATCH",
     )
     network, system_id = _topology(stack, images)
-    staged = stack.directory / "p5-pg-input"
-    output = stack.directory / "p5-pg-output"
+    if recovering:
+        _check(
+            system_id == recovering["system_identifier"] and stack.run_id == recovering["stack_id"],
+            "P5_PG_RECOVERY_STACK_CHANGED",
+        )
+    directory = "p5-pg-recovery" if recovering else "p5-pg"
+    staged = stack.directory / f"{directory}-input"
+    output = stack.directory / f"{directory}-output"
     staged.mkdir(mode=0o700)
     output.mkdir(mode=0o700)
     for name, expected in plan["sources"].items():
@@ -659,17 +900,24 @@ def _execute(plan, report):
             f"type=bind,source={output},target=/acceptance-output",
             "--entrypoint",
             "python",
-            images[BACKEND],
+            plan.get("verifier_image", images[BACKEND]),
             "/acceptance/scripts/verify_chat_p5_pg.py",
             "_worker",
             "/acceptance",
             "/acceptance-output",
             stack.run_id,
             system_id,
+            *(("recover",) if recovering else ()),
             timeout=300,
             required=False,
             log_output=False,
         )
+        if completed is not None and completed.returncode != 0:
+            for line in reversed(completed.stderr.splitlines()):
+                code = _safe_worker_code(line.strip())
+                if code is not None:
+                    report["worker_error_code"] = code
+                    break
         _check(completed is not None and completed.returncode == 0, "P5_PG_CONTROLLED_RUN_FAILED")
         report["acceptance"] = json.loads(completed.stdout.strip().splitlines()[-1])
     finally:
@@ -695,13 +943,23 @@ def main():
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--expected-plan-sha256")
     parser.add_argument("--report", type=Path)
+    parser.add_argument("--failed-report", type=Path)
+    parser.add_argument("--verifier-image-id")
     args = parser.parse_args()
+    if bool(args.failed_report) != bool(args.verifier_image_id):
+        parser.error("recovery requires --failed-report and --verifier-image-id together")
+    if args.verifier_image_id and not re.fullmatch(r"sha256:[0-9a-f]{64}", args.verifier_image_id):
+        parser.error("supply an immutable recovery verifier image ID")
     images = {BACKEND: args.backend_image_id, FRONTEND: args.frontend_image_id}
     if not all(re.fullmatch(r"sha256:[0-9a-f]{64}", value) for value in images.values()):
         parser.error("supply immutable image IDs")
     if args.execute and (not args.expected_plan_sha256 or args.report is None):
         parser.error("--execute requires the reviewed plan digest and a new report path")
-    plan = _host_plan(images)
+    plan = (
+        _recover_plan(images, args.failed_report, args.verifier_image_id)
+        if args.failed_report
+        else _host_plan(images)
+    )
     checksum = digest(plan)
     if not args.execute:
         print(
@@ -719,7 +977,32 @@ def main():
         os.fsync(stream.fileno())
     try:
         with lifecycle_lock(STATE):
-            _execute(plan, report)
+            if args.failed_report:
+                _check(
+                    _recover_plan(images, args.failed_report, args.verifier_image_id) == plan,
+                    "P5_PG_RECOVERY_PLAN_CHANGED",
+                )
+            try:
+                _execute(plan, report)
+            finally:
+                if args.failed_report:
+                    old_manifest = Path(plan["recovery"]["prior_manifest_directory"])
+                    report["prior_manifest_unchanged"] = False
+                    report["prior_manifest_unchanged"] = (
+                        _failed_manifest_hash(old_manifest)
+                        == plan["recovery"]["prior_manifest_sha256"]
+                    )
+                    _check(
+                        report["prior_manifest_unchanged"], "P5_PG_RECOVERY_PRIOR_JOURNAL_CHANGED"
+                    )
+                    report["prior_failed_report_unchanged"] = (
+                        sha256(args.failed_report.read_bytes()).hexdigest()
+                        == plan["recovery"]["failed_report_sha256"]
+                    )
+                    _check(
+                        report["prior_failed_report_unchanged"],
+                        "P5_PG_RECOVERY_PRIOR_REPORT_CHANGED",
+                    )
         report.update(status="PASSED", stage="VERIFIED")
     except (ValueError, VerificationError, OSError) as error:
         code = str(error)
@@ -736,14 +1019,17 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "_worker":
         try:
-            result = _worker(Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4], sys.argv[5])
+            result = _worker(
+                Path(sys.argv[2]),
+                Path(sys.argv[3]),
+                sys.argv[4],
+                sys.argv[5],
+                recover=sys.argv[6:] == ["recover"],
+            )
             print(json.dumps(result))
         except Exception as error:  # noqa: BLE001 - never emit DB/credential-bearing exception text
-            code = str(error)
-            print(
-                code if re.fullmatch(r"P5_PG_[A-Z0-9_]+", code) else type(error).__name__,
-                file=sys.stderr,
-            )
+            code = _safe_worker_code(str(error)) or _safe_worker_code(type(error).__name__)
+            print(code or "P5_PG_WORKER_UNCLASSIFIED", file=sys.stderr)
             raise SystemExit(1) from None
     else:
         raise SystemExit(main())

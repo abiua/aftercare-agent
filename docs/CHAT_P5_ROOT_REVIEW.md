@@ -70,3 +70,12 @@ root 完整非 PG 回归 981 通过、2 可选跳过、40 PG 未选，日志 `.r
 
 
 实际首次运行更新：提交 e77911d 的托管检查 42981119641 成功。使用该提交冻结构建的后端及未变更前端启动独立 test 5200/58362，运行 b256ad0c74d046fea0c1403a43d19d04。`reports/chat-p5-pg-controlled-20261111.json` 状态 FAILED，阶段 CONTROLLED_RUN，外层错误 P5_PG_CONTROLLED_RUN_FAILED；原始诊断只保留 ValueError，需补安全错误定位。只读检查两个源 schema READY、各一会话两附件两份业务材料，无 arm schema、无检查点、无 Agent/模型尝试/执行记录，清单只有 lock、尚无 plan。因此实际验收未通过，禁止直接重跑覆盖失败或再次播种原源。后续先只读定位，再审查具体恢复路径。
+
+
+## 真实 PG/S3 控制执行恢复及计时缺陷
+
+原失败定位为 SQLAlchemy 首次编译查询时给 schema_translate_map 加入同目标 `_none` 内部键，精确映射比较误拒；35e5c62 保留目标/身份限制并接受该等价映射，root 定向 11 项通过，托管检查 42981735512 成功。
+
+`reports/chat-p5-pg-controlled-recovered-20261111.json` 的基础设施受控验收为 PASSED：复用原 5200/58362 栈、两个 READY 源和原 sentinel，仅运行修复镜像验证器；原失败报告 SHA 与旧 lock-only 清单目录保持不变。普通案三臂 COMPLETED，复杂案三臂 NEEDS_REVIEW，六份原生 P3 候选及隔离检查点均存在；复杂 MULTI 定向补查 fact/package。原图及业务材料逐字节回读，活动租约竞争被拒，独立 started/ready 后 Agent 启动前中断行重开两次 UNKNOWN/null费用/无新增调用。以上是受控 worker core，不是付费模型、独立人审或实际 Celery 调度比较。
+
+root 审查发现所有六行 candidate_persisted_ms 为负：冻结业务时间与实际运行时间混用。该字段无效，原报告保留原值，本次不得报告候选耗时通过或用于性能比较。计时分离修复和更严格验收约束正在实施。其余结构结果还需独立只读复核，跨 schema 盲审登记仍在开发。
