@@ -10,9 +10,10 @@ import sys
 from contextlib import ExitStack
 from hashlib import sha256
 from pathlib import Path
-from secrets import token_bytes
+from secrets import token_bytes, token_urlsafe
 from types import SimpleNamespace
 from unittest.mock import patch
+from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / ".runtime/offline-browser-demo-material-observations.json"
@@ -25,6 +26,9 @@ NEW_FRONTEND = "sha256:1b7338916d19a0e39e253bc5eb373a2d691d1524db0f22f5fd0dd0df3
 OLD_REV, NEW_REV = "20261111_chat_blind_review", "20261111_material_review_obs"
 CAMPAIGN = "material-review-migration-legacy-source"
 CASE = "DAMAGE-ORDINARY"
+FOREIGN_CUSTOMER = "C002"
+LEGACY_INPUT = "material-review-migration-input"
+RECOVERY_INPUT = "material-review-migration-recovery-input"
 
 
 def _check(condition, code):
@@ -44,16 +48,17 @@ def _docker(*args):
     return completed.stdout.strip()
 
 
-def _plan(images):
+def _plan(images, failed_report=None):
     from verify_chat_p5_pg import FILES
 
-    _check(not STATE.exists(), "MATERIAL_MIGRATION_STACK_ALREADY_EXISTS")
-    for port in (PORT, OBJECT_PORT):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            try:
-                sock.bind(("127.0.0.1", port))
-            except OSError:
-                raise ValueError(f"MATERIAL_MIGRATION_PORT_{port}_BUSY") from None
+    if failed_report is None:
+        _check(not STATE.exists(), "MATERIAL_MIGRATION_STACK_ALREADY_EXISTS")
+        for port in (PORT, OBJECT_PORT):
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                try:
+                    sock.bind(("127.0.0.1", port))
+                except OSError:
+                    raise ValueError(f"MATERIAL_MIGRATION_PORT_{port}_BUSY") from None
     endpoint = os.environ.get("DOCKER_HOST")
     _check(
         (not endpoint or endpoint.startswith("unix://"))
@@ -75,7 +80,7 @@ def _plan(images):
             and _docker("image", "inspect", "--format", "{{.Id}}", image) == image,
             "MATERIAL_MIGRATION_IMAGE_PIN_MISMATCH",
         )
-    return {
+    plan = {
         "scope": "ISOLATED_TEST_PUBLIC_MIGRATION_AND_HISTORICAL_EVAL_CLONE",
         "profile": "test",
         "url": URL,
@@ -86,7 +91,15 @@ def _plan(images):
         "files": {name: _hash(ROOT / name) for name in FILES[1:]},
         "script_sha256": _hash(Path(__file__)),
         "maximum_model_or_financial_writes": 0,
+        "foreign_customer_fixture": {
+            "customer_id": FOREIGN_CUSTOMER,
+            "maximum_new_users": 1,
+            "profile": "test",
+        },
     }
+    if failed_report is not None:
+        plan["recovery"] = _recovery_plan(images, plan["files"], failed_report)
+    return plan
 
 
 def _topology(stack, backend, frontend):
@@ -96,12 +109,158 @@ def _topology(stack, backend, frontend):
         return pg._topology(stack, {pg.BACKEND: backend, pg.FRONTEND: frontend})
 
 
-def _clients(stack, managers):
-    from verify_chat_backup_restore import private_json
-    from verify_chat_p1_http import actor_clients
+def _pristine(stack, system_id):
+    from verify_chat_p2_offline import owned_container
 
-    private_json(stack.credentials_path)
-    return actor_clients(URL + "/api/", stack.credentials_path, managers)
+    observed = stack.json_exec(
+        "MATERIAL_MIGRATION_PRISTINE_READBACK",
+        owned_container(stack, "api"),
+        f"""
+import json
+from sqlalchemy import inspect, text
+from aftercare.business.errors import BusinessError
+from aftercare.business.storage import S3ObjectStore
+from aftercare.config import load_settings
+from aftercare.db import guarded_engine
+from aftercare.evaluation.chat.pg_runtime import sentinel_key
+settings = load_settings('test')
+assert settings.container and not any((settings.model_enabled,settings.chat_vision_enabled,settings.embedding_enabled,settings.chat_analysis_enabled))
+engine = guarded_engine(settings,test_only=True)
+with engine.connect() as db, db.begin():
+    db.execute(text('SET TRANSACTION READ ONLY'))
+    identity = db.execute(text("SELECT current_database(),current_user,session_user,current_setting('cluster_name'),system_identifier::text FROM pg_control_system()")).one()
+    assert tuple(identity) == ('ac_test','ac_test','ac_test','aftercare-v2-test',{system_id!r})
+    tables = ('business_cases','business_materials','business_material_reviews','business_idempotency','business_executions','business_approvals','business_simulated_payments','chat_conversations','agent_model_attempts','chat_model_attempts','intake_model_audits')
+    counts = {{table:db.scalar(text(f'SELECT count(*) FROM public.{{table}}')) for table in tables}}
+    revision = db.scalar(text('SELECT version_num FROM public.alembic_version'))
+    old_columns = [col['name'] for col in inspect(db).get_columns('business_material_reviews',schema='public')]
+    eval_schemas = db.scalar(text("SELECT count(*) FROM pg_namespace WHERE nspname ~ '^eval_[a-f0-9]{{32}}$'"))
+    foreign_exists = bool(db.scalar(text('SELECT 1 FROM public.business_customers WHERE id=:id'),{{'id':{FOREIGN_CUSTOMER!r}}}))
+    foreign_actors = db.scalar(text('SELECT count(*) FROM public.users WHERE customer_id=:id'),{{'id':{FOREIGN_CUSTOMER!r}}})
+    old_users = db.scalar(text('SELECT count(*) FROM public.users'))
+try:
+    S3ObjectStore(settings).get(sentinel_key({stack.run_id!r}),64)
+except BusinessError as error:
+    assert error.code == 'MATERIAL_OBJECT_MISSING'
+else:
+    raise ValueError('MATERIAL_MIGRATION_SOURCE_MARKER_ALREADY_EXISTS')
+print(json.dumps(dict(revision=revision,counts=counts,eval_schemas=eval_schemas,
+    legacy_columns='observations' not in old_columns,foreign_customer_exists=foreign_exists,
+    foreign_actors=foreign_actors,original_users=old_users,source_marker_present=False)))
+engine.dispose()
+""",
+    )
+    _check(
+        observed["revision"] == OLD_REV
+        and observed["legacy_columns"]
+        and observed["eval_schemas"] == observed["foreign_actors"] == 0
+        and not any(observed["counts"].values())
+        and observed["foreign_customer_exists"]
+        and not observed["source_marker_present"],
+        "MATERIAL_MIGRATION_LEGACY_STACK_NOT_PRISTINE",
+    )
+    return observed
+
+
+def _recovery_plan(images, files, failed_path):
+    import offline_demo
+    from aftercare.business.rules import digest
+    from verify_chat_backup_restore import private_json
+
+    failed = private_json(failed_path)
+    original = failed["plan"]
+    state = private_json(STATE)
+    _check(
+        failed["status"] == "FAILED"
+        and failed["stage"] == "LEGACY_FIXTURE"
+        and failed["failure_code"] == "TWO_CUSTOMERS_SUPPORT_AND_TESTER_REQUIRED"
+        and failed["plan_sha256"] == digest(original)
+        and original["scope"] == "ISOLATED_TEST_PUBLIC_MIGRATION_AND_HISTORICAL_EVAL_CLONE"
+        and original["images"] == images
+        and original["files"] == files
+        and original["old_revision"] == OLD_REV
+        and failed["stack_id"] == state["run_id"]
+        and failed["owned_url"] == state["url"] == URL
+        and state["profile"] == "test"
+        and state["status"] == "READY"
+        and state["backend_image"] == OLD
+        and state["frontend_image"] == OLD_FRONTEND
+        and "legacy_case_id" not in failed,
+        "MATERIAL_MIGRATION_FAILED_RUN_NOT_RECOVERABLE",
+    )
+    stack = offline_demo.restore(state)
+    _, identity = _topology(stack, OLD, OLD_FRONTEND)
+    _check(
+        identity == failed["system_identifier"]
+        and offline_demo.status(state)["healthy_now"]
+        and not (stack.directory / RECOVERY_INPUT).exists()
+        and not _foreign_sidecar(stack).exists(),
+        "MATERIAL_MIGRATION_RECOVERY_STACK_CHANGED",
+    )
+    staged = stack.directory / LEGACY_INPUT
+    original_files = {**files, "verifier.py": original["script_sha256"]}
+    _check(
+        all(
+            (staged / name).is_file()
+            and not (staged / name).is_symlink()
+            and _hash(staged / name) == checksum
+            for name, checksum in original_files.items()
+        ),
+        "MATERIAL_MIGRATION_ORIGINAL_STAGE_CHANGED",
+    )
+    return {
+        "failed_report": str(failed_path.resolve()),
+        "failed_report_sha256": _hash(failed_path),
+        "stack_id": stack.run_id,
+        "system_identifier": identity,
+        "original_staged_directory": str(staged),
+        "original_staged_files": original_files,
+        "pristine_readback": _pristine(stack, identity),
+    }
+
+
+def _foreign_sidecar(stack):
+    return stack.runtime / "material-review-other-customer.json"
+
+
+def _clients(stack, managers):
+    import httpx
+    from verify_chat_backup_restore import private_json
+    from verify_chat_p1_http import read
+
+    original = private_json(stack.credentials_path)
+    foreign = private_json(_foreign_sidecar(stack))
+    selected = {
+        name: [row for row in original if row["role"] == name] for name in ("customer", "support")
+    }
+    _check(
+        all(len(rows) == 1 for rows in selected.values())
+        and foreign["role"] == "customer"
+        and foreign["customer_id"] == FOREIGN_CUSTOMER
+        and selected["customer"][0]["customer_id"] != foreign["customer_id"],
+        "MATERIAL_MIGRATION_REQUIRED_ACTORS_MISSING",
+    )
+    result = {}
+    for name, row in {
+        **{name: rows[0] for name, rows in selected.items()},
+        "other_customer": foreign,
+    }.items():
+        client = managers.enter_context(
+            httpx.Client(
+                base_url=URL + "/api/",
+                timeout=10,
+                follow_redirects=False,
+                trust_env=False,
+                headers={"Authorization": f"Bearer {row['token']}"},
+            )
+        )
+        actor = read(client, "me")
+        _check(
+            all(actor.get(key) == row.get(key) for key in ("role", "user_id", "customer_id")),
+            "MATERIAL_MIGRATION_ACTOR_BINDING_MISMATCH",
+        )
+        result[name] = client
+    return result
 
 
 def _case(clients, order, marker):
@@ -264,19 +423,22 @@ def _verify_new_public(stack, old, order):
 def _worker(action, payload):
     root = Path("/acceptance")
     sys.path.insert(0, str(root / "backend/tests/business"))
+    from uuid import UUID
+
     import chat_eval_development_fixtures as fixture
     from aftercare import backup
-    from aftercare.business.models import MaterialReview
+    from aftercare.business.models import Customer, MaterialReview
     from aftercare.business.rules import digest
     from aftercare.business.storage import S3ObjectStore, verify_object
     from aftercare.config import load_settings
-    from aftercare.db import guarded_engine
+    from aftercare.db import User, guarded_engine
     from aftercare.evaluation.chat.pg_runtime import PgAttestation, open_pg_runtime, sentinel_key
     from aftercare.evaluation.chat.runner import _populate
     from sqlalchemy import inspect, select, text
+    from sqlalchemy.orm import Session
 
     _check(
-        action in {"baseline", "migrate", "final"}
+        action in {"foreign", "baseline", "migrate", "final"}
         and _hash(Path(__file__)) == payload["script_sha256"],
         "MATERIAL_MIGRATION_WORKER_SCRIPT_CHANGED",
     )
@@ -309,6 +471,40 @@ def _worker(action, payload):
             == ("ac_test", "ac_test", "ac_test", "aftercare-v2-test", payload["system_id"]),
             "MATERIAL_MIGRATION_DATABASE_IDENTITY_MISMATCH",
         )
+        if action == "foreign":
+            user_id = payload["foreign_user_id"]
+            hashed = payload["foreign_token_hash"]
+            _check(
+                str(UUID(user_id)) == user_id and re.fullmatch(r"[0-9a-f]{64}", hashed),
+                "MATERIAL_MIGRATION_FOREIGN_FIXTURE_INVALID",
+            )
+            with Session(engine) as db, db.begin():
+                owner = db.get(User, payload["owner_user_id"])
+                _check(
+                    owner is not None
+                    and owner.enabled
+                    and owner.role == "customer"
+                    and owner.customer_id != FOREIGN_CUSTOMER
+                    and db.get(Customer, FOREIGN_CUSTOMER) is not None
+                    and db.scalar(
+                        select(User.id).where(User.customer_id == FOREIGN_CUSTOMER).limit(1)
+                    )
+                    is None
+                    and db.scalar(text("SELECT version_num FROM public.alembic_version")) == OLD_REV
+                    and not db.scalar(text("SELECT EXISTS(SELECT 1 FROM public.business_cases)")),
+                    "MATERIAL_MIGRATION_FOREIGN_FIXTURE_PRECONDITION",
+                )
+                db.add(
+                    User(
+                        id=user_id,
+                        token_hash=hashed,
+                        role="customer",
+                        customer_id=FOREIGN_CUSTOMER,
+                        display_name="Material migration test customer",
+                        enabled=True,
+                    )
+                )
+            return {"user_id": user_id, "customer_id": FOREIGN_CUSTOMER, "role": "customer"}
         key = sentinel_key(payload["stack_id"])
         if action == "baseline":
             from aftercare.business.errors import BusinessError
@@ -827,17 +1023,19 @@ def _execute(plan, report, report_path):
             staged_config.replace(config_path)
 
     images = plan["images"]
-    _check(not STATE.exists(), "MATERIAL_MIGRATION_STACK_ALREADY_EXISTS")
+    recovery = plan.get("recovery")
+    _check(STATE.exists() == bool(recovery), "MATERIAL_MIGRATION_STACK_STATE_CHANGED")
     with patch.multiple(offline_demo, STATE=STATE, FreshStack=MigrationStack):
-        offline_demo.start(
-            SimpleNamespace(
-                port=PORT,
-                object_port=OBJECT_PORT,
-                profile="test",
-                backend_image=images["old_backend"],
-                frontend_image=images["old_frontend"],
+        if not recovery:
+            offline_demo.start(
+                SimpleNamespace(
+                    port=PORT,
+                    object_port=OBJECT_PORT,
+                    profile="test",
+                    backend_image=images["old_backend"],
+                    frontend_image=images["old_frontend"],
+                )
             )
-        )
         state = _private_json(STATE)
         stack = offline_demo.restore(state)
         state["resources"] = stack.resources
@@ -849,7 +1047,15 @@ def _execute(plan, report, report_path):
             owned_url=URL,
         )
         _save(report_path, report)
-        staged = stack.directory / "material-review-migration-input"
+        pristine = _pristine(stack, system_id)
+        if recovery:
+            _check(
+                stack.run_id == recovery["stack_id"]
+                and system_id == recovery["system_identifier"]
+                and pristine == recovery["pristine_readback"],
+                "MATERIAL_MIGRATION_RECOVERY_STACK_CHANGED",
+            )
+        staged = stack.directory / (RECOVERY_INPUT if recovery else LEGACY_INPUT)
         staged.mkdir(mode=0o700)
         for name, expected in plan["files"].items():
             source = ROOT / name
@@ -862,6 +1068,52 @@ def _execute(plan, report, report_path):
         verifier.write_bytes(Path(__file__).read_bytes())
         verifier.chmod(0o400)
         _check(_hash(verifier) == plan["script_sha256"], "MATERIAL_MIGRATION_VERIFIER_CHANGED")
+        from aftercare.auth import token_hash
+
+        actors = _private_json(stack.credentials_path)
+        owners = [row for row in actors if row["role"] == "customer"]
+        _check(
+            len(owners) == 1 and owners[0]["customer_id"] != FOREIGN_CUSTOMER,
+            "MATERIAL_MIGRATION_OWNER_FIXTURE_INVALID",
+        )
+        credentials_sha = _hash(stack.credentials_path)
+        user_id = str(uuid4())
+        token = token_urlsafe(32)
+        sidecar = _foreign_sidecar(stack)
+        private_write(
+            sidecar,
+            json.dumps(
+                {
+                    "role": "customer",
+                    "user_id": user_id,
+                    "customer_id": FOREIGN_CUSTOMER,
+                    "token": token,
+                }
+            ),
+        )
+        foreign = _job(
+            stack,
+            state,
+            network,
+            images["old_backend"],
+            "foreign",
+            staged,
+            {
+                "stack_id": stack.run_id,
+                "system_id": system_id,
+                "script_sha256": plan["script_sha256"],
+                "owner_user_id": owners[0]["user_id"],
+                "foreign_user_id": user_id,
+                "foreign_token_hash": token_hash(token),
+            },
+        )
+        _check(
+            foreign == {"role": "customer", "user_id": user_id, "customer_id": FOREIGN_CUSTOMER}
+            and _hash(stack.credentials_path) == credentials_sha,
+            "MATERIAL_MIGRATION_FOREIGN_FIXTURE_CHANGED",
+        )
+        report["foreign_customer_fixture"] = {**foreign, "private_credentials_path": str(sidecar)}
+        _save(report_path, report)
         with ExitStack() as managers:
             clients = _clients(stack, managers)
             orders = [
@@ -944,6 +1196,7 @@ def main():
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--expected-plan-sha256")
     parser.add_argument("--report", type=Path)
+    parser.add_argument("--failed-report", type=Path)
     args = parser.parse_args()
     if args.execute and (not args.expected_plan_sha256 or args.report is None):
         parser.error("--execute requires exact plan digest and a new --report")
@@ -952,7 +1205,7 @@ def main():
         for role in ("old_backend", "old_frontend", "new_backend", "new_frontend")
     }
     with offline_demo.lifecycle_lock(STATE, shared=not args.execute):
-        plan = _plan(images)
+        plan = _plan(images, args.failed_report)
         checksum = digest(plan)
         if not args.execute:
             print(
@@ -983,6 +1236,22 @@ def main():
                 failure_code=code if re.fullmatch(r"[A-Z0-9_]+", code) else type(error).__name__,
             )
         finally:
+            recovery = plan.get("recovery")
+            if recovery:
+                try:
+                    preserved = _hash(Path(recovery["failed_report"])) == recovery[
+                        "failed_report_sha256"
+                    ] and all(
+                        _hash(Path(recovery["original_staged_directory"]) / name) == checksum
+                        for name, checksum in recovery["original_staged_files"].items()
+                    )
+                except OSError:
+                    preserved = False
+                report["original_failed_artifacts_preserved"] = preserved
+                if not preserved:
+                    report.update(
+                        status="FAILED", failure_code="MATERIAL_MIGRATION_ORIGINAL_STAGE_CHANGED"
+                    )
             _save(args.report, report)
     print(report["status"])
     return int(report["status"] != "PASSED")
