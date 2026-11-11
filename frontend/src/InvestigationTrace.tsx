@@ -1,4 +1,5 @@
 import { Card } from 'antd';
+import { investigationReason } from './investigationMessages';
 import type { RunEvent } from './contracts';
 import { type claims, investigationTrace } from './investigationTraceData';
 import { Evidence, money, time } from './ui';
@@ -38,7 +39,7 @@ export function InvestigationTrace({events}: {events: RunEvent[]}) {
       {step.kind === 'route' && <>
         <h4>调查方式 · {named(routes, step.selected || step.proposed)}</h4>
         {step.proposed && step.selected && step.proposed !== step.selected && <p>程序推荐 · {named(routes, step.proposed)}</p>}
-        <p>{named(reasons, step.reason)}</p>
+        <p>{investigationReason(step.reason) ?? named(reasons, step.reason)}</p>
         <Refs title="复杂情况" values={step.features.map((feature) => named(reasons, feature))} />
         {step.amount !== undefined && <p>记录的可退款上限 · {money(step.amount)}</p>}
         {step.unsettled !== undefined && <p>{step.unsettled ? '存在尚待核对的退款记录' : '本次输入未记录待核对退款'}</p>}
@@ -61,7 +62,7 @@ export function InvestigationTrace({events}: {events: RunEvent[]}) {
       </>}
       {step.kind === 'escalation' && <>
         <h4>调整调查方式</h4>
-        <p>{named(routes, step.from)} → {named(routes, step.to)} · {named(reasons, step.reason)}</p>
+        <p>{named(routes, step.from)} → {named(routes, step.to)} · {investigationReason(step.reason) ?? named(reasons, step.reason)}</p>
       </>}
       {step.kind === 'recheck' && <>
         <h4>{named(roles, step.role)} · 局部复查</h4>
@@ -72,7 +73,7 @@ export function InvestigationTrace({events}: {events: RunEvent[]}) {
       </>}
       {step.kind === 'blocked' && <>
         <h4>候选未通过业务检查</h4>
-        <p>{step.option} · {named(reasons, step.reason)}</p>
+        <p>{step.option} · {investigationReason(step.reason) ?? named(reasons, step.reason)}</p>
       </>}
       {step.kind === 'claims' && <>
         <h4>{named(roles, step.role)} · {step.phase === 'recheck' ? '复查阶段提出的判断' : '提出的判断'}</h4>
@@ -84,7 +85,7 @@ export function InvestigationTrace({events}: {events: RunEvent[]}) {
           <Refs title="助手提出的候选" values={step.proposed.map((option) => `${option.id} · ${option.action}`)} />
           <Refs title="保留供客服核对" values={step.options} />
           <Refs title="未保留的候选" values={step.proposed.filter((option) => !step.options.includes(option.id)).map((option) => option.id)} />
-          <Refs title="程序阻断记录" values={step.checks.map((check) => `${check.id} · ${named(reasons, check.code)}`)} />
+          <Refs title="程序阻断记录" values={step.checks.map((check) => `${check.id} · ${investigationReason(check.code) ?? named(reasons, check.code)}`)} />
         </>}
         {step.kind === 'assessment' && <>
           {'kept' in step && <Refs title="与复查前一致的判断" values={step.kept} />}

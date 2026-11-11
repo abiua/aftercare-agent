@@ -396,3 +396,41 @@ def test_p4_refuses_unapproved_data_scope_before_model_transport(system, monkeyp
     rows = system.service.events("case-1", run["id"], system.actor, 0)
     route = next(row["payload"] for row in rows if row["kind"] == "route")
     assert set(route["excluded"].values()) == {"DATA_SCOPE_RESTRICTED"}
+
+
+def test_p4_old_prompt_binding_hands_off_before_model(system):
+    from langgraph.checkpoint.memory import InMemorySaver
+
+    from aftercare.intelligence.service import AgentService
+    from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
+
+    system.service = AgentService(
+        system.engine,
+        SimpleNamespace(model_enabled=False, chat_investigation_enabled=True),
+        system.business,
+        InMemorySaver(),
+        dispatch=lambda _: None,
+        model=ModelRunner(
+            test_intelligence.registry(), transport=lambda *_: pytest.fail("sent again")
+        ),
+    )
+    run = _start(system, graph_profile=CHAT_GRAPH_PROFILE)
+    with Session(system.engine) as db, db.begin():
+        binding = db.scalar(
+            select(RunEvent).where(RunEvent.run_id == run["id"], RunEvent.kind == "decision_input")
+        )
+        binding.payload = {
+            key: value
+            for key, value in binding.payload.items()
+            if key != "investigation_prompt_version"
+        }
+    system.service.process(run["id"])
+    row = system.service.get("case-1", run["id"], system.actor)
+    assert (
+        row["status"] == "NEEDS_REVIEW" and row["reason"] == "INVESTIGATION_PROMPT_VERSION_CHANGED"
+    )
+    assert row["output"] is None
+    assert not any(
+        event["kind"] in {"decision_ready", "model_attempt"}
+        for event in system.service.events("case-1", run["id"], system.actor, 0)
+    )

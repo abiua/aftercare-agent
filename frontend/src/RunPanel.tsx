@@ -3,6 +3,7 @@ import { Alert, Button, Card, Descriptions, Form, Input, Modal, Select, Space, T
 import { ApartmentOutlined } from '@ant-design/icons';
 import { segment, type Client } from './api';
 import type { CaseDetail, Mode, Run, RunEvent, RunOutput, Runtime, Strategy, User } from './contracts';
+import { investigationReason } from './investigationMessages';
 import { recoveryReason } from './evaluationMessages';
 import { useActions, useEventRefresh, useResource, useStream } from './hooks';
 import type { SseFrame } from './sse';
@@ -109,6 +110,7 @@ function RunDetails({api, route, initialRun, caseDetail, canRun, allowDraft, sho
   const lookup = readRefundLookup(output?.refund_lookup);
   const reviewing = run.reason === 'MATERIAL_REVIEW_REQUIRED';
   const recovery = recoveryReason(run.reason);
+  const explanation = investigationReason(run.reason) ?? investigationReason(output?.reason);
   return <>
     <Card size="small" className="run-card">
       <div className="section-row">
@@ -127,7 +129,7 @@ function RunDetails({api, route, initialRun, caseDetail, canRun, allowDraft, sho
       ]} />
       {run.status === 'WAITING_INPUT' && <Alert type="warning" showIcon title={reviewing ? '助手已暂停，等待人工审核' : '助手已暂停，等待补充材料'}
         description={reviewing ? '请在「材料与审核」记录人工意见，再返回此处继续同一运行。' : output?.missing_materials?.length ? output.missing_materials.map(label).join('、') : '请查看「材料与审核」中的补充要求，再返回此处继续同一运行。'} />}
-      {recovery && <Alert type="warning" showIcon title={recovery} />}
+      {(recovery || explanation) && <Alert type="warning" showIcon title={recovery ?? explanation} />}
       {run.reason && !reviewing && run.status !== 'WAITING_INPUT' && <Evidence title="运行结果说明"><Json value={run.reason} /></Evidence>}
       <Evidence title="运行与恢复凭据"><Json value={{run_id: run.id, thread_id: run.thread_id, case_version: run.case_version}} /></Evidence>
     </Card>
@@ -143,7 +145,7 @@ function RunDetails({api, route, initialRun, caseDetail, canRun, allowDraft, sho
     {output && <Card size="small" title={output.action ? '助手方案草案' : '助手处理意见'}>
       <div className="stack">
         {output.action && <div><Status value={output.action} /> <span>草案待客服核对</span></div>}
-        <p>{output.notes || output.reason}</p>
+        {output.notes ? <p>{investigationReason(output.notes) ?? output.notes}</p> : output.reason && !explanation && <p>{output.reason}</p>}
         {lookup && <RefundLookupOutcome result={lookup} />}
         {output.historical_refunded_cents != null && <div>订单历史累计登记退款 {money(output.historical_refunded_cents)}</div>}
         {!!output.policy_ids?.length && <p className="muted">{output.action ? '草案参考条款编号' : '候选条款编号'} {output.policy_ids.join('、')}</p>}

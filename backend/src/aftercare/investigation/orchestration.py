@@ -15,6 +15,8 @@ from aftercare.business.rules import digest
 from aftercare.decisions.contracts import CandidateOption, Key
 from aftercare.intelligence.models import InvalidOutput, ModelFailure, _estimate_input, tool_reply
 
+from .prompt_evidence import PRIVATE_RECEIPT_EVENT, PROMPT_LEGEND, PROMPT_VERSION, PromptEvidence
+
 INVESTIGATION_INPUT_TOKEN_LIMIT = 24_576
 MAX_TOOL_BATCH = 4
 MAX_MODEL_ROUNDS = 8
@@ -187,6 +189,8 @@ def run_phase(
     evidence_ids = set(known_evidence)
     upstream = upstream or []
     upstream_ids = {row["id"] for row in upstream}
+    projection = PromptEvidence(context.input)
+    projected_prompt = projection.prompt(prompt)
     messages = [
         SystemMessage(
             content=(
@@ -194,10 +198,13 @@ def run_phase(
                 "只有明确来源及版本的证据可支持相应结论。图片观察不证明身份、原因或审批。"
                 "不得批准或执行任何操作。输出符合 JSON Schema 的 JSON 对象。"
                 + _ROLE_INSTRUCTIONS[role]
+                + PROMPT_LEGEND
                 + _render(schema.model_json_schema())
             )
         ),
-        HumanMessage(content=_render({"frozen_input": prompt, "upstream_claims": upstream})),
+        HumanMessage(
+            content=_render({"frozen_input": projected_prompt, "upstream_claims": upstream})
+        ),
     ]
     audit.event(
         "investigation_input",
@@ -205,6 +212,8 @@ def run_phase(
             "role": role,
             "phase_id": phase_id,
             "input_sha256": digest(prompt),
+            "prompt_sha256": digest(projected_prompt),
+            "prompt_version": PROMPT_VERSION,
             "upstream_claim_ids": sorted(upstream_ids),
             "tools": sorted(available),
         },
@@ -213,12 +222,30 @@ def run_phase(
     used = 0
     for index in range(max_rounds):
         bound = tools if index < max_rounds - 1 and used < tool_limit else []
-        if _estimate_input(messages, bound, vision=False)[0] > INVESTIGATION_INPUT_TOKEN_LIMIT:
-            if (
-                not bound
-                or _estimate_input(messages, [], vision=False)[0] > INVESTIGATION_INPUT_TOKEN_LIMIT
-            ):
-                raise ModelFailure("INVESTIGATION_PROMPT_LIMIT")
+        with_tools = _estimate_input(messages, bound, vision=False)[0]
+        without_tools = _estimate_input(messages, [], vision=False)[0] if bound else with_tools
+        audit.event(
+            "investigation_prompt_budget",
+            {
+                "role": role,
+                "phase_id": phase_id,
+                "round": index,
+                "prompt_version": PROMPT_VERSION,
+                "estimated_with_tools": with_tools,
+                "estimated_without_tools": without_tools,
+                "limit": INVESTIGATION_INPUT_TOKEN_LIMIT,
+                "evidence_count": len(evidence_ids),
+                "tool_receipt_count": len(receipts),
+                "preflight": "OVER_LIMIT"
+                if without_tools > INVESTIGATION_INPUT_TOKEN_LIMIT
+                else "FIT_WITHOUT_TOOLS"
+                if with_tools > INVESTIGATION_INPUT_TOKEN_LIMIT
+                else "FIT",
+            },
+        )
+        if without_tools > INVESTIGATION_INPUT_TOKEN_LIMIT:
+            raise ModelFailure("INVESTIGATION_PROMPT_LIMIT")
+        if with_tools > INVESTIGATION_INPUT_TOKEN_LIMIT:
             bound = []
 
         def validate(calls, raw, *, bound=bound, used=used):
@@ -247,7 +274,7 @@ def run_phase(
 
         response = context.model.call(
             audit,
-            f"p4:{phase_id}:{index}",
+            f"p4:{PROMPT_VERSION}:{phase_id}:{index}",
             preferred="analysis" if context.strategy == "routed" else context.strategy,
             messages=messages,
             tools=bound,
@@ -276,7 +303,18 @@ def run_phase(
             if receipt not in receipts:
                 receipts.append(receipt)
             evidence_ids.update(ref["source_id"] for ref in receipt["refs"])
-            messages.append(tool_reply(call["name"], call["id"], receipt))
+            projected_receipt, _ = projection.receipt(receipt)
+            audit.event(
+                PRIVATE_RECEIPT_EVENT,
+                {
+                    "role": role,
+                    "phase_id": phase_id,
+                    "call_id": call["id"],
+                    "receipt_sha256": digest(receipt),
+                    "receipt": receipt,
+                },
+            )
+            messages.append(tool_reply(call["name"], call["id"], projected_receipt))
             audit.event(
                 "investigation_tool",
                 {
@@ -287,6 +325,7 @@ def run_phase(
                     "evidence_ids": [ref["source_id"] for ref in receipt["refs"]],
                     "evidence_refs": receipt["refs"],
                     "input_sha256": key,
+                    "receipt_sha256": digest(receipt),
                 },
             )
     raise ModelFailure("INVESTIGATION_ROUND_LIMIT")

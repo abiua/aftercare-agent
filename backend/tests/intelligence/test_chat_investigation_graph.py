@@ -163,14 +163,14 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
 
     model = Script(
         {
-            "p4:single:0": [
+            "p4:compact-v2:single:0": [
                 _call("read_order_lines", line_ids=["line"]),
                 _call("read_order_lines", line_ids=["line2"]),
             ],
-            "p4:single:1": [
+            "p4:compact-v2:single:1": [
                 _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product")
             ],
-            "p4:single:2": {
+            "p4:compact-v2:single:2": {
                 "claims": [_claim("one", "line")],
                 "options": [
                     {
@@ -205,8 +205,8 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
 
     def first_verifier(kwargs):
         payload = json.loads(kwargs["messages"][1].content)
-        originals = payload["frozen_input"]["original_read_receipts"]
-        assert any(row["data"]["records"][0]["data"].get("delivered") is True for row in originals)
+        originals = payload["frozen_input"]["original_frozen_evidence"]
+        assert any(row["data"].get("delivered") is True for row in originals)
         assert any(row["value"] == "未交付" for row in payload["upstream_claims"])
         result = _review(
             ("fact/f", "line"),
@@ -232,21 +232,21 @@ def test_multi_independent_roles_and_one_local_recheck(investigation):
 
     model = Script(
         {
-            "p4:fact:0": start("fact", _call("read_order_lines", line_ids=["line"])),
-            "p4:fact:1": {
+            "p4:compact-v2:fact:0": start("fact", _call("read_order_lines", line_ids=["line"])),
+            "p4:compact-v2:fact:1": {
                 "claims": [
                     _claim("f", "line", value="未交付"),
                     _claim("child", "line", depends=("f",)),
                 ]
             },
-            "p4:policy:0": start(
+            "p4:compact-v2:policy:0": start(
                 "policy",
                 _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product"),
             ),
-            "p4:policy:1": {"claims": [_claim("p", "POL01:v1")]},
-            "p4:verify-0:0": first_verifier,
-            "p4:recheck:0": {"claims": [_claim("f", "line", value="已交付")]},
-            "p4:verify-1:0": final_verifier,
+            "p4:compact-v2:policy:1": {"claims": [_claim("p", "POL01:v1")]},
+            "p4:compact-v2:verify-0:0": first_verifier,
+            "p4:compact-v2:recheck:0": {"claims": [_claim("f", "line", value="已交付")]},
+            "p4:compact-v2:verify-1:0": final_verifier,
         }
     )
     result, events = _run(investigation, "MULTI", model)
@@ -302,3 +302,105 @@ def test_chat_private_transport_uses_no_inherited_callbacks(monkeypatch):
     with tracing_context(enabled=True):
         models._private_transport(None, [HumanMessage(content="PRIVATE_FIXTURE")], [schema], 3, 900)
     assert calls == ["PRIVATE_FIXTURE"]
+
+
+def test_compact_evidence_roundtrip_preserves_records_scope_and_duplicate_verifier_reads(
+    investigation,
+):
+    from aftercare.business.rules import digest
+    from aftercare.intelligence.models import ModelFailure
+    from aftercare.investigation.prompt_evidence import PromptEvidence
+
+    projection = PromptEvidence(investigation)
+    scope = [investigation.conversation_id, investigation.issue_id, investigation.case_id]
+
+    def unpack(row):
+        ref = row["ref"]
+        return {
+            **row,
+            "ref": {
+                "source_kind": ref[0],
+                "source_id": ref[1],
+                "version_or_sha256": ref[2],
+                "observed_at": ref[3] if len(ref) == 4 else None,
+                "scope": scope,
+            },
+        }
+
+    actual = InvestigationTools(investigation)
+    raw = actual.call(
+        "policy",
+        "read_policy_clause",
+        {
+            "policy_id": "POL01",
+            "version": "v1",
+            "product_id": "product",
+        },
+    ).model_dump(mode="json")
+    raw["data"]["retrieval"] = {
+        "mode": "HYBRID",
+        "retrieval_evidence": {"query_vector_sha256": "actual-audit"},
+    }
+    original = raw["data"]["records"][0]
+    original["ref"]["observed_at"] = raw["refs"][0]["observed_at"] = "2026-11-11T00:00:00+00:00"
+    projected, _ = projection.receipt(raw)
+    assert [unpack(row) for row in projected["data"]["records"]] == raw["data"]["records"]
+    assert projected["data"]["retrieval"] == {
+        "mode": "HYBRID",
+        "proof_sha256": digest(raw["data"]["retrieval"]),
+    }
+    assert "refs" not in projected
+    empty = {**raw, "refs": [], "data": {"records": []}}
+    assert projection.receipt(empty)[0]["data"] == {"records": []}
+    with pytest.raises(ModelFailure, match="INVESTIGATION_EVIDENCE_INCONSISTENT"):
+        projection.receipt({**empty, "refs": raw["refs"]})
+    customer_view = investigation.role_view("strong_single")
+    compact = projection.prompt(customer_view)
+    assert compact["scope"] == scope
+    assert [unpack(row) for row in compact["customer_statements"]] == customer_view[
+        "customer_statements"
+    ]
+    verifier_view = {"original_frozen_evidence": [original], "original_read_receipts": [raw, raw]}
+    verifier = projection.prompt(verifier_view)
+    assert [unpack(row) for row in verifier["original_frozen_evidence"]] == [original]
+    assert len(verifier["original_read_receipts"]) == 2
+    assert all(
+        item["refs"] == [verifier["original_frozen_evidence"][0]["ref"]]
+        and "records" not in item["data"]
+        for item in verifier["original_read_receipts"]
+    )
+    next_version = {
+        **original,
+        "ref": {**original["ref"], "version_or_sha256": "v2"},
+        "data": {"clause": {"text": "另一版本原文"}},
+    }
+    separately_versioned = projection.prompt(
+        {**verifier_view, "original_frozen_evidence": [original, next_version]}
+    )
+    assert [unpack(row) for row in separately_versioned["original_frozen_evidence"]] == [
+        original,
+        next_version,
+    ]
+    # The data owner supplied a contradictory value for the same immutable reference.
+    conflicting = {**original, "data": {"clause": {"text": "被改动的文本"}}}
+    with pytest.raises(ModelFailure, match="INVESTIGATION_EVIDENCE_INCONSISTENT"):
+        projection.prompt({**verifier_view, "original_frozen_evidence": [conflicting]})
+    with pytest.raises(ModelFailure, match="INVESTIGATION_EVIDENCE_INCONSISTENT"):
+        projection.ref({**original["ref"], "scope": ["different", *scope[1:]]})
+
+
+def test_compact_prompt_overflow_is_audited_before_transport(investigation):
+    model = Script({})
+    expanded = investigation.model_copy(
+        update={
+            "messages": (
+                investigation.messages[0].model_copy(update={"text": "无法缩写的用户陈述" * 3000}),
+            )
+        }
+    )
+    outcome, events = _run(expanded, "SINGLE", model)
+    assert outcome["reason"] == "INVESTIGATION_PROMPT_LIMIT"
+    assert not model.calls
+    (budget,) = [payload for kind, payload in events if kind == "investigation_prompt_budget"]
+    assert budget["preflight"] == "OVER_LIMIT"
+    assert budget["estimated_without_tools"] > budget["limit"] == 24_576

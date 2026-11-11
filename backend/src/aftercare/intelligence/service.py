@@ -52,6 +52,7 @@ from aftercare.investigation.orchestration import (
     INVESTIGATION_INPUT_TOKEN_LIMIT,
     InvestigationContext,
 )
+from aftercare.investigation.prompt_evidence import PRIVATE_RECEIPT_EVENT, PROMPT_VERSION
 from aftercare.investigation.routing import route_input, route_unavailable
 from aftercare.investigation.tools import InvestigationTools
 
@@ -208,7 +209,7 @@ def _public_output(output):
 
 
 def _event_payload(row, user):
-    if row.kind in {DECISION_INPUT_EVENT, DECISION_READY_EVENT}:
+    if row.kind in {DECISION_INPUT_EVENT, DECISION_READY_EVENT, PRIVATE_RECEIPT_EVENT}:
         return {}
     if row.kind.startswith("investigation_") and user.role not in {"support", "tester"}:
         return {}
@@ -749,6 +750,8 @@ class AgentService:
             )
             if binding is not None:
                 binding.update(profile)
+                if graph_profile:
+                    binding["investigation_prompt_version"] = PROMPT_VERSION
                 if decision_turn_id is not None and not auto_turn_current(
                     session, decision_scope, user.user_id, decision_turn_id
                 ):
@@ -1057,15 +1060,17 @@ class AgentService:
                 _mark(session, run, "RUNNING")
 
         try:
-            facts = _with_refund_lookup(self._context(run.case_id, user), run.message)
-            self._check_version(facts, run.case_version)
-            context_digest = _context_digest(facts)
             with Session(self.engine) as session:
                 decision_input = load_binding(session, run)
             binding = decision_input or {}
             profile = binding.get("graph_profile")
+            if profile and binding.get("investigation_prompt_version") != PROMPT_VERSION:
+                raise ModelFailure("INVESTIGATION_PROMPT_VERSION_CHANGED")
             if profile and (profile != CHAT_GRAPH_PROFILE or profile not in self.graphs):
                 raise ModelFailure("INVESTIGATION_PROFILE_UNAVAILABLE")
+            facts = _with_refund_lookup(self._context(run.case_id, user), run.message)
+            self._check_version(facts, run.case_version)
+            context_digest = _context_digest(facts)
             graph = self.graphs[profile or run.mode]
             config = {"configurable": {"thread_id": run.thread_id}, "recursion_limit": 30}
             snapshot = (

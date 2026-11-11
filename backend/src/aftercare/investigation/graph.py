@@ -10,10 +10,12 @@ from langgraph.runtime import Runtime
 from pydantic import TypeAdapter
 
 from aftercare.business.errors import BusinessError
+from aftercare.business.rules import digest
 from aftercare.decisions.contracts import CandidateOption, NonExecutingOption, Option
 from aftercare.intelligence.models import ModelFailure
 
 from .orchestration import InvestigationContext, ProtectedAudit, RecheckRequest, run_phase
+from .prompt_evidence import PRIVATE_RECEIPT_EVENT
 
 CHAT_GRAPH_PROFILE = "chat-investigation-v1"
 ARMS = {"auto", "strong_single", "single_staged", "multi"}
@@ -315,7 +317,18 @@ def _recheck(state, runtime: Runtime[InvestigationContext]):
         receipt = context.tools.call(request.target_role, request.tool_name, request.arguments)
     except (ValueError, BusinessError):
         return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_TOOL_DENIED")}
-    refs = [row["source_id"] for row in receipt.model_dump(mode="json")["refs"]]
+    raw_receipt = receipt.model_dump(mode="json")
+    receipt_sha256 = digest(raw_receipt)
+    context.audit.event(
+        PRIVATE_RECEIPT_EVENT,
+        {
+            "role": request.target_role,
+            "phase_id": "recheck",
+            "receipt_sha256": receipt_sha256,
+            "receipt": raw_receipt,
+        },
+    )
+    refs = [row["source_id"] for row in raw_receipt["refs"]]
     if any(
         not set(refs).intersection(row["supporting_refs"] + row["conflicting_refs"])
         for row in claims
@@ -329,6 +342,7 @@ def _recheck(state, runtime: Runtime[InvestigationContext]):
         "stale_claim_ids": sorted(affected),
         "tool": request.tool_name,
         "evidence_ids": refs,
+        "receipt_sha256": receipt_sha256,
     }
     context.audit.event("investigation_recheck", audit)
     try:
@@ -340,7 +354,7 @@ def _recheck(state, runtime: Runtime[InvestigationContext]):
             prompt={
                 **context.input.role_view(request.target_role),
                 "specific_claims": [row for row in claims if row["id"] in targets],
-                "check_receipt": receipt.model_dump(mode="json"),
+                "check_receipt": raw_receipt,
             },
             max_rounds=1,
             tools_enabled=False,
@@ -360,7 +374,7 @@ def _recheck(state, runtime: Runtime[InvestigationContext]):
         "active_claims": active,
         "evidence_ids": sorted(surviving_refs | set(refs)),
         "stale_claims": sorted(affected - targets),
-        "recheck_receipt": receipt.model_dump(mode="json"),
+        "recheck_receipt": raw_receipt,
     }
 
 

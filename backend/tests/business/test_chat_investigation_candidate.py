@@ -9,20 +9,23 @@ from langchain_core.messages import AIMessage, ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langsmith import tracing_context
 from langsmith.utils import tracing_is_enabled
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from test_business import OWNER, SUPPORT, _evidence
+from test_business import OWNER, SUPPORT, TESTER, _evidence, _photo
 from test_chat_decisions_integration import _link
 from test_chat_decisions_integration import configured as _configured
 from test_conversations import client as _client
-from test_conversations import headers
+from test_conversations import headers, send
 from test_conversations import system as _system
 
+from aftercare.business.rules import digest
 from aftercare.conversations.decisions import ConversationDecisions
 from aftercare.conversations.tables import Conversation
 from aftercare.intelligence.api import router
 from aftercare.intelligence.decision_candidate import project_candidate
 from aftercare.intelligence.models import ModelRunner, Registry
 from aftercare.intelligence.service import AgentService, RunAudit
+from aftercare.intelligence.tables import RunEvent
 from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
 from aftercare.investigation.input import build_input
 
@@ -71,6 +74,16 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         monkeypatch.setattr(RunAudit, method, serialized(getattr(RunAudit, method)))
 
     url, case_id = _link(configured)
+    original_chat = send(
+        configured.client,
+        url,
+        "两张合成照片分别拍了商品和包裹外观。",
+        photos=(
+            ("synthetic-item.png", _photo("green")),
+            ("synthetic-parcel.png", _photo("orange")),
+        ),
+    )
+    assert original_chat.status_code == 201
     _evidence(configured.service, case_id)
     configured.service.settings.chat_investigation_enabled = True
     decisions = ConversationDecisions(configured.service)
@@ -114,18 +127,46 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
                     [
                         {"name": "read_order_lines", "id": "line", "args": {"line_ids": [line_id]}},
                         {
-                            "name": "read_policy_clause",
+                            "name": "read_material_evidence",
+                            "id": "material",
+                            "args": {
+                                "evidence_ids": [
+                                    row.ref.source_id
+                                    for row in value.evidence
+                                    if row.ref.source_kind in {"ATTACHMENT", "REVIEW", "MATERIAL"}
+                                ]
+                            },
+                        },
+                        {
+                            "name": "search_applicable_policy",
                             "id": "policy",
                             "args": {
-                                "policy_id": policy_id,
-                                "version": policy_version,
-                                "product_id": policy.data["selected_for"][0],
+                                "query": policy.data["clause"]["text"][:100],
+                                "condition_keys": [
+                                    "order_status",
+                                    "payment_status",
+                                    "paid_at",
+                                    "shipped_at",
+                                    "delivered_at",
+                                    "cancelled_at",
+                                ],
                             },
                         },
                     ]
                 )
-            assert policy.data["clause"]["text"] in messages[-1].content
-            assert str(amount) in messages[-2].content
+            by_name = {
+                msg.name: json.loads(msg.content)["data"]["records"]
+                for msg in messages
+                if isinstance(msg, ToolMessage)
+            }
+            assert len(by_name["read_order_lines"]) == 1
+            assert len(by_name["read_material_evidence"]) == 5
+            assert len(by_name["search_applicable_policy"]) == 11
+            assert any(
+                row["data"].get("clause", {}).get("text") == policy.data["clause"]["text"]
+                for row in by_name["search_applicable_policy"]
+            )
+            assert any("两张合成照片" in row["text"] for row in user_view["customer_statements"])
             return _reply(
                 {
                     "claims": [
@@ -170,12 +211,9 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         assert role == "verifier"
         rows = user_view["original_frozen_evidence"]
         assert any(
-            row["ref"]["source_id"] == line_id and row["data"]["available_cents"] == amount
-            for row in rows
+            row["ref"][1] == line_id and row["data"]["available_cents"] == amount for row in rows
         )
-        assert any(
-            row["ref"]["source_id"] == policy_ref and row["data"]["clause"]["text"] for row in rows
-        )
+        assert any(row["ref"][1] == policy_ref and row["data"]["clause"]["text"] for row in rows)
         fact = next(item for item in sent["upstream_claims"] if item["id"] == "fact/amount")
         mismatch = fact["value"] != str(amount)
         assessments = [
@@ -279,7 +317,25 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
     event_path = f"/api/cases/{case_id}/runs/{run['id']}/events"
     staff = configured.client.get(event_path, headers=headers(SUPPORT))
     owner = configured.client.get(event_path, headers=headers(OWNER))
-    assert staff.status_code == owner.status_code == 200
+    tester = configured.client.get(event_path, headers=headers(TESTER))
+    assert staff.status_code == owner.status_code == tester.status_code == 200
+    with Session(configured.db) as db:
+        stored_receipts = db.scalars(
+            select(RunEvent).where(
+                RunEvent.run_id == run["id"], RunEvent.kind == "investigation_receipt"
+            )
+        ).all()
+        assert stored_receipts
+        assert all(
+            row.payload["receipt_sha256"] == digest(row.payload["receipt"])
+            for row in stored_receipts
+        )
+    for response in (staff, owner, tester):
+        redacted = [row for row in response.json() if row["kind"] == "investigation_receipt"]
+        assert len(redacted) == len(stored_receipts)
+        assert all(row["payload"] == {} for row in redacted)
+    default = configured.client.get(event_path.removesuffix("?after=0"))
+    assert default.status_code == 401
     visible_run = configured.client.get(event_path.removesuffix("/events"), headers=headers(OWNER))
     assert visible_run.status_code == 200
     assert not {"action", "lines", "policy_ids", "investigation_options"}.intersection(
@@ -301,3 +357,11 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
     ]
     assert budgets and {budget["run_attempts_limit"] for budget in budgets} == {8}
     assert {budget["run_cost_limit_usd"] for budget in budgets} == {"0.10"}
+    if arm == "strong_single":
+        rounds = [
+            row["payload"] for row in staff.json() if row["kind"] == "investigation_prompt_budget"
+        ]
+        assert len(rounds) == 2
+        assert rounds[1]["preflight"] == "FIT"
+        assert rounds[1]["evidence_count"] == 17
+        assert rounds[1]["estimated_with_tools"] < rounds[1]["limit"] == 24_576

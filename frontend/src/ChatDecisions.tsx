@@ -3,6 +3,7 @@ import { Alert, Button, Card, Checkbox, Input, Modal, Select, Space, Tag } from 
 import { ApiError, errorMessage, segment, type Client } from './api';
 import type { Order, User } from './contracts';
 import { canAcceptOption, customerActions, decisionActions, decisionRef, editableMeasure, evidenceGaps, isExecutionOption, orderLineName, reviewActions, type CustomerAction, type CustomerOffer, type CustomerOfferView, type DecisionLine, type DecisionOption, type DecisionSnapshot, type EvidenceGap, type ProgramCheck, type ReviewAction, type SupportDecisionView } from './chatDecisionData';
+import { investigationReason } from './investigationMessages';
 import { useActions, useResource } from './hooks';
 import { Evidence, Feedback, Json, money, time } from './ui';
 
@@ -134,7 +135,7 @@ function SnapshotCard({snapshot, order, showParent}: {snapshot: DecisionSnapshot
     <p>订单 {snapshot.input.order_id} · 截至第 {snapshot.input.input_through_seq} 条消息</p>
     {snapshot.parent_id && <Button onClick={() => showParent(snapshot.parent_id!)}>查看上一版候选</Button>}
     {snapshot.candidate.unresolved.length > 0 && <Alert type="warning" title="仍需核对" description={
-      <ul>{snapshot.candidate.unresolved.map((item) => <li key={item}>{item}</li>)}</ul>
+      <ul>{snapshot.candidate.unresolved.map((item) => <li key={item}>{investigationReason(item) ?? item}</li>)}</ul>
     } />}
     {snapshot.candidate.options.map((option) => <Card key={option.id} size="small" title={decisionActions[option.action]}>
       <p>{option.rationale}</p>
@@ -144,7 +145,7 @@ function SnapshotCard({snapshot, order, showParent}: {snapshot: DecisionSnapshot
         snapshot.checks[option.id]?.status === 'NON_EXECUTING' ? '仅后续处理建议' : '候选生成时核对未通过'}</Tag>
       <Evidence title="查看依据和核对记录"><Json value={{evidence: option.evidence_ids, check: snapshot.checks[option.id]}} /></Evidence>
     </Card>)}
-    <Evidence title="查看候选证据与版本"><Json value={snapshot.input} /></Evidence>
+    <Evidence title="查看候选证据与版本"><Json value={{input: snapshot.input, unresolved: snapshot.candidate.unresolved}} /></Evidence>
   </section>;
 }
 
@@ -214,7 +215,7 @@ function ReviewEditor({api, path, order, snapshot, reviewId, action, stale, clos
           onChange={(event) => setRationale(event.target.value)} /></label>
         {!!snapshot.candidate.unresolved.length && <fieldset><legend>勾选已核对清楚的事项</legend>
           {snapshot.candidate.unresolved.map((item) => <div key={item}><Checkbox checked={resolved.includes(item)}
-            onChange={(event) => setResolved(event.target.checked ? [...resolved, item] : resolved.filter((value) => value !== item))}>{item}</Checkbox></div>)}
+            onChange={(event) => setResolved(event.target.checked ? [...resolved, item] : resolved.filter((value) => value !== item))}>{investigationReason(item) ?? item}</Checkbox></div>)}
         </fieldset>}
         <p>保存后将重新核对。核对结果和原始候选都可查看。</p>
       </>}
