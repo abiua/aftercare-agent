@@ -4,6 +4,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 from langchain_openai._compat import httpx as provider_httpx
@@ -54,22 +55,34 @@ def _handle(transport, request):
         for block in message["content"]
         if block.get("type") == "input_image"
     ]
-    if len(images) != 1 or images[0].get("detail") != "low":
+    paired = PLAN.get("scope") == "P2_ISOLATED_P5_EXACT_TWO_IMAGE_V1"
+    expected = PLAN.get("sent_sha256s") if paired else [PLAN["sent_sha256"]]
+    if paired and (
+        not isinstance(expected, list)
+        or len(expected) != 2
+        or not all(isinstance(sha, str) and re.fullmatch(r"[a-f0-9]{64}", sha) for sha in expected)
+        or len(set(expected)) != 2
+    ):
+        raise RuntimeError("P2_WIRE_IMAGE_PLAN_REJECTED")
+    if len(images) != len(expected) or any(image.get("detail") != "low" for image in images):
         raise RuntimeError("P2_WIRE_IMAGE_REJECTED")
     prefix = "data:image/jpeg;base64,"
-    image_url = images[0].get("image_url")
-    if not isinstance(image_url, str) or not image_url.startswith(prefix):
-        raise RuntimeError("P2_WIRE_IMAGE_REJECTED")
-    image = base64.b64decode(image_url.removeprefix(prefix), validate=True)
-    image_sha = hashlib.sha256(image).hexdigest()
-    if image_sha != PLAN["sent_sha256"]:
+    actual = []
+    for block in images:
+        image_url = block.get("image_url")
+        if not isinstance(image_url, str) or not image_url.startswith(prefix):
+            raise RuntimeError("P2_WIRE_IMAGE_REJECTED")
+        image = base64.b64decode(image_url.removeprefix(prefix), validate=True)
+        actual.append(hashlib.sha256(image).hexdigest())
+    if actual != expected:
         raise RuntimeError("P2_WIRE_IMAGE_DIGEST_MISMATCH")
+    image_receipt = {"sent_sha256s": actual} if paired else {"sent_sha256": actual[0]}
     _record(
         STATE / "admission.json",
         {
             "status": "DELIVERY_UNKNOWN",
             "model": PLAN["model"],
-            "sent_sha256": image_sha,
+            **image_receipt,
             "output_tokens": PLAN["output_tokens"],
             "retry_index": 0,
             "serialized_body_bytes": len(request.content),

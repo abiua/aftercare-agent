@@ -1,0 +1,39 @@
+{
+  "provenance": "Synthetic development-only order for the isolated 5202 multimodal acceptance.",
+  "product": {
+    "id": "DEV-VISION-MUG-01",
+    "name": "白色马克杯",
+    "category": "家居",
+    "returnable": true,
+    "unit_price_cents": 4900,
+    "warranty_days": 0
+  },
+  "order": {
+    "id": "O9902",
+    "customer_id": "C001",
+    "status": "DELIVERED",
+    "payment_status": "CONFIRMED",
+    "created_at": "2026-11-06T10:00:00+08:00",
+    "paid_at": "2026-11-06T10:05:00+08:00",
+    "shipped_at": "2026-11-07T14:00:00+08:00",
+    "delivered_at": "2026-11-08T15:00:00+08:00",
+    "cancelled_at": null,
+    "subtotal_cents": 4900,
+    "discount_cents": 0,
+    "payable_cents": 4900,
+    "paid_cents": 4900,
+    "refunded_cents": 0,
+    "items": [
+      {
+        "line_id": "L01",
+        "product_id": "DEV-VISION-MUG-01",
+        "quantity": 1,
+        "unit_price_cents": 4900,
+        "discount_cents": 0,
+        "payable_cents": 4900,
+        "paid_cents": 4900,
+        "refunded_cents": 0
+      }
+    ]
+  }
+}
