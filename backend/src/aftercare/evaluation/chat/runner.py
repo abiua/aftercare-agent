@@ -27,7 +27,11 @@ from aftercare.db import Base, User
 from aftercare.decisions.contracts import Candidate, DecisionScope, Option
 from aftercare.decisions.service import DecisionService
 from aftercare.decisions.tables import DecisionSnapshot
-from aftercare.evaluation.chat.manifest import RECHECK_ABLATION, bound_rows
+from aftercare.evaluation.chat.manifest import (
+    RECHECK_ABLATION,
+    SEQUENTIAL_CLAIMS_ABLATION,
+    bound_rows,
+)
 from aftercare.evaluation.runner import NamespacedObjects, _model_attempts, _namespace
 from aftercare.intelligence.decision_candidate import load_binding, project_candidate
 from aftercare.intelligence.models import (
@@ -39,7 +43,7 @@ from aftercare.intelligence.models import (
 from aftercare.intelligence.service import AgentService, RunError
 from aftercare.intelligence.tables import AgentRun, RunEvent, RunMutation
 from aftercare.investigation.catalogue import CATALOGUE_VERSION
-from aftercare.investigation.graph import CHAT_GRAPH_PROFILE, NO_RECHECK_ARM
+from aftercare.investigation.graph import CHAT_GRAPH_PROFILE, NO_RECHECK_ARM, SEQUENTIAL_CLAIMS_ARM
 from aftercare.investigation.input import build_input
 from aftercare.investigation.issue_budget import IssueBudget
 from aftercare.investigation.prompt_evidence import PROMPT_VERSION
@@ -52,6 +56,7 @@ _PATHS = {
     "single_staged": "STAGED",
     "multi": "MULTI",
     NO_RECHECK_ARM: "MULTI",
+    SEQUENTIAL_CLAIMS_ARM: "MULTI",
 }
 _PHASES = {
     "SINGLE": {"single": "strong_single"},
@@ -366,6 +371,18 @@ def _route_evidence(row, source, events, attempts, *, has_candidate, executable)
         or any(event.kind == "investigation_recheck" for event in events)
     ):
         return path, phases, False
+    if row["arm"] == SEQUENTIAL_CLAIMS_ARM and "policy" in phase_roles:
+        fact_claims = next(
+            (
+                event.payload["claims"]
+                for event in events
+                if event.kind == "investigation_claims" and event.payload.get("phase_id") == "fact"
+            ),
+            [],
+        )
+        policy = next(phase for phase in phases if phase["phase_id"] == "policy")
+        if policy.get("upstream_claim_ids") != sorted(claim["id"] for claim in fact_claims):
+            return path, phases, False
     allowed = _PHASES[path].copy()
     if path == "MULTI" and phase_roles.get("recheck") in {"fact", "policy"}:
         allowed["recheck"] = phase_roles["recheck"]
@@ -566,6 +583,7 @@ class ChatEvaluationRunner:
         calls: int,
         budget: Decimal,
         recheck_ablation=False,
+        sequential_claims_ablation=False,
     ):
         registry = model.registry
         if (
@@ -577,7 +595,10 @@ class ChatEvaluationRunner:
             raise ValueError("CHAT_EVAL_FIXED_MODEL_REQUIRED")
         self._paid_scope = None
         self._paid_protocol = None
+        if recheck_ablation and sequential_claims_ablation:
+            raise ValueError("CHAT_EVAL_ABLATIONS_MUST_BE_SEPARATE")
         self._recheck_ablation = recheck_ablation
+        self._sequential_claims_ablation = sequential_claims_ablation
         self._wire_row = None
         self._configure(model, checkpointer, calls, budget)
 
@@ -675,6 +696,7 @@ class ChatEvaluationRunner:
         runner._paid_scope = scope_sha256
         runner._paid_protocol = protocol
         runner._recheck_ablation = False
+        runner._sequential_claims_ablation = False
         runner._paid_campaign = plan["campaign"]
         runner._wire_row = partial(gate_policy.active_row, gate.STATE, plan, gate._write)
         runner._configure(model, None, 8, Decimal("0.40"))
@@ -718,6 +740,7 @@ class ChatEvaluationRunner:
 
             if (
                 self._recheck_ablation
+                or self._sequential_claims_ablation
                 or not isinstance(backend, _PgRuntime)
                 or campaign != self._paid_campaign
                 or backend.campaign != campaign
@@ -770,6 +793,10 @@ class ChatEvaluationRunner:
             if self._recheck_ablation:
                 controls["comparison"] = RECHECK_ABLATION
                 plan = manifest.prepare_recheck_ablation(campaign, records, controls)
+            elif self._sequential_claims_ablation:
+                controls["comparison"] = SEQUENTIAL_CLAIMS_ABLATION
+                controls["first_round_policy_input"] = "SEQUENTIAL_FACT_CLAIMS_DEPENDENCY"
+                plan = manifest.prepare_sequential_claims_ablation(campaign, records, controls)
             else:
                 plan = manifest.prepare(campaign, records, controls)
             results = []
@@ -822,6 +849,7 @@ class ChatEvaluationRunner:
                     model=self.model,
                     dispatch=lambda _run_id: None,
                     allow_recheck_ablation=self._recheck_ablation,
+                    allow_sequential_claims_ablation=self._sequential_claims_ablation,
                     attempt_admission=lambda _session: backend.fence(),
                     attempt_continuation=lambda _session: backend.fence(),
                     queue_admission=lambda _session: backend.fence(),

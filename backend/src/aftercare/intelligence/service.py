@@ -45,6 +45,7 @@ from aftercare.investigation.graph import (
     ARMS,
     CHAT_GRAPH_PROFILE,
     NO_RECHECK_ARM,
+    SEQUENTIAL_CLAIMS_ARM,
     build_investigation_graph,
 )
 from aftercare.investigation.input import InputUnavailable, build_input
@@ -585,6 +586,7 @@ class AgentService:
         provider_limiter=None,
         intent_probe=None,
         allow_recheck_ablation=False,
+        allow_sequential_claims_ablation=False,
     ):
         self.engine, self.settings, self.business = engine, settings, business
         self.dispatch = dispatch
@@ -593,7 +595,10 @@ class AgentService:
         self.queue_admission = queue_admission
         self.provider_limiter = provider_limiter
         self.intent_probe = intent_probe
-        self.allow_recheck_ablation = allow_recheck_ablation
+        self._ablation_permissions = {
+            NO_RECHECK_ARM: allow_recheck_ablation,
+            SEQUENTIAL_CLAIMS_ARM: allow_sequential_claims_ablation,
+        }
         saver = (
             _FencedCheckpointSaver(checkpointer, self._checkpoint_guard)
             if checkpointer is not None
@@ -684,6 +689,15 @@ class AgentService:
         else:
             self.process(run_id)
 
+    def _investigation_arm_allowed(self, arm, user):
+        if arm not in self._ablation_permissions:
+            return True
+        return (
+            self._ablation_permissions[arm]
+            and self.settings.profile == "test"
+            and user.role == "support"
+        )
+
     def start(
         self,
         case_id,
@@ -709,14 +723,7 @@ class AgentService:
             or not self.investigation_enabled
             or decision_scope is None
             or investigation_arm not in ARMS
-            or (
-                investigation_arm == NO_RECHECK_ARM
-                and (
-                    not self.allow_recheck_ablation
-                    or self.settings.profile != "test"
-                    or user.role != "support"
-                )
-            )
+            or not self._investigation_arm_allowed(investigation_arm, user)
             or (
                 decision_turn_id is not None
                 and (user.role != "customer" or investigation_arm != "auto")
@@ -1113,11 +1120,7 @@ class AgentService:
             scope = DecisionScope.model_validate(binding["scope"]) if profile else None
             protocol = None
             if scope is not None:
-                if binding.get("investigation_arm") == NO_RECHECK_ARM and (
-                    not self.allow_recheck_ablation
-                    or self.settings.profile != "test"
-                    or user.role != "support"
-                ):
+                if not self._investigation_arm_allowed(binding.get("investigation_arm"), user):
                     raise ModelFailure("INVESTIGATION_PROFILE_UNAVAILABLE")
                 try:
                     protocol = protocol_for_binding(binding, scope)

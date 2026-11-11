@@ -938,6 +938,14 @@ class BusinessService:
         idempotency_key: str,
         observations: list[dict] | None = None,
     ) -> dict:
+        from aftercare.conversations.decisions import lock_case
+        from aftercare.conversations.investigation_delivery import (
+            enabled as investigation_enabled,
+        )
+        from aftercare.conversations.investigation_delivery import (
+            stage_material_review,
+        )
+
         _require_role(user, "support")
         notes = notes.strip()
         if decision not in {"APPROVED", "REJECTED", "NEEDS_MORE"} or not 1 <= len(notes) <= 2000:
@@ -961,7 +969,11 @@ class BusinessService:
         for material in snapshot:
             self._verified_content(material)
         with Session(self.engine) as db, db.begin():
-            case, order = self._case(db, case_id, user, lock=True)
+            conversation = None
+            if investigation_enabled(self.settings):
+                case, order, conversation = lock_case(self, db, case_id, user)
+            else:
+                case, order = self._case(db, case_id, user, lock=True)
             replay = self._replay(db, user, scope, idempotency_key, signature)
             if replay is not None:
                 return replay
@@ -1011,6 +1023,8 @@ class BusinessService:
                     "materials_version": case.materials_version,
                 },
             )
+            if conversation is not None:
+                stage_material_review(self, db, conversation, case)
             return self._remember(
                 db,
                 user,

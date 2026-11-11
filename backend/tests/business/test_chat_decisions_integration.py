@@ -630,3 +630,59 @@ def test_chat_execution_progress_is_receipt_backed_and_bound_to_active_issue(con
     assert detail()["execution_progress"] is None
     env.client.app.state.conversations.decisions_enabled = False
     assert "execution_progress" not in detail()
+
+
+def test_review_reassessment_progress_is_visible_when_previous_offer_is_stale(configured):
+    from datetime import timedelta
+
+    from aftercare.conversations import investigation_delivery as investigation
+    from aftercare.conversations.analysis import process as analyze
+    from aftercare.conversations.tables import InvestigationRequest
+
+    env = configured
+    url, case_id = _link(env)
+    old_offer = _offer(env, url, case_id)
+    assert old_offer
+    settings = env.service.settings
+    settings.chat_analysis_enabled = True
+    settings.chat_investigation_enabled = True
+    settings.chat_analysis_max_calls = 2
+    settings.chat_analysis_max_microusd = 20_000
+    settings.chat_vision_enabled = False
+    stamp = env.service.clock()
+    env.service.clock = lambda: stamp
+    chat = ConversationService(env.service)
+    env.client.app.state.conversations = chat
+    version = env.service.context(case_id, SUPPORT)["case"]["version"]
+    env.service.upload(
+        case_id,
+        SUPPORT,
+        kind="ITEM",
+        content=_photo("purple"),
+        expected_version=version,
+        idempotency_key="changed-material-while-offer-open",
+    )
+    version = env.service.context(case_id, SUPPORT)["case"]["version"]
+    env.service.review_materials(
+        case_id,
+        SUPPORT,
+        expected_version=version,
+        idempotency_key="new-material-review",
+        decision="APPROVED",
+        notes="人工重新核对当前材料版本。",
+    )
+    stamp += timedelta(seconds=4)
+    (turn,) = chat.analysis.due()
+    analyze(chat, turn, settings, None)
+    assert investigation._stage(env.service, turn) is not None
+    current = env.client.get(url, headers=headers()).json()
+    assert current["investigation_progress"] == {"state": "QUEUED"}
+    agent = AgentService(env.db, settings, env.service, InMemorySaver())
+    investigation.process(env.service, agent, turn)
+    with Session(env.db) as db:
+        request = db.get_one(InvestigationRequest, turn)
+        assert request.state == "BLOCKED" and request.reason == "CASE_RUN_ACTIVE"
+        assert request.run_id is None
+    assert env.client.get(url, headers=headers()).json()["investigation_progress"] == {
+        "state": "NEEDS_SUPPORT",
+    }

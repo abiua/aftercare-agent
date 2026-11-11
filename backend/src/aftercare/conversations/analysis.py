@@ -21,6 +21,7 @@ from aftercare.intelligence.vision import PhotoSource, observe, prepare_photos
 
 from .tables import Attachment, Message
 
+MATERIAL_REVIEW_CHANGED = "MATERIAL_REVIEW_CHANGED"
 CANNOT_PROVIDE = ("暂时无法提供", "无法提供", "没法补拍", "无法补拍", "没有照片", "不能拍")
 MAX_REQUESTS = 2
 EVIDENCE_PROMPTS = {
@@ -338,7 +339,13 @@ def process(chat, turn_id, settings, model):
     try:
         binding = service.input_snapshot(lease)
         if not binding["attachments"]:
-            service.publish_status(lease, lambda db, row: _text_reply(chat, db, row, binding))
+            with Session(chat.engine) as db:
+                turn = db.get_one(ChatAnalysisTurn, turn_id)
+                material_review_changed = turn.reason == MATERIAL_REVIEW_CHANGED
+            if material_review_changed:
+                service.publish_status(lease, lambda *_: None)
+            else:
+                service.publish_status(lease, lambda db, row: _text_reply(chat, db, row, binding))
             return
         user = UserContext(
             user_id=binding["actor_id"], role="customer", customer_id=binding["customer_id"]

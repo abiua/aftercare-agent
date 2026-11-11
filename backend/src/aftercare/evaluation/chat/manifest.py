@@ -9,11 +9,12 @@ from pathlib import Path
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from aftercare.business.rules import digest
-from aftercare.investigation.graph import NO_RECHECK_ARM
+from aftercare.investigation.graph import NO_RECHECK_ARM, SEQUENTIAL_CLAIMS_ARM
 
 PROTOCOL = "chat-eval-v1"
 ARMS = ("strong_single", "single_staged", "multi")
 RECHECK_ABLATION = "chat-eval-multi-recheck-ablation-v1"
+SEQUENTIAL_CLAIMS_ABLATION = "chat-eval-multi-sequential-claims-ablation-v1"
 
 
 class Manifest:
@@ -49,6 +50,11 @@ class Manifest:
 
     def prepare_recheck_ablation(self, campaign, cases, controls):
         return self._prepare(campaign, cases, controls, RECHECK_ABLATION, ("multi", NO_RECHECK_ARM))
+
+    def prepare_sequential_claims_ablation(self, campaign, cases, controls):
+        return self._prepare(
+            campaign, cases, controls, SEQUENTIAL_CLAIMS_ABLATION, ("multi", SEQUENTIAL_CLAIMS_ARM)
+        )
 
     def _prepare(self, campaign, cases, controls, protocol, arms):
         groups = {(item["repetition"], item["case_id"]): item for item in cases}

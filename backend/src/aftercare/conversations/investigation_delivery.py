@@ -33,6 +33,56 @@ def enabled(settings):
     )
 
 
+def stage_material_review(business, db, conversation, case):
+    """Queue a new investigation revision in the current material-review transaction."""
+    from .analysis import MATERIAL_REVIEW_CHANGED, scheduler
+
+    if (
+        conversation.status != "OPEN"
+        or conversation.require_new_case
+        or not conversation.analysis_from_seq
+        or conversation.analysis_from_seq > conversation.sequence
+        or (
+            conversation.id,
+            conversation.analysis_issue_id,
+            conversation.active_case_id,
+            conversation.active_order_id,
+            conversation.customer_id,
+        )
+        != (
+            case.decision_conversation_id,
+            case.decision_issue_id,
+            case.id,
+            case.order_id,
+            case.customer_id,
+        )
+    ):
+        return
+
+    analysis = scheduler(business.engine, business.settings, clock=business.clock)
+    latest = analysis._latest(db, conversation.id)
+    stamp = business.clock()
+    if (
+        latest is not None
+        and latest.state in {"PENDING", "RUNNING"}
+        and latest.revision == conversation.revision
+        and latest.scope_sha256 == _scope(conversation)
+        and utc(latest.deadline) > utc(stamp)
+        and (
+            latest.state == "PENDING" or latest.lease_until and utc(latest.lease_until) > utc(stamp)
+        )
+    ):
+        # Its normal completion will freeze the just-committed review. Preserve
+        # pending customer input and any already-started visual attempt.
+        return
+    analysis.invalidate(db, conversation)
+    conversation.revision += 1
+    conversation.updated_at = stamp
+    turn = analysis.stage(db, conversation, input_from_seq=conversation.analysis_from_seq)
+    if turn is not None:
+        turn.reason = MATERIAL_REVIEW_CHANGED
+
+
 def _run_key(turn_id):
     return digest(["chat-investigation-turn", turn_id])
 

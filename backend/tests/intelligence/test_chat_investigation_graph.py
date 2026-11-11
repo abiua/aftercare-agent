@@ -325,16 +325,26 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
     assert sum(kind == "investigation_tool" for kind, _ in events) == 3
 
 
-@pytest.mark.parametrize("arm", ["multi", "multi_no_recheck"])
+@pytest.mark.parametrize("arm", ["multi", "multi_no_recheck", "multi_sequential_claims"])
 def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
     barrier = Barrier(2)
 
     def start(role, call):
         def check(kwargs):
             data = json.loads(kwargs["messages"][1].content)
-            assert data["upstream_claims"] == []
+            if arm == "multi_sequential_claims" and role == "policy":
+                assert {row["id"] for row in data["upstream_claims"]} == {"fact/f", "fact/child"}
+                reference_scope = json.loads(kwargs["messages"][0].content.rsplit("\n", 1)[-1])
+                assert reference_scope["citable_evidence_ids"] == []
+                assert {tool["function"]["name"] for tool in kwargs["tools"]} == {
+                    "search_applicable_policy",
+                    "read_policy_clause",
+                }
+            else:
+                assert data["upstream_claims"] == []
             assert ("customer_statements" in data["frozen_input"]) == (role == "fact")
-            barrier.wait(timeout=3)
+            if arm != "multi_sequential_claims":
+                barrier.wait(timeout=3)
             return [call]
 
         return check

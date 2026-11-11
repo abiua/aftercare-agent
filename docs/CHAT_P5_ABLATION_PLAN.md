@@ -29,7 +29,7 @@
 
 关闭补查可能更早转人工，这不能单凭完成率被解释为更差决策。应同时比较安全处理、问题是否解决及资源成本。普通案与复杂案分别汇报，失败和未知不剔除。若没有观察到补查请求，只能报告本次未触发待检验机制。
 
-本轮仅隔离局部补查因素；去掉独立取证、去掉反例核验仍为未实现的其他对照，不据此推断整套多 Agent 的全部收益来源。
+上述补查实验仅隔离局部补查因素；顺序传递对照的后续实现见文末。去掉反例核验仍未实现，不据此推断整套多 Agent 的全部收益来源。
 
 ## 已完成的机制验证
 
@@ -42,3 +42,11 @@
 `reports/chat-p5-pg-recheck-ablation-20261111.json` PASSED（计划b2be5820…1c98）。复用5200原两个冻结源，独立campaign `chat-p5-pg-recheck-ablation-v1` 创建两案四臂。22次fixture transport尝试、真实供应方调用0；普通案5/5次且无补查，复杂案完整组7次并执行一次局部补查及第二轮核验，关闭组5次并以INVESTIGATION_RECHECK_SUPPRESSED转人工。旧源回读、9张指定public表前后摘要一致，重放无新增尝试。未升级原API镜像。
 
 独立只读复核 `reports/chat-p5-pg-recheck-ablation-native-readback-20261111.json` PASSED：普通两臂快照的options和unresolved完全一致；复杂两臂首轮fact/policy/verify-0的输入、提示摘要、工具集合、主张及评估一致。关闭组只有HUMAN_HANDOFF，无可执行方案；临时容器已移除。当前控制模型将两臂初始错误主张固定在同一phase，原三臂fixture默认行为保持。以上证明机制和隔离，尚不证明真实模型收益或独立正确率。
+
+## 首轮独立取证与顺序传递对照
+
+新增test-only入口 `ChatEvaluationRunner(..., sequential_claims_ablation=True)`，清单 `chat-eval-multi-sequential-claims-ablation-v1` 包含multi与multi_sequential_claims。后者事实角色完成后，将其结构化主张提供给政策角色；政策角色仍须用自己的工具取证，不继承事实角色的可引用证据权限。原始输入、角色工具、调用/费用上限、反例核验及局部补查保持相同。该改变同时引入顺序依赖，因此不能解读为纯并行收益，延迟需单列。不可与关闭补查合并，不影响默认三臂、强单或付费入口。
+
+真实SQLite runner/AgentService受控验证普通与双行冲突两案四臂：普通每臂5次、复杂每臂7次，共24次fixture attempts。复杂两臂都执行一次事实补查和第二轮核验；审计确认只有顺序组policy接收到完整fact主张ID，policy工具集合不变，每案scope和预算相同。重放无新调用；默认服务真实start拒绝，持久化复杂实验失去能力后在读取检查点或调用模型前拒绝。root运行runner与graph相关30项通过。没有PostgreSQL或真实模型结果，不计算独立质量收益。
+
+反例核验消融仍待实现。当前核验角色也负责合成方案与请求补查，不能直接删节点而声称只移除了核验。拟保留第三阶段合成，对比有无逐条反例判断；两臂关闭局部补查以保持单因素，与完整multi比较时须披露联合变化。

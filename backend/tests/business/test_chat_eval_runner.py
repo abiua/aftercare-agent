@@ -12,6 +12,7 @@ from types import SimpleNamespace
 from uuid import NAMESPACE_URL, uuid5
 
 import pytest
+from chat_eval_development_fixtures import development_source
 from langchain_core.messages import ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from sqlalchemy import create_engine, create_mock_engine, delete, func, select
@@ -40,7 +41,7 @@ from aftercare.intelligence.decision_candidate import load_binding
 from aftercare.intelligence.models import ModelRunner, Registry
 from aftercare.intelligence.service import AgentService, RunAudit, RunError
 from aftercare.intelligence.tables import AgentRun, ModelAttempt, RunEvent
-from aftercare.investigation.graph import CHAT_GRAPH_PROFILE, NO_RECHECK_ARM
+from aftercare.investigation.graph import CHAT_GRAPH_PROFILE, NO_RECHECK_ARM, SEQUENTIAL_CLAIMS_ARM
 
 client, system, configured = _client, _system, _configured
 
@@ -238,11 +239,7 @@ def _gated_controlled_run(runner, manifest, case, directory):
     return result
 
 
-@pytest.mark.parametrize("eligible", [True, False])
-@pytest.mark.parametrize("protocol", ["compact-v6", "compact-v7"])
-def test_frozen_scope_across_arms_and_interruption_is_not_resent(
-    configured, tmp_path, monkeypatch, eligible, protocol
-):
+def _serialize_sqlite_audit(monkeypatch):
     # SQLite has no row locks. The fixture serializes audit transactions only.
     audit_lock = Lock()
 
@@ -256,6 +253,39 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
 
     for name in ("event", "begin_attempt", "finish_attempt"):
         monkeypatch.setattr(RunAudit, name, serialized(getattr(RunAudit, name)))
+
+
+def _fixture_registry():
+    return Registry.model_validate(
+        {
+            "version": "chat-eval-controlled",
+            "allow_unverified": True,
+            "models": [
+                {
+                    "alias": "analysis",
+                    "provider": "fixture",
+                    "model": "controlled",
+                    "endpoint": "http://127.0.0.1:1/v1",
+                    "api_key_env": "UNUSED_FIXTURE",
+                    "input_usd_per_million": "1",
+                    "output_usd_per_million": "1",
+                    "price_date": "2026-11-11",
+                    "source": "synthetic",
+                    "context_tokens": 32000,
+                    "data_scopes": ["customer_conversation"],
+                    "output_tokens": 1800,
+                }
+            ],
+        }
+    )
+
+
+@pytest.mark.parametrize("eligible", [True, False])
+@pytest.mark.parametrize("protocol", ["compact-v6", "compact-v7"])
+def test_frozen_scope_across_arms_and_interruption_is_not_resent(
+    configured, tmp_path, monkeypatch, eligible, protocol
+):
+    _serialize_sqlite_audit(monkeypatch)
     url, case_id = _link(configured)
     assert (
         send(
@@ -294,31 +324,7 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
         else no_model_expected
     )
 
-    model = ModelRunner(
-        Registry.model_validate(
-            {
-                "version": "chat-eval-controlled",
-                "allow_unverified": True,
-                "models": [
-                    {
-                        "alias": "analysis",
-                        "provider": "fixture",
-                        "model": "controlled",
-                        "endpoint": "http://127.0.0.1:1/v1",
-                        "api_key_env": "UNUSED_FIXTURE",
-                        "input_usd_per_million": "1",
-                        "output_usd_per_million": "1",
-                        "price_date": "2026-11-11",
-                        "source": "synthetic",
-                        "context_tokens": 32000,
-                        "data_scopes": ["customer_conversation"],
-                        "output_tokens": 1800,
-                    }
-                ],
-            }
-        ),
-        transport=transport,
-    )
+    model = ModelRunner(_fixture_registry(), transport=transport)
     runner = ChatEvaluationRunner(model, InMemorySaver(), calls=8, budget=Decimal("0.10"))
     manifest = Manifest(tmp_path / "paired")
     result = (
@@ -631,3 +637,180 @@ def test_recheck_ablation_manifest_has_distinct_arms_and_cannot_resume_standard(
         default = standard.prepare("campaign", cases, {})
         assert [row["arm"] for row in default["rows"]] == list(ARMS)
         assert {row["id"] for row in default["rows"]}.isdisjoint(row["id"] for row in plan["rows"])
+
+
+def test_sequential_claims_ablation_plan_is_distinct_from_default_and_recheck(tmp_path):
+    from aftercare.evaluation.chat.manifest import SEQUENTIAL_CLAIMS_ABLATION
+
+    cases = [{"case_id": "case", "repetition": 1, "scope_sha256": "a" * 64}]
+    manifest = Manifest(tmp_path / "sequential")
+    with manifest.lock():
+        plan = manifest.prepare_sequential_claims_ablation("campaign", cases, {})
+        assert plan["protocol"] == SEQUENTIAL_CLAIMS_ABLATION
+        assert [row["arm"] for row in plan["rows"]] == ["multi", "multi_sequential_claims"]
+        assert {row["input_sha256"] for row in plan["rows"]} == {"a" * 64}
+        with pytest.raises(ValueError, match="CHAT_EVAL_PLAN_CHANGED"):
+            manifest.prepare_recheck_ablation("campaign", cases, {})
+        with pytest.raises(ValueError, match="CHAT_EVAL_PLAN_CHANGED"):
+            manifest.prepare("campaign", cases, {})
+
+
+def test_sequential_claims_capability_is_test_support_and_arm_specific():
+    from aftercare.auth import UserContext
+    from aftercare.investigation.graph import SEQUENTIAL_CLAIMS_ARM
+
+    settings = SimpleNamespace(profile="test", model_enabled=False)
+    default = AgentService(None, settings, None, None)
+    allowed = AgentService(None, settings, None, None, allow_sequential_claims_ablation=True)
+    app = AgentService(
+        None,
+        SimpleNamespace(profile="app", model_enabled=False),
+        None,
+        None,
+        allow_sequential_claims_ablation=True,
+    )
+    assert not default._investigation_arm_allowed(SEQUENTIAL_CLAIMS_ARM, SUPPORT)
+    assert allowed._investigation_arm_allowed(SEQUENTIAL_CLAIMS_ARM, SUPPORT)
+    assert not allowed._investigation_arm_allowed(NO_RECHECK_ARM, SUPPORT)
+    assert not allowed._investigation_arm_allowed(
+        SEQUENTIAL_CLAIMS_ARM, UserContext(user_id="customer", role="customer")
+    )
+    assert not app._investigation_arm_allowed(SEQUENTIAL_CLAIMS_ARM, SUPPORT)
+
+
+def test_sequential_claims_sqlite_native_recheck_and_capability_loss(tmp_path, monkeypatch):
+    _serialize_sqlite_audit(monkeypatch)
+    script_path = Path(__file__).resolve().parents[3] / "scripts/verify_chat_p5_pg.py"
+    spec = importlib.util.spec_from_file_location("p5_pg_control_fixture", script_path)
+    fixture = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fixture)
+
+    calls = []
+    model = ModelRunner(
+        _fixture_registry(),
+        transport=fixture._controlled_transport(calls, paired_recheck_fixture=True),
+    )
+    saver = InMemorySaver()
+    runner = ChatEvaluationRunner(
+        model, saver, calls=8, budget=Decimal("0.10"), sequential_claims_ablation=True
+    )
+    journal = Manifest(tmp_path / "sequential-native")
+    campaign = "sequential-claims-native-fixture"
+    with (
+        development_source(tmp_path, "DAMAGE-ORDINARY") as ordinary,
+        development_source(tmp_path, "DAMAGE-TWO-LINE-PACKAGE-CONFLICT") as complex_case,
+    ):
+        cases = [ordinary, complex_case]
+        scope = _freeze_case(complex_case).scope
+        default = AgentService(
+            complex_case.source.engine,
+            complex_case.source.settings,
+            complex_case.source,
+            None,
+            model=model,
+        )
+        with pytest.raises(RunError) as denied:
+            default.start(
+                scope.case_id,
+                complex_case.actor,
+                expected_version=scope.business_versions["case"],
+                idempotency_key="deny-sequential-ablation",
+                mode="single",
+                strategy="analysis",
+                message=scope.frozen_context["legacy_agent_input"]["message"],
+                decision_scope=scope,
+                graph_profile=CHAT_GRAPH_PROFILE,
+                investigation_arm=SEQUENTIAL_CLAIMS_ARM,
+            )
+        assert denied.value.code == "INVESTIGATION_PROFILE_UNAVAILABLE"
+        assert not calls
+        result = runner.run(journal, campaign, cases)
+        controls = journal.read("plan.json")["controls"]
+        assert controls["first_round_policy_input"] == "SEQUENTIAL_FACT_CLAIMS_DEPENDENCY"
+        assert controls["calls"] == 8 and controls["budget_usd"] == "0.10"
+        assert len(result["rows"]) == 4
+        for case in cases:
+            baseline, sequential = [row for row in result["rows"] if row["case_id"] == case.case_id]
+            assert (baseline["arm"], sequential["arm"]) == ("multi", SEQUENTIAL_CLAIMS_ARM)
+            assert baseline["input_sha256"] == sequential["input_sha256"]
+            assert baseline["controls_sha256"] == sequential["controls_sha256"]
+            for row in (baseline, sequential):
+                assert row["route"] == "MULTI" and row["input_comparable"]
+                assert row["candidate_status"] == "AVAILABLE"
+                if case is ordinary:
+                    assert len(row["attempts"]) == 5 and not row["rechecks"]
+                else:
+                    assert len(row["attempts"]) == 7
+                    assert len(row["rechecks"]) == 1
+                    assert row["rechecks"][0]["claim_ids"] == ["fact/package"]
+                    assert {"recheck", "verify-1"} <= set(row["phases"])
+
+                engine = create_engine(
+                    f"sqlite:///{journal.directory / (_namespace(row['id']) + '.sqlite')}"
+                )
+                try:
+                    with Session(engine) as db:
+                        events = list(
+                            db.scalars(
+                                select(RunEvent)
+                                .where(RunEvent.run_id == row["run_id"])
+                                .order_by(RunEvent.seq)
+                            )
+                        )
+                    (facts,) = [
+                        event
+                        for event in events
+                        if event.kind == "investigation_claims"
+                        and event.payload["phase_id"] == "fact"
+                    ]
+                    (policy,) = [
+                        event
+                        for event in events
+                        if event.kind == "investigation_input"
+                        and event.payload["phase_id"] == "policy"
+                    ]
+                    expected = []
+                    if row is sequential:
+                        assert facts.seq < policy.seq
+                        expected = sorted(claim["id"] for claim in facts.payload["claims"])
+                        assert expected
+                    assert policy.payload["upstream_claim_ids"] == expected
+                    assert policy.payload["tools"] == [
+                        "read_policy_clause",
+                        "search_applicable_policy",
+                    ]
+                finally:
+                    engine.dispose()
+
+        assert len(calls) == 24
+        assert runner.run(journal, campaign, cases) == result and len(calls) == 24
+
+        engine = create_engine(
+            f"sqlite:///{journal.directory / (_namespace(sequential['id']) + '.sqlite')}"
+        )
+        try:
+            with Session(engine) as db, db.begin():
+                run = db.get_one(AgentRun, sequential["run_id"])
+                assert load_binding(db, run)["investigation_arm"] == SEQUENTIAL_CLAIMS_ARM
+                run.status = "QUEUED"
+            settings = complex_case.source.settings
+            business = BusinessService(engine, settings, storage=complex_case.source.storage)
+            agent = AgentService(engine, settings, business, saver, model=model)
+
+            def unexpected_checkpoint(*_args, **_kwargs):
+                pytest.fail("checkpoint reached without sequential claims capability")
+
+            monkeypatch.setattr(
+                agent.graphs[CHAT_GRAPH_PROFILE], "get_state", unexpected_checkpoint
+            )
+            agent.process(sequential["run_id"])
+            with Session(engine) as db:
+                run = db.get_one(AgentRun, sequential["run_id"])
+                assert (run.status, run.reason) == (
+                    "NEEDS_REVIEW",
+                    "INVESTIGATION_PROFILE_UNAVAILABLE",
+                )
+                assert db.scalar(select(func.count()).select_from(ModelAttempt)) == 7
+            assert len(calls) == 24
+        finally:
+            engine.dispose()

@@ -20,7 +20,8 @@ from .prompt_evidence import PRIVATE_RECEIPT_EVENT
 
 CHAT_GRAPH_PROFILE = "chat-investigation-v1"
 NO_RECHECK_ARM = "multi_no_recheck"
-ARMS = {"auto", "strong_single", "single_staged", "multi", NO_RECHECK_ARM}
+SEQUENTIAL_CLAIMS_ARM = "multi_sequential_claims"
+ARMS = {"auto", "strong_single", "single_staged", "multi", NO_RECHECK_ARM, SEQUENTIAL_CLAIMS_ARM}
 _OPTIONS = TypeAdapter(list[CandidateOption])
 
 
@@ -40,6 +41,7 @@ class InvestigationState(TypedDict, total=False):
     recheck: dict
     recheck_count: int
     recheck_receipt: dict
+    sequential_claims: bool
 
 
 def _output(context, *, reason, options=(), unresolved=(), status="NEEDS_REVIEW", extra=None):
@@ -78,6 +80,7 @@ def _route(_state, runtime: Runtime[InvestigationContext]):
             "single_staged": "STAGED",
             "multi": "MULTI",
             NO_RECHECK_ARM: "MULTI",
+            SEQUENTIAL_CLAIMS_ARM: "MULTI",
         }[context.arm]
     context.audit.event(
         "investigation_route",
@@ -106,7 +109,11 @@ def _route(_state, runtime: Runtime[InvestigationContext]):
                 extra=route.output,
             ),
         }
-    return {"path": selected, "recheck_count": 0}
+    return {
+        "path": selected,
+        "recheck_count": 0,
+        **({"sequential_claims": True} if context.arm == SEQUENTIAL_CLAIMS_ARM else {}),
+    }
 
 
 def _phase(
@@ -173,11 +180,13 @@ def _strong(_state, runtime: Runtime[InvestigationContext]):
     return {"path": "DONE", **_publish_options(context, result)}
 
 
-def _role(role, *, staged=False):
+def _role(role, *, staged=False, sequential_claims=False):
     def execute(state, runtime: Runtime[InvestigationContext]):
         context = runtime.context
         upstream = (
-            _claims("fact", state.get("fact_result", {})) if staged and role == "policy" else None
+            _claims("fact", state.get("fact_result", {}))
+            if (staged or sequential_claims) and role == "policy"
+            else None
         )
         try:
             result = _phase(
@@ -185,7 +194,9 @@ def _role(role, *, staged=False):
                 role,
                 f"{'staged-' if staged else ''}{role}",
                 upstream=upstream,
-                known=state.get("fact_result", {}).get("evidence_ids", ()) if upstream else (),
+                known=state.get("fact_result", {}).get("evidence_ids", ())
+                if staged and upstream
+                else (),
                 max_tools=2,
             )
         except ModelFailure as error:
@@ -527,6 +538,8 @@ def build_investigation_graph(checkpointer):
     graph.add_node("strong", _strong)
     graph.add_node("fact", _role("fact"))
     graph.add_node("policy", _role("policy"))
+    graph.add_node("sequential_fact", _role("fact"))
+    graph.add_node("sequential_policy", _role("policy", sequential_claims=True))
     graph.add_node("staged_fact", _role("fact", staged=True))
     graph.add_node("staged_policy", _role("policy", staged=True))
     graph.add_node("verify", _verify)
@@ -538,13 +551,15 @@ def build_investigation_graph(checkpointer):
             "PROGRAM": END,
             "SINGLE": "strong",
             "STAGED": "staged_fact",
-            "MULTI": ["fact", "policy"],
+            "MULTI": "sequential_fact" if state.get("sequential_claims") else ["fact", "policy"],
         }[state["path"]],
     )
     graph.add_conditional_edges(
         "strong", lambda state: ["fact", "policy"] if state["path"] == "MULTI" else END
     )
     graph.add_edge(["fact", "policy"], "verify")
+    graph.add_edge("sequential_fact", "sequential_policy")
+    graph.add_edge("sequential_policy", "verify")
     graph.add_edge("staged_fact", "staged_policy")
     graph.add_edge("staged_policy", "verify")
     graph.add_conditional_edges(

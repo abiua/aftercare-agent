@@ -216,3 +216,9 @@ root审查并执行 `upgrade_owned_material_demo.py`，将5201四个应用容器
 `verify_chat_p5_option_labels.py` 在固定5201栈/PG身份与原sentinel下，新独立campaign完成六候选，普通V2任务bbe0a0d9-4942-4e12-b275-0a6a079d30ca保留3逐项标签，复杂V1任务6f2270e3-88a9-4f8e-b925-3f303c9b4227保留原整体标签。逐项匿名ID/status与不可变snapshot/checks核对，原生全摘要链及时间顺序核对，篡改曝光绑定被拒绝；新标签重放未新增记录，旧公共业务与原评审行保持。报告 `reports/chat-p5-option-labels-pg-20261111.json` PASSED，计划59782e90ca63e0b8c67f9179a73021d5a465b2905fa29ee56c9e708beb121689。26次受控调用、0供应方/独立人类标签；统计全部CONTROL排除，不可测。原生服务/PG写入不等于HTTP表单提交验收，第二tester隔离未测；已有非tester拒绝和旧数据保持证据。root定向15项离线测试及新增脚本Ruff通过。
 
 原生浏览器后验 `reports/browser-blind-v2-after-20261111.json`：V2三逐项UNDETERMINED刷新前后保持只读，V1整体记录可读且不要求补填，旧客服材料审核与客户聊天入口保持。30请求无抓包错误/丢失；无业务写入，不视为HTTP表单提交验收。专属会话退出关闭。
+
+## 材料审核自动重评与顺序传递消融（代码，2026-11-11）
+
+生产修复使用既有conversation→order/case锁和同事务持久轮次登记；当前事项关联需匹配，三项聊天开关均开启才启用。有效PENDING/RUNNING P2保留，避免丢掉客户无法补图的文字或在途视觉调用；已发布轮次需要重新调查时提升revision，旧任务不能发布覆盖。无新照片不重复视觉分析，审核重放不重复登记；不会创建客户消息或直接审批/执行。公开进度对比当前调查依赖，不再被过期offer/review遮蔽；已有人工运行优先，阻断显式NEEDS_SUPPORT。SQLite原生AgentService+P3投影和HTTP回读覆盖三种照片状态、新审核冻结、历史快照保留、幂等、旧offer及人工优先。新增运行栈验证尚未执行，5201仍b49f914。
+
+顺序传递消融为独立test capability/manifest，首轮policy在fact完成后收到主张、无继承引用权限；verify/recheck与默认工具预算保持。两案四臂实际SQLite runner共24 fixture attempts，普通5/5、复杂7/7，复杂两臂都一次补查与verify1。默认服务真实start拒绝，失能力恢复在checkpoint/model前拒绝，重放无新增。不能称纯并行实验，不代表真实模型或正确率。root runner/graph30项及最终完整非PG1075通过、2跳过、40PG未选；改动文件Ruff及diff检查通过。前一提交6b613ca托管CI43007178878成功。

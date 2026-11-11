@@ -254,8 +254,6 @@ class ConversationService:
         if case.status in {"EXECUTION_PENDING", "RESOLVED", "EXECUTION_FAILED"}:
             return None
         head = db.get(DecisionHead, (row.id, row.analysis_issue_id))
-        if head and (head.offer_id or head.review_id):
-            return None
         turn = db.scalar(
             select(ChatAnalysisTurn)
             .where(ChatAnalysisTurn.conversation_id == row.id)
@@ -306,6 +304,15 @@ class ConversationService:
             return (
                 {"state": "NEEDS_SUPPORT"} if request.state == "BLOCKED" and scope is None else None
             )
+        if head and (head.offer_id or head.review_id):
+            reviewed = db.get(DecisionSnapshot, head.snapshot_id)
+            dependency = scope.get("dependency_sha256")
+            if (
+                reviewed is None
+                or not isinstance(dependency, str)
+                or reviewed.input.get("dependency_sha256") == dependency
+            ):
+                return None
         if request.state == "PENDING":
             return {"state": "QUEUED"}
         if request.state == "BLOCKED":
