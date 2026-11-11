@@ -439,6 +439,11 @@ class ConversationDecisions:
                     related,
                     dependencies,
                     *([raw_catalogue["documents_sha256"]] if raw_catalogue is not None else []),
+                    *(
+                        [{"evidence_projection": self.evidence_projection}]
+                        if self.evidence_projection is not None
+                        else []
+                    ),
                 ]
             ),
             business_versions=versions,

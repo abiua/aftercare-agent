@@ -1,7 +1,7 @@
 """Check versioned observation freeze and tool/QA projections without a DB or API."""
 
 from copy import deepcopy
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -9,6 +9,7 @@ import pytest
 from aftercare.business.errors import BusinessError
 from aftercare.business.rules import digest
 from aftercare.conversations.decisions import ConversationDecisions
+from aftercare.conversations.investigation_delivery import _covered
 from aftercare.decisions.contracts import DecisionScope
 from aftercare.evaluation.chat.service import _frozen_public
 from aftercare.investigation.input import InputUnavailable, build_input
@@ -20,7 +21,9 @@ ITEM_SHA = "a" * 64
 PARCEL_SHA = "b" * 64
 
 
-def _freeze(*, projection=PROJECTION, original_issue="issue", parcel_uncertain=False):
+def _freeze(
+    *, projection=PROJECTION, original_issue="issue", parcel_uncertain=False, observations=True
+):
     row = SimpleNamespace(id="chat", analysis_issue_id="issue", customer_id="customer", sequence=1)
     case = SimpleNamespace(
         id="case",
@@ -104,7 +107,7 @@ def _freeze(*, projection=PROJECTION, original_issue="issue", parcel_uncertain=F
 
     def business_context(*_, include_review_observations=False, **__):
         visible = deepcopy(reviews)
-        if not include_review_observations:
+        if not include_review_observations or not observations:
             for review in visible:
                 review.pop("observations")
         return {**context, "reviews": visible}
@@ -271,3 +274,27 @@ def test_projector_rejects_observation_for_other_item_in_same_order():
     payload["input_sha256"] = digest([payload["input_refs"], frozen])
     with pytest.raises(InputUnavailable, match="INVESTIGATION_HUMAN_MATERIAL_OBSERVATIONS_INVALID"):
         build_input(DecisionScope.model_validate(payload), evidence_projection=PROJECTION)
+
+
+def test_new_projection_without_observations_does_not_reuse_legacy_candidate():
+    legacy = _freeze(projection=None, observations=False)
+    current = _freeze(observations=False)
+    assert all("observations" not in item for item in current.frozen_context["reviews"])
+    assert {
+        key: value for key, value in current.frozen_context.items() if key != "evidence_projection"
+    } == legacy.frozen_context
+    assert current.input_refs == legacy.input_refs
+    assert (
+        legacy.dependency_sha256
+        == "6a996f32a9b4e3997d386786e5a7b2ede73abb63c753d09f32f150293c415b16"
+    )
+    assert current.dependency_sha256 != legacy.dependency_sha256
+
+    previous = SimpleNamespace(
+        expires_at=STAMP + timedelta(hours=1),
+        input=legacy.model_dump(mode="json"),
+        candidate={"unresolved": []},
+        checks={"refund": {"status": "PASSED"}},
+    )
+    assert _covered(previous, legacy, STAMP)
+    assert not _covered(previous, current, STAMP)
