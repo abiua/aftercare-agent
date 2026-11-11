@@ -149,12 +149,27 @@ def test_ordinary_attempts_use_disjoint_targets_and_keep_business_scope(success)
         assert (
             first_subnets | second_subnets | third_subnets | fourth_subnets | fifth_subnets
         ).isdisjoint(success.driver.SUBNETS.values())
+        sixth_subnets = set(success.driver.SUBNETS.values())
+    with success._target("ordinary", 7) as seventh:
+        assert seventh not in {first, second, third, fourth, fifth, sixth}
+        assert seventh.name.endswith("ordinary-r7.json")
+        assert success.offline_demo.STATE == success.driver.STATE == seventh
+        assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5211, 58373)
+        assert set(success.driver.SUBNETS.values()) == {"10.253.253.0/28", "10.253.253.16/28"}
+        assert (
+            first_subnets
+            | second_subnets
+            | third_subnets
+            | fourth_subnets
+            | fifth_subnets
+            | sixth_subnets
+        ).isdisjoint(success.driver.SUBNETS.values())
     with success._target("complex"):
         assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5205, 58367)
     assert success.driver.STATE == prior
     with (
         pytest.raises(success.VerificationError, match="LIVE_SUCCESS_ATTEMPT_UNSUPPORTED"),
-        success._target("complex", 6),
+        success._target("complex", 7),
     ):
         pytest.fail("complex retry should not be admitted")
 

@@ -923,3 +923,85 @@ def test_extended_reserve_uses_only_bound_v7_value_in_provider_call_and_trace(in
     )
     (trace,) = [row for kind, row in events if kind == "investigation_prompt_budget"]
     assert trace["max_output_tokens"] == 4096
+
+
+def test_v7_visible_action_schema_explains_native_candidate_rejections():
+    from pydantic import ValidationError
+
+    from aftercare.investigation.orchestration import (
+        SynthesisResult,
+        VerificationResult,
+        _v7_prompt_schema,
+    )
+
+    for result in (InvestigationResult, VerificationResult, SynthesisResult):
+        original = result.model_json_schema()
+        defs = _v7_prompt_schema(original)["$defs"]
+        option = defs["Option"]
+        assert "if" not in original["$defs"]["Option"]
+        assert option["if"] == {"properties": {"action": {"const": "REFUND"}}}
+        for branch, field, forbidden in (
+            ("then", "amount_cents", "quantity"),
+            ("else", "quantity", "amount_cents"),
+        ):
+            line = option[branch]["properties"]["lines"]["items"]
+            assert line["required"] == [field]
+            assert line["properties"][forbidden] == {"type": "null"}
+            assert line["properties"][field]["type"] == "integer"
+            assert line["properties"][field]["exclusiveMinimum"] == 0
+        request = defs["NonExecutingOption"]
+        assert request["if"]["properties"]["action"] == {"const": "REQUEST_EVIDENCE"}
+        assert request["then"] == {
+            "properties": {"missing_evidence": {"minItems": 1}},
+            "required": ["missing_evidence"],
+        }
+
+    base = {"id": "x", "evidence_ids": ["line"], "rationale": "source evidence"}
+    refund = {**base, "action": "REFUND", "policy_ids": ["POL01"]}
+    replace = {**refund, "action": "REPLACE"}
+    for option, code in (
+        ({**refund, "lines": [{"line_id": "line"}]}, "REFUND_AMOUNT_REQUIRED"),
+        ({**replace, "lines": [{"line_id": "line"}]}, "REPLACE_QUANTITY_REQUIRED"),
+        (
+            {**base, "action": "REQUEST_EVIDENCE", "target_line_ids": ["line"]},
+            "EVIDENCE_GAP_REQUIRED",
+        ),
+    ):
+        with pytest.raises(ValidationError) as error:
+            InvestigationResult.model_validate({"claims": [], "options": [option]})
+        assert error.value.errors()[0]["type"] == code
+    assert InvestigationResult.model_validate(
+        {
+            "claims": [],
+            "options": [{**refund, "lines": [{"line_id": "line", "amount_cents": 4900}]}],
+        }
+    ).options[0].business_lines() == [{"line_id": "line", "amount_cents": 4900}]
+
+
+def test_v7_shared_prompt_constraints_expand_to_same_schema():
+    from aftercare.investigation.orchestration import (
+        SynthesisResult,
+        VerificationResult,
+        _share_prompt_constraints,
+        _v7_prompt_schema,
+    )
+
+    for model in (InvestigationResult, VerificationResult, SynthesisResult):
+        full = _v7_prompt_schema(model.model_json_schema())
+        compact = _share_prompt_constraints(full)
+        shared = {name: compact["$defs"][name] for name in ("K", "P", "T")}
+
+        def expand(value):
+            if isinstance(value, list):
+                return [expand(item) for item in value]
+            if isinstance(value, dict):
+                ref = value.get("$ref")
+                if len(value) == 1 and ref in {f"#/$defs/{key}" for key in shared}:
+                    return shared[ref.rsplit("/", 1)[1]]
+                return {key: expand(item) for key, item in value.items()}
+            return value
+
+        expanded = expand(compact)
+        for name in shared:
+            del expanded["$defs"][name]
+        assert expanded == full

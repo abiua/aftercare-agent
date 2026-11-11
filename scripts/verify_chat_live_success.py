@@ -74,6 +74,12 @@ ORDINARY_REPEATS = {
         "net": "10.253.252.224/28",
         "ingress": "10.253.252.240/28",
     },
+    7: {
+        "port": 5211,
+        "object_port": 58373,
+        "net": "10.253.253.0/28",
+        "ingress": "10.253.253.16/28",
+    },
 }
 PROTOCOL = driver.WIRE_V3
 FINANCIAL = (
@@ -200,8 +206,10 @@ def _preflight(name, image_receipt, *, attempt=1):
         plan["protected_state"].append("5207_ORDINARY_R3_ADAPTER_FAILURE_NO_REPLAY")
     if attempt >= 5:
         plan["protected_state"].append("5208_ORDINARY_R4_PREWIRE_DENIAL_NO_REPLAY")
-    if attempt == 6:
+    if attempt >= 6:
         plan["protected_state"].append("5209_ORDINARY_R5_OUTPUT_TRUNCATED_NO_REPLAY")
+    if attempt == 7:
+        plan["protected_state"].append("5210_ORDINARY_R6_INVALID_MODEL_OUTPUT_NO_REPLAY")
     plan["gates"]["success_driver_sha256"] = _hash(Path(__file__))
     plan["complex_fixture_sha256"] = _hash(CASES) if case else None
     plan["completion"] = (

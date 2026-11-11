@@ -171,6 +171,72 @@ def _prompt_schema(schema):
     return result
 
 
+def _v7_prompt_schema(schema):
+    projected = _prompt_schema(schema)
+    definitions = projected["$defs"]
+    option = definitions["Option"]
+    line = definitions["DecisionLine"]
+
+    def require_line_field(field, forbidden):
+        # DecisionLine exposes positive integer or null. The action requires
+        # the positive integer branch and permits only null for the other field.
+        integer = next(
+            shape for shape in line["properties"][field]["anyOf"] if shape["type"] == "integer"
+        )
+        return {
+            "properties": {
+                "lines": {
+                    "items": {
+                        "properties": {field: integer, forbidden: {"type": "null"}},
+                        "required": [field],
+                    }
+                }
+            }
+        }
+
+    option.update(
+        {
+            "if": {"properties": {"action": {"const": "REFUND"}}},
+            "then": require_line_field("amount_cents", "quantity"),
+            "else": require_line_field("quantity", "amount_cents"),
+        }
+    )
+    definitions["NonExecutingOption"].update(
+        {
+            "if": {"properties": {"action": {"const": "REQUEST_EVIDENCE"}}},
+            "then": {
+                "properties": {"missing_evidence": {"minItems": 1}},
+                "required": ["missing_evidence"],
+            },
+        }
+    )
+    return projected
+
+
+def _share_prompt_constraints(schema):
+    """Use short references for repeated, identical generated constraints."""
+    shared = {
+        "K": {"type": "string", "minLength": 1, "maxLength": 80},
+        "T": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "P": {"type": "integer", "exclusiveMinimum": 0, "maximum": 2147483647},
+    }
+
+    def compact(value):
+        if isinstance(value, dict):
+            for alias, constraint in shared.items():
+                if value == constraint:
+                    return {"$ref": f"#/$defs/{alias}"}
+            return {key: compact(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [compact(item) for item in value]
+        return value
+
+    result = compact(schema)
+    assert not result["$defs"].keys() & shared.keys()
+    result["$defs"].update(shared)
+    return result
+
+
 def _model_tool_receipt(projection, call, receipt, known_evidence, receipt_sha256):
     projected = projection.tool_receipt(receipt)
     name = "request_targeted_check"
@@ -262,7 +328,7 @@ def run_phase(
     projected_prompt = projection.prompt(prompt)
     prompt_schema = schema.model_json_schema()
     if projection.receipt_encoding:
-        prompt_schema = _prompt_schema(prompt_schema)
+        prompt_schema = _share_prompt_constraints(_v7_prompt_schema(prompt_schema))
     messages = [
         SystemMessage(
             content=(
@@ -274,7 +340,12 @@ def run_phase(
                 + _ROLE_INSTRUCTIONS[role]
                 + PROMPT_LEGEND
                 + (HUMAN_PAYMENT_PROMPT_LEGEND if context.protocol == HUMAN_PAYMENT_V7 else "")
-                + (RECEIPT_LEGEND if projection.receipt_encoding else "")
+                + (
+                    RECEIPT_LEGEND + "退款金额用已核实的分。"
+                    "金额未知不提退款；补证列具体缺项。"
+                    if projection.receipt_encoding
+                    else ""
+                )
                 + _render(prompt_schema)
             )
         ),
