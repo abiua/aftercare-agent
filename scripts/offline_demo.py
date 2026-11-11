@@ -14,7 +14,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 from setup_runtime import ROOT, private_write
-from verify_fresh_bootstrap import API_CHECK, IMAGES, FreshStack, require
+from verify_fresh_bootstrap import API_CHECK, IMAGES, LABEL, FreshStack, require
 
 STATE = ROOT / '.runtime/offline-browser-demo.json'
 
@@ -77,6 +77,8 @@ def restore(state):
                 name.startswith(f'aftercare-fresh-{run_id}-'), 'INVALID_RESOURCE_NAME')
     stack = FreshStack.__new__(FreshStack)
     stack.run_id = run_id
+    stack.prefix = f'aftercare-fresh-{run_id}'
+    stack.label = f'{LABEL}={run_id}'
     stack.directory = directory
     stack.runtime = directory / 'runtime'
     profile = state.get('profile', 'app')

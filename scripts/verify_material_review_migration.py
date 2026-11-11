@@ -29,6 +29,7 @@ CASE = "DAMAGE-ORDINARY"
 FOREIGN_CUSTOMER = "C002"
 LEGACY_INPUT = "material-review-migration-input"
 RECOVERY_INPUT = "material-review-migration-recovery-input"
+APP_RECOVERY_INPUT = "material-review-migration-app-recovery-input"
 
 
 def _check(condition, code):
@@ -98,7 +99,14 @@ def _plan(images, failed_report=None):
         },
     }
     if failed_report is not None:
-        plan["recovery"] = _recovery_plan(images, plan["files"], failed_report)
+        from verify_chat_backup_restore import private_json
+
+        failed = private_json(failed_report)
+        plan["recovery"] = (
+            _app_recovery_plan(images, plan["files"], failed_report, failed)
+            if failed.get("stage") == "MIGRATING"
+            else _recovery_plan(images, plan["files"], failed_report)
+        )
     return plan
 
 
@@ -216,6 +224,158 @@ def _recovery_plan(images, files, failed_path):
         "original_staged_directory": str(staged),
         "original_staged_files": original_files,
         "pristine_readback": _pristine(stack, identity),
+    }
+
+
+def _app_recovery_topology(stack, system_id):
+    from verify_chat_backup_restore import published_port
+    from verify_fresh_bootstrap import IMAGES
+
+    prefix = f"aftercare-fresh-{stack.run_id}"
+
+    def info(kind, suffix, field):
+        name = f"{prefix}-{suffix}"
+        _check(
+            (kind, name) in stack.resources and stack.owned(kind, name) is True,
+            "MATERIAL_MIGRATION_APP_RECOVERY_UNOWNED",
+        )
+        return json.loads(
+            stack.docker(
+                "MATERIAL_MIGRATION_APP_RECOVERY_TOPOLOGY",
+                kind,
+                "inspect",
+                "--format",
+                "{{json ." + field + "}}",
+                name,
+                log_output=False,
+            ).stdout
+        )
+
+    network = f"{prefix}-net"
+    ingress = f"{prefix}-ingress"
+    _check(
+        info("network", "net", "Internal") is True
+        and info("network", "ingress", "Internal") is False,
+        "MATERIAL_MIGRATION_APP_RECOVERY_NETWORK",
+    )
+    for role, expected_networks, volume in (
+        ("pg", {network}, "pg-data"),
+        ("redis", {network}, None),
+        ("objects", {network, ingress}, "objects-data"),
+    ):
+        expected_image = _docker("image", "inspect", "--format", "{{.Id}}", IMAGES[role])
+        _check(
+            info("container", role, "Image") == expected_image
+            and info("container", role, "State.Running") is True
+            and info("container", role, "NetworkSettings.Networks").keys() == expected_networks,
+            "MATERIAL_MIGRATION_APP_RECOVERY_INFRA_CHANGED",
+        )
+        if volume:
+            _check(
+                any(
+                    mount.get("Name") == info("volume", volume, "Name")
+                    for mount in info("container", role, "Mounts")
+                ),
+                "MATERIAL_MIGRATION_APP_RECOVERY_VOLUME_CHANGED",
+            )
+    for suffix, roles in (("net", ("pg", "redis", "objects")), ("ingress", ("objects",))):
+        _check(
+            {item["Name"] for item in info("network", suffix, "Containers").values()}
+            == {f"{prefix}-{role}" for role in roles},
+            "MATERIAL_MIGRATION_APP_RECOVERY_NETWORK",
+        )
+    _check(
+        published_port(stack, f"{prefix}-objects", 8333) == OBJECT_PORT,
+        "MATERIAL_MIGRATION_APP_RECOVERY_OBJECT_PORT",
+    )
+    for role in ("api", "worker", "beat", "frontend"):
+        ident = f"{prefix}-{role}"
+        _check(
+            ("container", ident) not in stack.resources and stack.owned("container", ident) is None,
+            "MATERIAL_MIGRATION_APP_RECOVERY_APP_PRESENT",
+        )
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", PORT))
+    observed = stack.docker(
+        "MATERIAL_MIGRATION_APP_RECOVERY_SYSTEM_ID",
+        "exec",
+        f"{prefix}-pg",
+        "sh",
+        "-c",
+        'PGPASSWORD="$POSTGRES_PASSWORD" PGOPTIONS="-c default_transaction_read_only=on" '
+        "psql -h 127.0.0.1 -U ac_test -d ac_test -XAt -v ON_ERROR_STOP=1 "
+        '-c "SELECT system_identifier::text FROM pg_control_system()"',
+        log_output=False,
+    ).stdout.strip()
+    _check(observed == system_id, "MATERIAL_MIGRATION_DATABASE_IDENTITY_MISMATCH")
+    return network
+
+
+def _app_recovery_plan(images, files, failed_path, failed):
+    import offline_demo
+    from aftercare.business.rules import digest
+    from verify_chat_backup_restore import private_json
+
+    original = failed["plan"]
+    previous = original["recovery"]
+    state = private_json(STATE)
+    migration = failed["migration"]
+    _check(
+        failed["status"] == "FAILED"
+        and failed["failure_code"] == "AttributeError"
+        and failed["plan_sha256"] == digest(original)
+        and original["scope"] == "ISOLATED_TEST_PUBLIC_MIGRATION_AND_HISTORICAL_EVAL_CLONE"
+        and original["files"] == files
+        and original["images"] == images
+        and state["status"] == "MIGRATING"
+        and state["profile"] == "test"
+        and state["backend_image"] == OLD
+        and state["frontend_image"] == OLD_FRONTEND
+        and failed["owned_url"] == state["url"] == URL
+        and failed["stack_id"] == previous["stack_id"] == state["run_id"]
+        and failed["system_identifier"] == previous["system_identifier"]
+        and migration["revision"] == NEW_REV
+        and migration["old_review_observations_sql_null"]
+        and migration["old_public_projection_unchanged"]
+        and migration["old_eval_full_fingerprint_unchanged"]
+        and migration["legacy_eval_clone_observations_sql_null"]
+        and not any(key in failed for key in ("typed_review", "final_readback")),
+        "MATERIAL_MIGRATION_APP_RECOVERY_REPORT_REJECTED",
+    )
+    stack = offline_demo.restore(state)
+    baseline_path = stack.directory / "material-review-legacy-baseline.json"
+    baseline = private_json(baseline_path)
+    prior_dir = stack.directory / RECOVERY_INPUT
+    orig_dir = stack.directory / LEGACY_INPUT
+    prior_files = {**files, "verifier.py": original["script_sha256"]}
+    _check(
+        _hash(baseline_path) == failed["private_legacy_baseline_sha256"]
+        and baseline["source_namespace"] == failed["legacy_eval_schema"]
+        and baseline["source_scope_sha256"] == migration["old_source_scope_sha256"]
+        and not (stack.directory / APP_RECOVERY_INPUT).exists()
+        and _hash(Path(previous["failed_report"])) == previous["failed_report_sha256"]
+        and str(orig_dir) == previous["original_staged_directory"]
+        and all(
+            _hash(orig_dir / name) == checksum
+            for name, checksum in previous["original_staged_files"].items()
+        )
+        and all(_hash(prior_dir / name) == checksum for name, checksum in prior_files.items()),
+        "MATERIAL_MIGRATION_APP_RECOVERY_ARTIFACT_CHANGED",
+    )
+    return {
+        "mode": "APPLICATION_ONLY",
+        "failed_report": str(failed_path.resolve()),
+        "failed_report_sha256": _hash(failed_path),
+        "stack_id": stack.run_id,
+        "system_identifier": failed["system_identifier"],
+        "network": _app_recovery_topology(stack, failed["system_identifier"]),
+        "original_staged_directory": str(prior_dir),
+        "original_staged_files": prior_files,
+        "baseline_sha256": _hash(baseline_path),
+        "legacy_case_id": failed["legacy_case_id"],
+        "legacy_review_id": failed["legacy_review_id"],
+        "migration": migration,
+        "earliest_failure": previous,
     }
 
 
@@ -438,7 +598,7 @@ def _worker(action, payload):
     from sqlalchemy.orm import Session
 
     _check(
-        action in {"foreign", "baseline", "migrate", "final"}
+        action in {"foreign", "baseline", "migrate", "app-recovery-readback", "final"}
         and _hash(Path(__file__)) == payload["script_sha256"],
         "MATERIAL_MIGRATION_WORKER_SCRIPT_CHANGED",
     )
@@ -656,6 +816,71 @@ def _worker(action, payload):
             }
 
         baseline = payload["baseline"]
+        if action == "app-recovery-readback":
+            clone = payload["clone_schema"]
+            _check(
+                re.fullmatch(r"eval_[0-9a-f]{32}", clone) and clone != baseline["source_namespace"],
+                "MATERIAL_MIGRATION_APP_RECOVERY_CLONE_INVALID",
+            )
+            qualified = backup._qualified(clone, "business_material_reviews")
+            with engine.connect() as db, db.begin():
+                db.execute(text("SET TRANSACTION READ ONLY"))
+                schemas = set(
+                    db.scalars(
+                        text(
+                            "SELECT nspname FROM pg_namespace WHERE nspname ~ '^eval_[0-9a-f]{32}$'"
+                        )
+                    )
+                )
+                clone_review = db.execute(
+                    text(f"SELECT notes, observations IS NULL FROM {qualified}")
+                ).one()
+                legacy = db.execute(
+                    text(
+                        "SELECT c.order_id, c.version, i.response, i.request_hash "
+                        "FROM public.business_cases c JOIN public.business_idempotency i "
+                        "ON i.scope = 'material-review:' || c.id "
+                        "WHERE c.id=:id AND i.key='material-migration-old-review'"
+                    ),
+                    {"id": payload["legacy_case_id"]},
+                ).one()
+            order, version, review, request_hash = legacy
+            eligible = [
+                value
+                for value in (version, version - 1)
+                if digest([review["decision"], review["notes"], value]) == request_hash
+            ]
+            cloned = {
+                key: val
+                for key, val in observed["database"].items()
+                if not key.startswith(clone + ".")
+            }
+            objects = {item["key"]: item for item in observed["objects"]}
+            _check(
+                schemas == {baseline["source_namespace"], clone}
+                and tuple(clone_review)
+                == (frozen.scope.frozen_context["reviews"][0]["notes"], True)
+                and observed["revision"] == NEW_REV
+                and observed["old_review_observations_sql_null"]
+                and observed["public_columns"]
+                == sorted([*baseline["public_columns"], "observations"])
+                and cloned == baseline["database"]
+                and all(objects.get(item["key"]) == item for item in baseline["objects"])
+                and all(
+                    observed[k] == baseline[k]
+                    for k in (
+                        "eval_columns",
+                        "legacy_review_digest",
+                        "finance_model_counts",
+                        "historical_public_case_rows",
+                    )
+                )
+                and frozen.record["scope_sha256"] == baseline["source_scope_sha256"]
+                and review["id"] == payload["legacy_review_id"]
+                and len(eligible) == 1,
+                "MATERIAL_MIGRATION_APP_RECOVERY_DB_CHANGED",
+            )
+            return {"legacy_order": order, "legacy_version": eligible[0], "legacy_review": review}
         if action == "final":
             with engine.connect() as db, db.begin():
                 db.execute(text("SET TRANSACTION READ ONLY"))
@@ -1005,6 +1230,146 @@ def _replace_apps(stack, state, network, images, *, start):
     offline_demo.save(state)
 
 
+def _stage_inputs(stack, plan, directory):
+    staged = stack.directory / directory
+    staged.mkdir(mode=0o700)
+    for name, expected in plan["files"].items():
+        source = ROOT / name
+        _check(_hash(source) == expected, "MATERIAL_MIGRATION_SOURCE_FILE_CHANGED")
+        target = staged / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        target.chmod(0o400)
+    verifier = staged / "verifier.py"
+    verifier.write_bytes(Path(__file__).read_bytes())
+    verifier.chmod(0o400)
+    _check(_hash(verifier) == plan["script_sha256"], "MATERIAL_MIGRATION_VERIFIER_CHANGED")
+    return staged
+
+
+def _recovery_order(stack, old):
+    from verify_chat_p1_http import read
+
+    with ExitStack() as managers:
+        clients = _clients(stack, managers)
+        orders = [
+            row
+            for row in read(clients["customer"], "orders")["items"]
+            if row["status"] == "DELIVERED"
+            and row["payment_status"] == "CONFIRMED"
+            and row["items"]
+            and row["paid_cents"] > 0
+        ]
+    _check(
+        len(orders) >= 2 and orders[0]["id"] == old["order_id"],
+        "MATERIAL_MIGRATION_RECOVERY_ORDER_CHANGED",
+    )
+    return orders[1]
+
+
+def _resume_apps(stack, state, plan, report, report_path):
+    from verify_chat_backup_restore import private_json
+    from verify_streaming_compatibility import _save
+
+    recovery = plan["recovery"]
+    identity = recovery["system_identifier"]
+    _check(
+        stack.run_id == recovery["stack_id"]
+        and _app_recovery_topology(stack, identity) == recovery["network"],
+        "MATERIAL_MIGRATION_APP_RECOVERY_STACK_CHANGED",
+    )
+    baseline_path = stack.directory / "material-review-legacy-baseline.json"
+    _check(
+        _hash(baseline_path) == recovery["baseline_sha256"],
+        "MATERIAL_MIGRATION_APP_RECOVERY_ARTIFACT_CHANGED",
+    )
+    baseline = private_json(baseline_path)
+    staged = _stage_inputs(stack, plan, APP_RECOVERY_INPUT)
+    payload = {
+        "stack_id": stack.run_id,
+        "system_id": identity,
+        "script_sha256": plan["script_sha256"],
+        "legacy_case_id": recovery["legacy_case_id"],
+        "legacy_review_id": recovery["legacy_review_id"],
+        "clone_schema": recovery["migration"]["legacy_eval_clone_schema"],
+    }
+    report.update(
+        stage="APP_RECOVERY_READBACK",
+        stack_id=stack.run_id,
+        owned_url=URL,
+        system_identifier=identity,
+        migration=recovery["migration"],
+        migration_reexecuted=False,
+    )
+    _save(report_path, report)
+    readback = _job(
+        stack,
+        state,
+        recovery["network"],
+        plan["images"]["new_backend"],
+        "app-recovery-readback",
+        staged,
+        {**payload, "baseline": baseline},
+    )
+    old = {
+        "case": {"id": recovery["legacy_case_id"], "version": readback["legacy_version"]},
+        "order_id": readback["legacy_order"],
+        "review": readback["legacy_review"],
+    }
+    report["stage"] = "APP_RECOVERY_START"
+    _save(report_path, report)
+    return _finish(
+        stack,
+        state,
+        recovery["network"],
+        plan["images"],
+        staged,
+        payload,
+        baseline,
+        old,
+        None,
+        report,
+        report_path,
+    )
+
+
+def _finish(
+    stack, state, network, images, staged, payload, baseline, old, next_order, report, report_path
+):
+    import offline_demo
+    from verify_streaming_compatibility import _save
+
+    _replace_apps(stack, state, network, images, start=True)
+    _check(
+        _topology(stack, images["new_backend"], images["new_frontend"])
+        == (network, payload["system_id"])
+        and offline_demo.status(state)["healthy_now"],
+        "MATERIAL_MIGRATION_UPGRADED_STACK_UNHEALTHY",
+    )
+    report["stage"] = "TYPED_HTTP"
+    _save(report_path, report)
+    order = next_order if next_order is not None else _recovery_order(stack, old)
+    typed = _verify_new_public(stack, old, order)
+    report.update(stage="FINAL_READBACK", typed_review=typed)
+    _save(report_path, report)
+    final = _job(
+        stack,
+        state,
+        network,
+        images["new_backend"],
+        "final",
+        staged,
+        {
+            **payload,
+            "baseline": baseline,
+            "typed_review_id": typed["review_id"],
+            "typed_case_id": typed["case"]["id"],
+            "clone_schema": report["migration"]["legacy_eval_clone_schema"],
+        },
+    )
+    return {"stack_stays_ready": True, "final_readback": final}
+
+
 def _execute(plan, report, report_path):
     import offline_demo
     from verify_chat_p1_http import read
@@ -1039,6 +1404,8 @@ def _execute(plan, report, report_path):
         state = _private_json(STATE)
         stack = offline_demo.restore(state)
         state["resources"] = stack.resources
+        if recovery and recovery.get("mode") == "APPLICATION_ONLY":
+            return _resume_apps(stack, state, plan, report, report_path)
         network, system_id = _topology(stack, images["old_backend"], images["old_frontend"])
         report.update(
             stage="LEGACY_FIXTURE",
@@ -1055,19 +1422,7 @@ def _execute(plan, report, report_path):
                 and pristine == recovery["pristine_readback"],
                 "MATERIAL_MIGRATION_RECOVERY_STACK_CHANGED",
             )
-        staged = stack.directory / (RECOVERY_INPUT if recovery else LEGACY_INPUT)
-        staged.mkdir(mode=0o700)
-        for name, expected in plan["files"].items():
-            source = ROOT / name
-            _check(_hash(source) == expected, "MATERIAL_MIGRATION_SOURCE_FILE_CHANGED")
-            target = staged / name
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(source.read_bytes())
-            target.chmod(0o400)
-        verifier = staged / "verifier.py"
-        verifier.write_bytes(Path(__file__).read_bytes())
-        verifier.chmod(0o400)
-        _check(_hash(verifier) == plan["script_sha256"], "MATERIAL_MIGRATION_VERIFIER_CHANGED")
+        staged = _stage_inputs(stack, plan, RECOVERY_INPUT if recovery else LEGACY_INPUT)
         from aftercare.auth import token_hash
 
         actors = _private_json(stack.credentials_path)
@@ -1156,33 +1511,19 @@ def _execute(plan, report, report_path):
             staged,
             {**payload, "baseline": baseline},
         )
-        _replace_apps(stack, state, network, images, start=True)
-        _check(
-            _topology(stack, images["new_backend"], images["new_frontend"]) == (network, system_id)
-            and offline_demo.status(state)["healthy_now"],
-            "MATERIAL_MIGRATION_UPGRADED_STACK_UNHEALTHY",
-        )
-        report["stage"] = "TYPED_HTTP"
-        _save(report_path, report)
-        typed = _verify_new_public(stack, old, orders[1])
-        report.update(stage="FINAL_READBACK", typed_review=typed)
-        _save(report_path, report)
-        final = _job(
+        return _finish(
             stack,
             state,
             network,
-            images["new_backend"],
-            "final",
+            images,
             staged,
-            {
-                **payload,
-                "baseline": baseline,
-                "typed_review_id": typed["review_id"],
-                "typed_case_id": typed["case"]["id"],
-                "clone_schema": report["migration"]["legacy_eval_clone_schema"],
-            },
+            payload,
+            baseline,
+            old,
+            orders[1],
+            report,
+            report_path,
         )
-        return {"stack_stays_ready": True, "final_readback": final}
 
 
 def main():
@@ -1239,11 +1580,18 @@ def main():
             recovery = plan.get("recovery")
             if recovery:
                 try:
-                    preserved = _hash(Path(recovery["failed_report"])) == recovery[
-                        "failed_report_sha256"
-                    ] and all(
-                        _hash(Path(recovery["original_staged_directory"]) / name) == checksum
-                        for name, checksum in recovery["original_staged_files"].items()
+                    prior_artifacts = (
+                        (recovery, recovery["earliest_failure"])
+                        if recovery.get("mode") == "APPLICATION_ONLY"
+                        else (recovery,)
+                    )
+                    preserved = all(
+                        _hash(Path(prior["failed_report"])) == prior["failed_report_sha256"]
+                        and all(
+                            _hash(Path(prior["original_staged_directory"]) / name) == checksum
+                            for name, checksum in prior["original_staged_files"].items()
+                        )
+                        for prior in prior_artifacts
                     )
                 except OSError:
                     preserved = False
