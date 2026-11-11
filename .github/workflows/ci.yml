@@ -9,8 +9,9 @@ permissions:
   contents: read
 
 jobs:
+  # Pin the runner OS to keep Playwright system dependencies stable.
   pure:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +36,7 @@ jobs:
         run: scripts/check.sh pure
 
   browser-fixtures:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
