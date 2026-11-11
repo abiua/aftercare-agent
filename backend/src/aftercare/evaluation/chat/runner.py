@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from aftercare.auth import UserContext
 from aftercare.business.errors import BusinessError
+from aftercare.business.models import Material
 from aftercare.business.rules import digest
 from aftercare.business.service import BusinessService
 from aftercare.business.storage import verify_object
@@ -78,6 +79,7 @@ class _Source:
     definition: FrozenCase
     scope: DecisionScope
     images: tuple
+    materials: tuple
     record: dict
 
 
@@ -102,11 +104,26 @@ def _images(db, storage, scope):
     return tuple(result)
 
 
-def _source(case):
+def _material_images(db, storage):
+    rows = db.execute(
+        select(
+            Material.id, Material.object_key, Material.size, Material.sha256, Material.content_type
+        ).order_by(Material.id)
+    ).mappings()
+    result = []
+    for row in rows:
+        item = dict(row)
+        key = item.pop("object_key")
+        original = storage.get(key, item["size"])
+        verify_object(original, item["size"], item["sha256"])
+        result.append((item, key, original))
+    return tuple(result)
+
+
+def _freeze_case(case):
     settings, engine = case.source.settings, case.source.engine
     if (
-        engine.dialect.name != "sqlite"
-        or settings.profile != "test"
+        settings.profile != "test"
         or not settings.chat_decisions_enabled
         or not settings.chat_investigation_enabled
         or getattr(settings, "embedding_enabled", False)
@@ -119,6 +136,8 @@ def _source(case):
         engine, settings, storage=case.source.storage, clock=lambda: case.decision_at
     )
     with Session(engine) as db, db.begin():
+        if engine.dialect.name == "postgresql":
+            db.connection(execution_options={"isolation_level": "REPEATABLE READ"})
         if (
             db.scalar(select(func.count()).select_from(Conversation)) != 1
             or db.scalar(select(func.count()).select_from(AgentRun))
@@ -129,6 +148,7 @@ def _source(case):
             db, case.actor, case.conversation_id, case.issue_id
         )
         images = _images(db, business.storage, scope)
+        materials = _material_images(db, business.storage)
     value = build_input(scope)
     if value.policy_catalogue_version != CATALOGUE_VERSION:
         raise ValueError("CHAT_EVAL_COMPLETE_CATALOGUE_REQUIRED")
@@ -139,6 +159,7 @@ def _source(case):
         if key not in {"legacy_agent_input", "policies", "eligibility"}
     }
     paired["attachments"] = [item for item, _, _ in images]
+    paired["material_objects"] = [item for item, _, _ in materials]
     serialized = scope.model_dump(mode="json")
     issue_budget = IssueBudget.from_settings(settings)
     record = {
@@ -154,9 +175,10 @@ def _source(case):
         "catalogue_sha256": value.policy_context["catalogue_sha256"],
         "decision_at": value.policy_context["timestamps"]["decision_at"],
         "images": paired["attachments"],
+        "material_objects": paired["material_objects"],
         "issue_budget": {"calls": issue_budget.calls, "microusd": issue_budget.microusd},
     }
-    return _Source(case, scope, images, record)
+    return _Source(case, scope, images, materials, record)
 
 
 def _tables():
@@ -187,6 +209,10 @@ def _populate(source, engine, storage):
     tables = _tables()
     Base.metadata.create_all(engine, tables=tables)
     with case.source.engine.connect() as original, engine.begin() as destination:
+        if original.dialect.name == "postgresql":
+            original = original.execution_options(isolation_level="REPEATABLE READ")
+        if _material_images(original, case.source.storage) != source.materials:
+            raise ValueError("CHAT_EVAL_SOURCE_MATERIALS_CHANGED")
         for table in tables:
             if not table.name.startswith("business_") and table.name not in _INPUT_CHAT:
                 continue
@@ -204,6 +230,9 @@ def _populate(source, engine, storage):
         )
     for item, key, data in source.images:
         storage.put(key, data, item["content_type"])
+    for item, key, data in source.materials:
+        storage.put(key, data, item["content_type"])
+        verify_object(storage.get(key, item["size"]), item["size"], item["sha256"])
 
 
 def _sum_attempts(attempts, field):
@@ -228,6 +257,39 @@ def _failure(status, reason):
         "reserved_usd": None if status == "UNKNOWN" else "0",
         "latency_censored": True,
     }
+
+
+class _SQLiteBackend:
+    def __init__(self, checkpointer):
+        self.checkpointer = checkpointer
+
+    @staticmethod
+    def freeze(case):
+        if case.source.engine.dialect.name != "sqlite":
+            raise ValueError("CHAT_EVAL_ISOLATED_TEST_SOURCE_REQUIRED")
+        return _freeze_case(case)
+
+    @contextmanager
+    def arm(self, manifest, row, source, *, create):
+        with _arm_engine(manifest, row, create=create) as (engine, namespace):
+            storage = NamespacedObjects(source.definition.source.storage, namespace)
+            yield engine, storage, namespace, self.checkpointer
+
+    @staticmethod
+    def fence():
+        return True
+
+    @staticmethod
+    def checkpoint(_row, _result):
+        return {}
+
+    @staticmethod
+    def control_fields():
+        return {}
+
+    @staticmethod
+    def setup_failure(reason):
+        return _failure("FAILED", reason)
 
 
 def _candidate_bound(snapshot, run, source, expected):
@@ -356,6 +418,7 @@ def _audit(engine, storage, row, source, controls):
             "run_status": run.status,
             "reason": "CHAT_EVAL_RUN_BINDING_MISMATCH" if not valid else run.reason,
             "run_id": run.id,
+            "thread_id": run.thread_id,
             "route": route,
             "input_comparable": comparable,
             "comparability_reason": (
@@ -389,9 +452,13 @@ def _audit(engine, storage, row, source, controls):
             else None,
             "latency_censored": unknown,
         }
+        media = "IMAGE"
         try:
             if _images(db, storage, source.scope) != source.images:
                 raise ValueError("CHAT_EVAL_ARM_IMAGES_CHANGED")
+            media = "MATERIAL"
+            if _material_images(db, storage) != source.materials:
+                raise ValueError("CHAT_EVAL_ARM_MATERIALS_CHANGED")
         except _ERRORS as error:
             integrity_failed = isinstance(error, (ValueError, NoResultFound)) or (
                 isinstance(error, BusinessError)
@@ -399,11 +466,13 @@ def _audit(engine, storage, row, source, controls):
             )
             result.update(
                 status="FAILED" if integrity_failed else "UNKNOWN",
-                reason="CHAT_EVAL_ARM_IMAGES_CHANGED"
+                reason=f"CHAT_EVAL_ARM_{media}S_CHANGED"
                 if integrity_failed
-                else "CHAT_EVAL_IMAGE_READ_UNKNOWN",
+                else f"CHAT_EVAL_{media}_READ_UNKNOWN",
                 input_comparable=False,
-                comparability_reason="IMAGE_MISMATCH" if integrity_failed else "IMAGE_UNVERIFIED",
+                comparability_reason=f"{media}_MISMATCH"
+                if integrity_failed
+                else f"{media}_UNVERIFIED",
                 candidate_status="UNUSABLE" if snapshot is not None else "MISSING",
             )
         return result
@@ -444,16 +513,21 @@ class ChatEvaluationRunner:
         }
 
     def run(self, manifest, campaign, cases):
+        return self._run(manifest, campaign, cases, _SQLiteBackend(self.checkpointer))
+
+    def _run(self, manifest, campaign, cases, backend):
         with manifest.lock():
+            backend.fence()
             keys = [(case.repetition, case.case_id) for case in cases]
             if len(set(keys)) != len(keys):
                 raise ValueError("CHAT_EVAL_DUPLICATE_OR_EMPTY_CASES")
-            sources = {(case.repetition, case.case_id): _source(case) for case in cases}
+            sources = {(case.repetition, case.case_id): backend.freeze(case) for case in cases}
             records = [sources[(case.repetition, case.case_id)].record for case in cases]
             if len({digest(record["issue_budget"]) for record in records}) > 1:
                 raise ValueError("CHAT_EVAL_ISSUE_BUDGET_MISMATCH")
             controls = {
                 **self.controls,
+                **backend.control_fields(),
                 "tools": sorted(
                     {
                         item["function"]["name"]
@@ -469,25 +543,30 @@ class ChatEvaluationRunner:
             plan = manifest.prepare(campaign, records, controls)
             results = []
             for row in bound_rows(plan):
+                backend.fence()
                 source = sources[(row["repetition"], row["case_id"])]
                 receipt = manifest.result(row)
                 if receipt is None:
-                    receipt = self._run_row(manifest, row, source)
+                    receipt = self._run_row(manifest, row, source, backend)
                     manifest.finish(row, receipt)
                     receipt = manifest.result(row)
                 results.append(receipt)
             return {"plan_sha256": digest(plan), "rows": results}
 
-    def _run_row(self, manifest, row, source):
+    def _run_row(self, manifest, row, source, backend):
         case = source.definition
         if manifest.started(row):
             if self._ready(manifest, row):
-                return self._reconcile(manifest, row, source)
+                return self._reconcile(manifest, row, source, backend)
             return _failure("UNKNOWN", "CHAT_EVAL_INTERRUPTED")
         manifest.start(row)
         try:
-            with _arm_engine(manifest, row, create=True) as (engine, namespace):
-                storage = NamespacedObjects(case.source.storage, namespace)
+            with backend.arm(manifest, row, source, create=True) as (
+                engine,
+                storage,
+                namespace,
+                saver,
+            ):
                 _populate(source, engine, storage)
                 business = BusinessService(
                     engine, case.source.settings, storage=storage, clock=lambda: case.decision_at
@@ -496,16 +575,23 @@ class ChatEvaluationRunner:
                     cloned = ConversationDecisions(business).resolve(
                         db, case.actor, case.conversation_id, case.issue_id
                     )
-                    if cloned != source.scope or _images(db, storage, cloned) != source.images:
+                    if (
+                        cloned != source.scope
+                        or _images(db, storage, cloned) != source.images
+                        or _material_images(db, storage) != source.materials
+                    ):
                         raise ValueError("CHAT_EVAL_ARM_INPUT_MISMATCH")
                 manifest.mark_ready(row, namespace)
                 agent = AgentService(
                     engine,
                     case.source.settings,
                     business,
-                    self.checkpointer,
+                    saver,
                     model=self.model,
                     dispatch=lambda _run_id: None,
+                    attempt_admission=lambda _session: backend.fence(),
+                    attempt_continuation=lambda _session: backend.fence(),
+                    queue_admission=lambda _session: backend.fence(),
                 )
                 started = agent.start(
                     cloned.case_id,
@@ -540,20 +626,21 @@ class ChatEvaluationRunner:
                         reason="CHAT_EVAL_CANDIDATE_PROJECTION_FAILED",
                         projection_error=projection_error,
                     )
-                return result
+            return {**result, **backend.checkpoint(row, result)}
         except _ERRORS as error:
             if self._ready(manifest, row):
-                return self._reconcile(manifest, row, source)
+                return self._reconcile(manifest, row, source, backend)
             reason = getattr(error, "code", None)
             if isinstance(error, ValueError) and str(error).startswith("CHAT_EVAL_"):
                 reason = str(error)
-            return _failure("FAILED", reason or type(error).__name__)
+            return backend.setup_failure(reason or type(error).__name__)
 
-    def _reconcile(self, manifest, row, source):
+    def _reconcile(self, manifest, row, source, backend):
         try:
-            with _arm_engine(manifest, row, create=False) as (engine, namespace):
-                storage = NamespacedObjects(source.definition.source.storage, namespace)
+            with backend.arm(manifest, row, source, create=False) as (engine, storage, _, _saver):
                 result = _audit(engine, storage, row, source, self.controls)
+            if result is not None:
+                return {**result, **backend.checkpoint(row, result)}
             return result or _failure("UNKNOWN", "CHAT_EVAL_RUN_UNBOUND")
         except _ERRORS as error:
             return _failure("UNKNOWN", f"CHAT_EVAL_RECOVERY_{type(error).__name__}")

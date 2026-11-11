@@ -7,10 +7,10 @@ from hashlib import sha256
 from pathlib import Path
 from types import SimpleNamespace
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, select
 from sqlalchemy.orm import Session
-from test_business import APPROVER, OWNER, SUPPORT, MemoryObjects
 
+from aftercare.auth import UserContext
 from aftercare.business.models import Approval, Case, Execution, Proposal
 from aftercare.business.rules import digest
 from aftercare.business.seed import initialize
@@ -18,19 +18,23 @@ from aftercare.business.service import BusinessService
 from aftercare.business.storage import verify_object
 from aftercare.conversations.materials import candidates, confirm
 from aftercare.conversations.service import ConversationService
+from aftercare.conversations.tables import Conversation
 from aftercare.db import Base, User
 from aftercare.evaluation.chat.runner import FrozenCase
 
 ROOT = Path(__file__).resolve().parents[3]
-PACK = ROOT / "data/chat-eval-v1/development/cases.json"
+PACK_PATH = "data/chat-eval-v1/development/cases.json"
+OWNER = UserContext(user_id="owner", role="customer", customer_id="C001")
+SUPPORT = UserContext(user_id="support", role="support")
+APPROVER = UserContext(user_id="approver", role="approver")
 
 
-def load_development_cases():
-    return json.loads(PACK.read_bytes())
+def load_development_cases(root=ROOT):
+    return json.loads((root / PACK_PATH).read_bytes())
 
 
-def _images(pack, case):
-    path = ROOT / pack["asset_manifest"]
+def _images(root, pack, case):
+    path = root / pack["asset_manifest"]
     manifest = path.read_bytes()
     if sha256(manifest).hexdigest() != pack["asset_manifest_sha256"]:
         raise ValueError("Development asset manifest changed")
@@ -44,7 +48,7 @@ def _images(pack, case):
         yield row["file"], content
 
 
-def _seed(pack, case, decision_at):
+def _seed(root, pack, case, decision_at):
     specs = [case]
     if "additional_line" in case:
         specs.append(case["additional_line"])
@@ -86,7 +90,7 @@ def _seed(pack, case, decision_at):
         "refunded_cents": refunded,
         "items": items,
     }
-    policy_data = (ROOT / pack["policy_source"]).read_bytes()
+    policy_data = (root / pack["policy_source"]).read_bytes()
     if sha256(policy_data).hexdigest() != pack["policy_source_sha256"]:
         raise ValueError("Development policy source changed")
     baseline = json.loads(policy_data)
@@ -195,23 +199,19 @@ def _seed_history(engine, case, decision_at):
         )
 
 
-@contextmanager
-def development_source(directory, case_id, *, repetition=1):
-    pack = load_development_cases()
+def replay_development_case(engine, storage, settings, root, case_id, *, repetition=1, fresh):
+    """Populate an isolated empty source or read back an already admitted source."""
+    if settings.profile != "test" or settings.model_enabled:
+        raise ValueError("Development replay requires test and offline settings")
+    pack = load_development_cases(root)
     case = next(item for item in pack["cases"] if item["id"] == case_id)
-    files = tuple(_images(pack, case))
+    files = tuple(_images(root, pack, case))
     decision_at = datetime.fromisoformat(pack["decision_at"])
-    database = directory / f"{case_id}-{repetition}.sqlite"
-    database.touch(mode=0o600, exist_ok=False)
-    engine = create_engine(f"sqlite:///{database}")
-
-    @event.listens_for(engine, "connect")
-    def _foreign_keys(connection, _):
-        connection.execute("PRAGMA foreign_keys=ON")
-
-    try:
-        Base.metadata.create_all(engine)
-        seed = _seed(pack, case, decision_at)
+    seed = _seed(root, pack, case, decision_at)
+    business = BusinessService(engine, settings, storage=storage, clock=lambda: decision_at)
+    if fresh:
+        if settings.chat_analysis_enabled:
+            raise ValueError("Development replay must not schedule automatic analysis")
         initialize(engine, seed)
         if "history" in case:
             _seed_history(engine, case, decision_at)
@@ -225,18 +225,6 @@ def development_source(directory, case_id, *, repetition=1):
                     token_hash=digest(["development-not-a-credential", SUPPORT.user_id]),
                 )
             )
-        settings = SimpleNamespace(
-            profile="test",
-            model_enabled=False,
-            embedding_enabled=False,
-            chat_analysis_enabled=False,
-            chat_vision_enabled=False,
-            chat_decisions_enabled=True,
-            chat_investigation_enabled=False,
-        )
-        business = BusinessService(
-            engine, settings, storage=MemoryObjects(), clock=lambda: decision_at
-        )
         chat = ConversationService(business)
         ident = chat.create(OWNER, "development-chat-create")["id"]
         posted = chat.message(
@@ -279,16 +267,53 @@ def development_source(directory, case_id, *, repetition=1):
             expected_version=business.context(case_id_db, SUPPORT)["case"]["version"],
             idempotency_key="development-material-review",
         )
-        settings.chat_investigation_enabled = True
-        yield FrozenCase(
+    with Session(engine) as db:
+        conversation = db.scalars(select(Conversation)).one()
+        if conversation.active_order_id != case["order_id"]:
+            raise ValueError("Development source order binding mismatch")
+        return FrozenCase(
             case_id,
             repetition,
             business,
             SUPPORT,
-            ident,
-            issue["issue_id"],
+            conversation.id,
+            conversation.analysis_issue_id,
             decision_at,
             f"{pack['provenance']}:{pack['source_family']}:{digest(pack)}",
+        )
+
+
+@contextmanager
+def development_source(directory, case_id, *, repetition=1):
+    from test_business import MemoryObjects
+
+    database = directory / f"{case_id}-{repetition}.sqlite"
+    database.touch(mode=0o600, exist_ok=False)
+    engine = create_engine(f"sqlite:///{database}")
+
+    @event.listens_for(engine, "connect")
+    def _foreign_keys(connection, _):
+        connection.execute("PRAGMA foreign_keys=ON")
+
+    try:
+        Base.metadata.create_all(engine)
+        settings = SimpleNamespace(
+            profile="test",
+            model_enabled=False,
+            embedding_enabled=False,
+            chat_analysis_enabled=False,
+            chat_vision_enabled=False,
+            chat_decisions_enabled=True,
+            chat_investigation_enabled=True,
+        )
+        yield replay_development_case(
+            engine,
+            MemoryObjects(),
+            settings,
+            ROOT,
+            case_id,
+            repetition=repetition,
+            fresh=True,
         )
     finally:
         engine.dispose()

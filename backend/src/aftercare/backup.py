@@ -88,6 +88,15 @@ ISOLATED_TABLES = frozenset(
         "policy_vectors",
     }
 )
+ISOLATED_CHECKPOINT_TABLES = frozenset({
+    "checkpoint_migrations", "checkpoints", "checkpoint_blobs", "checkpoint_writes",
+})
+ISOLATED_CHAT_TABLES = (
+    CHAT_TABLES | CHAT_ANALYSIS_TABLES | CHAT_DECISION_TABLES
+    | {CHAT_INVESTIGATION_TABLE, CHAT_MATERIAL_SOURCE_TABLE, "p5_owner"}
+    | ISOLATED_CHECKPOINT_TABLES
+)
+ISOLATED_BACKUP_TABLES = ISOLATED_TABLES | ISOLATED_CHAT_TABLES
 EVALUATION_PROGRESS_TABLE = "eval_progress_events"
 EVALUATION_TABLES = frozenset(
     {"eval_experiments", "eval_results", "eval_reviews", "eval_mutations"}
@@ -118,7 +127,7 @@ PUBLIC_TABLES = (
 
 def _qualified(schema: str, table: str) -> str:
     public_table = schema == "public" and table in PUBLIC_TABLES
-    eval_table = re.fullmatch(EVALUATION_SCHEMA, schema) and table in ISOLATED_TABLES
+    eval_table = re.fullmatch(EVALUATION_SCHEMA, schema) and table in ISOLATED_BACKUP_TABLES
     if not (public_table or eval_table):
         raise BackupError("DATABASE_IDENTIFIER_REJECTED")
     return f'"{schema}"."{table}"'
@@ -135,6 +144,25 @@ class PrivateRecord(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
 
+def _isolated_chat_complete(tables):
+    """Old evaluation schemas remain valid; present chat groups must be complete."""
+    for group, required in (
+        (CHAT_TABLES, frozenset()),
+        (CHAT_ANALYSIS_TABLES, CHAT_TABLES),
+        (CHAT_DECISION_TABLES, CHAT_ANALYSIS_TABLES | CHAT_TABLES),
+        (ISOLATED_CHECKPOINT_TABLES, frozenset()),
+    ):
+        if tables & group and not (group | required) <= tables:
+            return False
+    if CHAT_INVESTIGATION_TABLE in tables and not CHAT_DECISION_TABLES <= tables:
+        return False
+    if CHAT_MATERIAL_SOURCE_TABLE in tables and CHAT_INVESTIGATION_TABLE not in tables:
+        return False
+    return (
+        "p5_owner" not in tables or (ISOLATED_CHAT_TABLES - ISOLATED_CHECKPOINT_TABLES) <= tables
+    )
+
+
 class MaterialRecord(PrivateRecord):
     key: str
     sha256: HexHash
@@ -144,7 +172,7 @@ class MaterialRecord(PrivateRecord):
     @model_validator(mode="after")
     def check_key(self):
         if not re.fullmatch(
-            rf"(?:(?:evaluation/{EVALUATION_SCHEMA}/)?{MATERIAL_KEY}|{CHAT_KEY}){self.sha256}",
+            rf"(?:evaluation/{EVALUATION_SCHEMA}/)?(?:{MATERIAL_KEY}|{CHAT_KEY}){self.sha256}",
             self.key,
         ):
             raise ValueError("Unexpected material object key")
@@ -152,7 +180,8 @@ class MaterialRecord(PrivateRecord):
 
     @property
     def table_name(self) -> str:
-        return "chat_attachments" if self.key.startswith("conversations/") else "business_materials"
+        logical = self.key.split("/", 2)[2] if self.key.startswith("evaluation/") else self.key
+        return "chat_attachments" if logical.startswith("conversations/") else "business_materials"
 
     @property
     def schema_name(self) -> str:
@@ -230,6 +259,10 @@ class BackupManifest(PrivateRecord):
                     raise ValueError("Material count does not match database")
         if set(counts) - material_tables:
             raise ValueError("Material has no database fingerprint")
+        for schema in {item.partition(".")[0] for item in self.database if item.startswith("eval_")}:
+            tables = {name.partition(".")[2] for name in self.database if name.startswith(schema + ".")}
+            if not _isolated_chat_complete(tables):
+                raise ValueError("Incomplete isolated conversation schema")
         return self
 
 
@@ -375,7 +408,7 @@ def _managed_tables(connection) -> list[tuple[str, str]]:
             schema == "public"
             and table in PUBLIC_TABLES
             or re.fullmatch(EVALUATION_SCHEMA, schema)
-            and table in ISOLATED_TABLES
+            and table in ISOLATED_BACKUP_TABLES
         ):
             managed.append((schema, table))
     present_chat = {table for schema, table in managed if schema == "public"} & CHAT_TABLES
@@ -401,6 +434,9 @@ def _managed_tables(connection) -> list[tuple[str, str]]:
         raise BackupError("CHAT_BLIND_REVIEW_SCHEMA_INCOMPLETE")
     if not REQUIRED_PUBLIC_TABLES <= {table for schema, table in managed if schema == "public"}:
         raise BackupError("BACKUP_REQUIRED_TABLES_MISSING")
+    for namespace in {schema for schema, _ in managed if schema != "public"}:
+        if not _isolated_chat_complete({table for schema, table in managed if schema == namespace}):
+            raise BackupError("EVALUATION_CHAT_SCHEMA_INCOMPLETE")
     return managed
 
 
@@ -449,12 +485,13 @@ def _materials(connection, *, format=FORMAT) -> list[MaterialRecord]:
     managed = (
         [("public", "business_materials")] if format == V1_FORMAT else _managed_tables(connection)
     )
-    if ("public", "chat_messages") in managed:
-        pending = connection.execute(text(
-            'SELECT EXISTS (SELECT 1 FROM "public"."chat_messages" WHERE sequence IS NULL AND discarded_at IS NULL)'
-        )).scalar_one()
-        if pending:
-            raise BackupError("CHAT_UPLOADS_PENDING")
+    for schema, table in managed:
+        if table == "chat_messages":
+            pending = connection.execute(text(
+                f'SELECT EXISTS (SELECT 1 FROM {_qualified(schema, table)} WHERE sequence IS NULL AND discarded_at IS NULL)'
+            )).scalar_one()
+            if pending:
+                raise BackupError("CHAT_UPLOADS_PENDING")
     materials = []
     for schema, table in managed:
         if table not in {"business_materials", "chat_attachments"}:
@@ -463,7 +500,7 @@ def _materials(connection, *, format=FORMAT) -> list[MaterialRecord]:
         sql = (
             "SELECT a.object_key AS key, a.sha256, a.size, a.content_type, "
             "a.message_id, a.position, m.conversation_id "
-            f"FROM {identifier} a JOIN public.chat_messages m ON m.id = a.message_id "
+            f"FROM {identifier} a JOIN {_qualified(schema, 'chat_messages')} m ON m.id = a.message_id "
             "ORDER BY a.object_key"
             if table == "chat_attachments" else
             "SELECT object_key AS key, sha256, size, content_type "
@@ -731,7 +768,7 @@ def restore_backup(settings: Settings, directory: Path) -> dict:
         raise BackupError(f"RESTORE_FAILED {error} ({database}, {bucket})") from None
     except Exception:  # noqa: BLE001 - database and object errors may contain credentials
         raise BackupError(f"RESTORE_FAILED ({database}, {bucket})") from None
-    return {
+    result = {
         "status": "RESTORE_VERIFIED",
         "format": manifest.format,
         "material_coverage": "public_only"
@@ -742,6 +779,11 @@ def restore_backup(settings: Settings, directory: Path) -> dict:
         "material_count": len(manifest.materials),
         "table_rows": {name: table.rows for name, table in manifest.database.items()},
     }
+    if any(name.endswith(".p5_owner") for name in manifest.database):
+        # Owner rows are archived evidence. S3 owner markers and the stack
+        # sentinel authorize a particular runtime and are not restored.
+        result["p5_runtime_authorization"] = "REQUIRES_NEW_ATTESTATION"
+    return result
 
 
 def main():

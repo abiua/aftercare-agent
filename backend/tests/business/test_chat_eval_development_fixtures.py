@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from aftercare.business.errors import BusinessError
 from aftercare.business.models import Approval, Execution
 from aftercare.business.rules import digest
-from aftercare.evaluation.chat.runner import _source
+from aftercare.evaluation.chat.runner import _freeze_case
 from aftercare.investigation.input import build_input
 from aftercare.investigation.routing import route_input
 
@@ -18,7 +18,7 @@ PACK = load_development_cases()
 @pytest.mark.parametrize("case", PACK["cases"], ids=lambda case: case["id"])
 def test_development_chat_source_is_frozen_and_no_new_financial_action(tmp_path, case):
     with development_source(tmp_path, case["id"]) as source:
-        frozen = _source(source)
+        frozen = _freeze_case(source)
         scope = frozen.scope
         context = scope.frozen_context
         line = context["order"]["items"][0]
@@ -92,3 +92,41 @@ def test_development_chat_source_is_frozen_and_no_new_financial_action(tmp_path,
                 policy_ids=["POL06", "POL14"],
             )
             assert plan["amount_cents"] == 6000
+
+
+def test_arm_population_copies_and_validates_typed_material_bytes(tmp_path):
+    from sqlalchemy import create_engine
+
+    from aftercare.business.models import Material
+    from aftercare.evaluation.chat.runner import _populate
+    from aftercare.evaluation.runner import NamespacedObjects
+
+    with development_source(tmp_path, "DAMAGE-ORDINARY") as source:
+        frozen = _freeze_case(source)
+        store = source.source.storage
+        with Session(source.source.engine) as db:
+            materials = list(db.scalars(select(Material)))
+        assert len(materials) == 2
+        arm_storage = NamespacedObjects(store, "fixture-arm")
+        engine = create_engine("sqlite://")
+        try:
+            _populate(frozen, engine, arm_storage)
+            with Session(engine) as db:
+                copies = list(db.scalars(select(Material)))
+                assert {row.id for row in copies} == {row.id for row in materials}
+                for row in copies:
+                    assert arm_storage.get(row.object_key, row.size) == store.get(
+                        row.object_key, row.size
+                    )
+                    assert row.object_key not in {key for _, key, _ in frozen.images}
+            row = materials[0]
+            store.put(row.object_key, b"corrupt fixture", row.content_type)
+            broken_arm = create_engine("sqlite://")
+            try:
+                with pytest.raises(BusinessError) as error:
+                    _populate(frozen, broken_arm, NamespacedObjects(store, "broken-arm"))
+                assert error.value.code == "MATERIAL_INTEGRITY_ERROR"
+            finally:
+                broken_arm.dispose()
+        finally:
+            engine.dispose()

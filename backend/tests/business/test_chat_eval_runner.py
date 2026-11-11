@@ -246,10 +246,24 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
     assert recovered["rows"][0]["candidate_status"] == "MISSING"
     assert len(calls) == (26 if eligible else 0)
 
-    # Simulate an interrupted receipt write, then make a previously used arm object unreadable.
+    # Reconcile a missing receipt without resending, even if a cloned typed object is corrupt.
     row = rows[0]
-    manifest.directory.joinpath(f"{row['id']}.result.json").unlink()
     arm_prefix = f"evaluation/{_namespace(row['id'])}/"
+    objects = configured.service.storage.objects
+    if eligible:
+        typed_key = next(key for key in objects if key.startswith(arm_prefix + "cases/"))
+        original = objects[typed_key]
+        manifest.directory.joinpath(f"{row['id']}.result.json").unlink()
+        objects[typed_key] = b"corrupted typed material"
+        typed = runner.run(manifest, "paired-fixture", [case])["rows"][0]
+        assert typed["status"] == "FAILED"
+        assert typed["reason"] == "CHAT_EVAL_ARM_MATERIALS_CHANGED"
+        assert typed["candidate_status"] == "UNUSABLE"
+        assert len(calls) == 26
+        objects[typed_key] = original
+
+    # Simulate an interrupted receipt write, then make a previously used arm object unreadable.
+    manifest.directory.joinpath(f"{row['id']}.result.json").unlink()
     for key in configured.service.storage.objects:
         if key.startswith(arm_prefix):
             configured.service.storage.objects[key] = b"corrupted"

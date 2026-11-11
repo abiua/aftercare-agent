@@ -210,6 +210,8 @@ def test_restore_verifies_before_resource_creation(package, monkeypatch):
         "old_v2",
         "v2_before_progress",
         "current_v2",
+        "p5",
+        "p5_changed_checkpoint",
         "changed_intake",
         "missing_intake",
         "changed_progress",
@@ -218,7 +220,7 @@ def test_restore_verifies_before_resource_creation(package, monkeypatch):
     ],
 )
 def test_restore_writes_new_bucket_and_validates_db_fingerprints(package, monkeypatch, scenario):
-    directory, manifest, _ = package
+    directory, manifest, material = package
     restored = dict(manifest.database)
     if scenario == "v1":
         manifest = _legacy_package(directory, manifest)
@@ -243,6 +245,27 @@ def test_restore_writes_new_bucket_and_validates_db_fingerprints(package, monkey
         restored["public.eval_progress_events"] = backup.TableFingerprint(rows=1, sha256="0" * 64)
     elif scenario == "missing_progress":
         del restored["public.eval_progress_events"]
+    elif scenario in {"p5", "p5_changed_checkpoint"}:
+        value = manifest.model_dump(mode="json")
+        original = {
+            **material.model_dump(),
+            "key": f"evaluation/{EVAL_SCHEMA}/conversations/conv-1/msg-1/0-{material.sha256}",
+        }
+        value["materials"].append(original)
+        value["materials"].sort(key=lambda row: row["key"])
+        for table in backup.ISOLATED_CHAT_TABLES:
+            value["database"][f"{EVAL_SCHEMA}.{table}"] = {
+                "rows": 1, "sha256": material.sha256,
+            }
+        manifest = _replace_manifest(directory, value)
+        restored = dict(manifest.database)
+        FakeStore.contents["aftercare-private", original["key"]] = CONTENT
+        FakeStore.contents["aftercare-private", f"evaluation/{EVAL_SCHEMA}/.p5-owner.json"] = b"owner"
+        FakeStore.contents["aftercare-private", "evaluation/p5-stack/test/sentinel"] = b"stack"
+        if scenario == "p5_changed_checkpoint":
+            restored[f"{EVAL_SCHEMA}.checkpoint_writes"] = backup.TableFingerprint(
+                rows=1, sha256="0" * 64
+            )
     calls = []
     connection = SimpleNamespace(execute=lambda *_: None)
     engine = SimpleNamespace(
@@ -288,6 +311,7 @@ def test_restore_writes_new_bucket_and_validates_db_fingerprints(package, monkey
         "changed_progress",
         "missing_progress",
         "unrecorded_progress",
+        "p5_changed_checkpoint",
     }:
         with pytest.raises(backup.BackupError, match="RESTORED_DATABASE_FINGERPRINT_MISMATCH"):
             backup.restore_backup(settings(), directory)
@@ -301,10 +325,16 @@ def test_restore_writes_new_bucket_and_validates_db_fingerprints(package, monkey
     assert result["material_coverage"] == (
         "public_only" if scenario == "v1" else "public_and_evaluation"
     )
+    assert result.get("p5_runtime_authorization") == (
+        "REQUIRES_NEW_ATTESTATION" if scenario == "p5" else None
+    )
     assert {key for saved_bucket, key in FakeStore.contents if saved_bucket == bucket} == {
         item.key for item in manifest.materials
     }
-    assert all(data == CONTENT for data in FakeStore.contents.values())
+    assert all(
+        data == CONTENT for (saved_bucket, _), data in FakeStore.contents.items()
+        if saved_bucket == bucket
+    )
 
 
 def test_subprocess_does_not_pass_password_in_arguments(monkeypatch):
@@ -369,7 +399,7 @@ def test_schema_catalog_filters_identifiers_and_prefixes_evaluation_materials():
     new_tables = {"intake_model_audits", "alembic_version", "checkpoint_migrations"}
     rows = [("public", table) for table in sorted(backup.PUBLIC_TABLES | new_tables)]
     rows += [
-        *((EVAL_SCHEMA, table) for table in sorted(new_tables)),
+        *((EVAL_SCHEMA, table) for table in sorted(new_tables - {"checkpoint_migrations"})),
         ("public", "arbitrary_extension_table"),
         (EVAL_SCHEMA, "business_materials"),
         (EVAL_SCHEMA, "agent_model_attempts"),
@@ -524,32 +554,43 @@ def test_chat_attachments_have_separate_fingerprint_counts(package):
 
 @pytest.mark.parametrize("key", [
     "conversations/../msg/0-", "conversations/c/msg/6-", "conversations/c/msg/-1-",
-    "evaluation/eval_" + "2" * 32 + "/conversations/c/msg/0-",
+    "evaluation/eval_wrong/conversations/c/msg/0-",
+    f"evaluation/{EVAL_SCHEMA}/conversations/../msg/0-",
+    f"evaluation/{EVAL_SCHEMA}/.p5-owner.json",
+    "evaluation/p5-stack/test/sentinel",
 ])
 def test_chat_attachment_key_rejects_traversal_and_unowned_scopes(key):
     with pytest.raises(ValueError, match="Unexpected material object key"):
         backup.MaterialRecord(key=key + "a" * 64, sha256="a" * 64, size=1, content_type="image/png")
 
 
-def test_backup_refuses_incomplete_chat_upload_snapshot(monkeypatch):
-    monkeypatch.setattr(backup, "_managed_tables", lambda conn: [("public", "chat_messages")])
+@pytest.mark.parametrize("schema", ["public", EVAL_SCHEMA])
+def test_backup_refuses_incomplete_chat_upload_snapshot(monkeypatch, schema):
+    monkeypatch.setattr(backup, "_managed_tables", lambda conn: [(schema, "chat_messages")])
     connection = SimpleNamespace(execute=lambda query: SimpleNamespace(scalar_one=lambda: True))
     with pytest.raises(backup.BackupError, match="CHAT_UPLOADS_PENDING"):
         backup._materials(connection)
 
 
-def test_backup_enumerates_verified_chat_object(monkeypatch):
+@pytest.mark.parametrize("schema", ["public", EVAL_SCHEMA])
+def test_backup_enumerates_verified_chat_object(monkeypatch, schema):
     sha = hashlib.sha256(CONTENT).hexdigest()
     row = {"key": f"conversations/c/m/0-{sha}", "sha256": sha,
            "size": len(CONTENT), "content_type": "image/png",
            "message_id": "m", "conversation_id": "c", "position": 0}
     monkeypatch.setattr(backup, "_managed_tables", lambda conn: [
-        ("public", "chat_messages"), ("public", "chat_attachments")])
+        (schema, "chat_messages"), (schema, "chat_attachments")])
     def execute(query):
         if "SELECT EXISTS" in str(query):
+            assert f'FROM "{schema}"."chat_messages"' in str(query)
             return SimpleNamespace(scalar_one=lambda: False)
+        assert f'JOIN "{schema}"."chat_messages"' in str(query)
         return SimpleNamespace(mappings=lambda: [row])
-    assert [r.key for r in backup._materials(SimpleNamespace(execute=execute))] == [row["key"]]
+    expected = row["key"] if schema == "public" else f"evaluation/{schema}/{row['key']}"
+    material = backup._materials(SimpleNamespace(execute=execute))[0]
+    assert (material.key, material.schema_name, material.table_name) == (
+        expected, schema, "chat_attachments",
+    )
 
 
 def test_backup_rejects_partial_conversation_schema(package):
@@ -670,3 +711,30 @@ def test_chat_blind_review_fingerprints_are_optional_complete_group(package):
     current["database"].pop("public.eval_chat_blind_exposures")
     with pytest.raises(ValueError, match="Incomplete chat blind review schema"):
         backup.BackupManifest.model_validate(current)
+
+
+def test_isolated_p5_backup_requires_complete_checkpoint_and_chat_groups(package):
+    _, manifest, material = package
+    value = manifest.model_dump()
+    for table in backup.ISOLATED_CHAT_TABLES:
+        value["database"][f"{EVAL_SCHEMA}.{table}"] = {
+            "rows": 0, "sha256": material.sha256,
+        }
+    assert backup.BackupManifest.model_validate(value).database[f"{EVAL_SCHEMA}.p5_owner"]
+    catalog = [
+        *(("public", table) for table in backup.REQUIRED_PUBLIC_TABLES),
+        *((EVAL_SCHEMA, table) for table in backup.ISOLATED_CHAT_TABLES),
+    ]
+    assert set(backup._managed_tables(SimpleNamespace(execute=lambda *_: catalog))) == set(catalog)
+    for table in ("checkpoint_blobs", "chat_material_sources"):
+        broken = {**value, "database": dict(value["database"])}
+        del broken["database"][f"{EVAL_SCHEMA}.{table}"]
+        with pytest.raises(ValueError, match="Incomplete isolated conversation schema"):
+            backup.BackupManifest.model_validate(broken)
+        incomplete = [pair for pair in catalog if pair != (EVAL_SCHEMA, table)]
+        with pytest.raises(backup.BackupError, match="EVALUATION_CHAT_SCHEMA_INCOMPLETE"):
+            backup._managed_tables(SimpleNamespace(execute=lambda *_, rows=incomplete: rows))
+    for table in backup.ISOLATED_CHECKPOINT_TABLES:
+        del value["database"][f"{EVAL_SCHEMA}.{table}"]
+    # The source schema has no saver. It remains eligible for backup.
+    assert backup.BackupManifest.model_validate(value).database[f"{EVAL_SCHEMA}.p5_owner"]
