@@ -738,8 +738,13 @@ def _paid_phase(stack, state, plan, report, output, phase, turn, photos, *, proj
         "LIVE_BUSINESS_MODEL_SPEC_CHANGED",
     )
     registry = _phase_registry(spec, plan, phase, photos)
+    protocol = plan.get("wire_protocol", "p5-live-business-wire-v1")
+    require(
+        protocol in {"p5-live-business-wire-v1", "p5-live-business-wire-v2"},
+        "LIVE_BUSINESS_WIRE_PROTOCOL_UNSUPPORTED",
+    )
     gate_plan = {
-        "protocol": "p5-live-business-wire-v1",
+        "protocol": protocol,
         "kind": phase,
         "campaign_id": stack.run_id,
         "conversation_id": report["conversation_id"],
@@ -756,7 +761,9 @@ def _paid_phase(stack, state, plan, report, output, phase, turn, photos, *, proj
         "worker_script_sha256": plan["gates"]["worker_script_sha256"],
         "gate_script_sha256": plan["gates"]["gate_script_sha256"],
     }
-    if phase == "VISION":
+    if protocol == "p5-live-business-wire-v2":
+        gate_plan.update(case_scope=plan["case_scope"], expected_route=plan["expected_route"])
+    if phase == "VISION" or protocol == "p5-live-business-wire-v2":
         gate_plan.update(
             original_sha256s=plan["fixture"]["original_sha256s"],
             sent_sha256s=plan["fixture"]["sent_jpeg_sha256s"],

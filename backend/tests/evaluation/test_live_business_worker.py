@@ -172,3 +172,93 @@ def test_invalid_tool_response_preserves_native_reason_without_consuming_another
         ("STARTED", "distinct-round", 1),
         ("SUCCEEDED", "distinct-round", 1, None),
     ]
+
+
+def test_v2_requires_observed_native_route_and_frozen_order_scope(monkeypatch):
+    from aftercare.investigation.protocol import HUMAN_PAYMENT_V7
+
+    plan = {
+        "protocol": worker.SCOPED_PROTOCOL,
+        "case_id": "case",
+        "conversation_id": "chat",
+        "issue_id": "issue",
+        "expected_route": "MULTI",
+        "case_scope": {
+            "order_id": "DEV-ORDER-04",
+            "customer_id": "C001",
+            "line_ids": ["L01", "L02"],
+            "order_version": 1,
+        },
+    }
+    native = SimpleNamespace(
+        case_id="case",
+        conversation_id="chat",
+        issue_id="issue",
+        order_id="DEV-ORDER-04",
+        customer_id="C001",
+        line_ids=["L01", "L02"],
+        business_versions={"order": 1},
+        model_dump=lambda **_: {"scope": "native"},
+    )
+    binding = {
+        "scope": {"scope": "native"},
+        "decision_turn_id": "turn",
+        "investigation_arm": "auto",
+    }
+    run = SimpleNamespace(id="run", owner_id="owner", case_id="case", cycle=0, status="RUNNING")
+    request = SimpleNamespace(
+        case_id="case",
+        conversation_id="chat",
+        issue_id="issue",
+        actor_id="owner",
+        state="PENDING",
+        scope=binding["scope"],
+    )
+    route = {
+        "selected_path": "MULTI",
+        "arm": "auto",
+        "prompt_version": HUMAN_PAYMENT_V7.prompt_version,
+        "evidence_projection": HUMAN_PAYMENT_V7.evidence_projection,
+    }
+    db = SimpleNamespace(
+        get_one=lambda table, _: run if table is worker.AgentRun else request,
+        scalars=lambda _: [route],
+    )
+    monkeypatch.setattr(
+        worker, "_scope", lambda *_args, **_kw: SimpleNamespace(id="turn", actor_id="owner")
+    )
+    monkeypatch.setattr(worker, "load_binding", lambda *_: binding)
+    monkeypatch.setattr(worker, "DecisionScope", SimpleNamespace(model_validate=lambda _: native))
+    monkeypatch.setattr(worker, "protocol_for_binding", lambda *_: HUMAN_PAYMENT_V7)
+    monkeypatch.setattr(
+        worker,
+        "build_input",
+        lambda *_args, **_kw: SimpleNamespace(
+            relevant_input_sha256="a" * 64,
+            policy_context={"catalogue_sha256": "b" * 64},
+            role_view=lambda _: {"available_evidence": []},
+        ),
+    )
+    audit = SimpleNamespace(run_id="run", cycle=0)
+    assert worker._text_scope(db, plan, audit)["run_id"] == "run"
+    route["selected_path"] = "SINGLE"
+    with pytest.raises(ValueError, match="NATIVE_ROUTE_REJECTED"):
+        worker._text_scope(db, plan, audit)
+    route["selected_path"] = "MULTI"
+    native.line_ids = ["L02"]
+    with pytest.raises(ValueError, match="NATIVE_ROUTE_REJECTED"):
+        worker._text_scope(db, plan, audit)
+
+
+def test_v2_rejects_unplanned_escalation_before_native_reservation():
+    class Audit:
+        def begin_attempt(self, *_args, **_kwargs):
+            pytest.fail("unplanned phase reserved a native attempt")
+
+    gate = SimpleNamespace(
+        policy=SimpleNamespace(admitted_logical_phase=lambda _plan, _logical: False)
+    )
+    with ExitStack() as stack:
+        audit = worker._GateAudit(Audit(), gate, {"protocol": worker.SCOPED_PROTOCOL}, stack)
+        with pytest.raises(ModelFailure, match="UNPLANNED_NATIVE_PHASE"):
+            audit.begin_attempt("p4:compact-v7:fact:0", 1, None, Decimal("0.01"), None)

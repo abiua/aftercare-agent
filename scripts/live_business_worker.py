@@ -12,7 +12,7 @@ from unittest.mock import patch
 from uuid import UUID
 
 from aftercare import runtime
-from aftercare.business.models import Case, MaterialReview
+from aftercare.business.models import Case, MaterialReview, Order
 from aftercare.business.rules import digest
 from aftercare.config import load_settings
 from aftercare.conversation_analysis.tables import ChatAnalysisTurn, ChatModelAttempt, Observation
@@ -22,7 +22,7 @@ from aftercare.decisions.contracts import DecisionScope
 from aftercare.evaluation.service import require_current_code
 from aftercare.intelligence.decision_candidate import load_binding
 from aftercare.intelligence.models import ModelFailure, ModelRunner, Registry
-from aftercare.intelligence.tables import AgentRun, ModelAttempt
+from aftercare.intelligence.tables import AgentRun, ModelAttempt, RunEvent
 from aftercare.investigation.input import build_input
 from aftercare.investigation.protocol import HUMAN_PAYMENT_V7, protocol_for_binding
 from aftercare.queue import make_queue
@@ -31,6 +31,7 @@ from sqlalchemy.orm import Session
 
 WIRE = Path("/live-business-wire")
 PROTOCOL = "p5-live-business-wire-v1"
+SCOPED_PROTOCOL = "p5-live-business-wire-v2"
 TASKS = {"VISION": "aftercare.chat_analysis", "TEXT": "aftercare.chat_investigation_start"}
 CAPS = {"VISION": (1, 900, 50_000), "TEXT": (8, 1800, 400_000)}
 
@@ -74,7 +75,8 @@ def _preflight(gate):
     plan_sha = sha256(plan_bytes).hexdigest()
     kind = plan["kind"]
     _require(
-        plan["protocol"] == PROTOCOL
+        plan["protocol"] in {PROTOCOL, SCOPED_PROTOCOL}
+        and getattr(gate, "PLAN", None) == plan
         and kind in CAPS
         and os.environ.get("P5_LIVE_BUSINESS_PLAN_SHA256") == plan_sha
         and os.environ.get("AFTERCARE_CONTAINER") == "1"
@@ -167,6 +169,20 @@ def _scope(db, plan, *, status):
     conversation = db.get_one(Conversation, plan["conversation_id"])
     case = db.get_one(Case, plan["case_id"])
     owner = db.get_one(User, turn.actor_id)
+    scope = plan.get("case_scope") or {
+        "customer_id": "C001",
+        "order_id": "O9902",
+        "line_ids": ["L01"],
+    }
+    if plan["protocol"] == SCOPED_PROTOCOL:
+        order = db.get_one(Order, scope["order_id"])
+        _require(
+            order.customer_id == scope["customer_id"]
+            and order.version == scope["order_version"]
+            and case.intent == "damaged"
+            and not conversation.require_new_case,
+            "LIVE_BUSINESS_WORKER_NATIVE_ORDER_SCOPE_REJECTED",
+        )
     latest = db.scalar(
         select(ChatAnalysisTurn.id)
         .where(ChatAnalysisTurn.conversation_id == conversation.id)
@@ -178,9 +194,9 @@ def _scope(db, plan, *, status):
         == (case.id, plan["issue_id"], "OPEN")
         and (case.decision_conversation_id, case.decision_issue_id)
         == (conversation.id, plan["issue_id"])
-        and conversation.active_order_id == case.order_id == "O9902"
-        and conversation.line_ids == case.line_ids == ["L01"]
-        and conversation.customer_id == "C001"
+        and conversation.active_order_id == case.order_id == scope["order_id"]
+        and conversation.line_ids == case.line_ids == scope["line_ids"]
+        and conversation.customer_id == scope["customer_id"]
         and owner.enabled
         and owner.role == "customer"
         and owner.customer_id == case.customer_id == turn.customer_id == conversation.customer_id
@@ -214,6 +230,28 @@ def _text_scope(db, plan, audit):
         and protocol_for_binding(binding, scope) == HUMAN_PAYMENT_V7,
         "LIVE_BUSINESS_WORKER_NATIVE_RUN_REJECTED",
     )
+    if plan["protocol"] == SCOPED_PROTOCOL:
+        planned = plan["case_scope"]
+        routes = list(
+            db.scalars(
+                select(RunEvent.payload).where(
+                    RunEvent.run_id == run.id,
+                    RunEvent.kind == "investigation_route",
+                )
+            )
+        )
+        _require(
+            len(routes) == 1
+            and routes[0].get("selected_path") == plan["expected_route"]
+            and routes[0].get("arm") == "auto"
+            and routes[0].get("prompt_version") == HUMAN_PAYMENT_V7.prompt_version
+            and routes[0].get("evidence_projection") == HUMAN_PAYMENT_V7.evidence_projection
+            and scope.order_id == planned["order_id"]
+            and scope.customer_id == planned["customer_id"]
+            and list(scope.line_ids) == planned["line_ids"]
+            and scope.business_versions.get("order") == planned["order_version"],
+            "LIVE_BUSINESS_WORKER_NATIVE_ROUTE_REJECTED",
+        )
     value = build_input(scope, evidence_projection=HUMAN_PAYMENT_V7.evidence_projection)
     return {
         "run_id": run.id,
@@ -238,6 +276,8 @@ def _attempt_binding(plan, audit, logical_id, ordinal, reserve):
         "native_ordinal": ordinal,
         "reserved_microusd": micro,
     }
+    if plan["protocol"] == SCOPED_PROTOCOL:
+        binding.update(case_scope=plan["case_scope"], expected_route=plan["expected_route"])
     engine = audit.service.engine if plan["kind"] == "VISION" else audit.engine
     with Session(engine) as db, db.begin():
         db.execute(text("SET TRANSACTION READ ONLY"))
@@ -280,6 +320,10 @@ class _GateAudit:
     def begin_attempt(self, logical_id, ordinal, spec, reserve, registry, **kwargs):
         if ordinal != 1 or reserve is None:
             raise ModelFailure("LIVE_BUSINESS_WORKER_RETRY_OR_UNPRICED_ATTEMPT")
+        if self.plan.get(
+            "protocol"
+        ) == SCOPED_PROTOCOL and not self.gate.policy.admitted_logical_phase(self.plan, logical_id):
+            raise ModelFailure("LIVE_BUSINESS_WORKER_UNPLANNED_NATIVE_PHASE")
         remaining = self.audit.begin_attempt(logical_id, ordinal, spec, reserve, registry, **kwargs)
         self.stack.enter_context(
             self.gate.attempt(_attempt_binding(self.plan, self.audit, logical_id, ordinal, reserve))

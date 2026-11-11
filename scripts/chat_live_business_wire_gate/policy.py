@@ -12,6 +12,15 @@ import stat
 from contextlib import contextmanager
 
 PROTOCOL = "p5-live-business-wire-v1"
+SCOPED_PROTOCOL = "p5-live-business-wire-v2"
+SCOPES = {
+    "SINGLE": ("C001", "O9902", ["L01"]),
+    "MULTI": ("C001", "DEV-ORDER-04", ["L01", "L02"]),
+}
+_ROUTE_PHASES = {
+    "SINGLE": {"single"},
+    "MULTI": {"fact", "policy", "verify-0", "verify-1", "recheck"},
+}
 URL = "https://api.openai.com/v1/responses"
 MODEL = "gpt-6.1-terra"
 CAPS = {"VISION": (1, 50_000, 44_500, 900), "TEXT": (8, 400_000, 39_720, 1800)}
@@ -68,7 +77,7 @@ def validate_plan(plan):
     _require(kind in CAPS, "PLAN_KIND")
     posts, total, reserve, output = CAPS[kind]
     _require(
-        plan.get("protocol") == PROTOCOL
+        plan.get("protocol") in {PROTOCOL, SCOPED_PROTOCOL}
         and plan.get("model") == MODEL
         and all(_identity(plan.get(key)) for key in (*_BINDING_IDS, "campaign_id"))
         and all(
@@ -82,6 +91,23 @@ def validate_plan(plan):
         ),
         "PLAN_LIMITS",
     )
+    if plan["protocol"] == SCOPED_PROTOCOL:
+        route = plan.get("expected_route")
+        scope = plan.get("case_scope")
+        _require(
+            isinstance(route, str)
+            and route in SCOPES
+            and isinstance(scope, dict)
+            and scope.keys() == {"customer_id", "order_id", "line_ids", "order_version"}
+            and (scope["customer_id"], scope["order_id"], scope["line_ids"]) == SCOPES[route]
+            and type(scope["order_version"]) is int
+            and scope["order_version"] == 1,
+            "PLAN_NATIVE_CASE_SCOPE",
+        )
+    else:
+        _require(
+            "case_scope" not in plan and "expected_route" not in plan, "PLAN_NATIVE_CASE_SCOPE"
+        )
     if kind == "VISION":
         _require(
             all(_hashes(plan.get(key)) for key in ("original_sha256s", "sent_sha256s")),
@@ -120,6 +146,14 @@ def _valid_text_pin(binding):
     )
 
 
+def admitted_logical_phase(plan, logical_id):
+    """Test the expected v2 text phase before starting a native reservation."""
+    if plan["protocol"] != SCOPED_PROTOCOL or plan["kind"] != "TEXT":
+        return True
+    match = re.fullmatch(r"p4:compact-v7:([a-z0-9-]+):[0-7]", logical_id)
+    return bool(match and match[1] in _ROUTE_PHASES[plan["expected_route"]])
+
+
 def validate_binding(plan, binding):
     _require(isinstance(binding, dict), "ATTEMPT_REQUIRED")
     logical = binding.get("native_logical_id")
@@ -134,6 +168,12 @@ def validate_binding(plan, binding):
         and 0 < reserve <= plan["per_post_reserved_microusd"],
         "NATIVE_ATTEMPT_BINDING",
     )
+    if plan["protocol"] == SCOPED_PROTOCOL:
+        _require(
+            binding.get("case_scope") == plan["case_scope"]
+            and binding.get("expected_route") == plan["expected_route"],
+            "NATIVE_CASE_SCOPE_CHANGED",
+        )
     if plan["kind"] == "VISION":
         _require(
             re.fullmatch(r"vision:[a-f0-9]{64}", logical)
@@ -147,6 +187,12 @@ def validate_binding(plan, binding):
         and re.fullmatch(r"p4:compact-v7:(single|fact|policy|verify-[01]|recheck):[0-7]", logical),
         "NATIVE_TEXT_SCOPE",
     )
+
+    if plan["protocol"] == SCOPED_PROTOCOL:
+        _require(
+            admitted_logical_phase(plan, logical),
+            "NATIVE_ROUTE_PHASE",
+        )
 
 
 def _text(content):
@@ -447,6 +493,13 @@ def send(directory, plan, binding, request, api_key, transport):
                 and row["campaign_id"] == plan["campaign_id"]
                 and row["wire_reserved_microusd"] == plan["per_post_reserved_microusd"]
                 and all(row[key] == plan[key] for key in _BINDING_IDS)
+                and (
+                    plan["protocol"] != SCOPED_PROTOCOL
+                    or (
+                        row.get("case_scope") == plan["case_scope"]
+                        and row.get("expected_route") == plan["expected_route"]
+                    )
+                )
                 and row["request_sha256"] == settled["request_sha256"]
                 and type(settled.get("http_status")) is int
                 and 100 <= settled["http_status"] <= 599,
@@ -493,6 +546,11 @@ def send(directory, plan, binding, request, api_key, transport):
             "model": plan["model"],
             "output_tokens": plan["output_tokens"],
             "native_scope_pin": pin,
+            **(
+                {"case_scope": plan["case_scope"], "expected_route": plan["expected_route"]}
+                if plan["protocol"] == SCOPED_PROTOCOL
+                else {}
+            ),
             "wire_reserved_microusd": plan["per_post_reserved_microusd"],
             **{
                 key: binding[key]

@@ -334,3 +334,70 @@ def test_v7_wrong_evidence_and_unpaired_tool_output_are_denied():
             httpx.Request("POST", policy.URL, json=body, headers=request.headers),
             KEY,
         )
+
+
+def _scoped(plan, binding, route):
+    customer, order, lines = policy.SCOPES[route]
+    scope = {
+        "customer_id": customer,
+        "order_id": order,
+        "line_ids": lines,
+        "order_version": 1,
+    }
+    return (
+        {**plan, "protocol": policy.SCOPED_PROTOCOL, "case_scope": scope, "expected_route": route},
+        {**binding, "case_scope": scope, "expected_route": route},
+    )
+
+
+def test_v2_requires_pinned_fixture_order_version_lines_and_route():
+    plan, binding = _fixture("TEXT")
+    scoped, native = _scoped(plan, binding, "MULTI")
+    policy.validate_plan(scoped)
+    with pytest.raises(policy.WireDenied, match="NATIVE_ROUTE_PHASE"):
+        policy.validate_binding(scoped, native)
+    fact = {**native, "native_logical_id": "p4:compact-v7:fact:0"}
+    policy.validate_binding(scoped, fact)
+    with pytest.raises(policy.WireDenied, match="NATIVE_CASE_SCOPE_CHANGED"):
+        policy.validate_binding(
+            scoped, {**fact, "case_scope": {**fact["case_scope"], "order_version": 2}}
+        )
+    with pytest.raises(policy.WireDenied, match="PLAN_NATIVE_CASE_SCOPE"):
+        policy.validate_plan({**scoped, "expected_route": "SINGLE"})
+    with pytest.raises(policy.WireDenied, match="PLAN_NATIVE_CASE_SCOPE"):
+        policy.validate_plan({**scoped, "protocol": policy.PROTOCOL})
+    ordinary, native = _scoped(plan, binding, "SINGLE")
+    policy.validate_plan(ordinary)
+    policy.validate_binding(ordinary, native)
+    with pytest.raises(policy.WireDenied, match="NATIVE_ROUTE_PHASE"):
+        policy.validate_binding(
+            ordinary, {**native, "native_logical_id": "p4:compact-v7:verify-0:0"}
+        )
+
+
+def test_v2_complex_fact_uses_same_wire_caps_and_journals_scoped_route(tmp_path):
+    plan, binding = _scoped(*_fixture("TEXT"), "MULTI")
+    native = {**binding, "native_logical_id": "p4:compact-v7:fact:0"}
+    request = _request(plan, native)
+    body = json.loads(request.content)
+    body["input"][0]["content"] = "调查角色 fact。"
+    content = json.loads(body["input"][1]["content"])
+    del content["frozen_input"]["policy_context"]
+    body["input"][1]["content"] = json.dumps(content)
+    _lock(tmp_path)
+    policy.send(
+        tmp_path,
+        plan,
+        native,
+        httpx.Request("POST", policy.URL, json=body, headers=request.headers),
+        KEY,
+        lambda _: httpx.Response(200, json={}),
+    )
+    receipt = json.loads((tmp_path / "admission-01.json").read_bytes())
+    assert receipt["case_scope"] == plan["case_scope"]
+    assert (receipt["expected_route"], receipt["role"], receipt["phase"]) == (
+        "MULTI",
+        "fact",
+        "fact",
+    )
+    assert receipt["wire_reserved_microusd"] == 39_720
