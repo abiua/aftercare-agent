@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from aftercare.auth import UserContext
 from aftercare.business.errors import BusinessError
 from aftercare.business.models import Material
-from aftercare.business.rules import digest
+from aftercare.business.rules import digest, now, utc
 from aftercare.business.service import BusinessService
 from aftercare.business.storage import verify_object
 from aftercare.conversations.decisions import ConversationDecisions
@@ -20,6 +20,7 @@ from aftercare.conversations.service import ConversationService
 from aftercare.conversations.tables import Attachment, Conversation
 from aftercare.db import Base, User
 from aftercare.decisions.contracts import Candidate, DecisionScope, Option
+from aftercare.decisions.service import DecisionService
 from aftercare.decisions.tables import DecisionSnapshot
 from aftercare.evaluation.chat.manifest import bound_rows
 from aftercare.evaluation.runner import NamespacedObjects, _model_attempts, _namespace
@@ -242,7 +243,9 @@ def _sum_attempts(attempts, field):
 
 
 def _elapsed(start, end):
-    return round((end - start).total_seconds() * 1000) if start and end else None
+    if start is None or end is None or utc(end) < utc(start):
+        return None
+    return round((utc(end) - utc(start)).total_seconds() * 1000)
 
 
 def _failure(status, reason):
@@ -412,6 +415,16 @@ def _audit(engine, storage, row, source, controls):
             None,
         )
         settled = run.updated_at if not unknown else None
+        elapsed_pairs = {
+            "queued_ms": (run.created_at, processing),
+            "worker_ms": (processing, settled),
+            "candidate_persisted_ms": (run.created_at, snapshot.created_at if snapshot else None),
+        }
+        elapsed = {key: _elapsed(*pair) for key, pair in elapsed_pairs.items()}
+        invalid_clock_order = any(
+            start is not None and end is not None and elapsed[key] is None
+            for key, (start, end) in elapsed_pairs.items()
+        )
         comparable = valid and route is not None
         result = {
             "status": "FAILED" if not valid else "UNKNOWN" if unknown else run.status,
@@ -445,12 +458,9 @@ def _audit(engine, storage, row, source, controls):
             "unknown_usage_attempts": sum(item["usage"] is None for item in attempts),
             "started_at": run.created_at.isoformat(),
             "settled_at": settled.isoformat() if settled else None,
-            "queued_ms": _elapsed(run.created_at, processing),
-            "worker_ms": _elapsed(processing, settled),
-            "candidate_persisted_ms": _elapsed(run.created_at, snapshot.created_at)
-            if snapshot
-            else None,
-            "latency_censored": unknown,
+            **elapsed,
+            "latency_censored": unknown or invalid_clock_order,
+            "latency_issue": "CLOCK_ORDER_INVALID" if invalid_clock_order else None,
         }
         media = "IMAGE"
         try:
@@ -510,6 +520,7 @@ class ChatEvaluationRunner:
             "prompt": PROMPT_VERSION,
             "catalogue": CATALOGUE_VERSION,
             "retrieval": "BM25",
+            "latency_version": "runtime-utc-v1",
         }
 
     def run(self, manifest, campaign, cases):
@@ -610,11 +621,13 @@ class ChatEvaluationRunner:
                 settled = agent.get(cloned.case_id, run_id, case.actor)
                 projection_error = None
                 if settled["status"] in _PROJECTABLE:
+                    frozen_decisions = ConversationDecisions(business)
+                    records = DecisionService(
+                        frozen_decisions.resolve, frozen_decisions.validate, clock=now
+                    )
                     try:
                         with Session(engine) as db, db.begin():
-                            project_candidate(
-                                db, ConversationDecisions(business).records, case.actor, run_id
-                            )
+                            project_candidate(db, records, case.actor, run_id)
                     except BusinessError as error:
                         projection_error = error.code
                 result = _audit(engine, storage, row, source, self.controls)

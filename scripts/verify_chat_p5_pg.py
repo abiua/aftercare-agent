@@ -474,6 +474,18 @@ def _worker(staged, output, stack_id, system_id, *, recover=False):
         )
         _check(count == sum(len(row["attempts"]) for row in first["rows"]), "P5_PG_ATTEMPT_COUNT")
         _check(len(first["rows"]) == len(CASES) * len(ARMS), "P5_PG_ROW_COUNT")
+        _check(
+            all(
+                "latency_issue" in row
+                and row["latency_issue"] is None
+                and all(
+                    type(row.get(field)) is int and row[field] >= 0
+                    for field in ("queued_ms", "worker_ms", "candidate_persisted_ms")
+                )
+                for row in first["rows"]
+            ),
+            "P5_PG_LATENCY_INVALID",
+        )
         _check(all(row.get("route") == ARMS[row["arm"]] for row in first["rows"]), "P5_PG_ROUTE")
         _check(
             all(

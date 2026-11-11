@@ -79,3 +79,6 @@ root 完整非 PG 回归 981 通过、2 可选跳过、40 PG 未选，日志 `.r
 `reports/chat-p5-pg-controlled-recovered-20261111.json` 的基础设施受控验收为 PASSED：复用原 5200/58362 栈、两个 READY 源和原 sentinel，仅运行修复镜像验证器；原失败报告 SHA 与旧 lock-only 清单目录保持不变。普通案三臂 COMPLETED，复杂案三臂 NEEDS_REVIEW，六份原生 P3 候选及隔离检查点均存在；复杂 MULTI 定向补查 fact/package。原图及业务材料逐字节回读，活动租约竞争被拒，独立 started/ready 后 Agent 启动前中断行重开两次 UNKNOWN/null费用/无新增调用。以上是受控 worker core，不是付费模型、独立人审或实际 Celery 调度比较。
 
 root 审查发现所有六行 candidate_persisted_ms 为负：冻结业务时间与实际运行时间混用。该字段无效，原报告保留原值，本次不得报告候选耗时通过或用于性能比较。计时分离修复和更严格验收约束正在实施。其余结构结果还需独立只读复核，跨 schema 盲审登记仍在开发。
+
+
+独立只读 PG 复核完成：6 臂各 1 运行及对应 AGENT P3、仅自身线程的持久检查点；尝试 2/5/5/2/5/7 共26次，检查点32条，臂和public执行均0。UNKNOWN中断臂无运行、尝试或候选。原报告及旧清单hash一致，验证器已移除。计时修复改用实际UTC保存候选，同时冻结政策时点不变；新增 runtime-utc-v1 区分旧收据，时钟逆序返回未知及明确原因。root 三项定向回归通过，新PG验收脚本拒绝负耗时；尚未再次真实PG验证新计时。

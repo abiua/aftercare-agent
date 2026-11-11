@@ -20,10 +20,11 @@ from test_conversations import client as _client
 from test_conversations import send
 from test_conversations import system as _system
 
+from aftercare.business.rules import utc
 from aftercare.conversations.tables import Conversation
 from aftercare.decisions.tables import DecisionSnapshot
 from aftercare.evaluation.chat.manifest import ARMS, Manifest, bound_rows
-from aftercare.evaluation.chat.runner import ChatEvaluationRunner, FrozenCase
+from aftercare.evaluation.chat.runner import ChatEvaluationRunner, FrozenCase, _elapsed
 from aftercare.evaluation.runner import _namespace
 from aftercare.intelligence.models import ModelRunner, Registry
 from aftercare.intelligence.service import AgentService, RunAudit
@@ -162,7 +163,7 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
         SUPPORT,
         conversation.id,
         conversation.analysis_issue_id,
-        datetime.now(UTC),
+        datetime.now(UTC) - timedelta(hours=1),
         "controlled synthetic fixture",
     )
 
@@ -213,6 +214,19 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
     assert len({row["input_sha256"] for row in rows}) == 1
     assert len({row["run_id"] for row in rows}) == 3
     assert len({row["snapshot_id"] for row in rows}) == 3
+    for row in rows:
+        assert row["candidate_persisted_ms"] >= 0 and row["latency_issue"] is None
+        arm = create_engine(f"sqlite:///{manifest.directory / (_namespace(row['id']) + '.sqlite')}")
+        try:
+            with Session(arm) as db:
+                run = db.get_one(AgentRun, row["run_id"])
+                snapshot = db.get_one(DecisionSnapshot, row["snapshot_id"])
+                assert utc(snapshot.created_at) >= utc(run.created_at) > case.decision_at
+                assert snapshot.input["frozen_context"]["policy_catalogue"]["decision_at"] == (
+                    case.decision_at.isoformat()
+                )
+        finally:
+            arm.dispose()
     if eligible:
         assert all(row["status"] == "COMPLETED" for row in rows), rows
         assert all(row["program_checks"]["refund"]["status"] == "PASSED" for row in rows)
@@ -349,3 +363,13 @@ def test_frozen_scope_across_arms_and_interruption_is_not_resent(
     with pytest.raises(ValueError, match="CHAT_EVAL_RECEIPT_BINDING_MISMATCH"):
         runner.run(manifest, "paired-fixture", [case])
     assert len(calls) == (26 if eligible else 0)
+
+
+def test_elapsed_rejects_negative_order_and_normalizes_clock_offsets():
+    start = datetime.fromisoformat("2026-11-11T10:00:00+08:00")
+    before = datetime.fromisoformat("2026-11-11T01:59:59.999+00:00")
+    after = datetime.fromisoformat("2026-11-10T21:00:00.125-05:00")
+    assert _elapsed(start, before) is None
+    assert _elapsed(start, after) == 125
+    assert _elapsed(start, after.astimezone(UTC).replace(tzinfo=None)) == 125
+    assert _elapsed(start, None) is None
