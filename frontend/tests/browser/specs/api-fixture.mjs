@@ -460,6 +460,30 @@ export const test = base.extend({
         if (path === `${runPath}/${run.id}`) return json(route, run);
         if (path === `${runPath}/${run.id}/events`) return json(route, state.investigation);
       }
+      if (state.materialReview && path.startsWith(`/api/cases/${originalCaseId}`)) {
+        const casePath = `/api/cases/${originalCaseId}`;
+        const photos = [material, {...material, id: 'fixture-parcel', kind: 'PARCEL', filename: 'fixture-parcel.png'}];
+        const reviews = state.materialReview.saved ? [state.materialReview.saved] : [];
+        if (method === 'GET' && path === casePath) {
+          return json(route, {
+            case: {...originalCase, version: reviews.length ? 6 : 5, materials_version: 2},
+            order: {...orders[0], items: [{...orders[0].items[0], quantity: 2}, ...orders[1].items],
+              products: [...orders[0].products, ...orders[1].products]},
+            policies: [], materials: photos, reviews: role === 'support' ? reviews : reviews.map((row) => ({...row, observations: undefined})),
+            ledger: [], versions: {}, facts: {}, proposals: [], approvals: [],
+            eligibility: {status: 'HUMAN_REVIEW', actions: [], lines: [], policy_ids: []},
+          });
+        }
+        if (method === 'GET' && photos.some(({id}) => path === `${casePath}/materials/${id}/content`)) {
+          return route.fulfill({status: 200, contentType: 'image/png', body: chatPhoto});
+        }
+        if (method === 'POST' && path === `${casePath}/material-reviews` && role === 'support') {
+          state.materialReview.saved = {id: 'fixture-material-review', materials_version: 2,
+            decision: body.decision, notes: body.notes, reviewer_id: users.support.user_id, created_at: createdAt,
+            ...(body.observations && {observations: body.observations.map((item) => ({...item, source: 'HUMAN_MATERIAL_REVIEW'}))})};
+          return json(route, state.materialReview.saved, 201);
+        }
+      }
       if (method === 'GET' && (path === `/api/cases/${originalCaseId}` || (state.created && path === `/api/cases/${newCaseId}`))) {
         const current = path.endsWith(newCaseId) ? state.created : originalCase;
         const uploaded = state.uploads.length > 0 && current.id === originalCaseId;

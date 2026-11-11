@@ -6,13 +6,15 @@ from datetime import datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
+from pydantic import TypeAdapter, ValidationError
 from sqlalchemy import Engine, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, undefer
 
 from aftercare.auth import UserContext
 from aftercare.config import Settings
 from aftercare.intelligence.policy_versions import resolve_policies
 
+from .contracts import MaterialReviewObservations
 from .errors import BusinessError
 from .models import (
     Approval,
@@ -48,6 +50,7 @@ from .storage import ObjectStore, S3ObjectStore, validate_image, verify_object
 __all__ = ["BusinessService", "initialize"]
 
 APPROVAL_TTL = timedelta(minutes=15)
+_REVIEW_OBSERVATIONS = TypeAdapter(MaterialReviewObservations)
 FACT_VALUES = {
     "fulfillment_status": {"UNSHIPPED", "SHIPPED", "UNVERIFIED"},
     "interception_status": {"PENDING", "CONFIRMED", "FAILED", "UNVERIFIED"},
@@ -101,8 +104,8 @@ def _material_json(row: Material) -> dict:
     return _row(row, "id", "kind", "sha256", "content_type", "size", "created_at")
 
 
-def _review_json(row: MaterialReview) -> dict:
-    return _row(
+def _review_json(row: MaterialReview, *, include_observations=False) -> dict:
+    result = _row(
         row,
         "id",
         "materials_version",
@@ -112,6 +115,26 @@ def _review_json(row: MaterialReview) -> dict:
         "reviewer_id",
         "created_at",
     )
+    if include_observations and row.observations is not None:
+        result["observations"] = row.observations
+    return result
+
+
+def _review_observations(observations):
+    if observations is None:
+        return None
+    try:
+        parsed = _REVIEW_OBSERVATIONS.validate_python(observations)
+    except ValidationError:
+        raise BusinessError(
+            "INVALID_REVIEW_OBSERVATIONS", "材料观察格式或数量无效。", 422
+        ) from None
+    if len({item.material_id for item in parsed}) != len(parsed):
+        raise BusinessError("INVALID_REVIEW_OBSERVATIONS", "同一材料只能登记一条观察。", 422)
+    return [
+        item.model_dump(exclude_none=True)
+        for item in sorted(parsed, key=lambda item: item.material_id)
+    ]
 
 
 def _proposal_json(row: Proposal) -> dict:
@@ -577,7 +600,14 @@ class BusinessService:
         }
 
     def _context(
-        self, db: Session, case: Case, order: Order, *, policy_documents=None, decision_at=None
+        self,
+        db: Session,
+        case: Case,
+        order: Order,
+        *,
+        policy_documents=None,
+        decision_at=None,
+        include_review_observations=False,
     ) -> dict:
         order_data = self._order_json(db, order)
         resolution, policies = self._case_policies(
@@ -588,6 +618,13 @@ class BusinessService:
         ledger = self._ledger(db, order)
         balances = self._balances(db, case, order_data, ledger)
         binding = self._binding(case, order, resolution["snapshot"])
+        review_rows = (
+            select(MaterialReview)
+            .where(MaterialReview.case_id == case.id)
+            .order_by(MaterialReview.materials_version)
+        )
+        if include_review_observations:
+            review_rows = review_rows.options(undefer(MaterialReview.observations))
         return {
             "case": _case_json(case),
             "order": order_data,
@@ -595,14 +632,11 @@ class BusinessService:
             "policy_resolution": resolution,
             "materials": materials,
             "reviews": [
-                {**_review_json(row), "effective": row.materials_version == case.materials_version}
-                for row in db.scalars(
-                    select(MaterialReview)
-                    .where(
-                        MaterialReview.case_id == case.id,
-                    )
-                    .order_by(MaterialReview.materials_version)
-                )
+                {
+                    **_review_json(row, include_observations=include_review_observations),
+                    "effective": row.materials_version == case.materials_version,
+                }
+                for row in db.scalars(review_rows)
             ],
             "ledger": [
                 _execution_json(row)
@@ -629,10 +663,17 @@ class BusinessService:
             "facts": case.facts,
         }
 
-    def context(self, case_id: str, user: UserContext) -> dict:
+    def context(
+        self, case_id: str, user: UserContext, *, include_review_observations=False
+    ) -> dict:
         with self._snapshot() as db:
             case, order = self._case(db, case_id, user)
-            return self._context(db, case, order)
+            return self._context(
+                db,
+                case,
+                order,
+                include_review_observations=include_review_observations and user.role == "support",
+            )
 
     def refund_lookup(self, case_id: str, user: UserContext, execution_ids: list[str]) -> dict:
         with self._snapshot() as db:
@@ -674,7 +715,9 @@ class BusinessService:
     def detail(self, case_id: str, user: UserContext) -> dict:
         with self._snapshot() as db:
             case, order = self._case(db, case_id, user)
-            data = self._context(db, case, order)
+            data = self._context(
+                db, case, order, include_review_observations=user.role == "support"
+            )
             if case.intent == "refund_status":
                 data["refund_lookup_available"] = True
             proposals = list(
@@ -893,13 +936,18 @@ class BusinessService:
         notes: str,
         expected_version: int,
         idempotency_key: str,
+        observations: list[dict] | None = None,
     ) -> dict:
         _require_role(user, "support")
         notes = notes.strip()
         if decision not in {"APPROVED", "REJECTED", "NEEDS_MORE"} or not 1 <= len(notes) <= 2000:
             raise BusinessError("INVALID_REVIEW", "请选择材料审核意见并填写理由。", 422)
+        observations = _review_observations(observations)
         scope = f"material-review:{case_id}"
-        signature = digest([decision, notes, expected_version])
+        request = [decision, notes, expected_version]
+        if observations is not None:
+            request.append(observations)
+        signature = digest(request)
         with Session(self.engine) as db:
             case, _ = self._case(db, case_id, user)
             replay = self._replay(db, user, scope, idempotency_key, signature)
@@ -921,6 +969,8 @@ class BusinessService:
             _version(case.version, expected_version)
             if self._current_review(db, case) is not None:
                 raise BusinessError("MATERIAL_REVIEW_EXISTS", "当前材料版本已有人工审核意见。")
+            if observations is not None:
+                self._validate_material_review_scope(db, case, order, snapshot, observations)
             if decision == "APPROVED" and case.intent in {"damaged", "wrong_item"}:
                 _, documents = self._case_policies(db, case, self._order_json(db, order))
                 policies = {row["id"]: row for row in documents}
@@ -940,6 +990,11 @@ class BusinessService:
                 material_ids=[material.id for material in snapshot],
                 decision=decision,
                 notes=notes,
+                observations=(
+                    [{**item, "source": "HUMAN_MATERIAL_REVIEW"} for item in observations]
+                    if observations is not None
+                    else None
+                ),
                 reviewer_id=user.user_id,
                 created_at=self.clock(),
             )
@@ -956,7 +1011,41 @@ class BusinessService:
                     "materials_version": case.materials_version,
                 },
             )
-            return self._remember(db, user, scope, idempotency_key, signature, _review_json(row))
+            return self._remember(
+                db,
+                user,
+                scope,
+                idempotency_key,
+                signature,
+                _review_json(row, include_observations=True),
+            )
+
+    def _validate_material_review_scope(self, db, case, order, materials, observations):
+        material_ids = {row.id for row in materials}
+        scoped_lines = set(case.line_ids)
+        quantities = {
+            row.line_id: row.quantity
+            for row in self._lines(db, order.id)
+            if row.line_id in scoped_lines
+        }
+        confirmed = {}
+        for item in observations:
+            line = item.get("line_id")
+            quantity = item.get("affected_quantity")
+            if item["material_id"] not in material_ids or (
+                line is not None and line not in quantities
+            ):
+                raise BusinessError(
+                    "INVALID_REVIEW_OBSERVATIONS", "材料观察超出当前材料或订单行范围。", 422
+                )
+            if quantity is not None and (
+                quantity > quantities[line] or confirmed.setdefault(line, quantity) != quantity
+            ):
+                raise BusinessError(
+                    "INVALID_REVIEW_OBSERVATIONS",
+                    "受影响总数超出订单数量或同一订单行记录不一致。",
+                    422,
+                )
 
     def record_facts(
         self,

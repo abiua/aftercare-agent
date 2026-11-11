@@ -10,13 +10,13 @@ from pathlib import Path
 from re import fullmatch
 from sys import modules
 
-from sqlalchemy import create_engine, func, insert, select
+from sqlalchemy import create_engine, func, insert, inspect, select
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from aftercare.auth import UserContext
 from aftercare.business.errors import BusinessError
-from aftercare.business.models import Material
+from aftercare.business.models import Material, MaterialReview
 from aftercare.business.rules import digest, now, utc
 from aftercare.business.service import BusinessService
 from aftercare.business.storage import verify_object
@@ -222,7 +222,20 @@ def _populate(source, engine, storage):
         for table in tables:
             if not table.name.startswith("business_") and table.name not in _INPUT_CHAT:
                 continue
-            rows = list(original.execute(select(table)).mappings())
+            query = select(table)
+            if table is MaterialReview.__table__:
+                mapping = original.get_execution_options().get("schema_translate_map") or {}
+                schema = mapping.get(table.schema, table.schema)
+                present = {
+                    column["name"]
+                    for column in inspect(original).get_columns(table.name, schema=schema)
+                }
+                missing = set(table.c.keys()) - present
+                if missing == {"observations"}:
+                    query = select(*(column for column in table.c if column.name in present))
+                elif missing:
+                    raise ValueError("CHAT_EVAL_MATERIAL_REVIEW_SCHEMA_MISMATCH")
+            rows = list(original.execute(query).mappings())
             if rows:
                 destination.execute(insert(table), rows)
         destination.execute(

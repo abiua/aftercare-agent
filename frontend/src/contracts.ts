@@ -37,8 +37,13 @@ export type IntakePreview = {
   reason: string | null;
 };
 export type Material = {id: string; kind: string; filename?: string; content_type?: string; created_at: string};
+export type MaterialFinding = 'VISIBLE_DAMAGE' | 'NO_VISIBLE_DAMAGE' | 'UNCERTAIN';
+export type MaterialObservationInput = {
+  material_id: string; finding: MaterialFinding; line_id?: string; affected_quantity?: number;
+};
 export type MaterialReview = {
   id: string; materials_version: number; decision: string; notes: string; reviewer_id: string; created_at: string;
+  observations?: (MaterialObservationInput & {source: 'HUMAN_MATERIAL_REVIEW'})[] | null;
 };
 export type Action = 'REFUND' | 'REPLACE';
 export type ProposalLine = {line_id: string; amount_cents?: number; quantity?: number};

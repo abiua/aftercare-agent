@@ -24,6 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
 from aftercare.auth import UserContext, current_user
 
+from .contracts import MaterialReviewObservations
 from .errors import BusinessError
 from .service import BusinessService
 from .storage import MAX_BYTES
@@ -127,6 +128,7 @@ class CreateCase(Mutation):
 class ReviewMaterials(Mutation):
     decision: Literal["APPROVED", "REJECTED", "NEEDS_MORE"]
     notes: Notes
+    observations: MaterialReviewObservations | None = None
 
 
 class ProposedLine(BaseModel):
@@ -232,7 +234,7 @@ def material_link(
 
 @router.get("/cases/{case_id}/material-reviews")
 def material_reviews(case_id: str, service: Business, user: Actor):
-    return {"items": service.context(case_id, user)["reviews"]}
+    return {"items": service.context(case_id, user, include_review_observations=True)["reviews"]}
 
 
 @router.post("/cases/{case_id}/material-reviews", status_code=201)

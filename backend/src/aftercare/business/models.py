@@ -137,6 +137,7 @@ class MaterialReview(Base):
     material_ids: Mapped[list] = mapped_column(JSON)
     decision: Mapped[str] = mapped_column(String(24))
     notes: Mapped[str] = mapped_column(Text)
+    observations: Mapped[list[dict] | None] = mapped_column(JSON(none_as_null=True), deferred=True)
     reviewer_id: Mapped[str] = mapped_column(String(128))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
