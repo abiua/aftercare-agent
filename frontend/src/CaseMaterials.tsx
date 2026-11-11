@@ -98,7 +98,7 @@ function MaterialEditor({api, base, editor, currentVersion, refresh, close, done
   return <Modal title={upload ? '上传证明照片' : '记录人工审核'} open footer={null} onCancel={actions.busy ? undefined : close}>
     <Form layout="vertical" initialValues={{kind: 'ITEM'}} onFinish={async (values: {kind?: string; decision?: string; notes?: string}) => {
       if (stale || (upload && !file)) return;
-      const message = upload ? '照片已提交，等待人工审核。' : '已记录本次人工审核。';
+      const message = upload ? '照片已提交，当前审核状态请查看材料记录。' : '已记录本次人工审核。';
       if (upload && file) {
         const body = new FormData();
         body.set('kind', values.kind ?? 'ITEM');

@@ -63,7 +63,7 @@ test('mock upload: customer constructs multipart material request in the browser
   const content = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a3FYAAAAASUVORK5CYII=', 'base64');
   await dialog.locator('#material-file').setInputFiles({name: 'fixture-proof.png', mimeType: 'image/png', buffer: content});
   await dialog.getByRole('button', {name: '提交照片'}).click();
-  await expect(page.getByText('照片已提交，等待人工审核。', {exact: true})).toBeVisible();
+  await expect(page.getByText('照片已提交，当前审核状态请查看材料记录。', {exact: true})).toBeVisible();
   await expect(page.getByText('fixture-proof.png', {exact: true})).toBeVisible();
   expect(fixtureApi.uploads).toHaveLength(1);
   const [upload] = fixtureApi.uploads;

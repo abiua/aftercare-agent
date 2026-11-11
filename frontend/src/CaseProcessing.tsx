@@ -165,7 +165,7 @@ function ProcessingEditor({api, base, editor, detail, refresh, close, done}: {
       path += `/executions/${segment(editor.execution.id)}/reconcile`;
     }
     const messages = {
-      proposal: '处理方案已提交，等待审批。',
+      proposal: '处理方案已提交，当前审批状态请查看方案记录。',
       approval: '已记录审批结论。',
       execute: '已收到模拟执行响应，请以回执状态为准。',
       reconcile: '核对请求已完成，请查看最新执行状态。',
