@@ -36,7 +36,7 @@ function AnnotationHistory({review, sections}: {review: EvalReview; sections: Re
   </Evidence>;
 }
 
-export function EvaluationReview({api, result, refresh}: {api: Client; result: EvalResult; refresh: () => void}) {
+export function EvaluationReview({api, result, refresh, ready}: {api: Client; result: EvalResult; refresh: () => void; ready: boolean}) {
   const actions = useActions(api);
   const [reviewVersion, setReviewVersion] = useState<number>();
   const [form] = Form.useForm<ReviewForm>();
@@ -61,7 +61,7 @@ export function EvaluationReview({api, result, refresh}: {api: Client; result: E
     </Card>
     <Feedback error={actions.error} notice={actions.notice} />
     {reviewVersion === undefined && canReview && <div>
-      <Button type="primary" onClick={() => setReviewVersion(result.version)}>添加人工复核</Button>
+      <Button type="primary" disabled={!ready} onClick={() => setReviewVersion(result.version)}>添加人工复核</Button>
     </div>}
     {reviewVersion !== undefined && <Form form={form} layout="vertical" onValuesChange={() => setLimit('')}
       disabled={actions.busy} onFinish={async ({decision, notes, items, replaceConfirmed}) => {

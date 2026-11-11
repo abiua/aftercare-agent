@@ -139,6 +139,7 @@ export type ScenarioContributors = {
 };
 export type EvaluationCapabilities = {
   eval_import?: boolean; eval_retry?: boolean; eval_gates?: boolean; eval_supplemental_usage?: boolean;
+  chat_blind_review?: boolean;
   eval_scenario_metrics?: boolean; eval_progress_events?: boolean;
 };
 export type ReleaseThresholds = {

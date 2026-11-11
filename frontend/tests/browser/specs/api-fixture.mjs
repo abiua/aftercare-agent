@@ -510,9 +510,44 @@ export const test = base.extend({
         return denied(route, 403, 'EVALUATION_FORBIDDEN', '评测工作台仅供评测人员使用。');
       }
       if (method === 'GET' && path === '/api/evaluation/capabilities') {
+        if (state.blindCapabilityError) return denied(route, 503, 'CAPABILITY_UNAVAILABLE', '评测服务暂时不可用。');
         return json(route, {eval_import: false, eval_retry: true, eval_gates: false,
           ...(state.scenarioEnabled && {eval_scenario_metrics: true}),
-          ...(state.progressMode && {eval_progress_events: true})});
+          ...(state.progressMode && {eval_progress_events: true}),
+          chat_blind_review: !!state.blindReview});
+      }
+      if (state.blindReview && path.startsWith('/api/evaluation/chat-blind-reviews')) {
+        const {task, candidates, posts} = state.blindReview;
+        const base = '/api/evaluation/chat-blind-reviews';
+        const detail = `${base}/${task.id}`;
+        if (method === 'GET' && path === base) {
+          const {id, version, input_sha256, case_label, status} = task;
+          return json(route, {items: [{id, version, input_sha256, case_label, status}], next_after: null});
+        }
+        if (method === 'GET' && path === detail) return json(route, task);
+        if (method === 'GET' && path === `${detail}/images/image-1`)
+          return route.fulfill({status: 200, contentType: 'image/png', body: chatPhoto});
+        if (method === 'POST') {
+          const stage = path.slice(detail.length + 1);
+          posts.push({stage, body, key: headers['idempotency-key']});
+          if (body.expected_version !== task.version || state.blindReview.conflict)
+            return denied(route, 409, 'BLIND_REVIEW_STAGE_CHANGED', '阶段已变化。');
+          if (stage === 'initial' && task.status === 'BLIND') {
+            const payload = {...body};
+            delete payload.expected_version;
+            task.initial = {sha256: 'i'.repeat(64), created_at: createdAt, payload};
+            task.status = 'SEALED';
+          } else if (stage === 'reveal' && task.status === 'SEALED') {
+            task.exposure = {sha256: 'e'.repeat(64), created_at: createdAt, candidates};
+            task.status = 'REVEALED';
+          } else if (stage === 'labels' && task.status === 'REVEALED') {
+            task.labels = {sha256: 'l'.repeat(64), created_at: createdAt, payload: {items: body.items}};
+            task.status = 'LABELED';
+          } else return denied(route, 409, 'BLIND_REVIEW_STAGE_CHANGED', '阶段已变化。');
+          task.version++;
+          return json(route, task);
+        }
+        return denied(route, 404, 'BLIND_REVIEW_NOT_FOUND', '任务不存在。');
       }
       if (method === 'GET' && path === '/api/evaluation/datasets') {
         return json(route, {items: [{id: 'v0.2', name: '受控案例库', version: 'v0.2', case_count: 1}]});
@@ -646,8 +681,8 @@ export const test = base.extend({
   },
 });
 
-export async function signIn(page, role) {
-  await page.goto('/');
+export async function signIn(page, role, location = '/') {
+  await page.goto(location);
   await page.getByLabel('访问凭据').fill(tokens[role]);
   await page.getByRole('button', {name: /^登\s*录$/}).click();
   await expect(page.getByText(users[role].display_name, {exact: true})).toBeVisible();

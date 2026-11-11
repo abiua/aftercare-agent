@@ -1,3 +1,4 @@
+import { BlindReview } from './BlindReview';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, Card, Descriptions, Drawer, Form, Input, InputNumber, Modal, Progress, Select, Space, Table, Tabs, Tag } from 'antd';
 import { DownloadOutlined, ExperimentOutlined, LinkOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
@@ -22,13 +23,15 @@ const evidenceSources = ['fixture', 'live', 'fault', 'load'];
 const pending = ['QUEUED', 'RUNNING'];
 
 export function Evaluation({api, runtime}: {api: Client; runtime?: Runtime}) {
-  const datasets = useResource<Items<Dataset>>(api, `${base}/datasets`);
-  const experiments = useResource<Items<Experiment>>(api, `${base}/experiments`);
-  const capabilities = useResource<EvaluationCapabilities>(api, `${base}/capabilities`);
-  const {importEnabled, retryEnabled, gatesEnabled} = evaluationFeatures(capabilities.value, runtime?.features);
-  const imports = useResource<Items<ImportedReport>>(api, importEnabled ? `${base}/imports` : null);
-  const policies = useResource<Items<ReleasePolicy>>(api, gatesEnabled ? `${base}/gates` : null);
   const [route, setRoute] = useState(() => readEvaluationLocation(window.location.search));
+  const capabilities = useResource<EvaluationCapabilities>(api, `${base}/capabilities`);
+  const blindEnabled = !capabilities.error && capabilities.value?.chat_blind_review === true;
+  const blindScope = route.tab === 'blind';
+  const datasets = useResource<Items<Dataset>>(api, blindScope ? null : `${base}/datasets`);
+  const experiments = useResource<Items<Experiment>>(api, blindScope ? null : `${base}/experiments`);
+  const {importEnabled, retryEnabled, gatesEnabled} = evaluationFeatures(capabilities.value, runtime?.features);
+  const imports = useResource<Items<ImportedReport>>(api, importEnabled && !blindScope ? `${base}/imports` : null);
+  const policies = useResource<Items<ReleasePolicy>>(api, gatesEnabled && !blindScope ? `${base}/gates` : null);
   const [create, setCreate] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [openedImport, setOpenedImport] = useState<string>();
@@ -66,19 +69,19 @@ export function Evaluation({api, runtime}: {api: Client; runtime?: Runtime}) {
   return <div className="stack">
     <section className="hero">
       <div><div className="eyebrow">测试与评测 / 质量工作台</div><h1>测试中台</h1><p>检查每个案例的执行证据，复核失败，并对照模型与 Agent 配置。</p></div>
-      <Space wrap>
+      {!blindScope && <Space wrap>
         <Button size="large" icon={<UploadOutlined />} disabled={!importEnabled} onClick={() => setImportOpen(true)}>导入评测报告</Button>
         <Button size="large" type="primary" icon={<PlusOutlined />} disabled={!datasetRows.length} onClick={() => setCreate(true)}>新建评测实验</Button>
-      </Space>
+      </Space>}
     </section>
-    {!capabilities.loading && (!importEnabled || !retryEnabled || !gatesEnabled) &&
+    {!blindScope && !capabilities.loading && (!importEnabled || !retryEnabled || !gatesEnabled) &&
       <Alert type="info" showIcon title="部分评测操作当前不可用"
         description={`${[!importEnabled && '报告导入', !retryEnabled && '从原实验重跑', !gatesEnabled && '选择发布阈值'].filter(Boolean).join('、')}需评测服务启用支持。已有实验可继续查看。`} />}
     <Feedback error={datasets.error || experiments.error || policies.error} />
     <Card className="data-card">
       <Tabs activeKey={tab} onChange={(key) => navigate({...clearScenario, tab: key as EvaluationLocation['tab'], experiment: undefined, caseId: undefined, repetition: undefined})} items={[
-        {key: 'cases', label: '用例库', children: <CaseLibrary api={api} datasets={datasetRows} />},
-        {key: 'experiments', label: '实验与能力指标', children: <div className="stack">
+        {key: 'cases', label: '用例库', children: !blindScope && <CaseLibrary api={api} datasets={datasetRows} />},
+        {key: 'experiments', label: '实验与能力指标', children: !blindScope && <div className="stack">
           <div className="section-row"><div><h2>实验记录</h2><p className="muted">每次运行保留独立结果和配置。</p></div><Reload refresh={refresh} loading={experiments.loading} /></div>
           <Table rowKey="id" dataSource={rows} scroll={{x: 720}} loading={experiments.loading} columns={[
             {title: '实验名称', render: (_, item) => <Button type="link" className="cell-link" onClick={() => showExperiment(item.id)}>{item.name}</Button>},
@@ -88,22 +91,28 @@ export function Evaluation({api, runtime}: {api: Client; runtime?: Runtime}) {
             {title: '开始时间', render: (_, item) => time(item.created_at)},
           ]} locale={{emptyText: <Placeholder text="暂无评测实验" />}} />
         </div>},
-        {key: 'compare', label: '版本对照', children: <Compare api={api} experiments={rows} route={route}
+        {key: 'compare', label: '版本对照', children: !blindScope && <Compare api={api} experiments={rows} route={route}
           onSelection={navigate} onCase={(experiment, caseId, repetition) => navigate({...clearScenario, experiment, caseId, repetition})} />},
-        ...(importEnabled ? [{key: 'imports', label: '导入记录', children: <ImportedReports api={api} resource={imports}
+        ...(blindEnabled || blindScope ? [{key: 'blind', label: '独立盲审', children: blindScope && (blindEnabled ?
+          <BlindReview api={api} /> : capabilities.error ?
+            <Alert type="error" showIcon title="暂时无法检查盲审是否可用" description={capabilities.error}
+              action={<Reload refresh={capabilities.refresh} loading={capabilities.loading} />} /> :
+            capabilities.value ? <Alert type="info" showIcon title="当前环境未开放独立盲审" /> :
+              <Placeholder text="正在检查独立盲审是否可用" />)}] : []),
+        ...(importEnabled ? [{key: 'imports', label: '导入记录', children: !blindScope && <ImportedReports api={api} resource={imports}
           opened={openedImport} notice={importNotice} onOpen={(id) => {setOpenedImport(id); setImportNotice('');}} />}] : []),
       ]} />
     </Card>
-    {create && <ExperimentEditor api={api} runtime={runtime} datasets={datasetRows} policies={catalogue}
+    {!blindScope && create && <ExperimentEditor api={api} runtime={runtime} datasets={datasetRows} policies={catalogue}
       gatesEnabled={gatesEnabled} close={() => setCreate(false)}
       onCreated={(id) => {setCreate(false); navigate({...clearScenario, tab: 'experiments', experiment: id, caseId: undefined, repetition: undefined}); refresh();}} />}
-    {importOpen && importEnabled && <ReportImport api={api} close={() => setImportOpen(false)}
+    {!blindScope && importOpen && importEnabled && <ReportImport api={api} close={() => setImportOpen(false)}
       previous={[...(imports.value?.items ?? []), ...(lastImport ? [lastImport] : [])]}
       onImported={(record, notice) => {
         setImportOpen(false); setOpenedImport(record.id); setLastImport(record); setImportNotice(notice);
         navigate({...clearScenario, tab: 'imports', experiment: undefined, caseId: undefined, repetition: undefined}); imports.refresh();
       }} />}
-    {route.experiment && <ExperimentDetails key={route.experiment} api={api} id={route.experiment}
+    {!blindScope && route.experiment && <ExperimentDetails key={route.experiment} api={api} id={route.experiment}
       caseId={route.caseId} repetition={route.repetition} catalogue={catalogue} retryEnabled={retryEnabled}
       progressEnabled={capabilities.value ? capabilities.value.eval_progress_events === true : capabilities.error ? false : undefined}
       scenarioMetricsEnabled={route.tab === 'experiments' && capabilities.value?.eval_scenario_metrics === true}
@@ -229,6 +238,7 @@ function ExperimentDetails({api, id, caseId, repetition, catalogue, retryEnabled
   const path = `${base}/experiments/${segment(id)}`;
   const resource = useResource<Experiment>(api, path);
   const [retry, setRetry] = useState(false);
+  const [drawerReady, setDrawerReady] = useState(false);
   const [filter, setFilter] = useState<string>();
   const [intent, setIntent] = useState<string>();
   const [cancelVersion, setCancelVersion] = useState<number>();
@@ -270,7 +280,7 @@ function ExperimentDetails({api, id, caseId, repetition, catalogue, retryEnabled
   const result = value?.results.find((item) => item.case_id === caseId && item.repetition === repetition);
   const eligible = !!value && value.results.some((item) => retryableStatuses.includes(item.status));
   const rows = value?.results.filter((item) => (!filter || item.status === filter) && (!intent || item.intent === intent)) ?? [];
-  return <Drawer title={value?.name ?? '评测实验'} open onClose={close} size="large" extra={<Reload refresh={refresh} loading={resource.loading} />}>
+  return <Drawer title={value?.name ?? '评测实验'} open afterOpenChange={setDrawerReady} onClose={close} size="large" extra={<Reload refresh={refresh} loading={resource.loading} />}>
     <div className="stack">
       <Feedback error={resource.error || exportError} />
       {value && <>
@@ -319,7 +329,7 @@ function ExperimentDetails({api, id, caseId, repetition, catalogue, retryEnabled
       </>}
     </div>
     {result && <ResultDetails key={result.id} api={api} result={result} supplementalUsageEnabled={supplementalUsageEnabled}
-      close={() => onCase()} refresh={refresh} />}
+      parentReady={drawerReady} close={() => onCase()} refresh={refresh} />}
     {value && retry && retryEnabled && <RetryExperiment api={api} experiment={value} close={() => setRetry(false)}
       refresh={refresh} onCreated={(id) => {setRetry(false); onExperiment(id);}} />}
     {value && cancelVersion !== undefined && <CancelExperiment api={api} path={path} version={cancelVersion} currentVersion={value.version} active={active}
@@ -355,14 +365,15 @@ function CancelExperiment({api, path, version, currentVersion, active, close, re
   </Modal>;
 }
 
-function ResultDetails({api, result, supplementalUsageEnabled, close, refresh}: {
-  api: Client; result: EvalResult; supplementalUsageEnabled: boolean; close: () => void; refresh: () => void;
+function ResultDetails({api, result, supplementalUsageEnabled, parentReady, close, refresh}: {
+  api: Client; result: EvalResult; supplementalUsageEnabled: boolean; parentReady: boolean; close: () => void; refresh: () => void;
 }) {
-  return <Drawer title={`案例 ${result.case_id} · 第 ${result.repetition} 次`} open onClose={close} size="large">
+  const [drawerReady, setDrawerReady] = useState(false);
+  return <Drawer title={`案例 ${result.case_id} · 第 ${result.repetition} 次`} open afterOpenChange={setDrawerReady} onClose={close} size="large">
     <div className="stack">
       <div><Status value={result.status} /></div>
       <EvaluationReviewReading result={result} />
-      <EvaluationReview api={api} result={result} refresh={refresh} />
+      <EvaluationReview api={api} result={result} refresh={refresh} ready={parentReady && drawerReady} />
       <Evidence title="查看程序检查、参考答案与调用费用">
         <ResultSummary result={result} />
         {supplementalUsageEnabled && <SupplementalUsage api={api} resultId={result.id} />}

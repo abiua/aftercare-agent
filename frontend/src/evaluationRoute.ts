@@ -1,5 +1,5 @@
 export type EvaluationLocation = {
-  tab: 'cases' | 'experiments' | 'compare' | 'imports';
+  tab: 'cases' | 'experiments' | 'compare' | 'imports' | 'blind';
   left?: string;
   right?: string;
   experiment?: string;
@@ -16,12 +16,12 @@ const identifier = (value: string | null) => value && /^[\w.-]{1,128}$/.test(val
 export function readEvaluationLocation(search: string): EvaluationLocation {
   const params = new URLSearchParams(search);
   const tab = params.get('eval');
-  const experiment = identifier(params.get('eval_experiment'));
+  const experiment = tab === 'blind' ? undefined : identifier(params.get('eval_experiment'));
   const caseId = identifier(params.get('eval_case'));
   const repetition = Number(params.get('eval_repeat'));
   const hasResult = experiment && caseId && Number.isSafeInteger(repetition) && repetition > 0;
   return {
-    tab: tab === 'experiments' || tab === 'compare' || tab === 'imports' ? tab : 'cases',
+    tab: tab === 'experiments' || tab === 'compare' || tab === 'imports' || tab === 'blind' ? tab : 'cases',
     left: identifier(params.get('eval_left')),
     right: identifier(params.get('eval_right')),
     experiment,
@@ -47,8 +47,8 @@ export function writeEvaluationLocation(href: string, route: EvaluationLocation)
   url.searchParams.set('eval', route.tab);
   if (route.left) url.searchParams.set('eval_left', route.left);
   if (route.right) url.searchParams.set('eval_right', route.right);
-  if (route.experiment) url.searchParams.set('eval_experiment', route.experiment);
-  if (route.experiment && route.caseId && route.repetition) {
+  if (route.tab !== 'blind' && route.experiment) url.searchParams.set('eval_experiment', route.experiment);
+  if (route.tab !== 'blind' && route.experiment && route.caseId && route.repetition) {
     url.searchParams.set('eval_case', route.caseId);
     url.searchParams.set('eval_repeat', String(route.repetition));
   }
