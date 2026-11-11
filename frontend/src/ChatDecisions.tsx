@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Card, Checkbox, Input, Modal, Select, Space, Tag } from 'antd';
 import { ApiError, errorMessage, segment, type Client } from './api';
 import type { Order, User } from './contracts';
-import { canAcceptOption, customerActions, decisionActions, decisionRef, editableMeasure, evidenceGaps, isExecutionOption, orderLineName, reviewActions, type CustomerAction, type CustomerOffer, type CustomerOfferView, type DecisionHistoryPage, type DecisionLine, type DecisionOption, type DecisionSnapshot, type EvidenceGap, type ProgramCheck, type ReviewAction, type SupportDecisionView } from './chatDecisionData';
+import { canAcceptOption, customerActions, decisionActions, decisionRef, editableMeasure, evidenceGaps, isExecutionOption, orderLineName, reviewActions, type ChatProposalHandoff, type CustomerAction, type CustomerOffer, type CustomerOfferView, type DecisionHistoryPage, type DecisionLine, type DecisionOption, type DecisionSnapshot, type EvidenceGap, type ProgramCheck, type ReviewAction, type SupportDecisionView } from './chatDecisionData';
 import { investigationReason } from './investigationMessages';
 import { useActions, useResource } from './hooks';
 import { Evidence, Feedback, Json, money, time } from './ui';
 
-type Props = {api: Client; base: string; user: User; orderId?: string | null; issueId?: string; revision: number; refreshChat: () => void};
+type Props = {api: Client; base: string; user: User; orderId?: string | null; issueId?: string; revision: number; conversationId: string; caseId?: string | null; onCase: (id: string, proposal?: ChatProposalHandoff) => void; refreshChat: () => void};
 
 export function ChatDecisions(props: Props) {
   return props.user.role === 'customer' ? <CustomerDecisionPanel {...props} /> : <SupportDecisionPanel {...props} />;
@@ -83,7 +83,7 @@ function OfferCard({api, path, offer, order, orderId, locked, refresh}: {
   </Card>;
 }
 
-function SupportDecisionPanel({api, base, issueId, revision, refreshChat}: Props) {
+function SupportDecisionPanel({api, base, issueId, revision, refreshChat, conversationId, caseId, onCase}: Props) {
   const path = `${base}/decisions`;
   const resource = useDecisionRead<SupportDecisionView>(api, path, revision);
   const actions = useActions(api);
@@ -155,6 +155,10 @@ function SupportDecisionPanel({api, base, issueId, revision, refreshChat}: Props
       <h3>客户对关联方案的回复</h3>
       <p>方案第 {view.customer_decision.offer.version} 版 · {customerActions[view.customer_decision.action]} · {time(view.customer_decision.created_at)}</p>
       {view.customer_decision.reason && <p>{view.customer_decision.reason}</p>}
+      {view.customer_decision.action === 'ACCEPT' && currentIssue && caseId && current?.input.case_id === caseId &&
+        <Button disabled={resource.loading} onClick={() => onCase(caseId, {
+          caseId, conversationId, issueId: currentIssue, offer: decisionRef(view.customer_decision!.offer),
+        })}>到工单提交已确认方案</Button>}
       <p className="muted">后续办理时还会核对方案是否有效。</p>
     </section>}
     {current && !historyId && <Space wrap>

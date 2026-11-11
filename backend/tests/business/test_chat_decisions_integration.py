@@ -717,3 +717,78 @@ def test_review_reassessment_progress_is_visible_when_previous_offer_is_stale(co
     assert env.client.get(url, headers=headers()).json()["investigation_progress"] == {
         "state": "NEEDS_SUPPORT",
     }
+
+
+def test_accepted_chat_offer_handoff_is_scoped_and_submission_pins_exact_ref(configured):
+    env = configured
+    url, case_id = _link(env)
+    path = f"/api/cases/{case_id}"
+
+    def preview():
+        response = env.client.get(path, headers=headers(SUPPORT))
+        assert response.status_code == 200, response.text
+        return response.json()["chat_proposal"]
+
+    assert preview()["status"] == "NO_OFFER"
+    offer = _offer(env, url, case_id)
+    assert preview()["status"] == "WAITING_CUSTOMER"
+    assert preview()["offer"] is None
+    _accept(env, url, offer)
+    ready = preview()
+    assert ready["status"] == "READY" and ready["case_id"] == case_id
+    assert _ref(ready["offer"]) == _ref(offer)
+    assert ready["offer"]["lines"] == offer["lines"]
+    assert "chat_proposal" not in env.client.get(path, headers=headers()).json()
+    assert "chat_proposal" not in env.client.get(path, headers=_approval_headers()).json()
+    payload = {
+        "expected_version": env.service.context(case_id, SUPPORT)["case"]["version"],
+        "action": offer["action"],
+        "lines": offer["lines"],
+        "policy_ids": offer["policy_ids"],
+        "notes": "CONTROL: submit exact accepted offer",
+        "expected_offer": _ref(offer),
+    }
+    wrong = {**payload, "expected_offer": {**_ref(offer), "id": str(uuid4())}}
+    denied = env.client.post(path + "/proposals", headers=headers(SUPPORT), json=wrong)
+    assert denied.status_code == 409 and denied.json()["detail"]["code"] == "DECISION_STALE"
+    actor_headers = headers(SUPPORT)
+    result = env.client.post(path + "/proposals", headers=actor_headers, json=payload)
+    assert result.status_code == 201, result.text
+    assert (
+        env.client.post(path + "/proposals", headers=actor_headers, json=payload).json()
+        == result.json()
+    )
+    assert (
+        env.client.post(path + "/proposals", headers=actor_headers, json=wrong).status_code == 409
+    )
+    assert _execute(env, case_id, result.json()).status_code == 409
+
+
+@pytest.mark.parametrize("change", ["withdraw", "text", "expiry"])
+def test_chat_proposal_preview_hides_no_longer_accepted_offer(configured, change):
+    from datetime import timedelta
+
+    from aftercare.decisions.tables import Offer
+
+    env = configured
+    url, case_id = _link(env)
+    offer = _offer(env, url, case_id)
+    _accept(env, url, offer)
+    if change == "withdraw":
+        answer = env.client.post(
+            url + "/decisions/offer/respond",
+            headers=headers(),
+            json={
+                "ref": _ref(offer),
+                "response": {"action": "REQUEST_CHANGE", "reason": "要换货"},
+            },
+        )
+        assert answer.status_code == 200
+    elif change == "text":
+        assert send(env.client, url, "我不要退款，要换货").status_code == 201
+    else:
+        with Session(env.db) as db, db.begin():
+            db.get_one(Offer, offer["id"]).expires_at = env.service.clock() - timedelta(seconds=1)
+    data = env.client.get(f"/api/cases/{case_id}", headers=headers(SUPPORT)).json()["chat_proposal"]
+    assert data["status"] == ("WITHDRAWN" if change == "withdraw" else "STALE")
+    assert data["offer"] is None

@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react';
+import type { ChatProposalHandoff } from './chatDecisionData';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, Card, Descriptions, Space, Tabs, Timeline } from 'antd';
 import { ArrowLeftOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { segment, type Client } from './api';
@@ -12,13 +13,13 @@ import { CaseProcessing } from './CaseProcessing';
 import { RunPanel } from './RunPanel';
 import { Evidence, Feedback, intents, Json, Placeholder, Reload, Status, StreamBadge, time } from './ui';
 
-export function CaseWorkspace({api, user, runtime, id, onBack}: {api: Client; user: User; runtime?: Runtime; id: string; onBack: () => void}) {
+export function CaseWorkspace({api, user, runtime, id, onBack, handoff}: {api: Client; user: User; runtime?: Runtime; id: string; onBack: () => void; handoff?: ChatProposalHandoff}) {
   const base = `/cases/${segment(id)}`;
   const resource = useResource<CaseDetail>(api, base);
   const refresh = resource.refresh;
   const eventRefresh = useEventRefresh(refresh);
   const [events, setEvents] = useState<BusinessEvent[]>([]);
-  const [tab, setTab] = useState('materials');
+  const [tab, setTab] = useState(handoff ? 'processing' : 'materials');
   const [draft, setDraft] = useState<{output: RunOutput; version: number}>();
   const listen = useCallback((frame: SseFrame) => {
     const data = JSON.parse(frame.data) as BusinessEvent;
@@ -28,6 +29,12 @@ export function CaseWorkspace({api, user, runtime, id, onBack}: {api: Client; us
   }, [eventRefresh]);
   const stream = useStream(api, resource.value ? `${base}/events` : null, listen);
   const detail = resource.value;
+  const watchChatProposal = user.role === 'support' && tab === 'processing' && !!detail?.chat_proposal;
+  useEffect(() => {
+    if (!watchChatProposal) return;
+    const timer = setInterval(refresh, 5000);
+    return () => clearInterval(timer);
+  }, [watchChatProposal, refresh]);
   if (!detail) return <div className="stack">
     <div><Button icon={<ArrowLeftOutlined />} onClick={onBack}>返回工单</Button></div>
     <Feedback error={resource.error} />
@@ -51,7 +58,7 @@ export function CaseWorkspace({api, user, runtime, id, onBack}: {api: Client; us
         <Tabs activeKey={tab} onChange={setTab} items={[
           {key: 'materials', label: '材料与审核', children: <CaseMaterials api={api} detail={detail} user={user} base={base} refresh={refresh} canOperate={canOperate} />},
           ...(canSeeAgent ? [{key: 'agent', label: '助手协作', children: <RunPanel api={api} detail={detail} runtime={runtime} base={base} user={user} refreshCase={refresh} canOperate={canOperate} onDraft={(output) => {setDraft({output, version: detail.case.version}); setTab('processing');}} />}] : []),
-          {key: 'processing', label: '方案与回执', children: <CaseProcessing api={api} detail={detail} user={user} base={base} refresh={refresh} canOperate={canOperate} readFailed={!!resource.error} draft={draft?.version === detail.case.version ? draft.output : undefined} />},
+          {key: 'processing', label: '方案与回执', children: <CaseProcessing api={api} detail={detail} user={user} base={base} refresh={refresh} canOperate={canOperate} readFailed={!!resource.error} handoff={handoff} draft={draft?.version === detail.case.version ? draft.output : undefined} />},
         ]} />
       </Card>
       <div className="stack">

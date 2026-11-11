@@ -3,15 +3,16 @@ import { Alert, Button, Card, Checkbox, Descriptions, Form, Input, InputNumber, 
 import { segment, type Client } from './api';
 import type { Action, Approval, CaseDetail, Execution, Proposal, ProposalLine, RunOutput, User } from './contracts';
 import { useActions } from './hooks';
+import { decisionRef, type ChatProposalHandoff, type ProposalOffer } from './chatDecisionData';
 import { RefundLookupPanel, useRefundLookup } from './RefundLookupPanel';
 import { refundExecutionId } from './refundLookup';
 import { productName } from './OrderFacts';
 import { canActBeforeExecution, confirmedRefundReceiptId, orderRefundPresentation, receiptId } from './casePresentation';
 import { Evidence, Feedback, Json, label, money, Placeholder, Status, time } from './ui';
 
-type Props = {api: Client; detail: CaseDetail; user: User; base: string; refresh: () => void; canOperate: boolean; readFailed: boolean; draft?: RunOutput};
+type Props = {api: Client; detail: CaseDetail; user: User; base: string; refresh: () => void; canOperate: boolean; readFailed: boolean; draft?: RunOutput; handoff?: ChatProposalHandoff};
 type Editor = {version: number} & (
-  {type: 'proposal'; draft?: RunOutput} |
+  {type: 'proposal'; draft?: RunOutput; offer?: ProposalOffer; handoff?: ChatProposalHandoff} |
   {type: 'approval'; proposal: Proposal} |
   {type: 'execute'; proposal: Proposal} |
   {type: 'reconcile'; execution: Execution}
@@ -21,7 +22,25 @@ type ProcessValues = {
   values?: Record<string, number | null>; decision?: string;
 };
 
-export function CaseProcessing({api, detail, user, base, refresh, canOperate, readFailed, draft}: Props) {
+const proposalStatuses = {
+  NO_OFFER: '客服还没有发送处理建议，请先在聊天中复核候选。',
+  WAITING_CUSTOMER: '等待客户确认聊天中的处理建议。',
+  WITHDRAWN: '客户已拒绝、撤回同意或要求修改，请先在聊天中处理。',
+  STALE: '聊天中的处理建议已失效，请核对当前资料后重新发送建议。',
+  READY: '客户已确认聊天中的处理建议，提交后仍需独立审批。',
+};
+
+function proposalOffer(detail: CaseDetail, handoff?: ChatProposalHandoff) {
+  const proposal = detail.chat_proposal;
+  if (proposal?.status !== 'READY' || proposal.case_id !== detail.case.id ||
+    !(Date.parse(proposal.offer.expires_at) > Date.now())) return undefined;
+  if (handoff && (handoff.caseId !== proposal.case_id || handoff.conversationId !== proposal.conversation_id ||
+    handoff.issueId !== proposal.issue_id || handoff.offer.id !== proposal.offer.id ||
+    handoff.offer.version !== proposal.offer.version || handoff.offer.sha256 !== proposal.offer.sha256)) return undefined;
+  return proposal.offer;
+}
+
+export function CaseProcessing({api, detail, user, base, refresh, canOperate, readFailed, draft, handoff}: Props) {
   const [editor, setEditor] = useState<Editor>();
   const [notice, setNotice] = useState('');
   const support = user.role === 'support';
@@ -34,15 +53,29 @@ export function CaseProcessing({api, detail, user, base, refresh, canOperate, re
   const lookup = useRefundLookup(api, lookupAvailable ? base : undefined);
   const actions = detail.eligibility.actions;
   const latest = detail.proposals.at(-1);
-  const canPropose = support && detail.eligibility.status === 'ELIGIBLE' && actions.length > 0 &&
+  const chatProposal = support ? detail.chat_proposal : undefined;
+  const managed = !!chatProposal || !!handoff;
+  const offer = support ? proposalOffer(detail, handoff) : undefined;
+  const canPropose = support && (!managed || (!!offer && actions.includes(offer.action))) &&
+    detail.eligibility.status === 'ELIGIBLE' && actions.length > 0 &&
     !['PROPOSED', 'APPROVED', 'EXECUTION_PENDING', 'EXECUTION_FAILED', 'RESOLVED'].includes(detail.case.status);
 
   return <div className="stack">
     <div className="section-row">
       <div><h2>{refund ? '退款进度' : '处理方案'}</h2><p className="muted">{refund ? '按订单查询退款执行记录，包括该订单其他工单登记的退款。' : '审批通过后，客服可按批准内容发起模拟执行。'}</p></div>
-      {canPropose && <Button type="primary" disabled={!canOperate} onClick={() => setEditor({type: 'proposal', version, draft})}>{draft?.action ? '核对草案并提交' : '新建处理方案'}</Button>}
+      {canPropose && <Button type="primary" disabled={!canOperate} onClick={() => setEditor({
+        type: 'proposal', version, draft: managed ? undefined : draft, offer,
+        handoff: offer && chatProposal ? {
+          caseId: chatProposal.case_id, conversationId: chatProposal.conversation_id,
+          issueId: chatProposal.issue_id, offer: decisionRef(offer),
+        } : undefined,
+      })}>{offer ? '核对已确认方案并提交' : draft?.action ? '核对草案并提交' : '新建处理方案'}</Button>}
     </div>
-    {draft?.action && internal && <Alert type="info" showIcon title={`助手草案待客服核对 · ${label(draft.action)}`} description={draft.notes || draft.reason} />}
+    {managed && support && <Alert showIcon type={offer ? 'info' : 'warning'}
+      title={offer ? proposalStatuses.READY :
+        handoff && (!chatProposal || chatProposal.status === 'READY') ? '聊天中的方案已变化或无法核实，请返回聊天重新打开当前方案。' :
+        proposalStatuses[chatProposal?.status === 'READY' ? 'STALE' : chatProposal?.status ?? 'NO_OFFER']} />}
+    {!managed && draft?.action && internal && <Alert type="info" showIcon title={`助手草案待客服核对 · ${label(draft.action)}`} description={draft.notes || draft.reason} />}
     <Feedback notice={notice} />
     {refund && <>
       <Alert showIcon {...refund.notice} />
@@ -108,7 +141,7 @@ export function CaseProcessing({api, detail, user, base, refresh, canOperate, re
         {internal && <Evidence title="执行记录"><Json value={{id: row.id, proposal_id: row.proposal_id, business_key: row.business_key, receipt: row.receipt}} /></Evidence>}
       </div>}}
     />
-    {editor && <ProcessingEditor api={api} base={base} editor={editor} detail={detail} refresh={refresh}
+    {editor && <ProcessingEditor api={api} base={base} editor={editor} detail={detail} canOperate={canOperate} refresh={refresh}
       close={() => setEditor(undefined)} done={(message) => {setNotice(message); setEditor(undefined);}} />}
   </div>;
 }
@@ -126,12 +159,15 @@ function Approvals({approvals}: {approvals: Approval[]}) {
   </>;
 }
 
-function ProcessingEditor({api, base, editor, detail, refresh, close, done}: {
-  api: Client; base: string; editor: Editor; detail: CaseDetail; refresh: () => void;
+function ProcessingEditor({api, base, editor, detail, canOperate, refresh, close, done}: {
+  api: Client; base: string; editor: Editor; detail: CaseDetail; canOperate: boolean; refresh: () => void;
   close: () => void; done: (message: string) => void;
 }) {
   const actions = useActions(api);
-  const stale = editor.version !== detail.case.version
+  const offer = editor.type === 'proposal' ? editor.offer : undefined;
+  const offerChanged = editor.type === 'proposal' && (offer ?
+    !proposalOffer(detail, editor.handoff) : !!detail.chat_proposal);
+  const stale = offerChanged || editor.version !== detail.case.version
     || ((editor.type === 'approval' || editor.type === 'execute') && !canActBeforeExecution(detail, editor.proposal.id));
   const [form] = Form.useForm<ProcessValues>();
   const eligibility = detail.eligibility;
@@ -145,16 +181,19 @@ function ProcessingEditor({api, base, editor, detail, refresh, close, done}: {
   const actionTitle = titles[editor.type];
 
   async function submit(values: ProcessValues) {
-    if (stale) return;
+    if (stale || (offer && (!canOperate || !(Date.parse(offer.expires_at) > Date.now())))) return;
     const body: Record<string, unknown> = {expected_version: editor.version};
     const target = editor.type;
     let path = base;
     if (target === 'proposal') {
-      const lines: ProposalLine[] = (values.line_ids ?? []).map((line_id) => values.action === 'REFUND'
+      const lines: ProposalLine[] = offer?.lines ?? (values.line_ids ?? []).map((line_id) => values.action === 'REFUND'
         ? {line_id, amount_cents: Math.round((values.values?.[line_id] ?? 0) * 100)}
         : {line_id, quantity: values.values?.[line_id] ?? 0});
       path += '/proposals';
-      Object.assign(body, {action: values.action, lines, notes: values.notes?.trim(), policy_ids: values.policy_ids ?? []});
+      Object.assign(body, {action: offer?.action ?? values.action, lines, notes: values.notes?.trim(),
+        policy_ids: offer?.policy_ids ?? values.policy_ids ?? [],
+        ...(offer && {expected_offer: decisionRef(offer)}),
+      });
     } else if (target === 'approval') {
       path += '/approvals';
       Object.assign(body, {proposal_id: editor.proposal.id, decision: values.decision, notes: values.notes?.trim()});
@@ -182,6 +221,14 @@ function ProcessingEditor({api, base, editor, detail, refresh, close, done}: {
       values: Object.fromEntries(initialLines.map((line) => [line.line_id, initialAction === 'REFUND' ? (line.amount_cents ?? 0) / 100 : line.quantity])),
     }}>
       {editor.type === 'proposal' && <>
+        {offer ? <Card size="small" title="已确认的聊天方案">
+          <p>{label(offer.action)}</p>
+          <ul>{offer.lines.map((line) => <li key={line.line_id}>
+            商品行 {line.line_id} · {offer.action === 'REFUND' ? money(line.amount_cents ?? 0) : `${line.quantity} 件`}
+          </li>)}</ul>
+          <p>政策依据 · {offer.policy_ids.join('、')}</p>
+          <p>提交后仍需独立审批。</p>
+        </Card> : <>
         <Form.Item label="处理方式" name="action" rules={[{required: true}]}>
           <Select options={eligibility.actions.map((value) => ({value, label: label(value)}))} onChange={() => {form.setFieldValue('values', {}); form.setFieldValue('line_ids', []); form.setFieldValue('policy_ids', []);}} />
         </Form.Item>
@@ -202,6 +249,7 @@ function ProcessingEditor({api, base, editor, detail, refresh, close, done}: {
         <Form.Item label="政策依据" name="policy_ids">
           <Select mode="multiple" options={detail.policies.filter((policy) => eligiblePolicies.includes(policy.id)).map((policy) => ({value: policy.id, label: policy.title ?? policy.id}))} />
         </Form.Item>
+        </>}
         <Form.Item label="处理说明" name="notes" rules={[{required: true, whitespace: true, message: '请填写处理说明'}]}><Input.TextArea rows={3} maxLength={1000} /></Form.Item>
       </>}
       {'proposal' in editor && <Card size="small" className="modal-card">
@@ -225,7 +273,7 @@ function ProcessingEditor({api, base, editor, detail, refresh, close, done}: {
       <Space orientation="vertical" className="full">
         {stale && <Alert type="warning" showIcon title="工单状态已更新，请关闭后核对最新处理记录。" />}
         <Feedback error={actions.error} />
-        <Button type="primary" htmlType="submit" loading={actions.busy} disabled={stale}>{actionTitle}</Button>
+        <Button type="primary" htmlType="submit" loading={actions.busy} disabled={stale || (!!offer && !canOperate)}>{actionTitle}</Button>
       </Space>
     </Form>
   </Modal>;

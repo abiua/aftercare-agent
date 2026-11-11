@@ -713,11 +713,17 @@ class BusinessService:
             return {"schema_version": "ac-v1", **lookup}
 
     def detail(self, case_id: str, user: UserContext) -> dict:
+        from aftercare.conversations.decisions import ConversationDecisions
+
         with self._snapshot() as db:
             case, order = self._case(db, case_id, user)
             data = self._context(
                 db, case, order, include_review_observations=user.role == "support"
             )
+            if user.role == "support" and case.decision_conversation_id is not None:
+                data["chat_proposal"] = ConversationDecisions(self).proposal_preview(
+                    db, case, order
+                )
             if case.intent == "refund_status":
                 data["refund_lookup_available"] = True
             proposals = list(
@@ -1310,6 +1316,7 @@ class BusinessService:
         lines: list[dict],
         notes: str,
         policy_ids: list[str],
+        expected_offer: dict | None = None,
     ) -> dict:
         from aftercare.conversations.decisions import ConversationDecisions, lock_case
 
@@ -1320,6 +1327,8 @@ class BusinessService:
         lines = self._normalise_lines(action, lines)
         scope = f"proposal:{case_id}"
         signature = digest([expected_version, action, lines, notes, sorted(set(policy_ids))])
+        if expected_offer is not None:
+            signature = digest([signature, {"expected_offer": expected_offer}])
         with Session(self.engine) as db, db.begin():
             case, order, conversation = lock_case(self, db, case_id, user)
             replay = self._replay(db, user, scope, idempotency_key, signature)
@@ -1340,6 +1349,10 @@ class BusinessService:
                     lines=lines,
                     policy_ids=plan["policy_ids"],
                 )
+            if expected_offer is not None and (
+                plan.get("decision_binding", {}).get("offer") != expected_offer
+            ):
+                raise BusinessError("DECISION_STALE", "客户确认的方案已变更，请刷新后重试。")
             for old in db.scalars(
                 select(Proposal).where(
                     Proposal.case_id == case.id,

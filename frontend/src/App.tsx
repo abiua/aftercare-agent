@@ -4,6 +4,7 @@ import { ApartmentOutlined, ExperimentOutlined, LogoutOutlined, SafetyCertificat
 import { client, errorMessage } from './api';
 import type { Runtime, User } from './contracts';
 import { useResource } from './hooks';
+import type { ChatProposalHandoff } from './chatDecisionData';
 import { CustomerChat } from './CustomerChat';
 import { Workbench } from './Workbench';
 import { Evaluation } from './Evaluation';
@@ -98,13 +99,16 @@ function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: U
     if (canChat && (user.role === 'customer' || query.has('conversation'))) return 'chat';
     return user.role === 'tester' ? 'evaluation' : 'workbench';
   });
+  const [handoff, setHandoff] = useState<ChatProposalHandoff>();
   function openChat() {
+    setHandoff(undefined);
     const url = new URL(location.href);
     url.searchParams.delete('case');
     history.replaceState(null, '', url);
     setView('chat');
   }
-  function openCase(id: string) {
+  function openCase(id: string, proposal?: ChatProposalHandoff) {
+    setHandoff(proposal);
     const url = new URL(location.href);
     url.searchParams.set('case', id);
     history.replaceState(null, '', url);
@@ -130,7 +134,7 @@ function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: U
       <main className="page">
         {user.role !== 'customer' && runtime.value?.mode === 'offline' && <Alert className="runtime-banner" type="info" showIcon title="当前环境使用离线策略，款项与库存操作均为模拟。" />}
         {user.role !== 'customer' && runtime.value?.mode === 'live' && <Alert className="runtime-banner" type="warning" showIcon title="当前环境可调用真实模型。款项与库存操作均为模拟。" />}
-        {view === 'chat' ? <CustomerChat api={api} user={user} onCase={openCase} /> : view === 'workbench' ? <Workbench api={api} user={user} runtime={runtime.value} /> : <Evaluation api={api} runtime={runtime.value} />}
+        {view === 'chat' ? <CustomerChat api={api} user={user} onCase={openCase} /> : view === 'workbench' ? <Workbench api={api} user={user} runtime={runtime.value} handoff={handoff} clearHandoff={() => setHandoff(undefined)} /> : <Evaluation api={api} runtime={runtime.value} />}
         <footer className="footer"><span>售后协作台 · 操作记录可追溯</span>{user.role !== 'customer' && runtime.value && <Evidence title="运行环境"><Json value={runtime.value} /></Evidence>}</footer>
       </main>
     </div>

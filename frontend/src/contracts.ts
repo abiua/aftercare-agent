@@ -1,3 +1,5 @@
+import type { ChatProposal } from './chatDecisionData';
+
 export type Role = 'customer' | 'support' | 'approver' | 'tester';
 export type User = {user_id: string; display_name: string; role: Role; customer_id?: string};
 export type Runtime = {
@@ -61,6 +63,7 @@ export type Execution = {
 };
 export type Policy = {id: string; title?: string; version?: string | number; text?: string; content?: string};
 export type CaseDetail = {
+  chat_proposal?: ChatProposal;
   refund_lookup_available?: boolean;
   case: Case; order: Order; policies: Policy[]; materials: Material[]; reviews: MaterialReview[];
   ledger: Execution[]; versions: Record<string, unknown>; facts: Record<string, unknown>; proposals: Proposal[]; approvals: Approval[];

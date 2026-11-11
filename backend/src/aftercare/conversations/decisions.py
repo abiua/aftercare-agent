@@ -744,6 +744,51 @@ class ConversationDecisions:
             row, issue_id = self._current(db, actor, ident, "customer")
             return self.records.respond(db, actor, row.id, issue_id, ref, response, key=key)
 
+    def proposal_preview(self, db, case, order):
+        """Read-only support handoff; submission independently rechecks its exact ref."""
+        result = {
+            "case_id": case.id,
+            "conversation_id": case.decision_conversation_id,
+            "issue_id": case.decision_issue_id,
+            "status": "STALE",
+            "offer": None,
+        }
+        conversation = db.get(Conversation, case.decision_conversation_id)
+        if (
+            not enabled(self.business.settings)
+            or conversation is None
+            or (
+                conversation.active_case_id != case.id
+                or conversation.analysis_issue_id != case.decision_issue_id
+            )
+        ):
+            return result
+        head = db.get(DecisionHead, (conversation.id, case.decision_issue_id))
+        if head is None or head.offer_id is None:
+            result["status"] = "NO_OFFER"
+            return result
+        try:
+            scope = self.freeze(db, conversation, case, order)
+            offer = self.records._current_offer(db, head, scope, None)
+        except BusinessError as error:
+            if error.code not in {
+                "DECISION_STALE",
+                "DECISION_NOT_FOUND",
+                "DECISION_OFFER_STALE",
+                "DECISION_BINDING_INVALID",
+                "DECISION_INPUT_REQUIRED",
+            }:
+                raise
+            return result
+        response = self.records.latest_customer_response(db, offer.id)
+        if response is None:
+            result["status"] = "WAITING_CUSTOMER"
+        elif response.response["action"] != "ACCEPT":
+            result["status"] = "WITHDRAWN"
+        else:
+            result.update(status="READY", offer=self.records._offer(offer))
+        return result
+
     def accepted(
         self, db, actor, case, order, conversation, *, action, lines, policy_ids, stored=None
     ):

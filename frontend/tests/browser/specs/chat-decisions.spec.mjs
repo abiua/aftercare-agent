@@ -1,5 +1,5 @@
 import {expect} from '@playwright/test';
-import {chatId, signIn, test} from './api-fixture.mjs';
+import {chatId, originalCaseId, signIn, test} from './api-fixture.mjs';
 
 test('fixture: support modification preserves the original and customer responds to the public version', async ({page, fixtureApi}) => {
   fixtureApi.chatCreated = true;
@@ -179,4 +179,62 @@ test('fixture: customer sees current case simulated ledger progress and no succe
   fixtureApi.chatDecision.conversation = {active_case_id: 'other-case', revision: 2};
   await page.getByRole('button', {name: '刷新消息'}).click();
   await expect(page.getByText('本次售后执行进度')).toHaveCount(0);
+});
+
+function seedHandoff(state) {
+  const reference = {id: 'current-offer', version: 2, sha256: 'b'.repeat(64)};
+  const offer = {...reference, action: 'REFUND', lines: [{line_id: 'L01', amount_cents: 825}],
+    policy_ids: ['POL01'], expires_at: '2099-01-01T00:00:00Z'};
+  state.chatCreated = true;
+  state.chatDecision = {
+    current: {id: 'current-candidate', version: 3, sha256: 'a'.repeat(64), origin: 'AGENT', parent_id: null,
+      input: {case_id: originalCaseId, order_id: 'A1001', input_through_seq: 2}, candidate: {options: [], unresolved: []},
+      checks: {}, expires_at: '2099-01-01T00:00:00Z'},
+    conversation: {active_case_id: originalCaseId},
+    customerDecision: {id: 'accepted-decision', action: 'ACCEPT', offer: reference, created_at: '2026-11-11T00:00:00Z'},
+  };
+  state.proposalHandoff = {case_id: originalCaseId, conversation_id: chatId, issue_id: 'decision-issue',
+    status: 'READY', offer};
+  return {reference, offer};
+}
+
+test('fixture: support hands off confirmed chat terms and submits the exact frozen offer reference', async ({page, fixtureApi}) => {
+  const {reference} = seedHandoff(fixtureApi);
+  await signIn(page, 'support');
+  await page.goto(`/?conversation=${chatId}`);
+  await page.getByRole('button', {name: '到工单提交已确认方案'}).click();
+  await expect(page.getByRole('tab', {name: '方案与回执'})).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('button', {name: '核对已确认方案并提交'}).click();
+  const modal = page.getByRole('dialog', {name: '提交处理方案'});
+  await expect(modal.getByText('商品行 L01 · ¥8.25')).toBeVisible();
+  await expect(modal.getByText('提交后仍需独立审批。', {exact: true})).toBeVisible();
+  await expect(modal.getByRole('combobox')).toHaveCount(0);
+  await modal.getByRole('textbox', {name: '处理说明'}).fill('按已确认的订单行办理。');
+  await modal.getByRole('button', {name: '提交处理方案'}).click();
+  await expect(modal).toHaveCount(0);
+  expect(fixtureApi.calls.filter(({method, path}) => method === 'POST' && path.endsWith('/proposals'))).toMatchObject([{
+    body: {action: 'REFUND', lines: [{line_id: 'L01', amount_cents: 825}], policy_ids: ['POL01'],
+      notes: '按已确认的订单行办理。', expected_offer: reference},
+  }]);
+});
+
+test('fixture: an identical replacement offer invalidates handoff and waiting customer cannot propose', async ({page, fixtureApi}) => {
+  const {offer} = seedHandoff(fixtureApi);
+  await signIn(page, 'support');
+  await page.goto(`/?conversation=${chatId}`);
+  await page.getByRole('button', {name: '到工单提交已确认方案'}).click();
+  await page.getByRole('button', {name: '核对已确认方案并提交'}).click();
+  const modal = page.getByRole('dialog', {name: '提交处理方案'});
+  fixtureApi.proposalHandoff.offer = {...offer, id: 'replacement-offer', version: 3};
+  await expect(modal.getByText('工单状态已更新，请关闭后核对最新处理记录。')).toBeVisible({timeout: 8_000});
+  await expect(modal.getByRole('button', {name: '提交处理方案'})).toBeDisabled();
+  await modal.getByRole('button', {name: '关闭'}).click();
+  await expect(page.getByText('聊天中的方案已变化或无法核实，请返回聊天重新打开当前方案。')).toBeVisible();
+
+  Object.assign(fixtureApi.proposalHandoff, {status: 'WAITING_CUSTOMER', offer: null});
+  await page.goto(`/?case=${originalCaseId}`);
+  await page.getByRole('tab', {name: '方案与回执'}).click();
+  await expect(page.getByText('等待客户确认聊天中的处理建议。')).toBeVisible();
+  await expect(page.getByRole('button', {name: /新建处理方案|核对已确认方案并提交/})).toHaveCount(0);
+  expect(fixtureApi.calls.filter(({method, path}) => method === 'POST' && path.endsWith('/proposals'))).toHaveLength(0);
 });

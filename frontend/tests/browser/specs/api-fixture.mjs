@@ -500,6 +500,16 @@ export const test = base.extend({
           return json(route, state.materialReview.saved, 201);
         }
       }
+      if (state.proposalHandoff && role === 'support' && path === `/api/cases/${originalCaseId}` && method === 'GET') {
+        return json(route, {
+          case: originalCase, order: orders[0], chat_proposal: state.proposalHandoff,
+          policies: [], materials: [], reviews: [], ledger: [], versions: {}, facts: {}, proposals: [], approvals: [],
+          eligibility: {status: 'ELIGIBLE', actions: ['REFUND'], lines: [], policy_ids: ['POL01']},
+        });
+      }
+      if (state.proposalHandoff && role === 'support' && path === `/api/cases/${originalCaseId}/proposals` && method === 'POST') {
+        return json(route, {id: 'new-proposal'}, 201);
+      }
       if (method === 'GET' && (path === `/api/cases/${originalCaseId}` || (state.created && path === `/api/cases/${newCaseId}`))) {
         const current = path.endsWith(newCaseId) ? state.created : originalCase;
         const uploaded = state.uploads.length > 0 && current.id === originalCaseId;

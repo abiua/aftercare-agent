@@ -1,4 +1,4 @@
-import type {Order} from './contracts';
+import type {Order, ProposalLine} from './contracts';
 
 export type DecisionRef = {id: string; version: number; sha256: string};
 export type DecisionLine = {line_id: string; amount_cents?: number | null; quantity?: number | null};
@@ -33,6 +33,14 @@ export type SupportDecisionView = {issue_id: string | null; snapshot: DecisionSn
 export type CustomerOffer = DecisionRef & {
   action: ExecutionOption['action']; lines: DecisionLine[]; policy_ids: string[]; expires_at: string;
   customer_decision: {id: string; action: CustomerAction} | null;
+};
+export type ProposalOffer = Pick<CustomerOffer, 'id' | 'version' | 'sha256' | 'action' | 'policy_ids' | 'expires_at'> & {lines: ProposalLine[]};
+export type ChatProposal = {case_id: string; conversation_id: string; issue_id: string} & (
+  {status: 'READY'; offer: ProposalOffer} |
+  {status: 'NO_OFFER' | 'WAITING_CUSTOMER' | 'WITHDRAWN' | 'STALE'; offer: null}
+);
+export type ChatProposalHandoff = {
+  caseId: string; conversationId: string; issueId: string; offer: DecisionRef;
 };
 export type CustomerOfferView = {issue_id: string | null; offer: CustomerOffer | null};
 

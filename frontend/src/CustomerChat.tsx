@@ -1,3 +1,4 @@
+import type { ChatProposalHandoff } from './chatDecisionData';
 import { ChatMaterialBridge } from './ChatMaterialBridge';
 import { ChatDecisions } from './ChatDecisions';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -32,7 +33,7 @@ function refundLabel(status: string, receiptConfirmed?: boolean) {
   return refundStatus[status] ?? '状态待核对';
 }
 
-export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCase: (id: string) => void}) {
+export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCase: (id: string, proposal?: ChatProposalHandoff) => void}) {
   const [id, setId] = useState(() => new URLSearchParams(location.search).get('conversation') || '');
   const [offset, setOffset] = useState(0);
   const [drafts] = useState(() => new Map<string, ComposeDraft>());
@@ -78,7 +79,7 @@ export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCa
   </div>;
 }
 
-function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; id: string; user: User; drafts: Map<string, ComposeDraft>; refreshList: () => void; onCase: (id: string) => void}) {
+function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; id: string; user: User; drafts: Map<string, ComposeDraft>; refreshList: () => void; onCase: (id: string, proposal?: ChatProposalHandoff) => void}) {
   const base = `/conversations/${segment(id)}`;
   const [state, setState] = useState<ChatUpdate & {analysisRead: ReturnType<typeof mergeChatAnalysis>; executionRead: ReturnType<typeof mergeExecutionProgress>; investigationRead: ReturnType<typeof mergeInvestigationProgress>}>();
   const [more, setMore] = useState(false);
@@ -236,7 +237,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
     </div>
     {conversation && !readError && state?.features?.chat_decisions === true &&
       <ChatDecisions key={JSON.stringify([conversation.revision, conversation.active_order_id, conversation.active_case_id, analysis?.issue_id])} api={api} base={base} user={user} orderId={conversation.active_order_id}
-        issueId={analysis?.issue_id} revision={conversation.revision} refreshChat={load} />}
+        issueId={analysis?.issue_id} conversationId={id} caseId={conversation.active_case_id} onCase={onCase} revision={conversation.revision} refreshChat={load} />}
     {conversation && !readError && progress?.case_id === conversation.active_case_id &&
       progress?.simulated === true && <ExecutionProgress progress={progress} />}
     {user.role === 'support' && conversation?.active_case_id && !readError && state?.features?.chat_material_bridge === true &&
@@ -270,7 +271,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
 }
 
 function MessageCard({card, onCase, messageText, attachments, offerCannotProvide, canSelect, choose, currentOrder, busy}: {
-  card: ChatCard; onCase: (id: string) => void; canSelect: boolean;
+  card: ChatCard; onCase: (id: string, proposal?: ChatProposalHandoff) => void; canSelect: boolean;
   messageText: string; offerCannotProvide?: () => void;
   attachments: Map<string, string>;
   choose: (order: string, lines: string[], newIssue: boolean) => Promise<boolean>;

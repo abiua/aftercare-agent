@@ -23,6 +23,7 @@ from fastapi.routing import APIRoute
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
 from aftercare.auth import UserContext, current_user
+from aftercare.decisions.contracts import DecisionRef
 
 from .contracts import MaterialReviewObservations
 from .errors import BusinessError
@@ -144,6 +145,7 @@ class CreateProposal(Mutation):
     lines: Annotated[list[ProposedLine], Field(min_length=1, max_length=30)]
     notes: Notes
     policy_ids: Annotated[list[ID], Field(max_length=30)] = Field(default_factory=list)
+    expected_offer: DecisionRef | None = None
 
 
 class ExecuteProposal(Mutation):

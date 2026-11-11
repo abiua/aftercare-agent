@@ -1,3 +1,4 @@
+import type { ChatProposalHandoff } from './chatDecisionData';
 import { useEffect, useState } from 'react';
 import { Button, Card, Form, Input, Modal, Select, Space, Table, Tag } from 'antd';
 import { InboxOutlined, PlusOutlined, ProfileOutlined } from '@ant-design/icons';
@@ -8,7 +9,7 @@ import { CaseWorkspace } from './CaseWorkspace';
 import { OrderFacts, productName } from './OrderFacts';
 import { Feedback, intents, label, money, Placeholder, Reload, Status, time } from './ui';
 
-export function Workbench({api, user, runtime}: {api: Client; user: User; runtime?: Runtime}) {
+export function Workbench({api, user, runtime, handoff, clearHandoff}: {api: Client; user: User; runtime?: Runtime; handoff?: ChatProposalHandoff; clearHandoff: () => void}) {
   const [selected, setSelected] = useState(() => caseInUrl());
   useEffect(() => {
     const update = () => setSelected(caseInUrl());
@@ -16,6 +17,7 @@ export function Workbench({api, user, runtime}: {api: Client; user: User; runtim
     return () => window.removeEventListener('popstate', update);
   }, []);
   function navigate(id?: string) {
+    clearHandoff();
     const url = new URL(window.location.href);
     if (id) url.searchParams.set('case', id);
     else url.searchParams.delete('case');
@@ -33,7 +35,7 @@ export function Workbench({api, user, runtime}: {api: Client; user: User; runtim
   const orderRows = orders.value?.items ?? [];
 
   if (selected) {
-    return <CaseWorkspace key={selected} api={api} user={user} runtime={runtime} id={selected} onBack={() => {navigate(); cases.refresh();}} />;
+    return <CaseWorkspace key={selected} api={api} user={user} runtime={runtime} id={selected} handoff={handoff?.caseId === selected ? handoff : undefined} onBack={() => {navigate(); cases.refresh();}} />;
   }
 
   const needle = search.trim().toLowerCase();
