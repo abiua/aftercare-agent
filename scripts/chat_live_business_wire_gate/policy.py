@@ -382,20 +382,27 @@ def _text_payload(plan, binding, payload, raw):
 def verify_request(plan, binding, request, api_key):
     validate_binding(plan, binding)
     headers = request.headers
+    _require(request.method == "POST", "REQUEST_METHOD")
+    _require(str(request.url) == URL, "REQUEST_URL")
+    authorization = headers.get("authorization", "")
     _require(
-        request.method == "POST"
-        and str(request.url) == URL
-        and isinstance(api_key, str)
+        isinstance(api_key, str)
         and bool(api_key)
-        and hmac.compare_digest(headers.get("authorization", ""), "Bearer " + api_key)
-        and headers.get("x-stainless-retry-count") == "0"
-        and headers.get("content-type") == "application/json"
-        and not any(
-            headers.get(key)
-            for key in ("cookie", "proxy-authorization", "openai-project", "openai-organization")
-        ),
-        "REQUEST_TARGET_OR_HEADERS",
+        and api_key.isascii()
+        and isinstance(authorization, str)
+        and authorization.isascii()
+        and hmac.compare_digest(authorization, "Bearer " + api_key),
+        "REQUEST_AUTHORIZATION",
     )
+    _require(headers.get("x-stainless-retry-count") == "0", "REQUEST_RETRY_HEADER")
+    _require(headers.get("content-type") == "application/json", "REQUEST_CONTENT_TYPE")
+    for name, code in (
+        ("cookie", "REQUEST_COOKIE"),
+        ("proxy-authorization", "REQUEST_PROXY_AUTHORIZATION"),
+        ("openai-project", "REQUEST_PROJECT"),
+        ("openai-organization", "REQUEST_ORGANIZATION"),
+    ):
+        _require(name not in headers, code)
     raw = request.content
     _require(len(raw) <= (300_000 if plan["kind"] == "VISION" else 200_000), "REQUEST_SIZE")
     try:
@@ -575,6 +582,12 @@ def send(directory, plan, binding, request, api_key, transport, *, observe_stage
         if observe_stage is not None:
             observe_stage("read", index=index, admitted=True)
         response.read()
+        cookie_receipt = {}
+        if plan["protocol"] == SCOPED_PROTOCOL:
+            discarded = "set-cookie" in response.headers
+            if discarded:
+                del response.headers["set-cookie"]
+            cookie_receipt["set_cookie_discarded"] = discarded
         _write(
             directory,
             f"response-{index:02}.json",
@@ -582,6 +595,7 @@ def send(directory, plan, binding, request, api_key, transport, *, observe_stage
                 "index": index,
                 "request_sha256": checked["request_sha256"],
                 "http_status": response.status_code,
+                **cookie_receipt,
             },
         )
         return response

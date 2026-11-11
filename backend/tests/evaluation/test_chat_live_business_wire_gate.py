@@ -252,7 +252,7 @@ def test_known_response_cannot_be_resent_and_native_scope_stays_pinned(tmp_path)
 def test_wrong_key_retry_ordinal_scope_tool_and_image_order_are_denied():
     plan, binding = _fixture("TEXT")
     request = _request(plan, binding)
-    with pytest.raises(policy.WireDenied, match="HEADERS"):
+    with pytest.raises(policy.WireDenied, match="AUTHORIZATION"):
         policy.verify_request(plan, binding, request, "wrong-key")
     with pytest.raises(policy.WireDenied, match="NATIVE_ATTEMPT_BINDING"):
         policy.verify_request(plan, {**binding, "native_ordinal": 2}, request, KEY)
@@ -471,7 +471,7 @@ def test_scoped_fault_journal_classifies_safe_stage_without_raw_data(
         "native_ordinal": 1,
         "stage": stage,
         "exception_type": exception_type.__name__,
-        "wire_denial_code": "LIVE_BUSINESS_WIRE_REQUEST_TARGET_OR_HEADERS"
+        "wire_denial_code": "LIVE_BUSINESS_WIRE_REQUEST_AUTHORIZATION"
         if stage == "validate"
         else None,
         "admitted": admitted,
@@ -480,3 +480,133 @@ def test_scoped_fault_journal_classifies_safe_stage_without_raw_data(
     }
     assert bool(mock_calls) is admitted
     assert not list(tmp_path.glob("response-*.json"))
+
+
+@pytest.mark.parametrize("isolate_cookies", [False, True])
+def test_default_private_sdk_reuses_response_cookie_across_rounds(
+    isolate_cookies, tmp_path, monkeypatch
+):
+    from langchain_openai.chat_models import _client_utils
+
+    from aftercare.intelligence.models import ModelSpec, _private_transport
+
+    plan, binding = _fixture("TEXT")
+    if isolate_cookies:
+        plan, binding = _scoped(plan, binding, "SINGLE")
+    _lock(tmp_path)
+    raw = json.dumps(plan).encode()
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_bytes(raw)
+    plan_path.chmod(0o600)
+    monkeypatch.setenv("P5_LIVE_BUSINESS_PLAN_SHA256", hashlib.sha256(raw).hexdigest())
+    monkeypatch.setenv("AFTERCARE_OPENAI_KEY", KEY)
+    monkeypatch.setitem(sys.modules, "policy", policy)
+    cached = _client_utils._cached_sync_httpx_client
+    # Isolate test cache without clearing the process-global SDK client cache.
+    from functools import lru_cache
+
+    monkeypatch.setattr(_client_utils, "_cached_sync_httpx_client", lru_cache()(cached.__wrapped__))
+    provider_calls = []
+
+    def offline_handle(_transport, request):
+        provider_calls.append("cookie" in request.headers)
+        return httpx.Response(
+            200,
+            headers={"set-cookie": "synthetic_session=fixture; Secure; Path=/"},
+            json={
+                "id": "resp_fixture",
+                "object": "response",
+                "created_at": 0,
+                "model": plan["model"],
+                "status": "completed",
+                "output": [
+                    {
+                        "id": "msg_fixture",
+                        "type": "message",
+                        "role": "assistant",
+                        "status": "completed",
+                        "content": [{"type": "output_text", "text": "{}", "annotations": []}],
+                    }
+                ],
+                "usage": {"input_tokens": 10, "output_tokens": 5, "total_tokens": 15},
+            },
+        )
+
+    monkeypatch.setattr(httpx.HTTPTransport, "handle_request", offline_handle)
+    monkeypatch.setattr(httpx.Client, "send", httpx.Client.send)
+    monkeypatch.setattr(ChatOpenAI, "_get_request_payload", ChatOpenAI._get_request_payload)
+    monkeypatch.setattr(ChatOpenAI, "_generate", ChatOpenAI._generate)
+    code = (DIRECTORY / "sitecustomize.py").read_text()
+    namespace = {}
+    exec(code.replace('Path("/live-business-wire")', f"Path({str(tmp_path)!r})"), namespace)  # noqa: S102
+    spec = ModelSpec.model_validate(
+        {
+            "alias": "analysis",
+            "provider": "openai",
+            "model": plan["model"],
+            "endpoint": "https://api.openai.com/v1",
+            "interface": "responses",
+            "api_key_env": "AFTERCARE_OPENAI_KEY",
+            "context_tokens": 32000,
+            "output_tokens": 1800,
+            "input_usd_per_million": "1",
+            "output_usd_per_million": "1",
+            "price_date": "2026-11-11",
+            "source": "offline fixture",
+            "data_scopes": ["customer_conversation"],
+        }
+    )
+    with namespace["attempt"](binding):
+        response = _private_transport(spec, _messages(plan, binding), [], 5, 1800)
+        assert response.content[0]["text"] == "{}"
+    followup = [
+        *_messages(plan, binding),
+        AIMessage(
+            content="",
+            tool_calls=[
+                {"id": "call_fixture", "name": "read_order_lines", "args": {"line_ids": ["L01"]}}
+            ],
+        ),
+        ToolMessage(content="{}", tool_call_id="call_fixture"),
+    ]
+    next_binding = {**binding, "native_logical_id": "p4:compact-v7:single:1"}
+    if isolate_cookies:
+        with namespace["attempt"](next_binding):
+            response = _private_transport(spec, followup, [], 5, 1800)
+            assert response.content[0]["text"] == "{}"
+            assert response.usage_metadata["total_tokens"] == 15
+        assert provider_calls == [False, False]
+        for index in (1, 2):
+            row = json.loads((tmp_path / f"response-{index:02}.json").read_bytes())
+            assert row["http_status"] == 200 and row["set_cookie_discarded"] is True
+
+        request = _request(plan, binding)
+        request.headers["cookie"] = "synthetic_outgoing=fixture"
+        with pytest.raises(policy.WireDenied, match="REQUEST_COOKIE"):
+            policy.verify_request(plan, binding, request, KEY)
+    else:
+        with (
+            namespace["attempt"](next_binding),
+            pytest.raises(policy.WireDenied, match="REQUEST_COOKIE"),
+        ):
+            _private_transport(spec, followup, [], 5, 1800)
+        assert provider_calls == [False]
+
+
+@pytest.mark.parametrize(
+    ("header", "value", "code"),
+    [
+        ("x-stainless-retry-count", "1", "REQUEST_RETRY_HEADER"),
+        ("content-type", "text/plain", "REQUEST_CONTENT_TYPE"),
+        ("cookie", "", "REQUEST_COOKIE"),
+        ("proxy-authorization", "fixture", "REQUEST_PROXY_AUTHORIZATION"),
+        ("openai-project", "fixture", "REQUEST_PROJECT"),
+        ("openai-organization", "fixture", "REQUEST_ORGANIZATION"),
+    ],
+)
+def test_request_header_failures_have_distinct_safe_codes(header, value, code):
+    plan, binding = _fixture("TEXT")
+    request = _request(plan, binding)
+    request.headers[header] = value
+    with pytest.raises(policy.WireDenied, match=f"^LIVE_BUSINESS_WIRE_{code}$"):
+        policy.verify_request(plan, binding, request, KEY)
