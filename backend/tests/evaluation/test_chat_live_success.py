@@ -287,3 +287,11 @@ def test_ordinary_r9_has_own_state_and_networks(success):
         success._target("complex", 9),
     ):
         pytest.fail("ordinary retry must not affect complex targets")
+
+
+def test_ordinary_r10_uses_fresh_state_and_networks(success):
+    with success._target("ordinary", 10) as tenth:
+        assert tenth.name.endswith("ordinary-r10.json")
+        assert success.offline_demo.STATE == success.driver.STATE == tenth
+        assert (success.driver.PORT, success.driver.OBJECT_PORT) == (5215, 58377)
+        assert set(success.driver.SUBNETS.values()) == {"10.253.253.128/28", "10.253.253.144/28"}

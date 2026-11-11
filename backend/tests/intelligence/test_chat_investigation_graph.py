@@ -1143,3 +1143,51 @@ def test_targeted_request_does_not_make_unread_refs_citable(investigation):
             max_rounds=2,
             tool_limit=1,
         )
+
+
+def test_v7_policy_fields_show_bare_ids_and_require_a_read_version(investigation):
+    from aftercare.investigation.graph import _publish_options
+
+    def check_prompt(kwargs):
+        system = kwargs["messages"][0].content
+        assert 'policy_ids填裸ID（如"POL06"）' in system
+        assert '"POL06:1.0"' in system
+        schema_start = system.index('{"$defs"')
+        schema, _ = json.JSONDecoder().raw_decode(system[schema_start:])
+        items = schema["$defs"]["Option"]["properties"]["policy_ids"]["items"]
+        assert items["enum"] == ["POL01"]
+        return {"claims": [], "options": []}
+
+    model = Script({"p4:compact-v7:single:0": check_prompt})
+    _run(investigation, "SINGLE", model, protocol=HUMAN_PAYMENT_V7)
+    audit = Audit()
+    context = InvestigationContext(
+        investigation,
+        None,
+        None,
+        audit,
+        None,
+        lambda **_: pytest.fail("missing policy version reached validator"),
+        "analysis",
+        line_ids=frozenset({"line"}),
+        trusted_evidence_ids=frozenset({"line", "POL01:v1"}),
+    )
+    _publish_options(
+        context,
+        {
+            "claims": [_claim("f", "line")],
+            "options": [
+                {
+                    "id": "missing-citation",
+                    "action": "REFUND",
+                    "lines": [{"line_id": "line", "amount_cents": 4900}],
+                    "policy_ids": ["POL01"],
+                    "evidence_ids": ["line"],
+                    "rationale": "未引版本",
+                }
+            ],
+        },
+    )
+    (result,) = [row for kind, row in audit.events if kind == "investigation_result"]
+    assert result["selected_option_ids"] == []
+    assert result["program_checks"] == {"missing-citation": "INVESTIGATION_OPTION_SCOPE_INVALID"}

@@ -174,11 +174,20 @@ def _prompt_schema(schema):
     return result
 
 
-def _v7_prompt_schema(schema):
+POLICY_CITATION_LEGEND = 'policy_ids填裸ID（如"POL06"）；同一方案evidence_ids须同时填该条实际读取的版本键（如"POL06:1.0"）。'
+
+
+def _v7_prompt_schema(schema, *, policy_ids=None):
     projected = _prompt_schema(schema)
     definitions = projected["$defs"]
     option = definitions["Option"]
     line = definitions["DecisionLine"]
+    if policy_ids is not None:
+        policy_items = option["properties"]["policy_ids"]
+        if policy_ids:
+            policy_items["items"]["enum"] = sorted(set(policy_ids))
+        else:
+            policy_items["maxItems"] = 0
 
     def require_line_field(field, forbidden):
         # DecisionLine exposes positive integer or null. The action requires
@@ -333,8 +342,16 @@ def run_phase(
     projected_prompt = projection.prompt(prompt)
     indexed_verifier = "verifier_encoding" in projected_prompt
     prompt_schema = schema.model_json_schema()
+    can_propose = role in {"strong_single", "verifier", "synthesizer"}
     if projection.receipt_encoding:
-        prompt_schema = _share_prompt_constraints(_v7_prompt_schema(prompt_schema))
+        policy_ids = {
+            row.data["clause"]["id"]
+            for row in context.input.evidence
+            if row.ref.source_kind == "POLICY"
+        }
+        prompt_schema = _share_prompt_constraints(
+            _v7_prompt_schema(prompt_schema, policy_ids=policy_ids if can_propose else None)
+        )
     messages = [
         SystemMessage(
             content=(
@@ -347,7 +364,9 @@ def run_phase(
                 + PROMPT_LEGEND
                 + (HUMAN_PAYMENT_PROMPT_LEGEND if context.protocol == HUMAN_PAYMENT_V7 else "")
                 + (
-                    RECEIPT_LEGEND + "退款金额用已核实的分。金额未知不提退款；补证列具体缺项。"
+                    RECEIPT_LEGEND
+                    + (POLICY_CITATION_LEGEND if can_propose else "")
+                    + "退款金额用已核实的分。金额未知不提退款；补证列具体缺项。"
                     if projection.receipt_encoding
                     else ""
                 )
