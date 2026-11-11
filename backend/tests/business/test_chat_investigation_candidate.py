@@ -11,7 +11,7 @@ from langsmith import tracing_context
 from langsmith.utils import tracing_is_enabled
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from test_business import OWNER, SUPPORT, TESTER, _evidence, _photo
+from test_business import OWNER, SUPPORT, TESTER, _change, _evidence, _photo
 from test_chat_decisions_integration import _link
 from test_chat_decisions_integration import configured as _configured
 from test_conversations import client as _client
@@ -20,14 +20,17 @@ from test_conversations import system as _system
 
 from aftercare.business.rules import digest
 from aftercare.conversations.decisions import ConversationDecisions
-from aftercare.conversations.tables import Conversation
+from aftercare.conversations.tables import Conversation, Message
+from aftercare.decisions.contracts import DecisionScope
 from aftercare.intelligence.api import router
 from aftercare.intelligence.decision_candidate import project_candidate
 from aftercare.intelligence.models import ModelRunner, Registry
 from aftercare.intelligence.service import AgentService, RunAudit
 from aftercare.intelligence.tables import RunEvent
+from aftercare.investigation.contracts import ORDER_OWNERSHIP_REF
 from aftercare.investigation.graph import CHAT_GRAPH_PROFILE
-from aftercare.investigation.input import build_input
+from aftercare.investigation.input import InputUnavailable, build_input
+from aftercare.investigation.tools import InvestigationTools
 
 client = _client
 system = _system
@@ -133,7 +136,7 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
                                 "evidence_ids": [
                                     row.ref.source_id
                                     for row in value.evidence
-                                    if row.ref.source_kind in {"ATTACHMENT", "REVIEW", "MATERIAL"}
+                                    if row.ref.source_kind == "MATERIAL"
                                 ]
                             },
                         },
@@ -159,8 +162,13 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
                 for msg in messages
                 if isinstance(msg, ToolMessage)
             }
-            assert len(by_name["read_order_lines"]) == 1
-            assert len(by_name["read_material_evidence"]) == 5
+            line, ownership = by_name["read_order_lines"]
+            assert line["ref"][1] == line_id
+            assert ownership["ref"][1] == ORDER_OWNERSHIP_REF
+            assert ownership["data"]["identity_scope"] == "ACCOUNT_ONLY"
+            materials = by_name["read_material_evidence"]
+            assert len(materials) == 3
+            assert materials[-1]["data"]["decision"] == "APPROVED"
             assert len(by_name["search_applicable_policy"]) == 11
             assert any(
                 row["data"].get("clause", {}).get("text") == policy.data["clause"]["text"]
@@ -365,7 +373,13 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         ]
         assert len(rounds) == 2
         assert rounds[1]["preflight"] == "FIT"
-        assert rounds[1]["evidence_count"] == 17
+        assert rounds[1]["evidence_count"] == len(
+            {
+                ref["source_id"]
+                for item in stored_receipts
+                for ref in item.payload["receipt"]["refs"]
+            }
+        )
         assert rounds[1]["estimated_with_tools"] < rounds[1]["limit"] == 24_576
 
 
@@ -473,3 +487,98 @@ def test_full_policy_history_is_blindly_searchable_but_never_supports_current_ac
     with Session(configured.db) as db, db.begin(), pytest.raises(BusinessError) as denied:
         decisions.validate(db, scope, current)
     assert denied.value.code == "INVESTIGATION_POLICY_VERSION_NOT_APPLICABLE"
+
+
+def test_account_ownership_and_related_review_are_frozen_source_evidence(configured):
+    url, case_id = _link(configured)
+    _evidence(configured.service, case_id)
+    configured.service.settings.chat_investigation_enabled = True
+    decisions = ConversationDecisions(configured.service)
+
+    def freeze():
+        with Session(configured.db) as db, db.begin():
+            conversation = db.get_one(Conversation, url.split("/")[-1])
+            return decisions.resolve(db, SUPPORT, conversation.id, conversation.analysis_issue_id)
+
+    scope = freeze()
+    value = build_input(scope)
+    tools = InvestigationTools(value)
+    order_args = {"line_ids": list(scope.line_ids)}
+    receipt = tools.call("fact", "read_order_lines", order_args)
+    assert [row.source_id for row in receipt.refs] == [*scope.line_ids, ORDER_OWNERSHIP_REF]
+    ownership = receipt.data["records"][-1]["data"]
+    assert ownership == {
+        "version": "account-order-ownership-v1",
+        "order_id": scope.order_id,
+        "value": "AUTHENTICATED_ACCOUNT_ORDER_OWNER",
+        "identity_scope": "ACCOUNT_ONLY",
+    }
+    assert scope.customer_id not in ownership.values()
+    policy_receipt = tools.call(
+        "policy",
+        "search_applicable_policy",
+        {"query": "本人订单", "condition_keys": [ORDER_OWNERSHIP_REF]},
+    )
+    assert policy_receipt.refs[0].source_id == ORDER_OWNERSHIP_REF
+    assert policy_receipt.data["records"][0]["data"] == ownership
+
+    material = next(row for row in value.evidence if row.ref.source_kind == "MATERIAL")
+    review = next(row for row in value.evidence if row.ref.source_kind == "REVIEW")
+    for refs in ([material.ref.source_id], [material.ref.source_id, review.ref.source_id]):
+        related = tools.call("fact", "read_material_evidence", {"evidence_ids": refs})
+        assert [row.source_id for row in related.refs] == [
+            material.ref.source_id,
+            review.ref.source_id,
+        ]
+        assert related.data["records"][-1]["data"]["decision"] == "APPROVED"
+
+    tampered = scope.model_dump(mode="json")
+    raw = tampered["frozen_context"]
+    raw["authenticated_order_ownership"]["identity_scope"] = "KYC"
+    tampered["input_sha256"] = digest([tampered["input_refs"], raw])
+    with pytest.raises(InputUnavailable, match="INVESTIGATION_OWNERSHIP_BINDING_INVALID"):
+        build_input(DecisionScope.model_validate(tampered))
+    raw["authenticated_order_ownership"]["identity_scope"] = "ACCOUNT_ONLY"
+    binding = next(row for row in tampered["input_refs"] if row["id"] == ORDER_OWNERSHIP_REF)
+    binding["sha256"] = "0" * 64
+    tampered["input_sha256"] = digest([tampered["input_refs"], raw])
+    with pytest.raises(InputUnavailable, match="INVESTIGATION_REFERENCE_MISMATCH"):
+        build_input(DecisionScope.model_validate(tampered))
+
+    # A legacy input without the ownership field remains readable. New freezes of
+    # messages lacking authenticated publication provenance do not acquire it.
+    legacy = scope.model_dump(mode="json")
+    legacy["frozen_context"].pop("authenticated_order_ownership")
+    legacy["input_refs"] = [row for row in legacy["input_refs"] if row["id"] != ORDER_OWNERSHIP_REF]
+    legacy["input_sha256"] = digest([legacy["input_refs"], legacy["frozen_context"]])
+    with pytest.raises(InputUnavailable, match="INVESTIGATION_OWNERSHIP_BINDING_INVALID"):
+        build_input(DecisionScope.model_validate(legacy))
+    legacy["evidence_ids"].remove(ORDER_OWNERSHIP_REF)
+    legacy_value = build_input(DecisionScope.model_validate(legacy))
+    assert ORDER_OWNERSHIP_REF not in {
+        row.source_id
+        for row in InvestigationTools(legacy_value)
+        .call("fact", "read_order_lines", order_args)
+        .refs
+    }
+    with Session(configured.db) as db, db.begin():
+        first_message = scope.frozen_context["messages"][0]["id"]
+        db.get_one(Message, first_message).actor_id = None
+    changed = freeze()
+    assert changed.dependency_sha256 != scope.dependency_sha256
+    assert "authenticated_order_ownership" not in changed.frozen_context
+
+    _change(
+        configured.service,
+        case_id,
+        OWNER,
+        configured.service.upload,
+        "new-photo",
+        kind="ITEM",
+        content=_photo("blue"),
+    )
+    current = freeze()
+    related = InvestigationTools(build_input(current)).call(
+        "fact", "read_material_evidence", {"evidence_ids": [material.ref.source_id]}
+    )
+    assert [row.source_id for row in related.refs] == [material.ref.source_id]

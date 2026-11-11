@@ -17,6 +17,7 @@ from aftercare.db import User
 from aftercare.evaluation.api import router
 from aftercare.evaluation.chat.service import BlindReviewService
 from aftercare.evaluation.chat.tables import BlindExposure, BlindInitial, BlindLabels, BlindTask
+from aftercare.investigation.contracts import ORDER_OWNERSHIP_REF
 
 client = _client
 system = _system
@@ -334,6 +335,15 @@ def test_complete_catalogue_and_selected_bundle_reference_are_distinct(task):
     assert public.policy_coverage == "COMPLETE_CATALOGUE"
     assert public.policy_context["products"]
     assert public.policy_context["timestamps"]["decision_at"]
+    ownership_id = f"CONDITION:{ORDER_OWNERSHIP_REF}"
+    ownership = next(row for row in public.facts if row.id == ownership_id)
+    assert ownership.trust == "VERIFIED_RECORD"
+    assert ownership.data == {
+        "value": "AUTHENTICATED_ACCOUNT_ORDER_OWNER",
+        "identity_scope": "ACCOUNT_ONLY",
+        "version": "account-order-ownership-v1",
+        "order_id": scope.order_id,
+    }
     selected = {
         f"{row['id']}:{row['version']}" for row in scope.frozen_context["policies"]["documents"]
     }
@@ -343,7 +353,11 @@ def test_complete_catalogue_and_selected_bundle_reference_are_distinct(task):
 
     candidate = deepcopy(source["candidate"])
     other_clause = min(raw - selected)
-    candidate["options"][0]["evidence_ids"] = ["effective-policy-snapshot", other_clause]
+    candidate["options"][0]["evidence_ids"] = [
+        "effective-policy-snapshot",
+        other_clause,
+        ORDER_OWNERSHIP_REF,
+    ]
     snapshot = SimpleNamespace(
         id=source["id"],
         origin="AGENT",
@@ -354,4 +368,9 @@ def test_complete_catalogue_and_selected_bundle_reference_are_distinct(task):
         candidate=candidate,
     )
     references = _candidate(snapshot, scope, public)["options"][0]["evidence_references"]
-    assert [row["resolved_ids"] for row in references] == [sorted(selected), [other_clause]]
+    assert [row["resolved_ids"] for row in references] == [
+        sorted(selected),
+        [other_clause],
+        [ownership_id],
+    ]
+    assert references[-1]["status"] == "RESOLVED"

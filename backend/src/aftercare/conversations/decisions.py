@@ -21,6 +21,7 @@ from aftercare.investigation.catalogue import (
     catalogue_capsule,
     exact_policy_refs_match,
 )
+from aftercare.investigation.contracts import ORDER_OWNERSHIP_REF, account_order_ownership
 
 from .tables import Attachment, Conversation, Message
 
@@ -156,6 +157,19 @@ class ConversationDecisions:
         )
         if not messages:
             _fail("DECISION_INPUT_REQUIRED")
+        ownership = None
+        if (
+            raw_catalogue is not None
+            and row.customer_id == case.customer_id == order.customer_id
+            and all(
+                item.actor_id
+                and item.client_message_id
+                and item.request_hash
+                and item.discarded_at is None
+                for item in messages
+            )
+        ):
+            ownership = account_order_ownership(order.id)
         ids = [item.id for item in messages]
         attachments = list(
             db.scalars(
@@ -207,6 +221,8 @@ class ConversationDecisions:
         ]
         if case.facts:
             evidence.append(_ref("FACT", "case-facts", case.facts))
+        if ownership is not None:
+            evidence.append(_ref("FACT", ORDER_OWNERSHIP_REF, ownership))
         policy_ref = _ref("POLICY", "effective-policy-snapshot", context["policy_resolution"])
         evidence.append(policy_ref)
         dependencies = list(evidence)
@@ -303,6 +319,7 @@ class ConversationDecisions:
                 ],
             },
             "facts": case.facts,
+            **({"authenticated_order_ownership": ownership} if ownership is not None else {}),
             "materials": context["materials"],
             "reviews": context["reviews"],
             "policies": context["policy_resolution"],

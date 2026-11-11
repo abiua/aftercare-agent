@@ -16,6 +16,7 @@ from aftercare.db import User
 from aftercare.decisions.contracts import Candidate, DecisionScope
 from aftercare.decisions.tables import DecisionSnapshot
 from aftercare.investigation.catalogue import CATALOGUE_REF
+from aftercare.investigation.contracts import ORDER_OWNERSHIP_REF
 from aftercare.investigation.input import build_input
 
 from ..service import _mutate, _remember
@@ -135,6 +136,8 @@ def _fact_data(kind, ident, data, line_ids):
     if kind == "EXECUTION":
         return locate_refund([data], ident)["execution"]
     if kind == "CONDITION":
+        if ident == ORDER_OWNERSHIP_REF:
+            return _selected(data, ("value", "identity_scope", "version", "order_id"))
         if ident == "case:return_lines":
             return {
                 "value": {

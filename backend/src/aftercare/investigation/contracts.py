@@ -4,6 +4,18 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+ORDER_OWNERSHIP_REF = "authenticated-order-ownership"
+
+
+def account_order_ownership(order_id: str) -> dict:
+    return {
+        "version": "account-order-ownership-v1",
+        "order_id": order_id,
+        "value": "AUTHENTICATED_ACCOUNT_ORDER_OWNER",
+        "identity_scope": "ACCOUNT_ONLY",
+    }
+
+
 Role = Literal["strong_single", "fact", "policy", "verifier"]
 SourceKind = Literal[
     "MESSAGE",

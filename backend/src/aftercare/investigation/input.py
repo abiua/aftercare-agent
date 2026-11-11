@@ -8,7 +8,14 @@ from aftercare.conversations.decisions import _relevant
 from aftercare.decisions.contracts import DecisionScope
 
 from .catalogue import CATALOGUE_REF, valid_capsule
-from .contracts import CustomerMessage, Evidence, EvidenceRef, InvestigationInput
+from .contracts import (
+    ORDER_OWNERSHIP_REF,
+    CustomerMessage,
+    Evidence,
+    EvidenceRef,
+    InvestigationInput,
+    account_order_ownership,
+)
 
 MAX_TEXT_BYTES = 24_000
 MAX_EVIDENCE_BYTES = 196_608
@@ -212,6 +219,25 @@ def _project(scope):
     for name, field in _CONDITIONS.items():
         if field in order:
             add("CONDITION", name, {"value": order[field], "order_version": order["version"]})
+    ownership_ref = ("FACT", ORDER_OWNERSHIP_REF)
+    if (
+        "authenticated_order_ownership" in data
+        or ownership_ref in bindings
+        or ORDER_OWNERSHIP_REF in scope.evidence_ids
+    ):
+        ownership = data.get("authenticated_order_ownership")
+        if (
+            ownership != account_order_ownership(scope.order_id)
+            or ORDER_OWNERSHIP_REF not in scope.evidence_ids
+        ):
+            raise InputUnavailable("INVESTIGATION_OWNERSHIP_BINDING_INVALID")
+        add(
+            "CONDITION",
+            ORDER_OWNERSHIP_REF,
+            ownership,
+            bound_kind="FACT",
+            committed=ownership,
+        )
     facts = data["facts"]
     if facts and bindings[("FACT", "case-facts")] != digest(facts):
         raise InputUnavailable("INVESTIGATION_REFERENCE_MISMATCH")

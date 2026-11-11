@@ -8,7 +8,7 @@ from aftercare.business.refund_lookup import locate_refund
 from aftercare.business.rules import digest
 from aftercare.intelligence.policies import PolicySearch, bm25, document_key
 
-from .contracts import Contract, EvidenceRef, InvestigationInput, Role
+from .contracts import ORDER_OWNERSHIP_REF, Contract, EvidenceRef, InvestigationInput, Role
 
 Id = Annotated[str, Field(min_length=1, max_length=160)]
 Ids = Annotated[list[Id], Field(min_length=1, max_length=20)]
@@ -97,6 +97,10 @@ class InvestigationTools:
             if self._input.policy_catalogue_version
             else {}
         )
+        descriptions.update(
+            read_order_lines="Read order lines and any frozen authenticated account ownership record.",
+            read_material_evidence="Read material records and their effective review, if any. Material review does not establish payment approval or image content.",
+        )
         return [
             {
                 "type": "function",
@@ -154,6 +158,20 @@ class InvestigationTools:
     def call(self, role: Role, name: str, args: dict) -> ToolReceipt:
         validated = self.validate_call(role, name, args)
         rows = self._selected(name, validated)
+        if name == "read_order_lines" and (
+            owner := self._rows.get(("CONDITION", ORDER_OWNERSHIP_REF))
+        ):
+            rows.append(owner)
+        if name == "read_material_evidence":
+            materials = {row.ref.source_id for row in rows if row.ref.source_kind == "MATERIAL"}
+            explicit = set(validated.evidence_ids)
+            rows.extend(
+                row
+                for (kind, ident), row in self._rows.items()
+                if kind == "REVIEW"
+                and ident not in explicit
+                and materials.intersection(row.data.get("material_ids", []))
+            )
         if name == "search_applicable_policy":
             rows, data = self._search_policy(validated.query, rows)
         elif name == "read_refund_execution":
