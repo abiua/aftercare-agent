@@ -107,3 +107,12 @@ root对冻结2988bbb源码完整非PG回归987通过、2可选跳过、40 PG未�
 
 
 独立只读数据库复核通过：两任务均v4/LABELED，各一条初判/曝光/标签，三候选均控制UNDETERMINED；eval_mutations精确每任务3条。复杂任务各阶段摘要和三幂等键摘要与浏览器捕获一致，登记报告与私有映射摘要一致。与备份归档比较，除预期4盲审表和eval_mutations外532表指纹不变，包括12个eval schema全部480表。主对照26+中断测试7次均INJECTED_SYNC；没有新视觉/供应方/财务写、审批或模拟付款。
+
+
+## 首轮真实文本三臂：PARTIAL，非质量通过
+
+2d6f77d固定镜像9acd27b8…5d67，预登记计划b182a6d5…51a2，执行 `reports/chat-p5-paid-ordinary-20261111.json`。同一普通开发案例/模型/冻结输入三臂，最多8次/$0.40每臂、24次/$1.20总保守预算。实际15个wire POST均HTTP200，估算$0.11795640、保守发送预留$0.735、未知响应和未知用量费用均0，实际账单未知。wire只按行绑定，不声称逐次逻辑调用匹配。
+
+传输兼容性VERIFIED、候选全部可用，但工作流PARTIAL：strong_single 形成HUMAN_HANDOFF、single_staged 形成REQUEST_EVIDENCE，均完成其角色最终结构；multi因INVESTIGATION_PROMPT_LIMIT在最终核验前转人工，缺verify-0最终结果，不计工作流通过。不得用15次200或存在候选代替三臂成功/决策质量。三臂新candidate_persisted_ms为42923/56831/20931，latency_issue为空，实际UTC计时修复已在本轮验证。无视觉像素发送或独立人审质量结论。
+
+root确认实际p5-paid-text专用容器不存在，临时secret目录无文件，报告记录temporary_local_key_copy_removed=true；旧API/worker仍按原离线配置运行，待独立复核。完整非PG回归994通过/2可选跳过/40 PG未选、定向9项与静态检查通过。原PARTIAL报告保留，正在分别只读诊断核验输入长度、两种单Agent结论与数据来源，不自动重跑。
