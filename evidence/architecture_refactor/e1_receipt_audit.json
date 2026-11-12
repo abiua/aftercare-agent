@@ -11,15 +11,15 @@
   ],
   "planned": 180,
   "counts": {
-    "complete": 70,
-    "started": 1,
-    "missing": 109
+    "complete": 180,
+    "started": 0,
+    "missing": 0
   },
-  "calls": 71,
-  "settled": 70,
-  "known_usd": "1.223810",
-  "held_usd": "0.035748",
+  "calls": 180,
+  "settled": 180,
+  "known_usd": "3.411282",
+  "held_usd": "0",
   "fallbacks": {},
-  "complete": false,
+  "complete": true,
   "scope": "receipt integrity, not label correctness or model superiority"
 }

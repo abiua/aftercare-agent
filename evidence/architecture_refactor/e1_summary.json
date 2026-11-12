@@ -1,125 +1,169 @@
 {
-  "complete": false,
+  "complete": true,
   "models": {
     "M1": {
       "correct_write": {
         "planned": 24,
-        "scored": 0,
-        "missing": 24,
+        "scored": 24,
+        "missing": 0,
         "metric": "false_positive_rate",
-        "numerator": 0,
-        "rate": null,
-        "ci95": null,
+        "numerator": 1,
+        "rate": 0.041666666666666664,
+        "ci95": [
+          0.00739345616550606,
+          0.2024180647865531
+        ],
         "technical_fallbacks": 0
       },
       "wrong_write": {
         "planned": 45,
-        "scored": 0,
-        "missing": 45,
+        "scored": 45,
+        "missing": 0,
         "metric": "detection_rate",
-        "numerator": 0,
-        "rate": null,
-        "ci95": null,
+        "numerator": 43,
+        "rate": 0.9555555555555556,
+        "ci95": [
+          0.8517248923056479,
+          0.9877258732932798
+        ],
         "technical_fallbacks": 0
       },
       "correct_abandon": {
         "planned": 3,
-        "scored": 0,
-        "missing": 3,
+        "scored": 3,
+        "missing": 0,
         "metric": "false_positive_rate",
         "numerator": 0,
-        "rate": null,
-        "ci95": null,
+        "rate": 0.0,
+        "ci95": [
+          0,
+          0.561497031755032
+        ],
         "technical_fallbacks": 0
       },
       "wrong_abandon": {
         "planned": 14,
-        "scored": 0,
-        "missing": 14,
+        "scored": 14,
+        "missing": 0,
         "metric": "detection_rate",
-        "numerator": 0,
-        "rate": null,
-        "ci95": null,
+        "numerator": 14,
+        "rate": 1.0,
+        "ci95": [
+          0.7846891972623734,
+          0.9999999999999999
+        ],
         "technical_fallbacks": 0
       }
     },
     "S2": {
       "correct_write": {
         "planned": 24,
-        "scored": 0,
-        "missing": 24,
+        "scored": 24,
+        "missing": 0,
         "metric": "false_positive_rate",
         "numerator": 0,
-        "rate": null,
-        "ci95": null,
+        "rate": 0.0,
+        "ci95": [
+          0,
+          0.13797620467497365
+        ],
         "technical_fallbacks": 0
       },
       "wrong_write": {
         "planned": 45,
-        "scored": 0,
-        "missing": 45,
+        "scored": 45,
+        "missing": 0,
         "metric": "detection_rate",
-        "numerator": 0,
-        "rate": null,
-        "ci95": null,
+        "numerator": 43,
+        "rate": 0.9555555555555556,
+        "ci95": [
+          0.8517248923056479,
+          0.9877258732932798
+        ],
         "technical_fallbacks": 0
       },
       "correct_abandon": {
         "planned": 3,
-        "scored": 0,
-        "missing": 3,
+        "scored": 3,
+        "missing": 0,
         "metric": "false_positive_rate",
         "numerator": 0,
-        "rate": null,
-        "ci95": null,
+        "rate": 0.0,
+        "ci95": [
+          0,
+          0.561497031755032
+        ],
         "technical_fallbacks": 0
       },
       "wrong_abandon": {
         "planned": 14,
-        "scored": 0,
-        "missing": 14,
+        "scored": 14,
+        "missing": 0,
         "metric": "detection_rate",
-        "numerator": 0,
-        "rate": null,
-        "ci95": null,
+        "numerator": 14,
+        "rate": 1.0,
+        "ci95": [
+          0.7846891972623734,
+          0.9999999999999999
+        ],
         "technical_fallbacks": 0
       }
     }
   },
   "paired": {
     "correct_write": {
-      "paired_samples": 0,
-      "tasks": 0,
-      "difference": null,
-      "ci95": null,
-      "mcnemar_p": null
+      "paired_samples": 24,
+      "tasks": 14,
+      "difference": -0.041666666666666664,
+      "ci95": [
+        -0.15384615384615385,
+        0.0
+      ],
+      "mcnemar_p": 1.0,
+      "independent_only_correct": 0,
+      "self_only_correct": 1
     },
     "wrong_write": {
-      "paired_samples": 0,
-      "tasks": 0,
-      "difference": null,
-      "ci95": null,
-      "mcnemar_p": null
+      "paired_samples": 45,
+      "tasks": 14,
+      "difference": 0.0,
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "mcnemar_p": 1.0,
+      "independent_only_correct": 0,
+      "self_only_correct": 0
     },
     "correct_abandon": {
-      "paired_samples": 0,
-      "tasks": 0,
-      "difference": null,
-      "ci95": null,
-      "mcnemar_p": null
+      "paired_samples": 3,
+      "tasks": 3,
+      "difference": 0.0,
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "mcnemar_p": 1.0,
+      "independent_only_correct": 0,
+      "self_only_correct": 0
     },
     "wrong_abandon": {
-      "paired_samples": 0,
-      "tasks": 0,
-      "difference": null,
-      "ci95": null,
-      "mcnemar_p": null
+      "paired_samples": 14,
+      "tasks": 14,
+      "difference": 0.0,
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "mcnemar_p": 1.0,
+      "independent_only_correct": 0,
+      "self_only_correct": 0
     }
   },
-  "H4": false,
+  "H4": true,
   "H5": false,
-  "gate": "incomplete",
-  "known_usd": 0,
+  "gate": "not_passed",
+  "known_usd": 3.4112819999999995,
   "unsettled_reserved_usd": 0,
   "scope": "E1 held-out proposals; not official task success or product acceptance",
   "limitations": [
