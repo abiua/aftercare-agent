@@ -1,0 +1,130 @@
+{
+  "complete": false,
+  "models": {
+    "M1": {
+      "correct_write": {
+        "planned": 24,
+        "scored": 0,
+        "missing": 24,
+        "metric": "false_positive_rate",
+        "numerator": 0,
+        "rate": null,
+        "ci95": null,
+        "technical_fallbacks": 0
+      },
+      "wrong_write": {
+        "planned": 45,
+        "scored": 0,
+        "missing": 45,
+        "metric": "detection_rate",
+        "numerator": 0,
+        "rate": null,
+        "ci95": null,
+        "technical_fallbacks": 0
+      },
+      "correct_abandon": {
+        "planned": 3,
+        "scored": 0,
+        "missing": 3,
+        "metric": "false_positive_rate",
+        "numerator": 0,
+        "rate": null,
+        "ci95": null,
+        "technical_fallbacks": 0
+      },
+      "wrong_abandon": {
+        "planned": 14,
+        "scored": 0,
+        "missing": 14,
+        "metric": "detection_rate",
+        "numerator": 0,
+        "rate": null,
+        "ci95": null,
+        "technical_fallbacks": 0
+      }
+    },
+    "S2": {
+      "correct_write": {
+        "planned": 24,
+        "scored": 0,
+        "missing": 24,
+        "metric": "false_positive_rate",
+        "numerator": 0,
+        "rate": null,
+        "ci95": null,
+        "technical_fallbacks": 0
+      },
+      "wrong_write": {
+        "planned": 45,
+        "scored": 0,
+        "missing": 45,
+        "metric": "detection_rate",
+        "numerator": 0,
+        "rate": null,
+        "ci95": null,
+        "technical_fallbacks": 0
+      },
+      "correct_abandon": {
+        "planned": 3,
+        "scored": 0,
+        "missing": 3,
+        "metric": "false_positive_rate",
+        "numerator": 0,
+        "rate": null,
+        "ci95": null,
+        "technical_fallbacks": 0
+      },
+      "wrong_abandon": {
+        "planned": 14,
+        "scored": 0,
+        "missing": 14,
+        "metric": "detection_rate",
+        "numerator": 0,
+        "rate": null,
+        "ci95": null,
+        "technical_fallbacks": 0
+      }
+    }
+  },
+  "paired": {
+    "correct_write": {
+      "paired_samples": 0,
+      "tasks": 0,
+      "difference": null,
+      "ci95": null,
+      "mcnemar_p": null
+    },
+    "wrong_write": {
+      "paired_samples": 0,
+      "tasks": 0,
+      "difference": null,
+      "ci95": null,
+      "mcnemar_p": null
+    },
+    "correct_abandon": {
+      "paired_samples": 0,
+      "tasks": 0,
+      "difference": null,
+      "ci95": null,
+      "mcnemar_p": null
+    },
+    "wrong_abandon": {
+      "paired_samples": 0,
+      "tasks": 0,
+      "difference": null,
+      "ci95": null,
+      "mcnemar_p": null
+    }
+  },
+  "H4": false,
+  "H5": false,
+  "gate": "incomplete",
+  "known_usd": 0,
+  "unsettled_reserved_usd": 0,
+  "scope": "E1 held-out proposals; not official task success or product acceptance",
+  "limitations": [
+    "No complete executor reasoning saved; self-check uses saved system/public context only.",
+    "Official success is a source selection rule, not independent proof that every intermediate write was correct.",
+    "Foreign-payment mutations use an actual other-user method; its owner is never supplied to the model."
+  ]
+}

@@ -58,6 +58,32 @@ class Port:
         return StepProposal(text=response.choices[0].message.content or '')
 
 
+
+def restore_budget(journal):
+    from decimal import Decimal
+    if journal.exists() and journal.stat().st_size and not journal.read_bytes().endswith(b'\n'):
+        raise ValueError('Incomplete journal tail; do not append or issue more calls')
+    reservations,settlements=call_receipts(journal)
+    if set(settlements)-set(reservations):raise ValueError('Settlement without reservation')
+    budget=Budget(1000,'10',journal)
+    budget.calls=max(reservations,default=0)
+    budget.committed=sum((Decimal(settlements[k]['actual_usd']) if k in settlements else Decimal(v['reserve_usd']))
+                         for k,v in reservations.items())
+    if any(Decimal(settlements[k]['actual_usd'])>Decimal(reservations[k]['reserve_usd']) for k in settlements):
+        budget.max_calls=budget.calls  # Preserve the original transport's stop across restarts.
+    return budget
+
+
+def claim_sample(target,sample_id,mode):
+    try:
+        with target.open('x') as stream:
+            json.dump({'id':sample_id,'mode':mode,'status':'started'},stream)
+            stream.flush();os.fsync(stream.fileno())
+        return True
+    except FileExistsError:
+        return False
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--split',choices=['development','holdout'],required=True)
@@ -81,21 +107,14 @@ def main():
         freeze=RUN/(args.split+'-manifest.json')
         if freeze.exists() and json.loads(freeze.read_text())!=manifest:raise SystemExit('Frozen manifest mismatch')
         if not freeze.exists():dump(freeze,manifest)
-        from decimal import Decimal
-        journal=RUN/'calls.jsonl';reservations,settlements=call_receipts(journal)
-        budget=Budget(1000,'10',journal)
-        budget.calls=max(reservations,default=0)
-        budget.committed=sum((Decimal(settlements[k]['actual_usd']) if k in settlements else Decimal(v['reserve_usd'])) for k,v in reservations.items())
+        budget=restore_budget(RUN/'calls.jsonl')
         from openai import OpenAI
         key=json.loads((ROOT/'.runtime/model-secret.json').read_text())['api_key']
         limits={'max_agent_calls_per_run':1,'max_user_calls_per_run':0,'max_review_calls_per_run':0,'max_output_tokens_per_call':1000}
         with OpenAI(api_key=key,base_url='https://api.openai.com/v1',max_retries=0,timeout=60) as client:
             for sample,mode in schedule:
                 key=sample['id']+'-'+mode;target=RUN/(key+'.json')
-                if target.exists():continue  # Started/unknown never retried.
-                # Preclaim is durable, so interruption cannot silently cause a duplicate paid call.
-                with target.open('x') as f:
-                    json.dump({'id':sample['id'],'mode':mode,'status':'started'},f);f.flush();os.fsync(f.fileno())
+                if not claim_sample(target,sample['id'],mode):continue
                 row=RowTransport(key,limits,budget,client)
                 reviewer=ProposalReviewer(Port(row))
                 messages,proposal,guard,executor=request_data(sample,data['policy'])
