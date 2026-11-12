@@ -4,6 +4,7 @@ from hashlib import sha256
 import json
 from time import monotonic
 from .contracts import Architecture, ModelPort, StepProposal, ToolDefinition, TraceEvent
+from .review import trigger
 
 EXECUTOR_INSTRUCTION = '''Help the customer using only the supplied policy and tools.
 Track all outstanding customer requests. Look up missing facts rather than guessing.
@@ -25,6 +26,7 @@ class ExecutionKernel:
         self.reviewer=reviewer
         self.experts=experts
         self.trace: list[TraceEvent]=[]
+        self.last_review=None
 
     def step(self, messages: list[dict], tools: tuple[ToolDefinition, ...], policy: str,
              *, historical_prompt: str | None = None) -> StepProposal:
@@ -34,8 +36,7 @@ class ExecutionKernel:
             raise KernelNotReady('Architecture requires review implementation')
         prompt=historical_prompt if historical_prompt is not None else EXECUTOR_INSTRUCTION+'\n<policy>\n'+policy+'\n</policy>'
         inputs=[{'role':'system','content':prompt},*messages]
-        if self.architecture.review != 'none':
-            raise KernelNotReady('Review flow has not been connected yet')
+        self.last_review=None
         for attempt in range(2):
             start=monotonic()
             proposal=self.model.generate(role='executor',assignment=self.architecture.executor,
@@ -56,7 +57,25 @@ class ExecutionKernel:
             self.trace.append(TraceEvent(role='executor',stage='guard',input_sha256=self.trace[-1].input_sha256,
                 output=result.model_dump(mode='json')))
             if result.allowed:
-                return proposal
+                if self.architecture.review == 'none' or not trigger(proposal,tools,messages):
+                    return proposal
+                self.last_review=self.reviewer.review(self.architecture,proposal,messages,policy,result,inputs)
+                self.trace.append(self.reviewer.trace[-1])
+                if self.last_review.verdict=='allow':return proposal
+                feedback={'role':'system','content':'One-use review suggestion, verify against evidence: '+self.last_review.model_dump_json()}
+                revised_inputs=[*inputs,feedback]
+                start=monotonic()
+                revised=self.model.generate(role='executor',assignment=self.architecture.executor,
+                    messages=revised_inputs,tools=tools,stage='executor_revision')
+                self.trace.append(TraceEvent(role='executor',stage='executor_revision',model=self.architecture.executor.model,
+                    input_sha256=sha256(json.dumps(revised_inputs,sort_keys=True).encode()).hexdigest(),
+                    output=revised.model_dump(mode='json',exclude={'private_context'}),elapsed_seconds=monotonic()-start))
+                if hasattr(self.guard,'normalize'):revised=self.guard.normalize(revised)
+                checked=self.guard.check(messages,revised,tools)
+                self.trace.append(TraceEvent(role='executor',stage='post_review_guard',
+                    input_sha256=self.trace[-1].input_sha256,output=checked.model_dump(mode='json')))
+                if not checked.allowed:raise GuardRejected(checked.feedback)
+                return revised
             if attempt:
                 raise GuardRejected(result.feedback)
             inputs=[*inputs,{'role':'system','content':'Internal validation feedback for this retry only: '+result.feedback}]

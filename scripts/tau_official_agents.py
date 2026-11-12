@@ -7,6 +7,7 @@ from tau2.utils.llm_utils import generate
 from aftercare.agent_kernel.contracts import StepProposal, ToolCall, ToolDefinition, ToolKind, architectures
 from aftercare.agent_kernel.engine import ExecutionKernel
 from aftercare.agent_kernel.retail_guards import RetailGuards
+from aftercare.agent_kernel.review import ProposalReviewer
 import tau_official_agents_legacy as legacy
 
 ARCHITECTURES=legacy.ARCHITECTURES
@@ -46,7 +47,7 @@ class OfficialModelPort:
         kwargs={**self.llm_args,'reasoning_effort':assignment.reasoning,'aftercare_role':role}
         reply=generate(model=assignment.model,messages=converted,
             tools=[self.tools[t.name] for t in tools],call_name=stage,**kwargs)
-        self.last_response=reply
+        if role=="executor":self.last_response=reply
         return StepProposal(text=reply.content or '',calls=tuple(ToolCall(id=c.id,name=c.name,arguments=c.arguments) for c in reply.tool_calls or []))
 
 
@@ -67,7 +68,7 @@ class KernelRetailAgent(LLMAgent):
     def __init__(self, *, architecture, **kwargs):
         super().__init__(**kwargs)
         self.port=OfficialModelPort(self.tools,self.llm_args)
-        self.kernel=ExecutionKernel(architectures()[architecture],self.port,guard=RetailGuards())
+        self.kernel=ExecutionKernel(architectures()[architecture],self.port,guard=RetailGuards(),reviewer=ProposalReviewer(self.port))
         self.private_trace=[]
 
     def _generate_next_message(self, message, state):
