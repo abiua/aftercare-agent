@@ -1,4 +1,4 @@
-"""The checkpointed P4 chat investigation graph."""
+"""The checkpointed chat investigation graph."""
 
 from __future__ import annotations
 
@@ -12,11 +12,18 @@ from pydantic import TypeAdapter
 from aftercare.business.errors import BusinessError
 from aftercare.business.rules import digest
 from aftercare.decisions.contracts import CandidateOption, NonExecutingOption, Option
-from aftercare.intelligence.models import ModelFailure
+from aftercare.intelligence.models import InvalidOutput, ModelFailure
 
 from .catalogue import exact_policy_refs_match
-from .orchestration import InvestigationContext, ProtectedAudit, RecheckRequest, run_phase
+from .orchestration import (
+    RECHECK_REQUEST,
+    InvestigationContext,
+    ProtectedAudit,
+    run_phase,
+    validate_recheck,
+)
 from .prompt_evidence import PRIVATE_RECEIPT_EVENT
+from .tools import MAX_READ_IDS
 
 CHAT_GRAPH_PROFILE = "chat-investigation-v1"
 NO_RECHECK_ARM = "multi_no_recheck"
@@ -32,6 +39,7 @@ ARMS = {
     SYNTHESIS_ONLY_ARM,
 }
 _OPTIONS = TypeAdapter(list[CandidateOption])
+_MATERIAL_INTENTS = {"damaged", "wrong_item", "return", "warranty"}
 
 
 class InvestigationState(TypedDict, total=False):
@@ -47,6 +55,7 @@ class InvestigationState(TypedDict, total=False):
     evidence_ids: list[str]
     active_claims: list[dict]
     stale_claims: list[str]
+    retired_claims: list[dict]
     recheck: dict
     recheck_count: int
     recheck_receipt: dict
@@ -138,6 +147,8 @@ def _phase(
     max_tools=3,
     prompt=None,
     tools_enabled=True,
+    assessment_ref_ids=(),
+    initial_material_ids=(),
 ):
     prompt = context.input.role_view(role) if prompt is None else prompt
     result, evidence, receipts, tool_calls = run_phase(
@@ -150,6 +161,8 @@ def _phase(
         max_rounds=max_rounds,
         tool_limit=max_tools,
         tools_enabled=tools_enabled,
+        assessment_ref_ids=assessment_ref_ids,
+        initial_material_ids=initial_material_ids,
         audit=ProtectedAudit(context.audit, context.verifier_reserve)
         if role in {"fact", "policy"} and phase_id != "recheck"
         else None,
@@ -169,7 +182,14 @@ def _phase(
 def _strong(_state, runtime: Runtime[InvestigationContext]):
     context = runtime.context
     try:
-        result = _phase(context, "strong_single", "single", max_rounds=8, max_tools=8)
+        result = _phase(
+            context,
+            "strong_single",
+            "single",
+            max_rounds=8,
+            max_tools=8,
+            prompt=_fact_prompt(context, "strong_single"),
+        )
     except ModelFailure as error:
         return {"path": "DONE", **_handoff(context, error.code)}
     if (
@@ -188,6 +208,9 @@ def _strong(_state, runtime: Runtime[InvestigationContext]):
             },
         )
         return {"path": "MULTI", "single_result": result}
+    unread = _unread_material(context, result["evidence_ids"])
+    if unread and _asks_for_material(result):
+        return {"path": "DONE", **_material_handoff(context, unread)}
     return {"path": "DONE", **_publish_options(context, result)}
 
 
@@ -209,6 +232,15 @@ def _role(role, *, staged=False, sequential_claims=False):
                 if staged and upstream
                 else (),
                 max_tools=2,
+                initial_material_ids=(
+                    sorted(
+                        ident
+                        for ident, ref in _material_catalogue(context).items()
+                        if ref["source_kind"] == "MATERIAL"
+                    )[:MAX_READ_IDS]
+                    if role == "fact"
+                    else ()
+                ),
             )
         except ModelFailure as error:
             result = {"error": error.code}
@@ -229,6 +261,47 @@ def _claims(role, result):
         }
         for claim in result.get("claims", [])
     ]
+
+
+def _material_catalogue(context):
+    if context.input.intent not in _MATERIAL_INTENTS:
+        return {}
+    return {
+        row.ref.source_id: row.ref.model_dump(mode="json")
+        for row in context.input.evidence
+        if row.ref.source_kind in {"MATERIAL", "REVIEW", "ATTACHMENT", "OBSERVATION"}
+    }
+
+
+def _fact_prompt(context, role):
+    view = context.input.role_view(role)
+    if _material_catalogue(context):
+        view["material_read_instruction"] = (
+            "已提供材料目录。用 read_material_evidence 读取相关记录和有效人工审核。"
+            "与 read_order_lines 独立，可在首轮并列发出。区分已上传、已读取和审核通过。"
+            "未读材料不能认定缺失。"
+        )
+    return view
+
+
+def _unread_material(context, evidence):
+    return {
+        ident: ref
+        for ident, ref in _material_catalogue(context).items()
+        if ident not in evidence and ref["source_kind"] in {"MATERIAL", "REVIEW"}
+    }
+
+
+def _material_handoff(context, unread):
+    reason = "INVESTIGATION_MATERIAL_NOT_READ"
+    context.audit.event(
+        "investigation_material_unread", {"evidence_ids": sorted(unread), "reason": reason}
+    )
+    return _output(context, reason=reason, unresolved=("已有冻结材料或审核未核对，交人工处理。",))
+
+
+def _asks_for_material(result):
+    return any(option["action"] == "REQUEST_EVIDENCE" for option in result["options"])
 
 
 def _evidence(state):
@@ -265,6 +338,7 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
     ]
     if count:
         raw_receipts.append(state["recheck_receipt"])
+    unread = _unread_material(context, set(evidence) | set(_evidence(state)))
     prompt = {
         **context.input.role_view("verifier"),
         "original_read_receipts": raw_receipts,
@@ -275,7 +349,24 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
         ],
         "unresolved_invalidated_claim_ids": state.get("stale_claims", []),
     }
+    if unread:
+        prompt.update(
+            unread_material_refs=list(unread.values()),
+            material_verification_instruction=(
+                "目录只证明已存在相应记录。检查上游是否把未读记录说成缺失。"
+                "如有实际冲突，针对该主张用 read_material_evidence 补查。"
+                "已有上传材料不能要求重复提交，未核实则保留缺口并交人工处理。"
+            ),
+        )
+    statements = [
+        row.model_dump(mode="json")
+        for row in context.input.messages
+        if row.ref.source_id in evidence
+    ]
+    if statements:
+        prompt["customer_statements"] = statements
     synthesis = context.counterexample_ablation and context.arm == SYNTHESIS_ONLY_ARM
+    proposal_tool = not count and (synthesis or not context.direct_recheck_request)
     try:
         result = _phase(
             context,
@@ -283,10 +374,11 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
             "synthesize-0" if synthesis else f"verify-{count}",
             upstream=claims,
             known=evidence,
-            max_rounds=1 if count else 2,
-            max_tools=1,
-            tools_enabled=not count,
+            max_rounds=2 if proposal_tool else 1,
+            max_tools=1 if proposal_tool else 0,
+            tools_enabled=proposal_tool,
             prompt=prompt,
+            assessment_ref_ids=unread,
         )
     except ModelFailure as error:
         return {"path": "DONE", **_handoff(context, error.code)}
@@ -302,6 +394,8 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
                 {"reason": reason, "source": "SYNTHESIS_TOOL_REQUEST"},
             )
             return {"path": "DONE", **_handoff(context, reason)}
+        if unread and _asks_for_material(result):
+            return {"path": "DONE", **_material_handoff(context, unread)}
         return {"path": "DONE", **_publish_options(context, result, claims=claims)}
     context.audit.event(
         "investigation_assessment",
@@ -322,12 +416,9 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
         if count or state["path"] == "STAGED":
             return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_UNRESOLVED")}
         if context.arm == NO_RECHECK_ARM:
-            own = {row["id"] for row in claims if row["role"] == request["target_role"]}
-            if not set(request["claim_ids"]) <= own:
-                return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
             try:
-                context.tools.validate_call(
-                    request["target_role"], request["tool_name"], request["arguments"]
+                executor, _, _ = validate_recheck(
+                    context, RECHECK_REQUEST.validate_python(request), claims, result["assessments"]
                 )
             except (ValueError, BusinessError):
                 return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_TOOL_DENIED")}
@@ -337,6 +428,7 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
                 {
                     "claim_ids": request["claim_ids"],
                     "target_role": request["target_role"],
+                    "executor_role": executor,
                     "tool_name": request["tool_name"],
                     "reason": request["reason"],
                 },
@@ -355,6 +447,8 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
             "active_claims": claims,
             "assessment": result,
         }
+    if unread and (not result["options"] or _asks_for_material(result)):
+        return {"path": "DONE", **_material_handoff(context, unread)}
     if state.get("stale_claims"):
         result["unresolved"] = [
             *result.get("unresolved", []),
@@ -365,7 +459,16 @@ def _verify(state, runtime: Runtime[InvestigationContext]):
                 "path": "DONE",
                 **_handoff(context, "INVESTIGATION_DEPENDENT_CLAIMS_UNRESOLVED"),
             }
-    return {"path": "DONE", **_publish_options(context, result, claims=claims, verified=True)}
+    return {
+        "path": "DONE",
+        **_publish_options(
+            context,
+            result,
+            claims=claims,
+            verified=True,
+            evidence_scope=evidence if count else None,
+        ),
+    }
 
 
 def affected_claims(claims, targets):
@@ -383,15 +486,24 @@ def affected_claims(claims, targets):
 
 def _recheck(state, runtime: Runtime[InvestigationContext]):
     context = runtime.context
-    request = RecheckRequest.model_validate(state["recheck"])
+    try:
+        request = RECHECK_REQUEST.validate_python(state["recheck"])
+    except ValueError:
+        return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_TOOL_DENIED")}
     targets = set(request.claim_ids)
     claims = state["active_claims"]
-    own = {row["id"] for row in claims if row["role"] == request.target_role}
-    if not targets <= own:
-        return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
+    target_claims = [row for row in claims if row["id"] in targets]
+    assessments = state.get("assessment", {}).get("assessments", [])
+    counterexamples = [
+        item
+        for item in assessments
+        if item["claim_id"] in targets and item["verdict"] != "CONFIRMED"
+    ]
     try:
-        context.tools.validate_call(request.target_role, request.tool_name, request.arguments)
-        receipt = context.tools.call(request.target_role, request.tool_name, request.arguments)
+        executor, arguments, related = validate_recheck(context, request, claims, assessments)
+        receipt = context.tools.call(executor, request.tool_name, arguments)
+    except InvalidOutput:
+        return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
     except (ValueError, BusinessError):
         return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_TOOL_DENIED")}
     raw_receipt = receipt.model_dump(mode="json")
@@ -399,12 +511,21 @@ def _recheck(state, runtime: Runtime[InvestigationContext]):
     context.audit.event(
         PRIVATE_RECEIPT_EVENT,
         {
-            "role": request.target_role,
+            "role": executor,
+            "executor_role": executor,
+            "target_role": request.target_role,
             "phase_id": "recheck",
             "receipt_sha256": receipt_sha256,
             "receipt": raw_receipt,
         },
     )
+    if request.tool_name == "read_refund_execution" and not raw_receipt["data"].get("execution"):
+        return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
+    scope_refs = {
+        row["source_id"]
+        for row in raw_receipt["refs"]
+        if request.tool_name != "search_applicable_policy" or row["source_kind"] == "POLICY"
+    }
     refs = [row["source_id"] for row in raw_receipt["refs"]]
     alternatives = {}
     if request.tool_name == "read_policy_clause" and context.input.policy_catalogue_version:
@@ -413,56 +534,104 @@ def _recheck(state, runtime: Runtime[InvestigationContext]):
             for row in context.input.evidence
             if row.ref.source_kind == "POLICY"
         }
-    new_policies = {alternatives[ref] for ref in refs if ref in alternatives}
-    for claim in claims:
-        if claim["id"] not in targets:
-            continue
-        referenced = set(claim["supporting_refs"] + claim["conflicting_refs"])
+    new_policies = {alternatives[ref] for ref in scope_refs if ref in alternatives}
+    linked_lines = set(
+        context.input.refund_execution_line_ids.get(arguments.get("execution_id"), ())
+    )
+    for referenced in related:
         same_policy = new_policies.intersection(
             alternatives[ref] for ref in referenced if ref in alternatives
         )
-        if not referenced.intersection(refs) and not same_policy:
+        if (
+            not referenced.intersection(scope_refs)
+            and not same_policy
+            and not referenced & linked_lines
+        ):
             return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_SCOPE_INVALID")}
     affected = affected_claims(claims, targets)
+    retired_claims = [row for row in claims if row["id"] in affected]
     audit = {
         "target_role": request.target_role,
+        "executor_role": executor,
         "claim_ids": sorted(targets),
         "stale_claim_ids": sorted(affected),
         "tool": request.tool_name,
         "evidence_ids": refs,
         "receipt_sha256": receipt_sha256,
+        "counterexamples": counterexamples,
+        "retired_claims": retired_claims,
+        "reason": request.reason,
     }
     context.audit.event("investigation_recheck", audit)
+    invalidated = {
+        "recheck_count": 1,
+        "active_claims": [row for row in claims if row["id"] not in affected],
+        "stale_claims": sorted(affected),
+        "retired_claims": retired_claims,
+        "recheck_receipt": raw_receipt,
+    }
+    prior_refs = {
+        ref for row in target_claims for ref in row["supporting_refs"] + row["conflicting_refs"]
+    } & set(state.get("evidence_ids", _evidence(state)))
+    prior_evidence = [
+        row.model_dump(mode="json")
+        for row in context.input.evidence
+        if row.ref.source_kind == "POLICY" and row.ref.source_id in prior_refs
+    ]
     try:
         revised = _phase(
             context,
             request.target_role,
             "recheck",
-            known=refs,
+            known=[*refs, *(row["ref"]["source_id"] for row in prior_evidence)],
             prompt={
                 **context.input.role_view(request.target_role),
-                "specific_claims": [row for row in claims if row["id"] in targets],
+                "specific_claims": target_claims,
+                "prior_target_evidence": prior_evidence,
+                "counterexamples": counterexamples,
+                "check_reason": request.reason,
+                "revision_instruction": (
+                    "仅复查 specific_claims 中的主张。保留每条主张的原始 id（去掉角色前缀）、"
+                    "subject 和 predicate，按补查回执更新 value、state 和证据引用。"
+                ),
                 "check_receipt": raw_receipt,
             },
             max_rounds=1,
             tools_enabled=False,
         )
     except ModelFailure as error:
-        return {"path": "DONE", **_handoff(context, error.code)}
+        return {"path": "DONE", **invalidated, **_handoff(context, error.code)}
     replacements = _claims(request.target_role, revised)
-    if {row["id"] for row in replacements} != targets:
-        return {"path": "DONE", **_handoff(context, "INVESTIGATION_RECHECK_RESULT_INVALID")}
-    active = [row for row in claims if row["id"] not in affected] + replacements
+    old_identity = {(row["id"], row["subject"], row["predicate"]) for row in target_claims}
+    new_identity = {(row["id"], row["subject"], row["predicate"]) for row in replacements}
+    if new_identity != old_identity:
+        return {
+            "path": "DONE",
+            **invalidated,
+            **_handoff(context, "INVESTIGATION_RECHECK_RESULT_INVALID"),
+        }
+    context.audit.event(
+        "investigation_claim_revision",
+        {
+            "retired_claims": retired_claims,
+            "replacement_claims": replacements,
+            "target_claim_ids": sorted(targets),
+            "unresolved_stale_claim_ids": sorted(affected - targets),
+            "target_role": request.target_role,
+            "executor_role": executor,
+            "reason": request.reason,
+        },
+    )
+    active = invalidated["active_claims"] + replacements
     surviving_refs = {
         ref for row in active for ref in row["supporting_refs"] + row["conflicting_refs"]
     }
     return {
         "path": "MULTI",
-        "recheck_count": 1,
+        **invalidated,
         "active_claims": active,
         "evidence_ids": sorted(surviving_refs | set(refs)),
         "stale_claims": sorted(affected - targets),
-        "recheck_receipt": raw_receipt,
     }
 
 
@@ -475,7 +644,7 @@ def _conflict(claims):
     return any(len(values) > 1 for values in seen.values())
 
 
-def _publish_options(context, result, *, claims=None, verified=False):
+def _publish_options(context, result, *, claims=None, verified=False, evidence_scope=None):
     claims = result.get("claims", []) if claims is None else claims
     unresolved = result.get("unresolved", [])
     candidate = _OPTIONS.validate_python(result.get("options", []))
@@ -493,10 +662,14 @@ def _publish_options(context, result, *, claims=None, verified=False):
         if row.ref.source_kind == "POLICY":
             policy_refs[row.data["clause"]["id"]].add(row.ref.source_id)
     options, checks, seen = [], {}, set()
+    allowed_evidence = None if evidence_scope is None else set(evidence_scope)
     for option in candidate:
         if option.id in seen:
             return _handoff(context, "INVESTIGATION_DUPLICATE_OPTION")
         seen.add(option.id)
+        if allowed_evidence is not None and not set(option.evidence_ids) <= allowed_evidence:
+            checks[option.id] = "INVESTIGATION_OPTION_SCOPE_INVALID"
+            continue
         if isinstance(option, NonExecutingOption):
             if set(option.target_line_ids) <= context.line_ids:
                 options.append(option)

@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "annotation": "Agent-authored synthetic reference frozen before OCR. No human gold annotation.",
+  "documents": {
+    "policy": {
+      "reading_order": [
+        "合成测试样本 | 非真实售后政策",
+        "清沐商店退货政策",
+        "一、适用时间",
+        "本政策自2026年10月15日起生效。",
+        "申请须在签收后7个自然日内提交。",
+        "二、退款条件",
+        "封签完整且配件齐全时，单件最高退款为人民币128.50元。",
+        "已拆封商品不得按无理由退货办理。",
+        "三、例外处理",
+        "例外：签收时已留存破损照片的，拆封后仍可申请。",
+        "退款审核完成前，不得承诺即时到账。"
+      ],
+      "key_fields": {
+        "amount": ["人民币128.50元"],
+        "negation": ["已拆封商品不得按无理由退货办理", "不得承诺即时到账"],
+        "date": ["2026年10月15日", "签收后7个自然日内"],
+        "exception": ["签收时已留存破损照片的，拆封后仍可申请"]
+      }
+    },
+    "table": {
+      "reading_order": [
+        "合成测试样本 | 非真实售后政策",
+        "清沐商店运费补偿表",
+        "2026年11月01日起执行，金额均为人民币。",
+        "申请渠道",
+        "补偿条件",
+        "单笔上限",
+        "申请时限",
+        "受理条件",
+        "线上商城",
+        "签收后3日内",
+        "外箱破损并提供照片",
+        "18.50元",
+        "签收后7日内",
+        "错发配件并提供订单号",
+        "32.00元",
+        "线下门店",
+        "购买当日",
+        "仅补偿门店登记的破损",
+        "45.80元",
+        "未留存凭证不得补偿。例外：门店可核验当日登记记录。"
+      ],
+      "key_fields": {
+        "amount": ["18.50元", "32.00元", "45.80元"],
+        "negation": ["未留存凭证不得补偿"],
+        "date": ["2026年11月01日", "签收后3日内", "签收后7日内", "购买当日"],
+        "exception": ["门店可核验当日登记记录"]
+      },
+      "table": {
+        "rows": 5,
+        "columns": 4,
+        "cells": [
+          {"row": 0, "col": 0, "rowspan": 2, "colspan": 1, "text": "申请渠道"},
+          {"row": 0, "col": 1, "rowspan": 1, "colspan": 2, "text": "补偿条件"},
+          {"row": 0, "col": 3, "rowspan": 2, "colspan": 1, "text": "单笔上限"},
+          {"row": 1, "col": 1, "rowspan": 1, "colspan": 1, "text": "申请时限"},
+          {"row": 1, "col": 2, "rowspan": 1, "colspan": 1, "text": "受理条件"},
+          {"row": 2, "col": 0, "rowspan": 2, "colspan": 1, "text": "线上商城"},
+          {"row": 2, "col": 1, "rowspan": 1, "colspan": 1, "text": "签收后3日内"},
+          {"row": 2, "col": 2, "rowspan": 1, "colspan": 1, "text": "外箱破损并提供照片"},
+          {"row": 2, "col": 3, "rowspan": 1, "colspan": 1, "text": "18.50元"},
+          {"row": 3, "col": 1, "rowspan": 1, "colspan": 1, "text": "签收后7日内"},
+          {"row": 3, "col": 2, "rowspan": 1, "colspan": 1, "text": "错发配件并提供订单号"},
+          {"row": 3, "col": 3, "rowspan": 1, "colspan": 1, "text": "32.00元"},
+          {"row": 4, "col": 0, "rowspan": 1, "colspan": 1, "text": "线下门店"},
+          {"row": 4, "col": 1, "rowspan": 1, "colspan": 1, "text": "购买当日"},
+          {"row": 4, "col": 2, "rowspan": 1, "colspan": 1, "text": "仅补偿门店登记的破损"},
+          {"row": 4, "col": 3, "rowspan": 1, "colspan": 1, "text": "45.80元"}
+        ]
+      }
+    }
+  }
+}

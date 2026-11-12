@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from aftercare.business.errors import BusinessError
 from aftercare.business.models import Case, Order
-from aftercare.business.rules import digest, utc
+from aftercare.business.rules import digest, eligibility, scoped_policy_documents, utc
 from aftercare.decisions.contracts import DecisionRef, DecisionScope
 from aftercare.decisions.service import DecisionService
 from aftercare.decisions.tables import (
@@ -107,6 +107,7 @@ def _freeze_human_reviews(db, row, case, context, attachments, messages):
         for item in attachments
     }
     active_messages = {item.id for item in messages if item.discarded_at is None}
+    active_messages.update(item.message_id for item in attachments)
     quantities = {
         item["line_id"]: item["quantity"]
         for item in context["order"]["items"]
@@ -210,8 +211,21 @@ class ConversationDecisions:
         return self.freeze(db, row, case, order)
 
     def freeze(self, db, row, case, order):
+        from .memory import (
+            confirmation,
+            correction,
+            pending_scope,
+            primary_statement,
+            requested_action_record,
+        )
+
+        if correction(db, row) or pending_scope(db, row):
+            _fail("DECISION_STALE")
         from aftercare.conversation_analysis.tables import ChatAnalysisTurn, Observation
 
+        corrected = confirmation(db, row)
+        first_sequence = corrected["source_sequence"] if corrected else 1
+        retained = corrected["retained_attachments"] if corrected else []
         raw_catalogue = None
         review_options = {"include_review_observations": True} if self.evidence_projection else {}
         if getattr(self.business.settings, "chat_investigation_enabled", False):
@@ -247,7 +261,7 @@ class ConversationDecisions:
                     Message.conversation_id == row.id,
                     Message.analysis_issue_id == row.analysis_issue_id,
                     Message.role == "customer",
-                    Message.sequence.is_not(None),
+                    Message.sequence >= first_sequence,
                 )
                 .order_by(Message.sequence)
                 .limit(MAX_DECISION_INPUT_REFS + 1)
@@ -269,14 +283,58 @@ class ConversationDecisions:
         ):
             ownership = account_order_ownership(order.id)
         ids = [item.id for item in messages]
+        retained_by_id = {item["attachment_id"]: item for item in retained}
         attachments = list(
             db.scalars(
                 select(Attachment)
-                .where(Attachment.message_id.in_(ids))
+                .where(Attachment.message_id.in_(ids) | Attachment.id.in_(retained_by_id))
                 .order_by(Attachment.message_id, Attachment.position)
                 .limit(101)
             )
         )
+        omitted_material_ids = set()
+        if corrected:
+            found = {
+                item.id
+                for item in attachments
+                if item.id in retained_by_id
+                and (item.message_id, item.sha256)
+                == (retained_by_id[item.id]["message_id"], retained_by_id[item.id]["sha256"])
+            }
+            if found != set(retained_by_id) or messages[0].id != corrected["source_message_id"]:
+                _fail("DECISION_BINDING_INVALID")
+            omitted_material_ids = set(
+                db.scalars(
+                    select(ChatMaterialSource.material_id).where(
+                        ChatMaterialSource.case_id == case.id,
+                        ChatMaterialSource.conversation_id == row.id,
+                        ChatMaterialSource.issue_id == row.analysis_issue_id,
+                        ~ChatMaterialSource.attachment_id.in_([item.id for item in attachments]),
+                    )
+                )
+            )
+            context["materials"] = [
+                item for item in context["materials"] if item["id"] not in omitted_material_ids
+            ]
+            context["reviews"] = [
+                {**item, "effective": False}
+                if omitted_material_ids.intersection(item["material_ids"])
+                else item
+                for item in context["reviews"]
+            ]
+            context["case"]["description"] = messages[0].text
+            if omitted_material_ids:
+                policy_resolution = context["policy_resolution"]
+                context["eligibility"] = eligibility(
+                    case=context["case"],
+                    order=context["order"],
+                    policies=scoped_policy_documents(policy_resolution, case.intent, order.status),
+                    materials=context["materials"],
+                    review=next((item for item in context["reviews"] if item["effective"]), None),
+                    facts=case.facts,
+                    balances=context["eligibility"]["lines"],
+                    policy_blockers=policy_resolution["blockers"],
+                )
         observation_rows = list(
             db.scalars(
                 select(Observation)
@@ -284,7 +342,10 @@ class ConversationDecisions:
                 .where(
                     ChatAnalysisTurn.conversation_id == row.id,
                     ChatAnalysisTurn.state == "PUBLISHED",
-                    Observation.attachment_id.in_([item.id for item in attachments]),
+                    ChatAnalysisTurn.input_from_seq >= first_sequence,
+                    Observation.attachment_id.in_(
+                        [item.id for item in attachments if item.message_id in ids]
+                    ),
                 )
                 .order_by(Observation.id)
                 .limit(101)
@@ -296,6 +357,44 @@ class ConversationDecisions:
             else context["reviews"]
         )
         message_refs = [_ref("MESSAGE", item.id, [item.sequence, item.text]) for item in messages]
+        action_source = primary_statement(reversed(messages))
+        if action_source is None and corrected:
+            older_messages = db.scalars(
+                select(Message)
+                .where(
+                    Message.conversation_id == row.id,
+                    Message.analysis_issue_id == row.analysis_issue_id,
+                    Message.role == "customer",
+                    Message.sequence < first_sequence,
+                    Message.discarded_at.is_(None),
+                )
+                .order_by(Message.sequence.desc())
+                .limit(MAX_DECISION_INPUT_REFS)
+            )
+            action_source = primary_statement(older_messages)
+        retained_message_ids = {item["message_id"] for item in retained}
+        if action_source and action_source.sequence < first_sequence:
+            retained_message_ids.add(action_source.id)
+        retained_messages = [
+            item
+            for item in db.scalars(
+                select(Message)
+                .where(
+                    Message.conversation_id == row.id,
+                    Message.analysis_issue_id == row.analysis_issue_id,
+                    Message.role == "customer",
+                    Message.id.in_(retained_message_ids),
+                    Message.sequence < first_sequence,
+                    Message.discarded_at.is_(None),
+                )
+                .order_by(Message.sequence)
+            )
+        ]
+        if {item.id for item in retained_messages} != retained_message_ids:
+            _fail("DECISION_BINDING_INVALID")
+        retained_refs = [
+            _ref("MESSAGE", item.id, [item.sequence, item.text]) for item in retained_messages
+        ]
         evidence = [
             *[
                 _ref(
@@ -345,7 +444,7 @@ class ConversationDecisions:
                 _ref("POLICY", f"{item['id']}:{item['version']}", item)
                 for item in raw_catalogue["documents"]
             )
-        refs = [*message_refs, *evidence]
+        refs = [*retained_refs, *message_refs, *evidence]
         if (
             len(refs) > MAX_DECISION_INPUT_REFS
             or len(evidence) > 100
@@ -378,10 +477,13 @@ class ConversationDecisions:
             "refunded_cents",
             "version",
         )
-        agent_message = next(
-            (item.text.strip() for item in reversed(messages) if _relevant(item.text)),
-            case.description,
+        primary = primary_statement(
+            reversed(messages),
+            fallback=messages[0]
+            if _relevant(messages[0].text)
+            else next((item for item in messages if _relevant(item.text)), None),
         )
+        agent_message = primary.text.strip() if primary else case.description
         frozen = {
             "legacy_agent_input": {
                 "message": agent_message,
@@ -392,6 +494,29 @@ class ConversationDecisions:
             "messages": [
                 {"id": item.id, "sequence": item.sequence, "text": item.text} for item in messages
             ],
+            **(
+                {
+                    "conversation_memory": {
+                        "schema_version": 1,
+                        "source": "CUSTOMER_STATEMENT",
+                        "primary_message_id": primary.id,
+                        "requested_action": requested_action_record(action_source),
+                        "evidence_reassessed": bool(omitted_material_ids),
+                    }
+                }
+                if primary
+                else {}
+            ),
+            **(
+                {
+                    "historical_statement_sources": [
+                        {"id": item.id, "sequence": item.sequence, "text": item.text}
+                        for item in retained_messages
+                    ]
+                }
+                if retained_messages
+                else {}
+            ),
             "attachments": [
                 {
                     "id": item.id,
@@ -457,6 +582,12 @@ class ConversationDecisions:
                     {key: value for key, value in versions.items() if key != "case"},
                     related,
                     dependencies,
+                    *([corrected] if corrected else []),
+                    *(
+                        [requested_action_record(action_source)]
+                        if corrected and action_source
+                        else []
+                    ),
                     *([raw_catalogue["documents_sha256"]] if raw_catalogue is not None else []),
                     *(
                         [{"evidence_projection": self.evidence_projection}]
@@ -470,6 +601,12 @@ class ConversationDecisions:
         )
 
     def validate(self, db, scope, option):
+        memory = scope.frozen_context.get("conversation_memory", {})
+        if (
+            memory.get("evidence_reassessed")
+            and option.action not in scope.frozen_context["eligibility"]["actions"]
+        ):
+            _fail("DECISION_CORRECTED_EVIDENCE_REQUIRED")
         catalogue = scope.frozen_context.get("policy_catalogue")
         versioned = catalogue and set(option.evidence_ids).intersection(
             f"{doc['id']}:{doc['version']}" for doc in catalogue["documents"]
@@ -509,7 +646,23 @@ class ConversationDecisions:
     def current(self, actor, ident):
         with Session(self.engine) as db, db.begin():
             row, issue_id = self._current(db, actor, ident, "support")
-            head = db.get(DecisionHead, (row.id, issue_id)) if issue_id else None
+            from .memory import confirmation, correction, pending_scope
+
+            head = (
+                db.get(DecisionHead, (row.id, issue_id))
+                if issue_id and not correction(db, row) and not pending_scope(db, row)
+                else None
+            )
+            confirmed = confirmation(db, row)
+            stored = (
+                db.get(DecisionSnapshot, head.snapshot_id) if head and head.snapshot_id else None
+            )
+            if (
+                confirmed
+                and stored
+                and stored.input["input_through_seq"] < confirmed["source_sequence"]
+            ):
+                head = None
             reference = self._snapshot_ref(db, head)
             snapshot = (
                 self.records.snapshot(db, actor, row.id, issue_id, reference.id)

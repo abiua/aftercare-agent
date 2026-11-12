@@ -720,6 +720,9 @@ class BusinessService:
             data = self._context(
                 db, case, order, include_review_observations=user.role == "support"
             )
+            if user.role in {"support", "approver", "tester"}:
+                from .decision_summary import agent_advice
+                data["agent_advice"] = agent_advice(db, case)
             if user.role == "support" and case.decision_conversation_id is not None:
                 data["chat_proposal"] = ConversationDecisions(self).proposal_preview(
                     db, case, order

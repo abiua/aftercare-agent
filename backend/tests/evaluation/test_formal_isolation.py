@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
+from evaluation_technical_fixtures import TechnicalCatalogue
 from alembic.config import Config
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
@@ -104,7 +105,7 @@ def isolated(tmp_path):
         )
     settings = SimpleNamespace(profile="test")
     sent = []
-    service = EvaluationService(engine, settings, dispatch=sent.append)
+    service = EvaluationService(engine, settings, dispatch=sent.append, catalog=TechnicalCatalogue())
     app = FastAPI()
     app.include_router(router, prefix="/api")
     app.state.engine = engine
@@ -260,7 +261,7 @@ def test_queue_filters_formal_before_limit_and_refuses_polluted_and_cross_kind_d
     isolated.service._dispatch(isolated.ordinary)
     assert isolated.sent == [isolated.ordinary]
     for driver in ("inline", "queued"):
-        service = EvaluationService(isolated.engine, isolated.settings, execution_driver=driver)
+        service = EvaluationService(isolated.engine, isolated.settings, execution_driver=driver, catalog=TechnicalCatalogue())
         with pytest.raises(BusinessError) as error:
             service.process(isolated.formal, runner=None)
         assert error.value.code == "EXPERIMENT_NOT_FOUND"

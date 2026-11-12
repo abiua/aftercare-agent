@@ -74,12 +74,6 @@ class ExperimentInput(BaseModel):
     probe_intent: bool = False
 
 
-def _dataset():
-    from . import dataset
-
-    return dataset
-
-
 def _uid():
     return str(uuid4())
 
@@ -654,18 +648,21 @@ class EvaluationService:
         self.execution_driver = execution_driver
 
     def _catalog(self):
-        return self.catalog if self.catalog is not None else _dataset()
+        if self.catalog is None:
+            raise FileNotFoundError("Legacy evaluation catalogue retired")
+        return self.catalog
 
     def capabilities(self, user):
         _authorized(user)
         enabled = self.settings.profile == "test"
+        legacy_enabled = enabled and self.catalog is not None
         return {
-            "eval_import": enabled,
-            "eval_retry": enabled,
-            "eval_gates": enabled,
-            "eval_supplemental_usage": enabled,
-            "eval_scenario_metrics": True,
-            "eval_progress_events": enabled,
+            "eval_import": legacy_enabled,
+            "eval_retry": legacy_enabled,
+            "eval_gates": legacy_enabled,
+            "eval_supplemental_usage": legacy_enabled,
+            "eval_scenario_metrics": self.catalog is not None,
+            "eval_progress_events": legacy_enabled,
             "chat_blind_review": enabled,
         }
 
@@ -901,8 +898,8 @@ class EvaluationService:
         split = "holdout" if request.split == "test" else request.split
         if request.source == "fault" and split is None:
             split = "regression"
-        catalogue = self._catalog()
         try:
+            catalogue = self._catalog()
             cases = catalogue.load_cases(split)
             references = catalogue.load_references()
         except FileNotFoundError:
@@ -1519,7 +1516,7 @@ class EvaluationService:
         experiment.updated_at = now()
 
     def pending(self, limit=100):
-        if self.settings.profile != "test" or self.execution_driver != "queued":
+        if self.catalog is None or self.settings.profile != "test" or self.execution_driver != "queued":
             return []
         driver = Experiment.config["execution_driver"].as_string()
         with Session(self.engine) as db:
@@ -1582,6 +1579,8 @@ class EvaluationService:
         code_digest = require_current_code()
         with Session(self.engine) as db:
             self._find(db, experiment_id)
+        if self.catalog is None:
+            raise BusinessError("EVALUATION_RETIRED", "项目用例评测已退役，请查看官方评测。", 410)
         with _lease(self.engine, experiment_id) as held:
             if held:
                 self._process(experiment_id, runner, code_digest)
@@ -1617,8 +1616,8 @@ class EvaluationService:
                 frozen = all(config.get(key) == value for key, value in embedding.items())
         if config["source"] == "live":
             frozen = frozen and _live_model_snapshot(runner.model) == config["model_snapshot"]
-        catalogue = self._catalog()
         try:
+            catalogue = self._catalog()
             cases = {case["id"]: case for case in catalogue.load_cases(config["split"])}
         except FileNotFoundError:
             cases = {}

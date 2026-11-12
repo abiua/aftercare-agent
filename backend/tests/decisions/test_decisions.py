@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from aftercare.auth import UserContext
 from aftercare.business.errors import BusinessError
+from aftercare.business.rules import digest
 from aftercare.db import Base
 from aftercare.decisions.contracts import (
     Candidate,
@@ -347,3 +348,78 @@ def test_human_modify_only_resolves_explicit_prior_items(fixture):
         lambda db: fixture.service.snapshot(db, SUPPORT, "chat", "issue", result["snapshot"]["id"]),
     )
     assert stored["candidate"]["unresolved"] == ["blur"]
+
+
+@pytest.mark.parametrize("review_action", ["ACCEPT", "MODIFY"])
+def test_current_frozen_customer_statement_can_only_support_non_executing_options(
+    fixture, review_action
+):
+    messages = {"messages": [{"id": "msg", "sequence": 3, "text": "I already sent the photo."}]}
+    refs = [{"kind": "MESSAGE", "id": "msg", "sha256": digest([3, "I already sent the photo."])}]
+    fixture.scope = DecisionScope.model_validate(
+        {
+            **SCOPE.model_dump(mode="json"),
+            "frozen_context": messages,
+            "input_refs": refs,
+            "input_sha256": digest([refs, messages]),
+        }
+    )
+    handoff = NonExecutingOption(
+        id="check_statement",
+        action="HUMAN_HANDOFF",
+        target_line_ids=("line",),
+        evidence_ids=("msg",),
+        rationale="Verify the customer's statement about the prior upload.",
+    )
+    ref = _record(fixture, _candidate(options=(handoff, _option(evidence_ids=("msg",)))))
+    original = _run(
+        fixture, lambda db: fixture.service.snapshot(db, SUPPORT, "chat", "issue", ref.id)
+    )
+    assert original["checks"] == {
+        "check_statement": {"status": "NON_EXECUTING", "action": "HUMAN_HANDOFF"},
+        "refund": {"status": "BLOCKED", "code": "DECISION_EVIDENCE_OUT_OF_SCOPE"},
+    }
+    kwargs = (
+        {"option_id": handoff.id}
+        if review_action == "ACCEPT"
+        else {"replacement": handoff, "new_evidence_ids": ("msg",)}
+    )
+    reviewed = _review(fixture, ref, Review(action=review_action, reason="Verify", **kwargs))
+    assert reviewed["program_check"] == original["checks"]["check_statement"]
+    assert reviewed["offer"] is None and fixture.checked == []
+
+
+@pytest.mark.parametrize(
+    "messages",
+    [
+        [],
+        [{"id": "msg", "sequence": 2, "text": "I already sent the photo."}],
+        [{"id": "msg", "sequence": 3, "text": "Different message body."}],
+    ],
+)
+def test_non_executing_option_rejects_message_reference_without_matching_payload(fixture, messages):
+    frozen = {"messages": messages}
+    refs = [{"kind": "MESSAGE", "id": "msg", "sha256": digest([3, "I already sent the photo."])}]
+    fixture.scope = DecisionScope.model_validate(
+        {
+            **SCOPE.model_dump(mode="json"),
+            "frozen_context": frozen,
+            "input_refs": refs,
+            "input_sha256": digest([refs, frozen]),
+        }
+    )
+    handoff = NonExecutingOption(
+        id="check_statement",
+        action="HUMAN_HANDOFF",
+        target_line_ids=("line",),
+        evidence_ids=("msg",),
+        rationale="Verify the customer's statement about the prior upload.",
+    )
+    ref = _record(fixture, _candidate(options=(handoff,)))
+    original = _run(
+        fixture, lambda db: fixture.service.snapshot(db, SUPPORT, "chat", "issue", ref.id)
+    )
+    assert original["checks"][handoff.id] == {
+        "status": "BLOCKED",
+        "code": "DECISION_EVIDENCE_OUT_OF_SCOPE",
+    }

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "upstream": "Sierra Research tau2-bench retail",
+  "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754",
+  "license": "MIT",
+  "license_file": "../corpus/licenses/tau2-MIT.txt",
+  "files": {
+    "db.json": {
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/data/tau2/domains/retail/db.json",
+      "sha256": "413a65160adbdb5fde0ffc0015c49b6d70250b10c18128de169b597af7766765",
+      "size_bytes": 2811616
+    },
+    "tasks.json": {
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/data/tau2/domains/retail/tasks.json",
+      "sha256": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+      "size_bytes": 345982
+    },
+    "policy.md": {
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/data/tau2/domains/retail/policy.md",
+      "sha256": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467",
+      "size_bytes": 6699
+    },
+    "split_tasks.json": {
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/data/tau2/domains/retail/split_tasks.json",
+      "sha256": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20",
+      "size_bytes": 3263
+    },
+    "data_model.py": {
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/src/tau2/domains/retail/data_model.py",
+      "sha256": "f5ad09590953855cc49d2ab2ad5c0594be408cae74d1500fb278e5a6bf2c50d6",
+      "size_bytes": 8799
+    },
+    "LICENSE": {
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/LICENSE",
+      "sha256": "e67c5aa0074dfcaefd3c3a1aedb94cb539234aecd15d5a972574e3200e6252fe",
+      "size_bytes": 1072
+    },
+    "README.upstream.md": {
+      "source_url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/da0835f6c67baef58bdda18f2a3b037dfb3a1754/README.md",
+      "sha256": "7ae047a745ef93b311edb0da5d74fbc2bd784a35ce285a73ab3af8b6aed3e34b",
+      "size_bytes": 14718
+    }
+  },
+  "derived_files": {
+    "runtime/task_index.json": {
+      "size_bytes": 1675,
+      "sha256": "6a3ec801ce6a39b1587cb559345ab787a8e01489dca05aa26f2deb6769395baf"
+    },
+    "simulator/scenarios.json": {
+      "size_bytes": 73015,
+      "sha256": "f9b9a4aa02914cc0f7fbbb55372ffbea2a08c3fdea751d9577e44253a391c583"
+    },
+    "evaluation/references.json": {
+      "size_bytes": 97435,
+      "sha256": "984c2366342d29bc563b661e87f469ade27463071892736b072e5b7a44bbfb91"
+    }
+  }
+}

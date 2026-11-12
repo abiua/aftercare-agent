@@ -16,10 +16,18 @@ READ_INDEX_LEGEND = (
     "工具记录或链接中的整数 ref 指向 available_evidence 的零基位置，数组 ref 直接解读。"
     "policy_corpus_rows 所列 data.records 位置共享 policy_context.catalogue_sha256。"
 )
-VERIFIER_ENCODING = "verifier-record-index-v1"
+VERIFIER_ENCODING = "verifier-record-index-v2"
 VERIFIER_LEGEND = (
-    "核验输入整数 ref 指向 original_frozen_evidence 零基位置，数组直接解读。"
-    "证据及主张 columns/rows 按列对齐。policy_corpus_rows 所列位置的 data.catalogue_sha256 等于 policy_context 同字段。输出仍用原 ID。"
+    "核验输入：scope依次为会话、事项、工单。ref依次为来源、ID、版本/摘要、可选时间。"
+    "整数ref为original_frozen_evidence零基行号。columns/rows按列对齐。"
+    "policy_corpus_rows的data.catalogue_sha256同policy_context。"
+    "主张角色取id前缀，依赖用upstream_claims中的id。subject、主张证据和citable_evidence_ids的整数取对应行ref[1]；"
+    "['message',位置]取customer_statements对应ref[1]。"
+    "assessments逐一覆盖当前upstream_claims的id，每个恰一次。输出只用完整原ID；"
+    "即使记录可见，确认和候选也只引用citable_evidence_ids；未读材料目录仅可指示反证缺口。"
+    "条款证据用版本键，policy_ids用裸ID。无证据保留缺口。"
+    "目录中的条款版本键只供补查，不能引用未读证据。人审材料不证明图片真实性、运输责任或财务批准；"
+    "同一行受影响数量不跨图相加。支付事实只取已记录数据。"
 )
 PRIVATE_RECEIPT_EVENT = "investigation_receipt"
 PROMPT_LEGEND = (
@@ -57,6 +65,8 @@ class PromptEvidence:
         self.index_reads = index_reads and self.receipt_encoding is not None
         self._available_positions = {}
         self._catalogue_sha256 = None
+        self.verifier_ref_positions = {}
+        self._raw_catalogue = bool(getattr(source, "policy_catalogue_version", None))
 
     def ref(self, value):
         if value["scope"] != self.scope:
@@ -86,6 +96,7 @@ class PromptEvidence:
                     key: retrieval[key]
                     for key in (
                         "mode",
+                        "status",
                         "candidate_scope",
                         "applicability",
                         "corpus_sha256",
@@ -154,8 +165,9 @@ class PromptEvidence:
 
     def prompt(self, view):
         view = dict(view)
-        if "available_evidence" in view:
-            view["available_evidence"] = [self.ref(ref) for ref in view["available_evidence"]]
+        for key in ("available_evidence", "unread_material_refs"):
+            if key in view:
+                view[key] = [self.ref(ref) for ref in view[key]]
         if self.index_reads:
             self._available_positions = {
                 tuple(ref): position
@@ -166,8 +178,9 @@ class PromptEvidence:
         for key in ("customer_statements", "attachments", "unverified_observations"):
             if key in view:
                 view[key] = [self.record(row) for row in view[key]]
-        if "check_receipt" in view:
-            view["check_receipt"], _ = self.receipt(view["check_receipt"])
+        for key in ("check_receipt", "initial_material_receipt"):
+            if key in view:
+                view[key], _ = self.receipt(view[key])
         if "original_read_receipts" in view:
             originals = {}
             receipts = []
@@ -185,9 +198,20 @@ class PromptEvidence:
                 for receipt in receipts:
                     receipt["refs"] = [positions.get(tuple(ref), ref) for ref in receipt["refs"]]
                 view["available_evidence"] = [
-                    positions.get(tuple(ref), ref) for ref in view.get("available_evidence", [])
+                    positions.get(
+                        tuple(ref),
+                        ref[1] if self._raw_catalogue and ref[0] == "POLICY" else ref,
+                    )
+                    for ref in view.get("available_evidence", [])
                 ]
                 corpus = view.get("policy_context", {}).get("catalogue_sha256")
+                self.verifier_ref_positions = {
+                    row["ref"][1]: position for position, row in enumerate(originals.values())
+                }
+                self.verifier_ref_positions.update(
+                    (row["ref"][1], ["message", position])
+                    for position, row in enumerate(view.get("customer_statements", []))
+                )
                 rows, corpus_rows = [], []
                 for position, row in enumerate(originals.values()):
                     data = row["data"]
@@ -224,10 +248,23 @@ class PromptEvidence:
             _failure()
 
 
-def verifier_claims(upstream):
+def verifier_claims(upstream, ref_positions=None):
     if not upstream:
         return upstream
     columns = list(upstream[0])
     if any(row.keys() != upstream[0].keys() for row in upstream):
         return upstream
-    return {"columns": columns, "rows": [[row[key] for key in columns] for row in upstream]}
+    if not ref_positions:
+        return {"columns": columns, "rows": [[row[key] for key in columns] for row in upstream]}
+    if all(row.get("role") == row["id"].split("/", 1)[0] for row in upstream):
+        columns.remove("role")
+
+    def value(row, key):
+        item = row[key]
+        if key in {"supporting_refs", "conflicting_refs"}:
+            return [ref_positions.get(ref, ref) for ref in item]
+        if key == "subject":
+            return ref_positions.get(item, item)
+        return item
+
+    return {"columns": columns, "rows": [[value(row, key) for key in columns] for row in upstream]}

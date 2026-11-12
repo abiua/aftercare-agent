@@ -2,6 +2,7 @@ from datetime import timedelta
 from types import SimpleNamespace
 
 import pytest
+from evaluation_technical_fixtures import TechnicalCatalogue
 from aftercare.auth import UserContext, current_user
 from aftercare.business.errors import BusinessError
 from aftercare.business.rules import now
@@ -144,7 +145,7 @@ def evaluations(tmp_path):
                     created_at=stamp,
                 )
             )
-    yield EvaluationService(engine, SimpleNamespace(profile="test"))
+    yield EvaluationService(engine, SimpleNamespace(profile="test"), catalog=TechnicalCatalogue())
     engine.dispose()
 
 

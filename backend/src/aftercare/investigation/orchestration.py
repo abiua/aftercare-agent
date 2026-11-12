@@ -9,10 +9,11 @@ from graphlib import CycleError, TopologicalSorter
 from typing import Annotated, Literal
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, model_validator
 
 from aftercare.business.rules import digest
 from aftercare.decisions.contracts import CandidateOption, Key
+from aftercare.intelligence.language import LANGUAGE_VERSION, PLAIN_LANGUAGE
 from aftercare.intelligence.models import (
     P4_INPUT_LIMIT,
     P4_OUTPUT_RESERVE,
@@ -33,7 +34,15 @@ from .prompt_evidence import (
     verifier_claims,
 )
 from .protocol import HUMAN_PAYMENT_V7, LEGACY_V6, InvestigationProtocol
-from .tools import ToolRejected
+from .tools import (
+    ClauseArgs,
+    LineArgs,
+    MaterialArgs,
+    PolicyArgs,
+    RefundArgs,
+    ToolRejected,
+    recheck_executor,
+)
 
 INVESTIGATION_INPUT_TOKEN_LIMIT = P4_INPUT_LIMIT
 MAX_TOOL_BATCH = 4
@@ -51,7 +60,7 @@ _ROLE_INSTRUCTIONS = {
     "fact": "只调查订单和材料事实。区分客户陈述、附件观察和业务系统已核实记录，不提出处理方案。",
     "policy": "只检查条款版本、适用范围和前提。原始目录包含历史和不适用的条款。依据产品、适用日期与版本关系核验，区分候选条款和对当前事实有支持的条款，不提出处理方案。",
     "synthesizer": "根据现有角色主张和对应证据整理候选与未解决事项。遇到不足可请求定向核对，保留不确定性。",
-    "verifier": "逐条核对角色主张与原始记录及条款。若有反例，写明相冲突的字段与依据；仅针对实际冲突请求一次局部复查。",
+    "verifier": "逐条核对角色主张与原始记录及条款。若有反例，写明相冲突的字段与依据；仅针对实际冲突请求一次局部复查。补查工具由有权读取的角色执行，target_role是修订主张的角色。arguments严格使用工具对应的字段。",
 }
 
 
@@ -98,12 +107,119 @@ class Counterexample(_Record):
         return self
 
 
-class RecheckRequest(_Record):
+class _RecheckRequest(_Record):
     target_role: Literal["fact", "policy"]
     claim_ids: Annotated[list[Key], Field(min_length=1, max_length=8)]
-    tool_name: Key
-    arguments: dict
     reason: Text
+
+
+class _RecheckLines(_RecheckRequest):
+    tool_name: Literal["read_order_lines"]
+    arguments: LineArgs
+
+
+class _RecheckMaterials(_RecheckRequest):
+    tool_name: Literal["read_material_evidence"]
+    arguments: MaterialArgs
+
+
+class _RecheckRefund(_RecheckRequest):
+    tool_name: Literal["read_refund_execution"]
+    arguments: RefundArgs
+
+
+class _RecheckSearch(_RecheckRequest):
+    tool_name: Literal["search_applicable_policy"]
+    arguments: PolicyArgs
+
+
+class _RecheckClause(_RecheckRequest):
+    tool_name: Literal["read_policy_clause"]
+    arguments: ClauseArgs
+
+
+RecheckRequest = Annotated[
+    _RecheckLines | _RecheckMaterials | _RecheckRefund | _RecheckSearch | _RecheckClause,
+    Field(discriminator="tool_name"),
+]
+RECHECK_REQUEST = TypeAdapter(RecheckRequest)
+
+
+def validate_recheck(context, request, claims, assessments):
+    name = request.tool_name
+    executor = recheck_executor(name)
+    arguments = request.arguments.model_dump(mode="json")
+    context.tools.validate_call(executor, name, arguments)
+    disputed = {
+        item["claim_id"]: set(item["evidence_refs"])
+        for item in assessments
+        if item["verdict"] != "CONFIRMED"
+    }
+    targets = set(request.claim_ids)
+    owned = {row["id"]: row for row in claims if row["role"] == request.target_role}
+    if len(targets) != len(request.claim_ids) or not targets <= owned.keys():
+        raise InvalidOutput("INVESTIGATION_RECHECK_SCOPE_INVALID", "recheck.claim_ids")
+    if assessments and not targets <= disputed.keys():
+        raise InvalidOutput("INVESTIGATION_RECHECK_SCOPE_INVALID", "recheck.claim_ids")
+
+    related = [
+        disputed.get(ident, set())
+        if executor != request.target_role
+        else set(owned[ident]["supporting_refs"] + owned[ident]["conflicting_refs"])
+        | {owned[ident]["subject"]}
+        | disputed.get(ident, set())
+        for ident in targets
+    ]
+    if (
+        name == "search_applicable_policy"
+        and executor == request.target_role
+        and not arguments["condition_keys"]
+    ):
+        # Search selects candidate clauses by query; the resulting receipt must
+        # still contain a policy reference for each target before revision.
+        return executor, arguments, related
+
+    if name == "read_refund_execution":
+        execution = arguments["execution_id"]
+        requested = {execution, *context.input.refund_execution_line_ids.get(execution, ())}
+    elif name == "read_policy_clause":
+        line_products = {
+            row.ref.source_id: row.data["product_id"]
+            for row in context.input.evidence
+            if row.ref.source_kind == "ORDER_LINE" and row.data.get("product_id")
+        }
+        for ident in targets:
+            claim = owned[ident]
+            own_lines = {
+                claim["subject"],
+                *claim["supporting_refs"],
+                *claim["conflicting_refs"],
+            } & line_products.keys()
+            if any(line_products[line] != arguments["product_id"] for line in own_lines):
+                raise InvalidOutput(
+                    "INVESTIGATION_RECHECK_SCOPE_INVALID", "recheck.arguments.product_id"
+                )
+        policy = arguments["policy_id"]
+        requested = {f"{policy}:{arguments['version']}"}
+        if context.input.policy_catalogue_version:
+            requested.update(
+                row.ref.source_id
+                for row in context.input.evidence
+                if row.ref.source_kind == "POLICY" and row.data["clause"]["id"] == policy
+            )
+    else:
+        field = {
+            "read_order_lines": "line_ids",
+            "read_material_evidence": "evidence_ids",
+            "search_applicable_policy": "condition_keys",
+        }[name]
+        requested = set(arguments[field])
+        if not requested <= set().union(*related):
+            raise InvalidOutput("INVESTIGATION_RECHECK_SCOPE_INVALID", "recheck.arguments")
+
+    if any(not requested.intersection(refs) for refs in related):
+        raise InvalidOutput("INVESTIGATION_RECHECK_SCOPE_INVALID", "recheck.arguments")
+    return executor, arguments, related
 
 
 class VerificationResult(_Record):
@@ -111,6 +227,10 @@ class VerificationResult(_Record):
     options: Annotated[list[CandidateOption], Field(max_length=6)] = Field(default_factory=list)
     unresolved: Annotated[list[Text], Field(max_length=16)] = Field(default_factory=list)
     recheck: RecheckRequest | None = None
+
+
+class FinalVerificationResult(VerificationResult):
+    recheck: None = None
 
 
 class SynthesisResult(_Record):
@@ -135,6 +255,7 @@ class InvestigationContext:
     protocol: InvestigationProtocol = LEGACY_V6
     counterexample_ablation: bool = False
     output_reserve: int = P4_OUTPUT_RESERVE
+    direct_recheck_request: bool = False
 
 
 class ProtectedAudit:
@@ -177,8 +298,32 @@ def _prompt_schema(schema):
 POLICY_CITATION_LEGEND = 'policy_ids填裸ID（如"POL06"）；同一方案evidence_ids须同时填该条实际读取的版本键（如"POL06:1.0"）。'
 
 
+def _compact_recheck_schema(projected):
+    request = projected["properties"].get("recheck")
+    if not request or "anyOf" not in request:
+        return
+    definitions = projected["$defs"]
+    alternatives = request["anyOf"][0]["discriminator"]["mapping"]
+    branch_defs = {
+        tool: definitions.pop(ref.rsplit("/", 1)[-1]) for tool, ref in alternatives.items()
+    }
+    original = next(iter(branch_defs.values()))
+    common = {**original, "properties": dict(original["properties"])}
+    common["properties"]["tool_name"] = {"enum": list(branch_defs)}
+    common["properties"]["arguments"] = {"type": "object"}
+    common["allOf"] = [
+        {
+            "if": {"properties": {"tool_name": {"const": tool}}},
+            "then": {"properties": {"arguments": branch["properties"]["arguments"]}},
+        }
+        for tool, branch in branch_defs.items()
+    ]
+    request["anyOf"][0] = common
+
+
 def _v7_prompt_schema(schema, *, policy_ids=None):
     projected = _prompt_schema(schema)
+    _compact_recheck_schema(projected)
     definitions = projected["$defs"]
     option = definitions["Option"]
     line = definitions["DecisionLine"]
@@ -265,8 +410,16 @@ def _model_tool_receipt(projection, call, receipt, known_evidence, receipt_sha25
     return projected
 
 
-def _result(raw, schema, *, role, evidence_ids, upstream_ids):
-    parsed = schema.model_validate_json(raw)
+def _result(raw, schema, *, role, evidence_ids, upstream_ids, assessment_ref_ids=()):
+    try:
+        parsed = schema.model_validate_json(raw)
+    except ValidationError as error:
+        if schema is FinalVerificationResult and any(
+            issue["loc"] == ("recheck",)
+            for issue in error.errors(include_input=False, include_context=False, include_url=False)
+        ):
+            raise InvalidOutput("RECHECK_NOT_ALLOWED_IN_FINAL", "recheck") from None
+        raise
     if isinstance(parsed, InvestigationResult):
         claims = parsed.claims
         if len({item.id for item in claims}) != len(claims):
@@ -291,16 +444,54 @@ def _result(raw, schema, *, role, evidence_ids, upstream_ids):
         if role in {"fact", "policy"} and parsed.options:
             raise InvalidOutput("ROLE_ACTION_FORBIDDEN", "options")
     elif isinstance(parsed, VerificationResult):
-        assessments = parsed.assessments
-        if (
-            {row.claim_id for row in assessments} != upstream_ids
-            or len(assessments) != len(upstream_ids)
-            or any(not set(row.evidence_refs) <= evidence_ids for row in assessments)
-        ):
-            raise InvalidOutput("VERIFICATION_EVIDENCE_INCOMPLETE", "assessments")
+        seen = set()
+        for index, row in enumerate(parsed.assessments):
+            field = f"assessments.{index}.claim_id"
+            if row.claim_id not in upstream_ids:
+                raise InvalidOutput("VERIFICATION_UNKNOWN_CLAIM", field)
+            if row.claim_id in seen:
+                raise InvalidOutput("VERIFICATION_DUPLICATE_CLAIM", field)
+            seen.add(row.claim_id)
+        if seen != upstream_ids:
+            raise InvalidOutput("VERIFICATION_MISSING_CLAIM", "assessments")
+        counterexample_refs = evidence_ids.union(assessment_ref_ids)
+        for index, row in enumerate(parsed.assessments):
+            permitted = evidence_ids if row.verdict == "CONFIRMED" else counterexample_refs
+            if not set(row.evidence_refs) <= permitted:
+                raise InvalidOutput(
+                    "VERIFICATION_EVIDENCE_OUT_OF_SCOPE", f"assessments.{index}.evidence_refs"
+                )
     if any(not set(option.evidence_ids) <= evidence_ids for option in parsed.options):
         raise InvalidOutput("UNKNOWN_OPTION_EVIDENCE", "options")
     return {"result": parsed.model_dump(mode="json")}
+
+
+def _audit_read(audit, role, phase_id, call_id, receipt, receipt_sha256, input_sha256, **extra):
+    audit.event(
+        PRIVATE_RECEIPT_EVENT,
+        {
+            "role": role,
+            "phase_id": phase_id,
+            "call_id": call_id,
+            "receipt_sha256": receipt_sha256,
+            "receipt": receipt,
+            **extra,
+        },
+    )
+    audit.event(
+        "investigation_tool",
+        {
+            "role": role,
+            "phase_id": phase_id,
+            "call_id": call_id,
+            "tool": receipt["name"],
+            "evidence_ids": [ref["source_id"] for ref in receipt["refs"]],
+            "evidence_refs": receipt["refs"],
+            "input_sha256": input_sha256,
+            "receipt_sha256": receipt_sha256,
+            **extra,
+        },
+    )
 
 
 def run_phase(
@@ -315,13 +506,19 @@ def run_phase(
     max_rounds=MAX_MODEL_ROUNDS,
     tool_limit=MAX_TOOL_CALLS,
     tools_enabled=True,
+    assessment_ref_ids=(),
+    initial_material_ids=(),
 ):
     """Each role receives an isolated transcript. Within one turn, independent reads fan out."""
     audit = audit if audit is not None else context.audit
     if context.model is None:
         raise ModelFailure("INVESTIGATION_MODEL_UNAVAILABLE")
+    final_verifier = role == "verifier" and phase_id == "verify-1"
+    direct_recheck = (
+        role == "verifier" and phase_id == "verify-0" and context.direct_recheck_request
+    )
     schema = {
-        "verifier": VerificationResult,
+        "verifier": FinalVerificationResult if final_verifier else VerificationResult,
         "synthesizer": SynthesisResult,
     }.get(role, InvestigationResult)
     tool_role = "verifier" if role == "synthesizer" else role
@@ -333,6 +530,50 @@ def run_phase(
     )
     available = {item["function"]["name"] for item in tools}
     evidence_ids = set(known_evidence)
+    seen_ids, reads, receipts = set(), {}, []
+    used = 0
+    if role in {"fact", "strong_single"} and phase_id != "recheck":
+        evidence_ids.update(
+            row["ref"]["source_id"]
+            for key in ("customer_statements", "attachments", "unverified_observations")
+            for row in prompt.get(key, ())
+        )
+    if initial_material_ids and tool_limit > 0 and "read_material_evidence" in available:
+        tool_name = "read_material_evidence"
+        arguments = {"evidence_ids": list(initial_material_ids)}
+        key = digest([tool_name, arguments])
+        try:
+            read = context.tools.call(role, tool_name, arguments)
+        except ToolRejected as error:
+            raise ModelFailure("INVESTIGATION_MATERIAL_READ_FAILED") from error
+        receipt = read.model_dump(mode="json")
+        read_ids = {ref["source_id"] for ref in receipt["refs"]}
+        read_id = "frozen-material-preload"
+        _audit_read(
+            audit,
+            role,
+            phase_id,
+            read_id,
+            receipt,
+            digest(receipt),
+            key,
+            origin="PROGRAM_REQUIRED_READ",
+        )
+        seen_ids.add(read_id)
+        reads[key] = read
+        receipts.append(receipt)
+        evidence_ids.update(read_ids)
+        used = 1
+        prompt = {
+            **prompt,
+            "initial_material_receipt": receipt,
+            "material_read_instruction": (
+                "程序已实际读取所列材料及关联审核。使用此回执核验材料事实，"
+                "无需重复读取已在回执中的记录。区分已上传、审核记录和财务批准。"
+                "需要核对商品行、实付或余额时用 read_order_lines。"
+                "超出回执的未读记录不能认定缺失。"
+            ),
+        }
     upstream = upstream or []
     upstream_ids = {row["id"] for row in upstream}
     prompt_version = context.protocol.prompt_version
@@ -361,16 +602,31 @@ def run_phase(
                 "材料审核记录说明人工对该版材料的业务判断，不证明图片内容或财务批准。"
                 "不得批准或执行任何操作。输出符合 JSON Schema 的 JSON 对象。"
                 + _ROLE_INSTRUCTIONS[role]
-                + PROMPT_LEGEND
-                + (HUMAN_PAYMENT_PROMPT_LEGEND if context.protocol == HUMAN_PAYMENT_V7 else "")
+                + PLAIN_LANGUAGE
                 + (
-                    RECEIPT_LEGEND
-                    + (POLICY_CITATION_LEGEND if can_propose else "")
-                    + "退款金额用已核实的分。金额未知不提退款；补证列具体缺项。"
-                    if projection.receipt_encoding
+                    VERIFIER_LEGEND + "退款用已核实的分；金额未知不提退款；补证列具体缺项。"
+                    if indexed_verifier
+                    else PROMPT_LEGEND
+                    + (HUMAN_PAYMENT_PROMPT_LEGEND if context.protocol == HUMAN_PAYMENT_V7 else "")
+                    + (
+                        RECEIPT_LEGEND
+                        + (POLICY_CITATION_LEGEND if can_propose else "")
+                        + "退款金额用已核实的分。金额未知不提退款；补证列具体缺项。"
+                        if projection.receipt_encoding
+                        else ""
+                    )
+                )
+                + (
+                    "补查已结束。recheck填null；逐条核验当前upstream_claims，忽略已撤销主张。"
+                    if final_verifier
                     else ""
                 )
-                + (VERIFIER_LEGEND if indexed_verifier else "")
+                + (
+                    "若有具体反证需补查，直接在结果填一次recheck。此项仅为申请；"
+                    "未获实际回执前不算读取。无需补查填null。"
+                    if direct_recheck
+                    else ""
+                )
                 + (READ_INDEX_LEGEND if projection.index_reads else "")
                 + _render(prompt_schema)
             )
@@ -379,7 +635,9 @@ def run_phase(
             content=_render(
                 {
                     "frozen_input": projected_prompt,
-                    "upstream_claims": verifier_claims(upstream) if indexed_verifier else upstream,
+                    "upstream_claims": verifier_claims(upstream, projection.verifier_ref_positions)
+                    if indexed_verifier
+                    else upstream,
                 }
             )
         ),
@@ -392,21 +650,24 @@ def run_phase(
             "input_sha256": digest(prompt),
             "prompt_sha256": digest(projected_prompt),
             "prompt_version": prompt_version,
+            "language_version": LANGUAGE_VERSION,
             "upstream_claim_ids": sorted(upstream_ids),
             "tools": sorted(available),
+            **({"recheck_request_mode": "structured_result"} if direct_recheck else {}),
             **({"tool_schema_sha256": digest(tools)} if scoped_arguments else {}),
         },
     )
-    seen_ids, reads, receipts = set(), {}, []
-    used = 0
     for index in range(max_rounds):
         bound = tools if index < max_rounds - 1 and used < tool_limit else []
         remaining_tools = tool_limit - used
 
+        references = sorted(evidence_ids)
+        if indexed_verifier:
+            references = [projection.verifier_ref_positions.get(ref, ref) for ref in references]
         reference_scope = _render(
             {
-                "citable_evidence_ids": sorted(evidence_ids),
-                "upstream_claim_ids": sorted(upstream_ids),
+                "citable_evidence_ids": references,
+                **({} if indexed_verifier else {"upstream_claim_ids": sorted(upstream_ids)}),
             }
         )
 
@@ -436,6 +697,7 @@ def run_phase(
                 "phase_id": phase_id,
                 "round": index,
                 "prompt_version": prompt_version,
+            "language_version": LANGUAGE_VERSION,
                 "estimated_with_tools": with_tools,
                 "estimated_without_tools": without_tools,
                 "limit": INVESTIGATION_INPUT_TOKEN_LIMIT,
@@ -460,9 +722,25 @@ def run_phase(
 
         def validate(calls, raw, *, allowed=allowed):
             if not calls:
-                return _result(
-                    raw, schema, role=role, evidence_ids=evidence_ids, upstream_ids=upstream_ids
+                validated = _result(
+                    raw,
+                    schema,
+                    role=role,
+                    evidence_ids=evidence_ids,
+                    upstream_ids=upstream_ids,
+                    assessment_ref_ids=assessment_ref_ids,
                 )
+                if role == "verifier" and validated["result"].get("recheck") is not None:
+                    request = RECHECK_REQUEST.validate_python(validated["result"]["recheck"])
+                    try:
+                        validate_recheck(
+                            context, request, upstream, validated["result"]["assessments"]
+                        )
+                    except ToolRejected as error:
+                        raise InvalidOutput(
+                            error.issue_type or error.code, "recheck.arguments"
+                        ) from None
+                return validated
             if len(calls) > allowed:
                 raise InvalidOutput(
                     "TOOL_BATCH_LIMIT", "tool_calls", tool_counts=(len(calls), allowed)
@@ -491,14 +769,22 @@ def run_phase(
                 batch_ids.add(ident)
             return {"calls": calls}
 
+        from .model_routing import select_model
+
+        selection = select_model(context.strategy, role, phase_id, getattr(context.model, "registry", None))
+        audit.event("task_model_route", {
+            "role": role, "phase_id": phase_id, "round": index,
+            "preferred": selection.preferred, "fixed": selection.fixed,
+            "reason": selection.reason, "strategy": context.strategy,
+        })
         response = context.model.call(
             audit,
             f"p4:{prompt_version}:{phase_id}:{index}",
-            preferred="analysis" if context.strategy == "routed" else context.strategy,
+            preferred=selection.preferred,
             messages=bounded_messages,
             tools=bound,
             validate=validate,
-            fixed=context.strategy != "routed",
+            fixed=selection.fixed,
             data_scope="customer_conversation",
             output_reserve=context.output_reserve,
         )
@@ -529,28 +815,6 @@ def run_phase(
             # A targeted-check request identifies references without reading their records.
             if receipt["name"] != "request_targeted_check":
                 evidence_ids.update(ref["source_id"] for ref in receipt["refs"])
-            audit.event(
-                PRIVATE_RECEIPT_EVENT,
-                {
-                    "role": role,
-                    "phase_id": phase_id,
-                    "call_id": call["id"],
-                    "receipt_sha256": receipt_sha256,
-                    "receipt": receipt,
-                },
-            )
+            _audit_read(audit, role, phase_id, call["id"], receipt, receipt_sha256, key)
             messages.append(tool_reply(call["name"], call["id"], projected_receipt))
-            audit.event(
-                "investigation_tool",
-                {
-                    "role": role,
-                    "phase_id": phase_id,
-                    "call_id": call["id"],
-                    "tool": call["name"],
-                    "evidence_ids": [ref["source_id"] for ref in receipt["refs"]],
-                    "evidence_refs": receipt["refs"],
-                    "input_sha256": key,
-                    "receipt_sha256": receipt_sha256,
-                },
-            )
     raise ModelFailure("INVESTIGATION_ROUND_LIMIT")

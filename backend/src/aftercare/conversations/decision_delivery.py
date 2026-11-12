@@ -2,7 +2,7 @@
 
 from hashlib import sha256
 
-from sqlalchemy import select, text
+from sqlalchemy import or_, select, text
 from sqlalchemy.orm import Session
 
 from aftercare.auth import UserContext
@@ -12,21 +12,26 @@ from aftercare.intelligence.decision_candidate import DECISION_READY_EVENT, proj
 from aftercare.intelligence.tables import AgentRun, RunEvent
 
 from .decisions import ConversationDecisions
-from .tables import DecisionProjection
+from .failure_delivery import FAILURES, notify
+from .tables import DecisionProjection, InvestigationRequest
 
 
 def pending(engine, *, limit=50):
     with Session(engine) as db:
         return list(
             db.scalars(
-                select(RunEvent.run_id)
+                select(AgentRun.id)
                 .where(
-                    RunEvent.kind == DECISION_READY_EVENT,
+                    or_(
+                        select(RunEvent.run_id).where(RunEvent.run_id == AgentRun.id, RunEvent.kind == DECISION_READY_EVENT).exists(),
+                        (AgentRun.reason.in_(FAILURES) & AgentRun.status.in_(['FAILED', 'NEEDS_REVIEW']) &
+                         select(InvestigationRequest.run_id).where(InvestigationRequest.run_id == AgentRun.id).exists()),
+                    ),
                     ~select(DecisionProjection.run_id)
-                    .where(DecisionProjection.run_id == RunEvent.run_id)
+                    .where(DecisionProjection.run_id == AgentRun.id)
                     .exists(),
                 )
-                .order_by(RunEvent.created_at, RunEvent.run_id)
+                .order_by(AgentRun.created_at, AgentRun.id)
                 .limit(limit)
             )
         )
@@ -47,9 +52,14 @@ def project(business, run_id):
                 RunEvent.kind == DECISION_READY_EVENT,
             )
         )
-        if ready is None:
-            return
         run = db.get_one(AgentRun, run_id)
+        delivered_failure = notify(business, db, run)
+        if ready is None:
+            if run.reason in FAILURES and run.status in {'FAILED', 'NEEDS_REVIEW'}:
+                db.add(DecisionProjection(run_id=run_id, snapshot_id=None, state='BLOCKED',
+                                          reason=run.reason if delivered_failure else 'FAILURE_NOTICE_STALE_OR_REVOKED',
+                                          created_at=business.clock()))
+            return
         user = db.get(User, run.owner_id)
         snapshot = None
         reason = None

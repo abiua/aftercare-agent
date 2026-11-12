@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "source_kind": "synthetic_format_fixture",
+  "annotation_method": "Agent-authored assertions for project-authored fixtures. The coordinating agent visually reviewed all four rendered PDF pages. Page and line numbers are 1-based.",
+  "shared_policy_facts": {
+    "title": "Synthetic Returns Policy",
+    "rule_id": "R-17",
+    "condition": "Issue a credit only if the seal is intact.",
+    "negation": "Do not issue a credit for opened items.",
+    "exception": "Opened items qualify if damage was recorded on delivery.",
+    "currency": "USD",
+    "credit_limits": [
+      {"item_category": "Desk lamp", "amount": "24.50"},
+      {"item_category": "Floor lamp", "amount": "48.00"}
+    ]
+  },
+  "fixtures": {
+    "synthetic_policy.pdf": {
+      "expected_status": "native_extracted",
+      "page_count": 2,
+      "extraction_method": "native_text",
+      "pages": [
+        {
+          "page": 1,
+          "page_label": "Page 1 of 2",
+          "heading": "Return Credit",
+          "required_text": [
+            "SYNTHETIC DOCUMENT PARSER FIXTURE",
+            "Synthetic Returns Policy",
+            "R-17: Issue a credit only if the seal is intact.",
+            "Do not issue a credit for opened items."
+          ]
+        },
+        {
+          "page": 2,
+          "page_label": "Page 2 of 2",
+          "headings": ["Return Credit (continued)", "Credit Limits"],
+          "required_text": [
+            "R-17 exception: Opened items qualify if damage was recorded on delivery."
+          ],
+          "table_cells": [
+            ["Item category", "Maximum credit"],
+            ["Desk lamp", "$24.50"],
+            ["Floor lamp", "$48.00"]
+          ]
+        }
+      ],
+      "cross_page_rule": {"rule_id": "R-17", "condition_page": 1, "negation_page": 1, "exception_page": 2}
+    },
+    "synthetic_policy_scan.pdf": {
+      "expected_status": "needs_review",
+      "page_count": 2,
+      "extraction_method": "ocr",
+      "native_text_layer": false,
+      "visual_ground_truth": "synthetic_policy.pdf",
+      "cross_page_rule": {"rule_id": "R-17", "condition_page": 1, "negation_page": 1, "exception_page": 2},
+      "table_page": 2
+    },
+    "synthetic_policy.md": {
+      "expected_status": "source_verified",
+      "extraction_method": "markdown",
+      "title_line": 1,
+      "condition_line": 7,
+      "negation_line": 9,
+      "exception_line": 11,
+      "table_lines": [15, 18],
+      "table_cells": [
+        ["Item category", "Maximum credit"],
+        ["Desk lamp", "$24.50"],
+        ["Floor lamp", "$48.00"]
+      ]
+    },
+    "synthetic_blank.pdf": {
+      "expected_status": "blank",
+      "page_count": 1,
+      "expected_text": ""
+    },
+    "synthetic_corrupt.pdf": {
+      "expected_status": "corrupt",
+      "reason": "Deliberately truncated PDF bytes"
+    }
+  }
+}

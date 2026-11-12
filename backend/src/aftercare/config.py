@@ -23,6 +23,8 @@ class Settings(BaseModel):
     object_access_key: str = Field(repr=False)
     object_secret_key: str = Field(repr=False)
     object_bucket: str = 'aftercare-private'
+    demo_role_login_enabled: bool = False
+    login_accounts_path: Path | None = None
     model_config_path: Path = ROOT / '.runtime/models.json'
     model_enabled: bool = False
     redis_url: str
@@ -32,8 +34,15 @@ class Settings(BaseModel):
     chat_analysis_enabled: bool = False
     chat_decisions_enabled: bool = False
     chat_investigation_enabled: bool = False
+    chat_tau_policy_enabled: bool = False
+    chat_tau_policy_document: Path = ROOT / ".runtime/tau-p2-root-20261112/policy"
+    chat_tau_authorized_policy_catalog: Path | None = None
+    chat_tau_policy_catalog: Path = ROOT / ".runtime/tau-rag-p3/catalog-milvus-resume.json"
+    chat_tau_policy_model_cache: Path = ROOT / ".runtime/tau-rag-p3/models"
     chat_investigation_output_reserve: Literal[1800, 4096] = 1800
     chat_investigation_protocol: Literal["compact-v6", "compact-v7"] = "compact-v6"
+    chat_investigation_direct_recheck_request: bool = False
+    chat_investigation_run_max_calls: int = Field(default=8, strict=True, ge=1, le=12)
     chat_investigation_issue_max_calls: int = Field(default=16, strict=True, ge=1, le=144)
     chat_investigation_issue_max_microusd: int = Field(default=200_000, strict=True, ge=1, le=10_000_000)
     chat_vision_enabled: bool = False

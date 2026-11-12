@@ -1348,7 +1348,16 @@ class AgentService:
             if value.policy_catalogue_version != CATALOGUE_VERSION:
                 raise InputUnavailable("INVESTIGATION_POLICY_CATALOGUE_REQUIRED")
             route = route_input(value)
-            investigation_tools = InvestigationTools(value, policy_search=legacy.search)
+            authorized_policy_search = None
+            if getattr(self.settings, "chat_tau_authorized_policy_catalog", None) is not None:
+                from functools import partial
+
+                from aftercare.conversations.tau_policy import search_authorized_policy
+
+                authorized_policy_search = partial(search_authorized_policy, self.settings)
+            investigation_tools = InvestigationTools(
+                value, policy_search=legacy.search, authorized_policy_search=authorized_policy_search
+            )
         except InputUnavailable as error:
             value, route, investigation_tools = None, route_unavailable(error), None
         model, reserve = None, None
@@ -1367,7 +1376,10 @@ class AgentService:
                 raise ModelFailure("INVESTIGATION_OUTPUT_RESERVE_UNAVAILABLE")
             caps = [cap for cap in (registry.max_usd, registry.max_run_usd) if cap is not None]
             if caps and min(caps) > 0:
-                model = legacy.model.with_evaluation_limits(calls=8, budget=min(caps))
+                model = legacy.model.with_evaluation_limits(
+                    calls=getattr(self.settings, "chat_investigation_run_max_calls", 8),
+                    budget=min(caps),
+                )
                 costs = [
                     _reserve_price(spec, INVESTIGATION_INPUT_TOKEN_LIMIT, output_reserve)
                     for spec in registry.models
@@ -1396,6 +1408,9 @@ class AgentService:
             protocol=protocol,
             counterexample_ablation=counterexample_ablation,
             output_reserve=output_reserve,
+            direct_recheck_request=getattr(
+                self.settings, "chat_investigation_direct_recheck_request", False
+            ),
         )
 
     def _finish(self, run, status, reason, output, *, decision_context=None, decision_guard=None):

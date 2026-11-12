@@ -23,7 +23,7 @@ from .service import EvaluationService, ExperimentInput
 class EvaluationRoute(BusinessRoute):
     def get_route_handler(self):
         handler = super().get_route_handler()
-        if "/scenario-metrics" in self.path or self.path.endswith(
+        if "/campaigns" in self.path or "/bad-cases" in self.path or "/investigations" in self.path or "/scenario-metrics" in self.path or self.path.endswith(
             ("/progress", "/progress/stream")
         ):
 
@@ -81,6 +81,18 @@ def _service(request: Request) -> EvaluationService:
 
 Evaluation = Annotated[EvaluationService, Depends(_service)]
 
+def _legacy_service(service: Evaluation, user: Actor) -> EvaluationService:
+    from .investigations import authorize
+
+    authorize(user)
+    if service.catalog is None:
+        raise BusinessError("EVALUATION_RETIRED", "项目用例评测已退役，请查看官方评测。", 410)
+    return service
+
+
+LegacyEvaluation = Annotated[EvaluationService, Depends(_legacy_service)]
+
+
 
 class CancelInput(BaseModel):
     expected_version: Version
@@ -117,33 +129,33 @@ def capabilities(service: Evaluation, user: Actor):
 
 
 @router.get("/gates")
-def gates(service: Evaluation, user: Actor):
+def gates(service: LegacyEvaluation, user: Actor):
     return {"items": service.gates(user)}
 
 
 @router.get("/imports")
-def imports(service: Evaluation, user: Actor, limit: Annotated[int, Query(ge=1, le=100)] = 100):
+def imports(service: LegacyEvaluation, user: Actor, limit: Annotated[int, Query(ge=1, le=100)] = 100):
     return {"items": service.imports(user, limit=limit)}
 
 
 @router.post("/imports", status_code=201)
-def import_report(body: ImportInput, service: Evaluation, user: Actor, key: Key):
+def import_report(body: ImportInput, service: LegacyEvaluation, user: Actor, key: Key):
     return service.import_report(user, body, key)
 
 
 @router.get("/imports/{import_id}")
-def imported_report(import_id: str, service: Evaluation, user: Actor):
+def imported_report(import_id: str, service: LegacyEvaluation, user: Actor):
     return service.imported_report(user, import_id)
 
 
 @router.get("/datasets")
-def datasets(service: Evaluation, user: Actor):
+def datasets(service: LegacyEvaluation, user: Actor):
     return {"items": service.datasets(user)}
 
 
 @router.get("/cases")
 def cases(
-    service: Evaluation,
+    service: LegacyEvaluation,
     user: Actor,
     dataset: str,
     split: Literal["dev", "validation", "holdout", "regression", "test"] | None = None,
@@ -153,7 +165,7 @@ def cases(
 
 @router.get("/experiments")
 def experiments(
-    service: Evaluation,
+    service: LegacyEvaluation,
     user: Actor,
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
@@ -162,12 +174,12 @@ def experiments(
 
 
 @router.post("/experiments", status_code=201)
-def create_experiment(body: ExperimentInput, service: Evaluation, user: Actor, key: Key):
+def create_experiment(body: ExperimentInput, service: LegacyEvaluation, user: Actor, key: Key):
     return service.create(user, body, key)
 
 
 @router.get("/experiments/{experiment_id}")
-def experiment(experiment_id: str, service: Evaluation, user: Actor):
+def experiment(experiment_id: str, service: LegacyEvaluation, user: Actor):
     return service.experiment(user, experiment_id)
 
 
@@ -177,7 +189,7 @@ ProgressCursor = Annotated[int, Query(ge=0, le=2_147_483_647)]
 @router.get("/experiments/{experiment_id}/progress")
 def experiment_progress(
     experiment_id: str,
-    service: Evaluation,
+    service: LegacyEvaluation,
     user: Actor,
     after: ProgressCursor = 0,
     limit: Annotated[int, Query(ge=1, le=PAGE_SIZE)] = PAGE_SIZE,
@@ -194,7 +206,7 @@ def _progress_frame(kind, data, sequence=None):
 async def stream_experiment_progress(
     request: Request,
     experiment_id: str,
-    service: Evaluation,
+    service: LegacyEvaluation,
     user: Actor,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
     after: ProgressCursor = 0,
@@ -265,7 +277,7 @@ ScenarioFilter = Annotated[str | None, Query(min_length=1, max_length=120)]
 @router.get("/experiments/{experiment_id}/scenario-metrics")
 def scenario_metrics(
     experiment_id: str,
-    service: Evaluation,
+    service: LegacyEvaluation,
     user: Actor,
     scenario: ScenarioFilter = None,
     intent: ScenarioFilter = None,
@@ -277,7 +289,7 @@ def scenario_metrics(
 def scenario_contributors(
     experiment_id: str,
     metric_key: str,
-    service: Evaluation,
+    service: LegacyEvaluation,
     user: Actor,
     basis_revision: Annotated[str, Query(pattern=r"^[0-9a-f]{64}$")],
     scenario: ScenarioFilter = None,
@@ -300,36 +312,36 @@ def scenario_contributors(
 
 
 @router.post("/experiments/{experiment_id}/cancel")
-def cancel(experiment_id: str, body: CancelInput, service: Evaluation, user: Actor, key: Key):
+def cancel(experiment_id: str, body: CancelInput, service: LegacyEvaluation, user: Actor, key: Key):
     return service.cancel(user, experiment_id, expected_version=body.expected_version, key=key)
 
 
 @router.post("/experiments/{experiment_id}/retry", status_code=201)
-def retry(experiment_id: str, body: RetryInput, service: Evaluation, user: Actor, key: Key):
+def retry(experiment_id: str, body: RetryInput, service: LegacyEvaluation, user: Actor, key: Key):
     return service.retry(user, experiment_id, key=key, **body.model_dump())
 
 
 @router.post("/results/{result_id}/reviews", status_code=201)
-def review(result_id: str, body: ReviewInput, service: Evaluation, user: Actor, key: Key):
+def review(result_id: str, body: ReviewInput, service: LegacyEvaluation, user: Actor, key: Key):
     return service.review(user, result_id, key=key, **body.model_dump())
 
 
 @router.get("/results/{result_id}/supplemental-usage")
-def supplemental_usage(result_id: str, service: Evaluation, user: Actor):
+def supplemental_usage(result_id: str, service: LegacyEvaluation, user: Actor):
     return JSONResponse(
         service.supplemental_usage(user, result_id), headers={"Cache-Control": "no-store"}
     )
 
 
 @router.get("/compare")
-def compare(service: Evaluation, user: Actor, left: str, right: str):
+def compare(service: LegacyEvaluation, user: Actor, left: str, right: str):
     return service.compare(user, left, right)
 
 
 @router.get("/experiments/{experiment_id}/export")
 def export(
     experiment_id: str,
-    service: Evaluation,
+    service: LegacyEvaluation,
     user: Actor,
     format: Literal["json", "csv"] = "json",
 ):
@@ -341,3 +353,39 @@ def export(
     if format == "json":
         return JSONResponse(service.experiment(user, experiment_id), headers=headers)
     return Response(service.export_csv(user, experiment_id), media_type="text/csv", headers=headers)
+
+
+@router.get('/investigations')
+def investigations(service: Evaluation, user: Actor,
+                   order: Annotated[str, Query(max_length=80)] = '',
+                   offset: Annotated[int, Query(ge=0, le=100000)] = 0,
+                   limit: Annotated[int, Query(ge=1, le=50)] = 30):
+    from .investigations import investigations as read
+    return read(service.engine, user, order=order, offset=offset, limit=limit)
+
+
+@router.get('/investigations/{run_id}')
+def investigation(run_id: str, service: Evaluation, user: Actor):
+    from .investigations import investigation as read
+    return read(service.engine, user, run_id)
+
+
+@router.get('/bad-cases')
+def bad_cases(service: Evaluation, user: Actor):
+    from aftercare.config import ROOT
+    from .bad_cases import catalogue
+    return catalogue(ROOT, user)
+
+
+@router.get('/campaigns')
+def campaign_list(user: Actor):
+    from aftercare.config import ROOT
+    from .campaigns import campaigns
+    return campaigns(ROOT,user)
+
+
+@router.get('/campaigns/{campaign_id}')
+def campaign_detail(user: Actor, campaign_id: str):
+    from aftercare.config import ROOT
+    from .campaigns import read_campaign
+    return read_campaign(ROOT,user,campaign_id)

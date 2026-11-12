@@ -21,7 +21,7 @@ BODY_MAX = MAX_BYTES + 64 * 1024
 class ConversationRoute(BusinessRoute):
     def get_route_handler(self):
         handler = super().get_route_handler()
-        if "/decisions" in self.path or "/decision-materials" in self.path:
+        if self.path.endswith("/unfinished") or "/decisions" in self.path or "/decision-materials" in self.path:
 
             async def private(request: Request):
                 try:
@@ -102,6 +102,11 @@ def list_conversations(service: Service, user: Actor, limit: Limit = 100, offset
     return {"items": service.list(user, limit=limit, offset=offset)}
 
 
+@router.get("/unfinished")
+def unfinished(service: Service, user: Actor, limit: Limit = 30):
+    return {"items": service.unfinished(user, limit=limit)}
+
+
 @router.get("/{conversation_id}")
 def detail(
     conversation_id: UUID, service: Service, user: Actor, after: Offset = 0, limit: Limit = 100
@@ -157,6 +162,23 @@ def context(conversation_id: UUID, body: Context, service: Service, user: Actor,
 @router.post("/{conversation_id}/handoff")
 def handoff(conversation_id: UUID, body: Handoff, service: Service, user: Actor, key: Key):
     return service.handoff(str(conversation_id), user, **body.model_dump(), key=key)
+
+
+class ConfirmCorrection(Handoff):
+    message_id: UUID
+    retained_attachment_ids: Annotated[list[UUID], Field(max_length=20)] = Field(
+        default_factory=list
+    )
+    evidence_reason: Annotated[str, Field(max_length=1000)] = ""
+
+
+@router.post("/{conversation_id}/correction/confirm")
+def confirm_correction(
+    conversation_id: UUID, body: ConfirmCorrection, service: Service, user: Actor, key: Key
+):
+    return service.confirm_correction(
+        str(conversation_id), user, **body.model_dump(mode="json"), key=key
+    )
 
 
 class ReviewDecision(Empty):

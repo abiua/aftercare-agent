@@ -5,7 +5,7 @@ from pathlib import Path
 
 from aftercare_data.build import artifacts, build
 from aftercare_data.generator import generate
-from aftercare_data.inputs import initial_user_input, load_inputs
+from aftercare_data.inputs import load_business
 from aftercare_data.validation import validate_business
 
 
@@ -16,36 +16,19 @@ class IntegrationTests(unittest.TestCase):
             artifacts(42)["agent/business.json"], artifacts(43)["agent/business.json"]
         )
 
-    def test_loader_and_output_isolation(self):
+    def test_build_emits_only_verified_business_seed(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = build(Path(tmp) / "dataset")
-            inputs = load_inputs(path)
-            self.assertEqual(len(inputs["cases"]), 40)
             self.assertEqual(
-                set(initial_user_input(inputs["cases"][0])),
-                {"actor_customer_id", "order_id", "utterances"},
+                {file.relative_to(path).as_posix() for file in path.rglob("*") if file.is_file()},
+                {"agent/business.json", "manifest.json"},
             )
-            self.assertNotIn("kind", inputs["cases"][0]["fixture"]["request"])
-            self.assertEqual(len(load_inputs(path, "test")["cases"]), 20)
-            for case in inputs["cases"]:
-                for forbidden in (
-                    "expected_actions",
-                    "expected_final_state",
-                    "reason",
-                    "family",
-                    "policy_ids",
-                ):
-                    self.assertNotIn(forbidden, case)
-            # Oracle deletion has no effect on the agent input loader.
-            for file in (path / "evaluation/private").glob("*.json"):
-                file.unlink()
-            self.assertEqual(inputs, load_inputs(path))
+            self.assertEqual(load_business(path), generate())
             with self.assertRaises(FileExistsError):
                 build(path)
-            business = path / "agent/business.json"
-            business.write_text("{}")
+            (path / "agent/business.json").write_text("{}")
             with self.assertRaisesRegex(ValueError, "checksum"):
-                load_inputs(path)
+                load_business(path)
 
     def test_independent_validator_rejects_corruption(self):
         business = generate()

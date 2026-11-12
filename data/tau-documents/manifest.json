@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "document_version": "synthetic-format-v1",
+  "description": "Project-authored parser fixtures with no upstream policy content.",
+  "generator": "scripts/build_tau_document_fixtures.py",
+  "expected_extractions": "expected_extractions.json",
+  "expected_extractions_sha256": "b75ba46f8970ed05eff8da4eb79fb61ad06b3817a83895c16bf5418e5e4ab8ee",
+  "fixtures": [
+    {
+      "fixture_id": "native_pdf",
+      "path": "synthetic_policy.pdf",
+      "source_kind": "synthetic_format_fixture",
+      "format_variant": "native_pdf",
+      "media_type": "application/pdf",
+      "size_bytes": 2884,
+      "sha256": "3950127150830a705bb9541942a6fdc24c35a3f4ff45e829e38b976deec8de5c",
+      "expected_status": "native_extracted"
+    },
+    {
+      "fixture_id": "scanned_pdf",
+      "path": "synthetic_policy_scan.pdf",
+      "source_kind": "synthetic_format_fixture",
+      "format_variant": "scanned_pdf",
+      "media_type": "application/pdf",
+      "size_bytes": 136167,
+      "sha256": "bc53363de6e6c0474eab24f91871e9f3913cf1167b07297d20a8ae64e196a818",
+      "expected_status": "needs_review"
+    },
+    {
+      "fixture_id": "markdown",
+      "path": "synthetic_policy.md",
+      "source_kind": "synthetic_format_fixture",
+      "format_variant": "markdown",
+      "media_type": "text/markdown",
+      "size_bytes": 360,
+      "sha256": "996f9bfec4a40843a4d7f5c501dfaaa695b3048aee4b338a43b08de6b5aaeb7d",
+      "expected_status": "source_verified"
+    },
+    {
+      "fixture_id": "blank_pdf",
+      "path": "synthetic_blank.pdf",
+      "source_kind": "synthetic_format_fixture",
+      "format_variant": "blank_pdf",
+      "media_type": "application/pdf",
+      "size_bytes": 1359,
+      "sha256": "9ea55dd17356cec28a8d61b3ea15ee20b99c4f1f3383696d3095f2114d102782",
+      "expected_status": "blank"
+    },
+    {
+      "fixture_id": "corrupt_pdf",
+      "path": "synthetic_corrupt.pdf",
+      "source_kind": "synthetic_format_fixture",
+      "format_variant": "corrupt_pdf",
+      "media_type": "application/pdf",
+      "size_bytes": 19,
+      "sha256": "8132a3af37539fb9b07ddf595219d374305e375834d2e9a9fd903275da911624",
+      "expected_status": "corrupt"
+    }
+  ]
+}

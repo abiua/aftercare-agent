@@ -54,6 +54,21 @@ def _same_dependencies(frozen, current):
     )
 
 
+def _option_evidence_ids(scope, option):
+    identifiers = set(scope.evidence_ids)
+    if isinstance(option, NonExecutingOption) and scope.frozen_context is not None:
+        messages = {
+            row["id"]: digest([row["sequence"], row["text"]])
+            for row in scope.frozen_context.get("messages", [])
+        }
+        identifiers.update(
+            ref.id
+            for ref in scope.input_refs
+            if ref.kind == "MESSAGE" and messages.get(ref.id) == ref.sha256
+        )
+    return identifiers
+
+
 class DecisionService:
     """resolve must authorize and lock conversation before any decision rows are locked."""
 
@@ -94,7 +109,7 @@ class DecisionService:
         )
         if not target <= set(scope.line_ids):
             return {"status": "BLOCKED", "code": "DECISION_LINES_OUT_OF_SCOPE"}
-        if not set(option.evidence_ids) <= set(scope.evidence_ids):
+        if not set(option.evidence_ids) <= _option_evidence_ids(scope, option):
             return {"status": "BLOCKED", "code": "DECISION_EVIDENCE_OUT_OF_SCOPE"}
         if isinstance(option, NonExecutingOption):
             return {"status": "NON_EXECUTING", "action": option.action}
@@ -176,7 +191,7 @@ class DecisionService:
         checks = {
             option.id: (
                 self._check(db, scope, option)
-                if set(option.evidence_ids) <= set(frozen.evidence_ids)
+                if set(option.evidence_ids) <= _option_evidence_ids(frozen, option)
                 else {"status": "BLOCKED", "code": "DECISION_EVIDENCE_OUT_OF_SCOPE"}
             )
             for option in candidate.options
@@ -231,9 +246,13 @@ class DecisionService:
             head,
             scope,
             ref,
-            new_evidence=review.new_evidence_ids if review.action == "MODIFY" else (),
+            new_evidence=(
+                set(review.new_evidence_ids) & set(scope.evidence_ids)
+                if review.action == "MODIFY"
+                else ()
+            ),
         )
-        if not set(review.new_evidence_ids) <= set(scope.evidence_ids):
+        if not set(review.new_evidence_ids) <= _option_evidence_ids(scope, review.replacement):
             _fail("DECISION_EVIDENCE_OUT_OF_SCOPE", 422)
         candidate = Candidate.model_validate(original.candidate)
         selected = None

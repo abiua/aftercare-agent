@@ -386,3 +386,59 @@ def test_pg_concurrent_auto_delivery_and_material_confirmation_each_commit_once(
             with admin.begin() as db:
                 db.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
         admin.dispose()
+
+
+@pytest.mark.parametrize("reason", ["MODEL_TIMEOUT", "TOOL_ARGUMENTS_INVALID", "MODEL_RUN_COST_BUDGET_EXHAUSTED", "INVESTIGATION_ISSUE_CALL_LIMIT", "RUN_INTERNAL_ERROR"])
+@pytest.mark.parametrize("stale", [False, True])
+def test_failure_delivery_once_preserves_originals(enabled, reason, stale):
+    from langgraph.checkpoint.memory import InMemorySaver
+    from test_conversations import headers
+    from aftercare.intelligence.service import AgentService
+    from aftercare.conversations.decision_delivery import pending, project
+    from aftercare.conversations.tables import DecisionProjection
+
+    url, business, turn_id = _published(enabled)
+    enabled.settings.model_enabled = False
+    agent = AgentService(enabled.engine, enabled.settings, business, InMemorySaver())
+    delivery.process(business, agent, turn_id)
+    with Session(enabled.engine) as db, db.begin():
+        run_id = db.get_one(InvestigationRequest, turn_id).run_id
+        run = db.get_one(AgentRun, run_id)
+        run.status, run.reason = "FAILED", reason
+    if stale:
+        assert send(enabled.client, url, "补充：这是另一处破损").status_code == 201
+    before = enabled.client.get(url, headers=headers()).json()
+    assert run_id in pending(enabled.engine)
+    # Delivery can restart repeatedly after a worker crash; the committed marker wins.
+    project(business, run_id)
+    project(business, run_id)
+    after = enabled.client.get(url, headers=headers()).json()
+    assert run_id not in pending(enabled.engine)
+    if stale:
+        assert after == before
+    else:
+        assert after["conversation"]["status"] == "HUMAN_HANDOFF"
+        assert after["messages"][:-1] == before["messages"]
+        assert "客服" in after["messages"][-1]["text"]
+    with Session(enabled.engine) as db:
+        assert db.get_one(DecisionProjection, run_id).state == "BLOCKED"
+
+
+def test_unfinished_returns_original_thread_only_for_owner(enabled):
+    from test_business import OTHER, SUPPORT
+    from test_conversations import headers
+    from aftercare.business.models import Case
+    from aftercare.conversations.tables import Conversation
+    url, business, _ = _published(enabled)
+    original = enabled.client.get(url, headers=headers()).json()
+    endpoint = "/api/conversations/unfinished"
+    response = enabled.client.get(endpoint, headers=headers())
+    assert response.status_code == 200, response.text
+    assert [x["id"] for x in response.json()["items"]] == [url.rsplit("/", 1)[1]]
+    assert enabled.client.get(endpoint, headers=headers(OTHER)).json()["items"] == []
+    assert enabled.client.get(endpoint, headers=headers(SUPPORT)).status_code == 403
+    assert enabled.client.get(url, headers=headers()).json() == original
+    with Session(enabled.engine) as db, db.begin():
+        row = db.get_one(Conversation, url.rsplit("/", 1)[1])
+        db.get_one(Case, row.active_case_id).status = "RESOLVED"
+    assert enabled.client.get(endpoint, headers=headers()).json()["items"] == []

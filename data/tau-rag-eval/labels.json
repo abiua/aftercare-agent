@@ -1,0 +1,212 @@
+{
+  "auth": [
+    {
+      "line": 10,
+      "byte_start": 264,
+      "byte_end_exclusive": 475,
+      "excerpt": "At the beginning of the conversation, you have to authenticate the user identity by locating their user id via email, or via name + zip code. This has to be done even when the user already provides the user id."
+    }
+  ],
+  "other_user": [
+    {
+      "line": 14,
+      "byte_start": 637,
+      "byte_end_exclusive": 804,
+      "excerpt": "You can only help one user per conversation (but you can handle multiple requests from the same user), and must deny any requests for tasks related to any other user."
+    }
+  ],
+  "confirmation": [
+    {
+      "line": 16,
+      "byte_start": 805,
+      "byte_end_exclusive": 981,
+      "excerpt": "Before taking any action that updates the database (cancel, modify, return, exchange), you must list the action details and obtain explicit user confirmation (yes) to proceed."
+    }
+  ],
+  "handoff": [
+    {
+      "line": 24,
+      "byte_start": 1407,
+      "byte_end_exclusive": 1698,
+      "excerpt": "You should transfer the user to a human agent if and only if the request cannot be handled within the scope of your actions. To transfer, first make a tool call to transfer_to_human_agents, and then send the message 'YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.' to the user."
+    }
+  ],
+  "identifiers": [
+    {
+      "line": 62,
+      "byte_start": 2569,
+      "byte_end_exclusive": 2644,
+      "excerpt": "Note: Product ID and Item ID have no relations and should not be confused!"
+    }
+  ],
+  "cancel": [
+    {
+      "line": 88,
+      "byte_start": 3383,
+      "byte_end_exclusive": 3500,
+      "excerpt": "An order can only be cancelled if its status is 'pending', and you should check its status before taking the action."
+    },
+    {
+      "line": 90,
+      "byte_start": 3501,
+      "byte_end_exclusive": 3659,
+      "excerpt": "The user needs to confirm the order id and the reason (either 'no longer needed' or 'ordered by mistake') for cancellation. Other reasons are not acceptable."
+    }
+  ],
+  "cancel_refund": [
+    {
+      "line": 92,
+      "byte_start": 3660,
+      "byte_end_exclusive": 3864,
+      "excerpt": "After user confirmation, the order status will be changed to 'cancelled', and the total will be refunded via the original payment method immediately if it is gift card, otherwise in 5 to 7 business days."
+    }
+  ],
+  "modify_scope": [
+    {
+      "line": 96,
+      "byte_start": 3890,
+      "byte_end_exclusive": 4006,
+      "excerpt": "An order can only be modified if its status is 'pending', and you should check its status before taking the action."
+    },
+    {
+      "line": 98,
+      "byte_start": 4007,
+      "byte_end_exclusive": 4140,
+      "excerpt": "For a pending order, you can take actions to modify its shipping address, payment method, or product item options, but nothing else."
+    }
+  ],
+  "modify_payment": [
+    {
+      "line": 102,
+      "byte_start": 4161,
+      "byte_end_exclusive": 4254,
+      "excerpt": "The user can only choose a single payment method different from the original payment method."
+    },
+    {
+      "line": 104,
+      "byte_start": 4255,
+      "byte_end_exclusive": 4372,
+      "excerpt": "If the user wants the modify the payment method to gift card, it must have enough balance to cover the total amount."
+    }
+  ],
+  "modify_items": [
+    {
+      "line": 110,
+      "byte_start": 4599,
+      "byte_end_exclusive": 4968,
+      "excerpt": "This action can only be called once, and will change the order status to 'pending (items modifed)'. The agent will not be able to modify or cancel the order anymore. So you must confirm all the details are correct and be cautious before taking this action. In particular, remember to remind the customer to confirm they have provided all the items they want to modify."
+    },
+    {
+      "line": 112,
+      "byte_start": 4969,
+      "byte_end_exclusive": 5166,
+      "excerpt": "For a pending order, each item can be modified to an available new item of the same product but of different product option. There cannot be any change of product types, e.g. modify shirt to shoe."
+    }
+  ],
+  "return_refund": [
+    {
+      "line": 118,
+      "byte_start": 5377,
+      "byte_end_exclusive": 5495,
+      "excerpt": "An order can only be returned if its status is 'delivered', and you should check its status before taking the action."
+    },
+    {
+      "line": 124,
+      "byte_start": 5641,
+      "byte_end_exclusive": 5725,
+      "excerpt": "The refund must either go to the original payment method, or an existing gift card."
+    }
+  ],
+  "return_steps": [
+    {
+      "line": 120,
+      "byte_start": 5496,
+      "byte_end_exclusive": 5573,
+      "excerpt": "The user needs to confirm the order id and the list of items to be returned."
+    },
+    {
+      "line": 126,
+      "byte_start": 5726,
+      "byte_end_exclusive": 5873,
+      "excerpt": "After user confirmation, the order status will be changed to 'return requested', and the user will receive an email regarding how to return items."
+    }
+  ],
+  "exchange_scope": [
+    {
+      "line": 130,
+      "byte_start": 5903,
+      "byte_end_exclusive": 6126,
+      "excerpt": "An order can only be exchanged if its status is 'delivered', and you should check its status before taking the action. In particular, remember to remind the customer to confirm they have provided all items to be exchanged."
+    },
+    {
+      "line": 132,
+      "byte_start": 6127,
+      "byte_end_exclusive": 6327,
+      "excerpt": "For a delivered order, each item can be exchanged to an available new item of the same product but of different product option. There cannot be any change of product types, e.g. modify shirt to shoe."
+    }
+  ],
+  "exchange_payment": [
+    {
+      "line": 134,
+      "byte_start": 6328,
+      "byte_end_exclusive": 6510,
+      "excerpt": "The user must provide a payment method to pay or receive refund of the price difference. If the user provides a gift card, it must have enough balance to cover the price difference."
+    },
+    {
+      "line": 136,
+      "byte_start": 6511,
+      "byte_end_exclusive": 6699,
+      "excerpt": "After user confirmation, the order status will be changed to 'exchange requested', and the user will receive an email regarding how to return items. There is no need to place a new order."
+    }
+  ],
+  "zh_auth": [
+    {
+      "line": 10,
+      "byte_start": 264,
+      "byte_end_exclusive": 475,
+      "excerpt": "At the beginning of the conversation, you have to authenticate the user identity by locating their user id via email, or via name + zip code. This has to be done even when the user already provides the user id."
+    }
+  ],
+  "zh_return": [
+    {
+      "line": 118,
+      "byte_start": 5377,
+      "byte_end_exclusive": 5495,
+      "excerpt": "An order can only be returned if its status is 'delivered', and you should check its status before taking the action."
+    },
+    {
+      "line": 124,
+      "byte_start": 5641,
+      "byte_end_exclusive": 5725,
+      "excerpt": "The refund must either go to the original payment method, or an existing gift card."
+    }
+  ],
+  "zh_modify": [
+    {
+      "line": 110,
+      "byte_start": 4599,
+      "byte_end_exclusive": 4968,
+      "excerpt": "This action can only be called once, and will change the order status to 'pending (items modifed)'. The agent will not be able to modify or cancel the order anymore. So you must confirm all the details are correct and be cautious before taking this action. In particular, remember to remind the customer to confirm they have provided all the items they want to modify."
+    },
+    {
+      "line": 112,
+      "byte_start": 4969,
+      "byte_end_exclusive": 5166,
+      "excerpt": "For a pending order, each item can be modified to an available new item of the same product but of different product option. There cannot be any change of product types, e.g. modify shirt to shoe."
+    }
+  ],
+  "zh_exchange": [
+    {
+      "line": 134,
+      "byte_start": 6328,
+      "byte_end_exclusive": 6510,
+      "excerpt": "The user must provide a payment method to pay or receive refund of the price difference. If the user provides a gift card, it must have enough balance to cover the price difference."
+    },
+    {
+      "line": 136,
+      "byte_start": 6511,
+      "byte_end_exclusive": 6699,
+      "excerpt": "After user confirmation, the order status will be changed to 'exchange requested', and the user will receive an email regarding how to return items. There is no need to place a new order."
+    }
+  ]
+}

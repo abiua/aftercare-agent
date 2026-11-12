@@ -86,6 +86,8 @@ def create_app(profile=None, *, dispatch=None):
     from aftercare.intelligence.api import router as agent_router
     from aftercare.evaluation.api import router as evaluation_router
     from aftercare.intake import router as intake_router
+    from aftercare.password_login import router as login_router
+    app.include_router(login_router, prefix="/api")
     app.include_router(business_router, prefix="/api")
     app.include_router(conversations_router, prefix="/api")
     app.include_router(agent_router, prefix="/api")

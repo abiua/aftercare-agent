@@ -13,7 +13,8 @@ from .contracts import ORDER_OWNERSHIP_REF, Contract, EvidenceRef, Investigation
 from .material_observations import ORDER_PAYMENT_REF
 
 Id = Annotated[str, Field(min_length=1, max_length=160)]
-Ids = Annotated[list[Id], Field(min_length=1, max_length=20)]
+MAX_READ_IDS = 20
+Ids = Annotated[list[Id], Field(min_length=1, max_length=MAX_READ_IDS)]
 OptionalIds = Annotated[list[Id], Field(max_length=20)]
 
 
@@ -83,6 +84,14 @@ _ALLOWED = {
     "policy": _POLICY,
     "verifier": ("request_targeted_check",),
 }
+
+
+def recheck_executor(name: str) -> Literal["fact", "policy"]:
+    if name not in (*_FACT, *_POLICY):
+        raise ToolRejected("TOOL_NOT_ALLOWED")
+    return "fact" if name in _FACT else "policy"
+
+
 _MATERIAL = ("ATTACHMENT", "OBSERVATION", "MATERIAL", "REVIEW")
 
 
@@ -115,10 +124,17 @@ _SHAPE_ISSUES = {
 
 
 class InvestigationTools:
-    def __init__(self, value: InvestigationInput, *, policy_search: PolicySearch | None = None):
+    def __init__(
+        self,
+        value: InvestigationInput,
+        *,
+        policy_search: PolicySearch | None = None,
+        authorized_policy_search=None,
+    ):
         self._input = value.model_copy(deep=True)
         self._rows = {(row.ref.source_kind, row.ref.source_id): row for row in self._input.evidence}
         self._search = policy_search
+        self._authorized_policy_search = authorized_policy_search
 
     def schemas(self, role: Role, *, scoped_arguments=False) -> list[dict]:
         descriptions = (
@@ -282,6 +298,11 @@ class InvestigationTools:
             rows, data = self._search_policy(validated.query, rows)
         elif name == "read_refund_execution":
             data = locate_refund([row.data for row in rows], validated.execution_id)
+            scoped_lines = self._input.refund_execution_line_ids.get(validated.execution_id)
+            if data["execution"] is not None:
+                data["execution"]["amount_scope"] = "ENTIRE_EXECUTION"
+                if scoped_lines:
+                    data["execution"]["scoped_line_ids"] = list(scoped_lines)
         elif name == "request_targeted_check":
             data = {"status": "REQUESTED", **validated.model_dump(mode="json")}
         else:
@@ -303,7 +324,11 @@ class InvestigationTools:
             if kind == "POLICY"
         }
         docs = {key: row.data["clause"] for key, row in policies.items()}
-        if self._search is None:
+        if self._authorized_policy_search is not None and self._input.policy_catalogue_version:
+            ranking, audit = self._authorized_policy_search(
+                query, sorted(docs.values(), key=lambda doc: (doc["id"], doc["version"]))
+            )
+        elif self._search is None:
             ranking = bm25(
                 query,
                 {

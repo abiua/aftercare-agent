@@ -20,6 +20,7 @@ from aftercare.intelligence.models import ModelFailure
 from aftercare.intelligence.vision import PhotoSource, observe, prepare_photos
 
 from .tables import Attachment, Message
+from .tau_policy import consultation_reply
 
 MATERIAL_REVIEW_CHANGED = "MATERIAL_REVIEW_CHANGED"
 CANNOT_PROVIDE = ("暂时无法提供", "无法提供", "没法补拍", "无法补拍", "没有照片", "不能拍")
@@ -259,6 +260,9 @@ def _handoff(chat, db, row, binding, *, code="HUMAN_HANDOFF", message=None):
 def _text_reply(chat, db, row, binding):
     if not row.active_order_id:
         return
+    from .memory import confirmation
+
+    corrected = confirmation(db, row)
     if getattr(chat.business.settings, "chat_investigation_enabled", False):
         from .decisions import _relevant
 
@@ -293,6 +297,13 @@ def _text_reply(chat, db, row, binding):
     prompt = EVIDENCE_PROMPTS.get(intent)
     if prompt is None:
         return
+    if corrected and corrected["retained_attachments"]:
+        if row.analysis_requests:
+            return
+        prompt = (
+            "客服已保留确认适用的原图。若还有能说明当前问题、且此前未发过的照片，可以继续补充。"
+            "也可以先用文字说明。"
+        )
     _evidence_reply(chat, db, row, binding, prompt)
 
 
@@ -328,6 +339,34 @@ def _photos(chat, binding, refs):
     )
 
 
+def _pending_policy_query(chat, binding):
+    with Session(chat.engine) as db:
+        request = db.scalar(
+            select(Message).where(
+                Message.conversation_id == binding["conversation_id"],
+                Message.actor_id == binding["actor_id"],
+                Message.role == "customer",
+                Message.sequence == binding["input_through_seq"],
+            )
+        )
+        if request is None:
+            return None
+        replies = db.scalars(
+            select(Message).where(
+                Message.conversation_id == binding["conversation_id"],
+                Message.role == "assistant",
+                Message.reply_to_id == request.id,
+            )
+        )
+        if any(
+            card["data"].get("code") == "POLICY_CONSULTATION_PENDING"
+            for reply in replies
+            for card in reply.cards
+        ):
+            return request.id, request.text
+        return None
+
+
 def process(chat, turn_id, settings, model):
     service = chat.analysis
     if service is None:
@@ -338,6 +377,16 @@ def process(chat, turn_id, settings, model):
     binding = None
     try:
         binding = service.input_snapshot(lease)
+        if getattr(settings, "chat_tau_policy_enabled", False):
+            pending_policy = _pending_policy_query(chat, binding)
+            if pending_policy is not None:
+                request_id, query = pending_policy
+                documents = chat.business.all_policy_versions()
+                text, cards = consultation_reply(settings, query, documents, chat.business.clock())
+                service.publish_status(
+                    lease, lambda db, row: chat._reply(db, row, text, cards, reply_to=request_id)
+                )
+                return
         if not binding["attachments"] or not settings.chat_vision_enabled:
             with Session(chat.engine) as db:
                 turn = db.get_one(ChatAnalysisTurn, turn_id)
@@ -371,6 +420,7 @@ def process(chat, turn_id, settings, model):
                     .where(
                         ChatAnalysisTurn.conversation_id == row.id,
                         ChatAnalysisTurn.scope_sha256 == binding["scope_sha256"],
+                        ChatAnalysisTurn.input_from_seq == binding["input_from_seq"],
                         ChatAnalysisTurn.state == "PUBLISHED",
                     )
                 ).all()

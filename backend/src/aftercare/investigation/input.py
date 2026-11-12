@@ -5,6 +5,7 @@ import re
 
 from aftercare.business.rules import digest
 from aftercare.conversations.decisions import _relevant
+from aftercare.conversations.memory import requested_action
 from aftercare.decisions.contracts import DecisionScope
 
 from .catalogue import CATALOGUE_REF, valid_capsule
@@ -101,12 +102,14 @@ def _project(scope, evidence_projection):
 
     messages = []
     all_messages = {}
+    raw_messages = {}
     last_sequence = 0
     for item in data["messages"]:
         ident, sequence, raw = item["id"], item["sequence"], item["text"]
         if ident in all_messages or not last_sequence < sequence <= scope.input_through_seq:
             raise InputUnavailable("INVESTIGATION_SEQUENCE_INVALID")
         all_messages[ident] = sequence
+        raw_messages[ident] = raw
         last_sequence = sequence
         original = [sequence, raw]
         ref = source("MESSAGE", ident, original, bound_kind="MESSAGE", committed=original)
@@ -114,6 +117,39 @@ def _project(scope, evidence_projection):
             messages.append(
                 CustomerMessage(ref=ref, sequence=sequence, text=_IDENTITY.sub("[已隐藏]", raw))
             )
+    for item in data.get("historical_statement_sources", []):
+        ident, sequence, raw = item["id"], item["sequence"], item["text"]
+        if (
+            ident in all_messages
+            or not data["messages"]
+            or not 0 < sequence < data["messages"][0]["sequence"]
+        ):
+            raise InputUnavailable("INVESTIGATION_SEQUENCE_INVALID")
+        source("MESSAGE", ident, [sequence, raw], bound_kind="MESSAGE", committed=[sequence, raw])
+        all_messages[ident] = sequence
+        raw_messages[ident] = raw
+    memory = data.get("conversation_memory")
+    primary = None
+    action = None
+    if memory is not None:
+        if memory["schema_version"] != 1 or memory["source"] != "CUSTOMER_STATEMENT":
+            raise InputUnavailable("INVESTIGATION_REFERENCE_MISMATCH")
+        primary = next(
+            (item.ref for item in messages if item.ref.source_id == memory["primary_message_id"]),
+            None,
+        )
+        if primary is None:
+            raise InputUnavailable("INVESTIGATION_REFERENCE_MISMATCH")
+        action = memory.get("requested_action")
+        if action:
+            ident = action["message_id"]
+            if (
+                action["source"] != "CUSTOMER_STATEMENT"
+                or action["sequence"] != all_messages[ident]
+                or action["sha256"] != bindings[("MESSAGE", ident)]
+                or action["action"] != requested_action(raw_messages[ident])
+            ):
+                raise InputUnavailable("INVESTIGATION_REFERENCE_MISMATCH")
     if sum(len(row.text.encode()) for row in messages) > MAX_TEXT_BYTES:
         raise InputUnavailable("INVESTIGATION_TEXT_LIMIT")
 
@@ -293,8 +329,12 @@ def _project(scope, evidence_projection):
     for name, value in sorted(facts.items()):
         add("CONDITION", f"case:{name}", {"value": value})
     add("LEDGER", "refund-ledger", {"digest": scope.business_versions["ledger"]})
+    execution_line_ids = {}
     for item in data["ledger"]:
         if item["action"] == "REFUND":
+            scoped_lines = {line["line_id"] for line in item.get("lines", ())} & set(balances)
+            if scoped_lines:
+                execution_line_ids[item["id"]] = tuple(sorted(scoped_lines))
             add(
                 "EXECUTION",
                 item["id"],
@@ -399,7 +439,10 @@ def _project(scope, evidence_projection):
         source_snapshot_sha256=scope.input_sha256,
         relevant_input_sha256=relevant,
         messages=tuple(messages),
+        primary_customer_statement=primary,
+        requested_customer_action=action,
         evidence=tuple(evidence),
+        refund_execution_line_ids=execution_line_ids,
         eligibility=data["eligibility"],
         policy_blockers=tuple(policies["blockers"]),
         business_versions=scope.business_versions,

@@ -58,6 +58,23 @@ SAFE_VALIDATION_FIELDS = {
     "candidate_kind",
     "uncertainty",
     "findings",
+    "recheck",
+    "read_order_lines",
+    "read_material_evidence",
+    "read_refund_execution",
+    "search_applicable_policy",
+    "read_policy_clause",
+    "arguments",
+    "target_role",
+    "claim_ids",
+    "tool_name",
+    "line_ids",
+    "evidence_ids",
+    "execution_id",
+    "query",
+    "condition_keys",
+    "policy_id",
+    "product_id",
 }
 
 
@@ -174,8 +191,8 @@ class Registry(BaseModel):
     allow_unverified: bool = False
     allowed_providers: list[str] = Field(default_factory=list)
     max_attempts: int = Field(default=MAX_ATTEMPTS, ge=1, le=MAX_ATTEMPTS)
-    deadline_seconds: int = Field(default=120, ge=1, le=120)
-    timeout_seconds: float = Field(default=30, gt=0, le=30)
+    deadline_seconds: int = Field(default=120, ge=1, le=240)
+    timeout_seconds: float = Field(default=30, gt=0, le=90)
     cooldown_seconds: float = Field(default=5, ge=0, le=120)
     max_usd: Decimal | None = Field(default=None, gt=0)
     max_run_attempts: int | None = Field(default=None, ge=1, le=144)
@@ -324,6 +341,8 @@ def _client(spec: ModelSpec, tools: list[dict], timeout: float, output: int):
         max_retries=0,
         max_tokens=output,
         use_responses_api=spec.interface == "responses",
+        # Economy tasks use tool calls without a provider-specific reasoning transcript.
+        **({"extra_body": {"thinking": {"type": "disabled"}}} if spec.provider == "deepseek" else {}),
         **({"store": False} if spec.interface == "responses" else {}),
         **(
             {"prompt_cache_options": {"mode": "implicit", "ttl": "12h"}}
@@ -477,6 +496,10 @@ def _estimated_price(spec: ModelSpec, usage: dict) -> Decimal | None:
     ):
         return None
     read_rate, write_rate = spec.cache_read_usd_per_million, spec.cache_write_usd_per_million
+    if spec.provider == "deepseek":
+        # Conservative peak-price estimate: do not invent cache TTLs or discounts.
+        read_rate = base if read_rate is None else read_rate
+        write_rate = base if write_rate is None else write_rate
     if (reads and read_rate is None) or (writes and write_rate is None):
         return None
     ordinary = inputs - reads - writes

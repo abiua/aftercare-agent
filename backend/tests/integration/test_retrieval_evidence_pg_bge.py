@@ -18,7 +18,7 @@ from aftercare.business.models import Policy
 from aftercare.config import load_settings
 from aftercare.db import User, guarded_engine
 from aftercare.evaluation import retrieval_evidence as evidence
-from aftercare.evaluation.dataset import load_cases
+from evaluation_technical_fixtures import TechnicalCatalogue
 from aftercare.evaluation.formal.native import read_isolated
 from aftercare.evaluation.runner import EvaluationRunner
 from aftercare.evaluation.service import EvaluationService, ExperimentInput
@@ -56,7 +56,7 @@ class NoObjects:
 
 
 def run_fixture(scoped, settings, case_id, schemas, *, mode="single"):
-    service = EvaluationService(scoped, settings, execution_driver="inline")
+    service = EvaluationService(scoped, settings, execution_driver="inline", catalog=TechnicalCatalogue())
     runner = EvaluationRunner(scoped, settings, InMemorySaver(), storage=NoObjects())
     request = ExperimentInput(
         name="retrieval evidence integration",
@@ -79,7 +79,7 @@ def run_fixture(scoped, settings, case_id, schemas, *, mode="single"):
     schemas.append(namespace)
     # Use the production runner without the outer service's hard-coded public
     # publication admission check. That check has no matching experiment in this schema.
-    case = next(item for item in load_cases("dev") if item["id"] == case_id)
+    case = next(item for item in TechnicalCatalogue().load_cases("dev") if item["id"] == case_id)
     outcome = runner.run(
         planned_row["id"],
         case,
@@ -124,7 +124,7 @@ def verify_real_hybrid_rank(conn, model_path, config, row, observed, expected_ro
     assert set(manifest["files"]) == set(encoding.BGE_FILES)
     assert manifest["sha256"] == row["actual"]["retrieval_evidence"]["encoder_manifest_sha256"]
 
-    c081 = next(case for case in load_cases("dev") if case["id"] == "AC02-C081")
+    c081 = next(case for case in TechnicalCatalogue().load_cases("dev") if case["id"] == "UNIT-STATUS")
     query = f"{INTENT_TERMS['refund_status']} {c081['message'][:600]}"
     (embedding,) = encoding.bound_encoder(model_path, manifest)([encoding.QUERY_PREFIX + query])
     assert len(embedding) == 512
@@ -231,19 +231,19 @@ def test_retrieval_evidence_with_real_postgresql_and_local_bge(monkeypatch):
             patch.setattr(
                 encoding, "_bound_model", lambda *_: pytest.fail("BM25 loaded an encoder")
             )
-            bm25_config, bm25_row = run_fixture(scoped, settings, "AC02-C081", schemas)
+            bm25_config, bm25_row = run_fixture(scoped, settings, "UNIT-STATUS", schemas)
 
         with monkeypatch.context() as patch:
             patch.setattr(
                 encoding, "_bound_model", lambda *_: pytest.fail("early pause loaded BGE")
             )
-            early_config, early_row = run_fixture(scoped, hybrid_settings, "AC02-C041", schemas)
+            early_config, early_row = run_fixture(scoped, hybrid_settings, "UNIT-WRONG", schemas)
 
-        hybrid_config, hybrid_row = run_fixture(scoped, hybrid_settings, "AC02-C081", schemas)
+        hybrid_config, hybrid_row = run_fixture(scoped, hybrid_settings, "UNIT-STATUS", schemas)
         multi_config, multi_row = run_fixture(
             scoped,
             hybrid_settings,
-            "AC02-C081",
+            "UNIT-STATUS",
             schemas,
             mode="multi",
         )

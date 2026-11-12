@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from aftercare.business.errors import BusinessError
@@ -17,12 +17,12 @@ from aftercare.intake import _order_resolution, rule_intents
 
 from . import analysis as chat_analysis
 from . import decisions as chat_decisions
+from . import memory as chat_memory
 from .tables import Attachment, CaseLink, Conversation, Message
 
 MAX_ATTACHMENTS = 6
 STAGING_TTL = timedelta(hours=24)
 NEW_ISSUE = re.compile(r"另开|另建|另一个(?:售后|问题)|新(?:建)?(?:售后|工单|事项)|另外一个问题")
-CORRECTION = re.compile(r"说错|描述有误|更正|纠正|改一下之前|修改原(?:工单|描述)")
 
 
 def _id():
@@ -110,11 +110,12 @@ class ConversationService:
         message.sequence = row.sequence
         message.created_at = self.clock()
 
-    def _reply(self, db, row, text, cards, *, reply_to=None):
+    def _reply(self, db, row, text, cards, *, reply_to=None, actor_id=None):
         message = Message(
             id=_id(),
             conversation_id=row.id,
             role="assistant",
+            actor_id=actor_id,
             text=text,
             cards=cards,
             reply_to_id=reply_to,
@@ -124,7 +125,7 @@ class ConversationService:
         db.add(message)
         return message
 
-    def _messages(self, db, row, messages):
+    def _messages(self, db, row, messages, *, support):
         items = {message.id: [] for message in messages}
         if items:
             for attachment in db.scalars(
@@ -151,16 +152,31 @@ class ConversationService:
                 "text": message.text,
                 "created_at": _iso(message.created_at),
                 "attachments": items[message.id],
-                "cards": message.cards,
+                "cards": (
+                    message.cards
+                    if support
+                    else [
+                        _status("CORRECTION_CONFIRMED")
+                        if card["data"].get("code") == "CORRECTION_CONFIRMED"
+                        else card
+                        for card in message.cards
+                    ]
+                ),
             }
             for message in messages
         ]
 
-    def _response(self, db, row, messages):
+    def _response(self, db, row, messages, user):
         db.flush()
-        result = {"conversation": _conversation(row), "messages": self._messages(db, row, messages)}
+        support = user.role == "support"
+        result = {
+            "conversation": _conversation(row),
+            "messages": self._messages(db, row, messages, support=support),
+        }
         if snapshot := chat_analysis.snapshot(self.analysis, db, row):
             result["analysis"] = snapshot
+        if memory := chat_memory.snapshot(db, row, chat_decisions._relevant, support=support):
+            result["memory"] = memory
         if self.decisions_enabled:
             result["features"] = {"chat_decisions": True, "chat_material_bridge": True}
         return result
@@ -201,6 +217,20 @@ class ConversationService:
             )
             return [_conversation(row) for row in rows]
 
+    def unfinished(self, user, *, limit=30):
+        # Continue the original thread, never copy or silently attach its materials.
+        _customer(user)
+        with Session(self.engine) as db:
+            rows = db.scalars(
+                select(Conversation).join(Case, Case.id == Conversation.active_case_id)
+                .where(Conversation.customer_id == user.customer_id,
+                       Case.customer_id == user.customer_id,
+                       Conversation.status.in_(["OPEN", "HUMAN_HANDOFF"]),
+                       Case.status.notin_(["RESOLVED", "EXECUTED", "CLOSED", "REJECTED", "CANCELLED", "COMPLETED"]))
+                .order_by(Conversation.updated_at.desc(), Conversation.id).limit(limit)
+            )
+            return [_conversation(row) for row in rows]
+
     def detail(self, ident, user, *, after, limit):
         with self.business._snapshot() as db:
             row = self._find(db, ident, user)
@@ -213,7 +243,7 @@ class ConversationService:
                 )
             )
             page = rows[:limit]
-            result = self._response(db, row, page)
+            result = self._response(db, row, page, user)
             if self.decisions_enabled:
                 result["execution_progress"] = self._execution_progress(db, row)
             from .investigation_delivery import enabled as investigation_enabled
@@ -447,13 +477,13 @@ class ConversationService:
         if message.discarded_at is not None:
             raise BusinessError("UPLOAD_EXPIRED", "暂存已过期，请重新发送消息。", 410)
 
-    def _message_response(self, db, row, message):
+    def _message_response(self, db, row, message, user):
         replies = list(
             db.scalars(
                 select(Message).where(Message.reply_to_id == message.id).order_by(Message.sequence)
             )
         )
-        return self._response(db, row, [message, *replies])
+        return self._response(db, row, [message, *replies], user)
 
     def message(self, ident, user, client_id, text, files, key):
         # Check owner before decoding uploads or touching storage.
@@ -477,7 +507,12 @@ class ConversationService:
                 self._check_message(message, user, signature)
                 if message.sequence is not None:
                     return self.business._remember(
-                        db, user, scope, key, signature, self._message_response(db, row, message)
+                        db,
+                        user,
+                        scope,
+                        key,
+                        signature,
+                        self._message_response(db, row, message, user),
                     )
             else:
                 self._editable(row)
@@ -559,7 +594,7 @@ class ConversationService:
                         reply, cards = self._customer_reply(db, row, user, message, bool(photos))
                         if self.analysis or self.decisions_enabled:
                             offers_new_issue = any(card["data"].get("new_issue") for card in cards)
-                            if offers_new_issue:
+                            if offers_new_issue and not chat_memory.is_correction(message.text):
                                 # This specific request remains unassigned until confirmed.
                                 message.analysis_issue_id = None
                             defer = (
@@ -575,13 +610,18 @@ class ConversationService:
                                 )
                                 and not offers_new_issue
                             )
-                            if defer and row.status == "OPEN":
+                            if (
+                                defer
+                                and row.status == "OPEN"
+                                and not chat_memory.correction(db, row)
+                                and not chat_memory.pending_scope(db, row)
+                            ):
                                 chat_analysis.stage(self.analysis, db, row)
                             else:
                                 chat_analysis.invalidate(self.analysis, db, row)
                     self._reply(db, row, reply, cards, reply_to=message.id)
             return self.business._remember(
-                db, user, scope, key, signature, self._message_response(db, row, message)
+                db, user, scope, key, signature, self._message_response(db, row, message, user)
             )
 
     @staticmethod
@@ -597,8 +637,11 @@ class ConversationService:
                 select(Message.id, Message.conversation_id)
                 .where(
                     Message.sequence.is_(None),
-                    Message.discarded_at.is_(None),
-                    Message.created_at <= cutoff,
+                    (Message.discarded_at.is_(None) & (Message.created_at <= cutoff))
+                    | (
+                        Message.discarded_at.is_not(None)
+                        & select(Attachment.id).where(Attachment.message_id == Message.id).exists()
+                    ),
                 )
                 .order_by(Message.created_at, Message.id)
                 .limit(limit)
@@ -609,10 +652,8 @@ class ConversationService:
                 with Session(self.engine) as db, db.begin():
                     db.get_one(Conversation, conversation_id, with_for_update=True)
                     message = db.get_one(Message, message_id)
-                    if (
-                        message.sequence is not None
-                        or message.discarded_at is not None
-                        or utc(message.created_at) > cutoff
+                    if message.sequence is not None or (
+                        message.discarded_at is None and utc(message.created_at) > cutoff
                     ):
                         continue
                     attachments = list(
@@ -629,8 +670,9 @@ class ConversationService:
                     for attachment in attachments:
                         self.storage.delete(attachment.object_key)
                         db.delete(attachment)
-                    message.discarded_at = self.clock()
-                    cleaned += 1
+                    if message.discarded_at is None or attachments:
+                        message.discarded_at = message.discarded_at or self.clock()
+                        cleaned += 1
         return {"eligible": len(candidates), "cleaned": cleaned}
 
     def content(self, ident, attachment_id, user):
@@ -652,11 +694,13 @@ class ConversationService:
             return data, attachment.content_type
 
     @staticmethod
-    def _order_ids(db, user):
+    def _order_ids(db, user, *, customer_id=None):
         return [
             {"id": ident}
             for ident in db.scalars(
-                select(Order.id).where(Order.customer_id == user.customer_id).order_by(Order.id)
+                select(Order.id)
+                .where(Order.customer_id == (customer_id or user.customer_id))
+                .order_by(Order.id)
             )
         ]
 
@@ -692,7 +736,11 @@ class ConversationService:
         )
         for message in candidates:
             intents = rule_intents(message.text)
-            if CORRECTION.search(message.text) or not intents and NEW_ISSUE.search(message.text):
+            if (
+                chat_memory.is_correction(message.text)
+                or not intents
+                and NEW_ISSUE.search(message.text)
+            ):
                 return None, None
             if intents:
                 match, reason = _order_resolution(message.text, None, orders)
@@ -710,6 +758,25 @@ class ConversationService:
         card, order_reason = self._candidates(db, user, message.text)
         mentioned = card["data"]["orders"][0]["id"] if order_reason is None else None
         intents = rule_intents(message.text)
+        if row.active_case_id and chat_memory.is_correction(message.text):
+            cards = [_status("CORRECTION_NEEDS_SUPPORT")]
+            if mentioned is not None and mentioned != row.active_order_id:
+                card["data"]["new_issue"] = True
+                cards.append(card)
+            return "已保留你的更正说明。当前工单需要客服核对。", cards
+        from .tau_policy import consultation_pending
+
+        consultation = (
+            consultation_pending(
+                self.business.settings, message.text, available=self.analysis is not None
+            )
+            if not has_photos
+            and not row.active_order_id
+            and order_reason in {"ORDER_REQUIRED", "NO_ORDERS"}
+            else None
+        )
+        if consultation is not None:
+            return consultation
         if row.active_order_id is None:
             if has_photos and not message.text.strip():
                 return "已收到照片。你可以继续补充发生了什么。", []
@@ -744,10 +811,6 @@ class ConversationService:
             order = self.business._order(db, row.active_order_id, user, lock=True)
             return self._link(db, row, user, order, message, intents[0])
         if row.active_case_id:
-            if CORRECTION.search(message.text):
-                return "已保留你的更正说明。可转客服核对原工单。", [
-                    _status("CORRECTION_NEEDS_SUPPORT")
-                ]
             case = db.get_one(Case, row.active_case_id)
             if NEW_ISSUE.search(message.text) or (len(intents) == 1 and intents[0] != case.intent):
                 order = self.business._order(db, row.active_order_id, user)
@@ -933,6 +996,8 @@ class ConversationService:
                 row.require_new_case = True
                 if message is None:
                     row.input_floor = row.sequence
+            if not new_issue and (pending := chat_memory.pending_scope(db, row)):
+                row.input_floor = pending.sequence
             row.active_order_id, row.line_ids = order.id, claimed
             self._touch(row)
             if intent == "refund_status":
@@ -961,14 +1026,128 @@ class ConversationService:
                     "已确认订单。请补充说明需要处理的问题。",
                     [_status("CLARIFICATION_REQUIRED")],
                 )
-            if self.analysis and intent != "refund_status" and row.active_case_id:
+            if (
+                self.analysis
+                and intent != "refund_status"
+                and row.active_case_id
+                and not chat_memory.correction(db, row)
+            ):
                 chat_analysis.stage(self.analysis, db, row)
             text, cards = response
             if claimed or intent == "refund_status":
                 cards.append(_status("ORDER_CONFIRMED", order_id=order.id))
             reply = self._reply(db, row, text, cards)
             return self.business._remember(
-                db, user, scope, key, signature, self._response(db, row, [reply])
+                db, user, scope, key, signature, self._response(db, row, [reply], user)
+            )
+
+    def confirm_correction(
+        self,
+        ident,
+        user,
+        *,
+        message_id,
+        expected_revision,
+        retained_attachment_ids,
+        evidence_reason,
+        key,
+    ):
+        if user.role != "support":
+            raise BusinessError("CORRECTION_FORBIDDEN", "请由客服确认更正。", 403)
+        scope = f"chat:correction:{ident}"
+        retained_ids = sorted(set(retained_attachment_ids))
+        if retained_ids and not evidence_reason.strip():
+            raise BusinessError(
+                "CORRECTION_EVIDENCE_REASON_REQUIRED", "请说明保留照片的原因。", 422
+            )
+        signature = digest([message_id, expected_revision, retained_ids, evidence_reason])
+        with Session(self.engine) as db, db.begin():
+            row = self._find(db, ident, user, lock=True)
+            if (replay := self.business._replay(db, user, scope, key, signature)) is not None:
+                return replay
+            self._editable(row)
+            self._check_revision(row, expected_revision)
+            message = chat_memory.correction(db, row)
+            if message is None or message.id != message_id or chat_memory.pending_scope(db, row):
+                raise BusinessError("CORRECTION_STALE", "更正信息已更新，请重新核对。")
+            later_statements = db.scalars(
+                select(Message)
+                .where(
+                    Message.conversation_id == row.id,
+                    Message.analysis_issue_id == row.analysis_issue_id,
+                    Message.role == "customer",
+                    Message.sequence >= message.sequence,
+                    Message.discarded_at.is_(None),
+                )
+                .order_by(Message.sequence.desc())
+            )
+            action_source = chat_memory.primary_statement(later_statements)
+            if action_source and chat_memory.requested_action(action_source.text) in {
+                "WITHDRAWN",
+                "NEEDS_CLARIFICATION",
+            }:
+                raise BusinessError(
+                    "CORRECTION_REQUEST_UNCLEAR", "请先在当前会话确认客户是否还有售后诉求。"
+                )
+            case, order = self.business._case(db, row.active_case_id, user, lock=True)
+            if (
+                case.customer_id != row.customer_id
+                or order.id != row.active_order_id
+                or sorted(case.line_ids) != sorted(row.line_ids)
+                or case.status in {"APPROVED", "EXECUTION_PENDING", "RESOLVED", "EXECUTION_FAILED"}
+                or db.scalar(select(Execution.id).where(Execution.case_id == case.id).limit(1))
+            ):
+                raise BusinessError("CORRECTION_SCOPE_CHANGED", "请核对工单状态和订单商品。")
+            match, reason = _order_resolution(
+                message.text, None, self._order_ids(db, user, customer_id=row.customer_id)
+            )
+            if (match and match["id"] != order.id) or reason in {
+                "MULTIPLE_ORDERS",
+                "ORDER_NOT_AVAILABLE",
+            }:
+                raise BusinessError("CORRECTION_SCOPE_CHANGED", "请先确认更正所涉及的订单。")
+            retained = chat_memory.retained_attachments(db, row, retained_ids, message.sequence)
+            if len(retained) != len(retained_ids):
+                raise BusinessError(
+                    "CORRECTION_EVIDENCE_SCOPE", "保留照片须来自当前事项的更正前消息。", 422
+                )
+            # The issue ID survives correction, so retire uploads staged against its old basis.
+            db.execute(
+                update(Message)
+                .where(
+                    Message.conversation_id == row.id,
+                    Message.analysis_issue_id == row.analysis_issue_id,
+                    Message.role == "customer",
+                    Message.sequence.is_(None),
+                    Message.discarded_at.is_(None),
+                )
+                .values(discarded_at=self.clock())
+            )
+            chat_analysis.invalidate(self.analysis, db, row)
+            row.analysis_from_seq = message.sequence
+            row.analysis_requests = 0
+            row.status = "OPEN"
+            self._touch(row)
+            reply = self._reply(
+                db,
+                row,
+                "客服已确认更正说明，继续处理当前工单。",
+                [
+                    _status(
+                        "CORRECTION_CONFIRMED",
+                        issue_id=row.analysis_issue_id,
+                        source_message_id=message.id,
+                        source_sequence=message.sequence,
+                        retained_attachments=retained,
+                        evidence_reason=evidence_reason.strip(),
+                    )
+                ],
+                reply_to=message.id,
+                actor_id=user.user_id,
+            )
+            chat_analysis.stage(self.analysis, db, row)
+            return self.business._remember(
+                db, user, scope, key, signature, self._response(db, row, [reply], user)
             )
 
     def handoff(self, ident, user, *, expected_revision, key):
@@ -988,5 +1167,5 @@ class ConversationService:
                 chat_analysis.invalidate(self.analysis, db, row)
                 messages.append(self._reply(db, row, "已转客服处理。", [_status("HUMAN_HANDOFF")]))
             return self.business._remember(
-                db, user, scope, key, signature, self._response(db, row, messages)
+                db, user, scope, key, signature, self._response(db, row, messages, user)
             )

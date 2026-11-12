@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "source_kind": "agent_authored_synthetic_fixture",
+  "generator": "scripts/build_tau_ocr_fixtures.py",
+  "font": {
+    "name": "Noto Sans SC",
+    "source": "https://raw.githubusercontent.com/notofonts/noto-cjk/523d033d6cb47f4a80c58a35753646f5c3608a78/Sans/Variable/TTF/Subset/NotoSansSC-VF.ttf",
+    "sha256": "d68bafcb48a2707749396aa12bbbd833cb70401f3a9a689fd2902c7e0d295964",
+    "license": "OFL-1.1",
+    "weight": 400
+  },
+  "ground_truth": "data/tau-ocr/ground_truth.json",
+  "ground_truth_sha256": "32e783caacae85128d5edd766a3288b73b805b2b1514824253dc06acfe46922d",
+  "scan_settings": {
+    "clear": {
+      "dpi": 150,
+      "colorspace": "gray"
+    },
+    "low": {
+      "dpi": 92,
+      "colorspace": "gray",
+      "rotation_degrees_counterclockwise": 1.65,
+      "rotation_resampling": "bicubic",
+      "blur_radius_px": 0.7,
+      "noise_distribution": "gaussian",
+      "noise_stddev": 6.0,
+      "noise_seed": 21107,
+      "intermediate_jpeg_quality": 42
+    }
+  },
+  "samples": [
+    {
+      "sample_id": "policy_native",
+      "document_id": "policy",
+      "variant": "native",
+      "pdf": "data/tau-ocr/policy_native.pdf",
+      "png": null,
+      "dimensions_px": null,
+      "sha256": {
+        "pdf": "92c654c6e29874bf2896e4db455e4069bc8e5fd1cf342121d2050717d668c1fe",
+        "png": null
+      }
+    },
+    {
+      "sample_id": "policy_clear",
+      "document_id": "policy",
+      "variant": "clear",
+      "pdf": "data/tau-ocr/policy_clear.pdf",
+      "png": "data/tau-ocr/policy_clear.png",
+      "dimensions_px": [
+        1241,
+        1754
+      ],
+      "sha256": {
+        "pdf": "f299715984ae1304f6d0f773b0122139cf099a36de235fcabb54e4d18acb0b59",
+        "png": "ecf2996190edec334c0e8747d482046ab7dd08fb46dd46085e026c85efa16e1d"
+      }
+    },
+    {
+      "sample_id": "policy_low",
+      "document_id": "policy",
+      "variant": "low",
+      "pdf": "data/tau-ocr/policy_low.pdf",
+      "png": "data/tau-ocr/policy_low.png",
+      "dimensions_px": [
+        761,
+        1076
+      ],
+      "sha256": {
+        "pdf": "39aba8387a5b008c8f8b8e810ad1544dc3285a394e796ed7f72f2fb30841ba35",
+        "png": "e5bdde1048bbd93c5fc85e439c3e48c181a0c1ab78701fee78485cadfdf83877"
+      }
+    },
+    {
+      "sample_id": "table_native",
+      "document_id": "table",
+      "variant": "native",
+      "pdf": "data/tau-ocr/table_native.pdf",
+      "png": null,
+      "dimensions_px": null,
+      "sha256": {
+        "pdf": "6a0caf24ab02a3169065008c42ebccdc26c020ba0f8a024857aac4ac9a8ca0d6",
+        "png": null
+      }
+    },
+    {
+      "sample_id": "table_clear",
+      "document_id": "table",
+      "variant": "clear",
+      "pdf": "data/tau-ocr/table_clear.pdf",
+      "png": "data/tau-ocr/table_clear.png",
+      "dimensions_px": [
+        1241,
+        1754
+      ],
+      "sha256": {
+        "pdf": "606743f220a8580d6a5617879e44b226c7a0b0975d0261cddc7e512c678ac96f",
+        "png": "2e46b66f7b008c595dd219b6b85e713f93d2149c3c31ad5b9b0f35118cde10b0"
+      }
+    },
+    {
+      "sample_id": "table_low",
+      "document_id": "table",
+      "variant": "low",
+      "pdf": "data/tau-ocr/table_low.pdf",
+      "png": "data/tau-ocr/table_low.png",
+      "dimensions_px": [
+        761,
+        1076
+      ],
+      "sha256": {
+        "pdf": "ba6e645e3a0c78470efd8da818859fcd1912b4c77631a6575af55c1973c0fa75",
+        "png": "95bb6e25131dad53233f277dd4e3ab492d34f13ca0f25aac0c35737d11e12593"
+      }
+    }
+  ]
+}

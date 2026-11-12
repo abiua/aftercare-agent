@@ -107,6 +107,7 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
     amount = context["eligibility"]["lines"][0]["available_cents"]
     calls = []
     role_tools = {}
+    initial_statement_refs = set()
     rechecks = []
 
     def transport(_spec, messages, tools, _timeout, _output):
@@ -114,6 +115,12 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         role = messages[0].content.split("。", 1)[0].split()[-1]
         sent = json.loads(messages[1].content)
         user_view = sent["frozen_input"]
+        if role == "strong_single":
+            initial_statement_refs.update(
+                row["ref"][1]
+                for key in ("customer_statements", "attachments", "unverified_observations")
+                for row in user_view.get(key, ())
+            )
         calls.append(role)
         role_tools.setdefault(role, set()).update(tool["function"]["name"] for tool in tools)
         proposed = {
@@ -374,7 +381,8 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         assert len(rounds) == 2
         assert rounds[1]["preflight"] == "FIT"
         assert rounds[1]["evidence_count"] == len(
-            {
+            initial_statement_refs
+            | {
                 ref["source_id"]
                 for item in stored_receipts
                 for ref in item.payload["receipt"]["refs"]

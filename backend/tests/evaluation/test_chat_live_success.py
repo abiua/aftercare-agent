@@ -1,5 +1,6 @@
 import importlib
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -196,7 +197,7 @@ def test_v3_registry_budget_is_derived_without_changing_historical_or_issue_caps
             "data_scopes": ["customer_attachment"],
         }
     )
-    _, _, _, photos = driver._inputs()
+    photos = [SimpleNamespace(content=b"technical image payload")] * 2
     historical = driver._budgets(spec, photos)
     updated = driver._budgets(spec, photos, wire_protocol=success.PROTOCOL)
     assert historical["text"]["output_tokens"] == 1800

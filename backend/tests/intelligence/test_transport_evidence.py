@@ -1,9 +1,16 @@
+import json
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
 
 import httpx
 import pytest
+from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
+from openai import APIStatusError
+from pydantic import ValidationError
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+
 from aftercare.business.rules import digest
 from aftercare.db import User
 from aftercare.evaluation.runner import EvaluationRunner, _model_attempts
@@ -12,10 +19,6 @@ from aftercare.intelligence import models
 from aftercare.intelligence.models import ModelFailure, ModelRunner, ModelSpec, Registry
 from aftercare.intelligence.service import QueueFenceLost, RunAudit
 from aftercare.intelligence.tables import AgentRun, ModelAttempt, RunEvent
-from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
-from openai import APIStatusError
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
 
 
 @pytest.fixture
@@ -105,6 +108,107 @@ def _result(engine):
         assert attempts[-1]["transport_evidence"] == row.metadata_json["transport_evidence"]
         assert row.metadata_json["run_id"] == row.run_id
         return row.status, row.error_code, row.metadata_json["transport_evidence"], row.usage
+
+
+def test_registry_timeout_defaults_and_limits():
+    config = _registry().model_dump()
+    assert (config["timeout_seconds"], config["deadline_seconds"]) == (30, 120)
+    for overrides in ({"timeout_seconds": 91}, {"deadline_seconds": 241}):
+        with pytest.raises(ValidationError):
+            Registry.model_validate({**config, **overrides})
+
+
+@pytest.mark.parametrize(("remaining", "expected_timeout"), [(240, 90), (45, 45)])
+def test_extended_timeout_respects_deadline_and_preserves_unknown(
+    ledger, monkeypatch, remaining, expected_timeout
+):
+    engine, audit = ledger
+    config = _registry().model_dump()
+    registry = Registry.model_validate(
+        {**config, "timeout_seconds": 90, "deadline_seconds": 240, "max_attempts": 3}
+    )
+    now = datetime.now(UTC)
+    with Session(engine) as session, session.begin():
+        session.get(AgentRun, "run").deadline = now + timedelta(seconds=remaining)
+    monkeypatch.setattr("aftercare.intelligence.service._now", lambda: now)
+    timeouts = []
+
+    def client(_spec, _tools, timeout, _output):
+        timeouts.append(timeout)
+
+        def invoke(_messages):
+            raise TimeoutError
+
+        return SimpleNamespace(invoke=invoke)
+
+    monkeypatch.setattr(models, "_client", client)
+    runner = ModelRunner(registry)
+    for _ in range(2):
+        with pytest.raises(ModelFailure, match="MODEL_TIMEOUT"):
+            _call(runner, audit)
+    assert timeouts == [expected_timeout]
+    assert _result(engine)[:2] == ("UNKNOWN", "MODEL_TIMEOUT")
+    with Session(engine) as session:
+        row = session.scalars(select(ModelAttempt)).one()
+        assert Decimal(row.metadata_json["reserved_cost_usd"]) > 0
+
+
+def test_model_runner_repairs_typed_recheck_arguments(ledger, monkeypatch):
+    from aftercare.investigation.orchestration import VerificationResult, _result
+
+    engine, audit = ledger
+    config = _registry().model_dump()
+    registry = Registry.model_validate({**config, "max_attempts": 2})
+    responses = []
+
+    def invoke(messages):
+        arguments = {"line_ids": ["L01"]}
+        if responses:
+            assert "recheck.read_order_lines.arguments.unknown_field" in messages[-1].content
+        else:
+            arguments["order_id"] = "order"
+        responses.append(arguments)
+        return AIMessage(
+            content=json.dumps(
+                {
+                    "assessments": [
+                        {
+                            "claim_id": "policy/claim",
+                            "contradicted_field": "line",
+                            "verdict": "CONTRADICTED",
+                            "evidence_refs": ["L01"],
+                        }
+                    ],
+                    "recheck": {
+                        "target_role": "policy",
+                        "claim_ids": ["policy/claim"],
+                        "tool_name": "read_order_lines",
+                        "arguments": arguments,
+                        "reason": "核对商品行",
+                    },
+                }
+            )
+        )
+
+    monkeypatch.setattr(models, "_client", lambda *_: SimpleNamespace(invoke=invoke))
+    result = _call(
+        ModelRunner(registry),
+        audit,
+        validate=lambda _, raw: _result(
+            raw,
+            VerificationResult,
+            role="verifier",
+            evidence_ids={"L01"},
+            upstream_ids={"policy/claim"},
+        ),
+    )
+    assert result["result"]["recheck"]["arguments"] == {"line_ids": ["L01"]}
+    with Session(engine) as session:
+        rows = list(session.scalars(select(ModelAttempt).order_by(ModelAttempt.ordinal)))
+        assert [(row.status, row.error_code) for row in rows] == [
+            ("FAILED", "INVALID_MODEL_OUTPUT"),
+            ("SUCCEEDED", None),
+        ]
 
 
 @pytest.mark.parametrize("outcome", ["valid", "invalid", "timeout", "http-error"])

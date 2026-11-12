@@ -64,6 +64,8 @@ class InvestigationInput(Contract):
     source_snapshot_sha256: str
     relevant_input_sha256: str
     messages: tuple[CustomerMessage, ...]
+    primary_customer_statement: EvidenceRef | None = None
+    requested_customer_action: dict | None = None
     evidence: tuple[Evidence, ...]
     eligibility: dict
     policy_blockers: tuple[str, ...]
@@ -72,6 +74,7 @@ class InvestigationInput(Contract):
     policy_catalogue_version: str | None = None
     policy_context: dict = Field(default_factory=dict)
     selected_policy_keys: tuple[str, ...] = ()
+    refund_execution_line_ids: dict[str, tuple[str, ...]] = Field(default_factory=dict)
 
     def role_view(self, role: Role) -> dict:
         """The graph should send this projection, never the complete snapshot."""
@@ -80,6 +83,10 @@ class InvestigationInput(Contract):
             role == "policy" and self.policy_catalogue_version
         ):
             result["customer_statements"] = [msg.model_dump(mode="json") for msg in self.messages]
+            if self.primary_customer_statement:
+                result["primary_customer_statement"] = self.primary_customer_statement.source_id
+            if self.requested_customer_action:
+                result["requested_customer_action"] = self.requested_customer_action
         if role in {"strong_single", "fact"}:
             result["attachments"] = self._visible("ATTACHMENT")
             result["unverified_observations"] = self._visible("OBSERVATION")

@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
+from evaluation_technical_fixtures import TechnicalCatalogue
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -120,7 +121,7 @@ def frozen_result():
 
 def test_supplemental_read_keeps_frozen_actual_metrics_and_gate(frozen_result, monkeypatch):
     engine, experiment_id, result_id = frozen_result
-    service = evaluation.EvaluationService(engine, SimpleNamespace(profile="test"))
+    service = evaluation.EvaluationService(engine, SimpleNamespace(profile="test"), catalog=TechnicalCatalogue())
     seen = []
 
     def read_attempts(engine_seen, result_seen):
@@ -151,7 +152,7 @@ def test_supplemental_read_requires_tester_test_profile_and_existing_result(
     frozen_result, monkeypatch
 ):
     engine, _, result_id = frozen_result
-    service = evaluation.EvaluationService(engine, SimpleNamespace(profile="test"))
+    service = evaluation.EvaluationService(engine, SimpleNamespace(profile="test"), catalog=TechnicalCatalogue())
     app_service = evaluation.EvaluationService(engine, SimpleNamespace(profile="app"))
     monkeypatch.setattr(
         evaluation, "read_supplemental_attempts", lambda *_: pytest.fail("Unexpected schema access")
@@ -173,7 +174,7 @@ def test_unavailable_raw_evidence_remains_distinct_from_no_changes(
     frozen_result, monkeypatch, reason
 ):
     engine, _, result_id = frozen_result
-    service = evaluation.EvaluationService(engine, SimpleNamespace(profile="test"))
+    service = evaluation.EvaluationService(engine, SimpleNamespace(profile="test"), catalog=TechnicalCatalogue())
     monkeypatch.setattr(evaluation, "read_supplemental_attempts", lambda *_: (None, reason))
     supplement = service.supplemental_usage(TESTER, result_id)
     assert supplement["status"] == "UNAVAILABLE" and supplement["unavailable_reason"] == reason
@@ -183,7 +184,7 @@ def test_unavailable_raw_evidence_remains_distinct_from_no_changes(
 
 def test_missing_raw_attempt_is_reported_as_unmatched(frozen_result, monkeypatch):
     engine, _, result_id = frozen_result
-    service = evaluation.EvaluationService(engine, SimpleNamespace(profile="test"))
+    service = evaluation.EvaluationService(engine, SimpleNamespace(profile="test"), catalog=TechnicalCatalogue())
     monkeypatch.setattr(evaluation, "read_supplemental_attempts", lambda *_: ([], None))
     supplement = service.supplemental_usage(TESTER, result_id)
     assert supplement["status"] == "AVAILABLE" and supplement["attempts"] == []

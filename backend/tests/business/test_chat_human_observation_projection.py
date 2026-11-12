@@ -34,7 +34,15 @@ def _freeze(
     paid_at=None,
     policy_title=None,
 ):
-    row = SimpleNamespace(id="chat", analysis_issue_id="issue", customer_id="customer", sequence=1)
+    row = SimpleNamespace(
+        id="chat",
+        analysis_issue_id="issue",
+        analysis_from_seq=1,
+        input_floor=0,
+        active_case_id="case",
+        customer_id="customer",
+        sequence=1,
+    )
     case = SimpleNamespace(
         id="case",
         customer_id="customer",
@@ -168,9 +176,24 @@ def _freeze(
     }
 
     def scalars(statement):
-        return entities[statement.column_descriptions[0]["entity"].__name__]
+        entity = statement.column_descriptions[0]["entity"].__name__
+        records = entities[entity]
+        if entity == "Message":
+            parameters = statement.compile().params
+            if "assistant" in parameters.values():
+                return []
+            for parameter, value in parameters.items():
+                if parameter.startswith("id_") and isinstance(value, list):
+                    records = [message for message in records if message.id in value]
+        return records
 
-    db = SimpleNamespace(scalars=scalars)
+    def scalar(statement):
+        assert statement.column_descriptions[0]["entity"].__name__ == "Message"
+        assert "analysis_issue_id IS NULL" in str(statement)
+        # The fixture's only customer message is assigned to the current issue.
+        return None
+
+    db = SimpleNamespace(scalar=scalar, scalars=scalars)
     business = SimpleNamespace(
         engine=None,
         clock=lambda: STAMP,

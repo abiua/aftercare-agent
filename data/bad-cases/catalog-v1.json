@@ -1,0 +1,504 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "OCR-001",
+      "category": "parsing",
+      "phase": "P2",
+      "title": "OCR把Issue识别为lssue",
+      "root_cause": "识字混淆",
+      "status": "OPEN",
+      "fix": "保留原图和需复核标记",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P2_BAD_CASES.md",
+          "sha256": "52d08019f51a9102f3f50ffb234d082bc9cc52f3fc5375c58cb48dd093e055a7"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p2-acceptance-20261112.json",
+          "sha256": "ff87f662d033d055be1550254ec918b0606641f7d1c9144d83717fae42589ec2"
+        },
+        {
+          "kind": "original_input",
+          "path": "data/tau-documents/synthetic_policy_scan.pdf",
+          "sha256": "bc53363de6e6c0474eab24f91871e9f3913cf1167b07297d20a8ae64e196a818"
+        }
+      ],
+      "input_note": "具体输入、阶段输出和原件定位见关联原报告；本目录不重写原始输出",
+      "regression": {
+        "status": "PENDING",
+        "report": "reports/tau-p2-acceptance-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "DIRECT_INPUT_LINKED"
+    },
+    {
+      "id": "OCR-TABLE-001",
+      "category": "parsing",
+      "phase": "P2.1",
+      "title": "低质量扫描表格行列错位",
+      "root_cause": "倾斜与表格结构提取",
+      "status": "PARTIAL",
+      "fix": "倾斜校正后单元格匹配由2/16提高至15/16，仍有识字错误",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P212_REVIEW.md",
+          "sha256": "d761718c8bcc8132cafeaf4a59c8bb0d1f2c85aa414aba32987952cab733c629"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p212-acceptance-20261112.json",
+          "sha256": "a940c2d4d475eab4aca27f28487ae14324a3bd91d4b7d5a7604f6f29a8e8d881"
+        },
+        {
+          "kind": "original_input",
+          "path": "data/tau-ocr/table_low.png",
+          "sha256": "95bb6e25131dad53233f277dd4e3ab492d34f13ca0f25aac0c35737d11e12593"
+        },
+        {
+          "kind": "original_input",
+          "path": "data/tau-ocr/ground_truth.json",
+          "sha256": "32e783caacae85128d5edd766a3288b73b805b2b1514824253dc06acfe46922d"
+        }
+      ],
+      "input_note": "具体输入、阶段输出和原件定位见关联原报告；本目录不重写原始输出",
+      "regression": {
+        "status": "REFERENCED",
+        "report": "reports/tau-p212-acceptance-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "DIRECT_INPUT_LINKED"
+    },
+    {
+      "id": "CHUNK-001",
+      "category": "chunking",
+      "phase": "P3",
+      "title": "修改商品条件被固定窗口截断",
+      "root_cause": "切片未保留完整条款",
+      "status": "PARTIAL",
+      "fix": "结构切片保留完整条款，固定窗口缺口仍保留",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P3_BAD_CASES.md",
+          "sha256": "1ecc084f12c932c7e98ad5033c467cd946965e58b0943f665b21d7817c86c478"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p3-memory-models-20261112.json",
+          "sha256": "9159e3e516e8cf4a74cf5485795579e5a5aba4abc45cbdad9b3a1a650cf85cac"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/tau-rag-eval/queries.json",
+          "sha256": "8441fb4f78e338116a3c37697641c46ad43ebb03cfcc098bd6ff6d91455457f9"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/tau-rag-eval/labels.json",
+          "sha256": "c79bb2a32ee1a5f7a58386e7db52cda02c1b8e2dcfe176aed855ce38958cf1eb"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": ".runtime/tau-retail/source/policy.md",
+          "sha256": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "reports/tau-p3-memory-token-safe-20261112.json",
+          "sha256": "615f9c1aa7e49e68c58fb5bd17d11f2dd7d103eba185bc784361504c4d15a639"
+        }
+      ],
+      "input_note": "原始policy.md及queries.json直接关联；labels.json为开发参考，检索器不可见。阶段输出以token-safe报告为当前版本，旧报告保留。",
+      "regression": {
+        "status": "REFERENCED",
+        "report": "reports/tau-p3-memory-models-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "INPUT_LOCATORS_INDEXED"
+    },
+    {
+      "id": "RECALL-001",
+      "category": "retrieval",
+      "phase": "P3",
+      "title": "中文查询对英文政策检索缺证据",
+      "root_cause": "跨语言召回不足",
+      "status": "PARTIAL",
+      "fix": "混合召回和重排改善部分查询，未全部命中",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P3_BAD_CASES.md",
+          "sha256": "1ecc084f12c932c7e98ad5033c467cd946965e58b0943f665b21d7817c86c478"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p3-memory-models-20261112.json",
+          "sha256": "9159e3e516e8cf4a74cf5485795579e5a5aba4abc45cbdad9b3a1a650cf85cac"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/tau-rag-eval/queries.json",
+          "sha256": "8441fb4f78e338116a3c37697641c46ad43ebb03cfcc098bd6ff6d91455457f9"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/tau-rag-eval/labels.json",
+          "sha256": "c79bb2a32ee1a5f7a58386e7db52cda02c1b8e2dcfe176aed855ce38958cf1eb"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": ".runtime/tau-retail/source/policy.md",
+          "sha256": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "reports/tau-p3-memory-token-safe-20261112.json",
+          "sha256": "615f9c1aa7e49e68c58fb5bd17d11f2dd7d103eba185bc784361504c4d15a639"
+        }
+      ],
+      "input_note": "原始policy.md及queries.json直接关联；labels.json为开发参考，检索器不可见。阶段输出以token-safe报告为当前版本，旧报告保留。",
+      "regression": {
+        "status": "REFERENCED",
+        "report": "reports/tau-p3-memory-models-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "INPUT_LOCATORS_INDEXED"
+    },
+    {
+      "id": "RANK-001",
+      "category": "ranking",
+      "phase": "P3",
+      "title": "重排提升一条交换政策却挤出另一条",
+      "root_cause": "多条相关证据排序取舍",
+      "status": "OPEN",
+      "fix": "保留两个期望条款分别计分",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P3_BAD_CASES.md",
+          "sha256": "1ecc084f12c932c7e98ad5033c467cd946965e58b0943f665b21d7817c86c478"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p3-memory-models-20261112.json",
+          "sha256": "9159e3e516e8cf4a74cf5485795579e5a5aba4abc45cbdad9b3a1a650cf85cac"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/tau-rag-eval/queries.json",
+          "sha256": "8441fb4f78e338116a3c37697641c46ad43ebb03cfcc098bd6ff6d91455457f9"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/tau-rag-eval/labels.json",
+          "sha256": "c79bb2a32ee1a5f7a58386e7db52cda02c1b8e2dcfe176aed855ce38958cf1eb"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": ".runtime/tau-retail/source/policy.md",
+          "sha256": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "reports/tau-p3-memory-token-safe-20261112.json",
+          "sha256": "615f9c1aa7e49e68c58fb5bd17d11f2dd7d103eba185bc784361504c4d15a639"
+        }
+      ],
+      "input_note": "原始policy.md及queries.json直接关联；labels.json为开发参考，检索器不可见。阶段输出以token-safe报告为当前版本，旧报告保留。",
+      "regression": {
+        "status": "PENDING",
+        "report": "reports/tau-p3-memory-models-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "INPUT_LOCATORS_INDEXED"
+    },
+    {
+      "id": "POLICY-001",
+      "category": "policy",
+      "phase": "P5",
+      "title": "适用条款版本与范围仍有未决问题",
+      "root_cause": "未完整核验政策沿革",
+      "status": "OPEN",
+      "fix": "交由客服确认，不当作可直接执行方案",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P5_CONTINUATION_ACCEPTANCE.md",
+          "sha256": "512acf5ff07fae888f2f61049c5be9ae86e50ecc68a5c28d60ef9d28096aeb96"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p5-independent-final-evidence-audit-20261112.json",
+          "sha256": "9339c580220ffe781e20a3a959cbc599340a0e92c6c5d525a9d4bd472a68ecc3"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "reports/tau-p5-live-o9961-structured-recheck-90s-20261112.json",
+          "sha256": "4aaf9478dd210224810eb48dbff52bbc9f9062c15e4b26fa283af099feeb6202"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/vision-v1/synthetic-cracked-mug.png",
+          "sha256": "6e4390e0e3afcec897eb0969e43d9666b64ac4f4d8238c0654219d3fe92a6939"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/vision-v1/synthetic-torn-parcel.png",
+          "sha256": "c3a405020cc71723d644d50c51ec2a4dd79de6e06d55381fcc241b024a587306"
+        }
+      ],
+      "input_note": "完整输入定位：运行报告paid_usage.events中kind=decision_input的scope；同文件保存模型尝试、工具回执和阶段主张。两张源图另附hash。汇总与后续验证均保留。",
+      "regression": {
+        "status": "PENDING",
+        "report": "reports/tau-p5-independent-final-evidence-audit-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "INPUT_LOCATORS_INDEXED"
+    },
+    {
+      "id": "REASON-001",
+      "category": "reasoning",
+      "phase": "P5",
+      "title": "材料审核与退款审批可能混淆",
+      "root_cause": "不同业务状态被混用",
+      "status": "PARTIAL",
+      "fix": "结构约束、反例核验和独立审批继续保留",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P5_CONTINUATION_ACCEPTANCE.md",
+          "sha256": "512acf5ff07fae888f2f61049c5be9ae86e50ecc68a5c28d60ef9d28096aeb96"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p5-independent-final-evidence-audit-20261112.json",
+          "sha256": "9339c580220ffe781e20a3a959cbc599340a0e92c6c5d525a9d4bd472a68ecc3"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "reports/tau-p5-live-o9961-structured-recheck-90s-20261112.json",
+          "sha256": "4aaf9478dd210224810eb48dbff52bbc9f9062c15e4b26fa283af099feeb6202"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/vision-v1/synthetic-cracked-mug.png",
+          "sha256": "6e4390e0e3afcec897eb0969e43d9666b64ac4f4d8238c0654219d3fe92a6939"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/vision-v1/synthetic-torn-parcel.png",
+          "sha256": "c3a405020cc71723d644d50c51ec2a4dd79de6e06d55381fcc241b024a587306"
+        }
+      ],
+      "input_note": "完整输入定位：运行报告paid_usage.events中kind=decision_input的scope；同文件保存模型尝试、工具回执和阶段主张。两张源图另附hash。汇总与后续验证均保留。",
+      "regression": {
+        "status": "REFERENCED",
+        "report": "reports/tau-p5-independent-final-evidence-audit-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "INPUT_LOCATORS_INDEXED"
+    },
+    {
+      "id": "TOOLS-001",
+      "category": "tools",
+      "phase": "P5",
+      "title": "补查角色与工具参数不匹配",
+      "root_cause": "模型输出不满足严格参数约束",
+      "status": "FIXED",
+      "fix": "按工具约束参数，分别记录查询角色和修订角色",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P5_TIMEOUT_BAD_CASES.md",
+          "sha256": "eb0256b2f73dbf6c1672428abd229d8171ee1335b1f55d74671bfcaaf6c49ff1"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p5-runtime-timeout-continuation-summary-20261112.json",
+          "sha256": "bafa1ad767e8ca522c5dc90565a23d6f49358c1b9a0a81cfb19896ca8fde6324"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "reports/tau-p5-live-o9961-structured-recheck-90s-20261112.json",
+          "sha256": "4aaf9478dd210224810eb48dbff52bbc9f9062c15e4b26fa283af099feeb6202"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/vision-v1/synthetic-cracked-mug.png",
+          "sha256": "6e4390e0e3afcec897eb0969e43d9666b64ac4f4d8238c0654219d3fe92a6939"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/vision-v1/synthetic-torn-parcel.png",
+          "sha256": "c3a405020cc71723d644d50c51ec2a4dd79de6e06d55381fcc241b024a587306"
+        }
+      ],
+      "input_note": "完整输入定位：运行报告paid_usage.events中kind=decision_input的scope；同文件保存模型尝试、工具回执和阶段主张。两张源图另附hash。汇总与后续验证均保留。",
+      "regression": {
+        "status": "REFERENCED",
+        "report": "reports/tau-p5-runtime-timeout-continuation-summary-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "INPUT_LOCATORS_INDEXED"
+    },
+    {
+      "id": "TIMEOUT-001",
+      "category": "runtime",
+      "phase": "P5",
+      "title": "真实核验超过30秒导致中断",
+      "root_cause": "请求时限不足",
+      "status": "PARTIAL",
+      "fix": "隔离验收调整90秒请求/240秒整轮；外部超时仍可能发生",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P5_TIMEOUT_BAD_CASES.md",
+          "sha256": "eb0256b2f73dbf6c1672428abd229d8171ee1335b1f55d74671bfcaaf6c49ff1"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p5-runtime-timeout-continuation-summary-20261112.json",
+          "sha256": "bafa1ad767e8ca522c5dc90565a23d6f49358c1b9a0a81cfb19896ca8fde6324"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "reports/tau-p5-live-o9961-structured-recheck-90s-20261112.json",
+          "sha256": "4aaf9478dd210224810eb48dbff52bbc9f9062c15e4b26fa283af099feeb6202"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/vision-v1/synthetic-cracked-mug.png",
+          "sha256": "6e4390e0e3afcec897eb0969e43d9666b64ac4f4d8238c0654219d3fe92a6939"
+        },
+        {
+          "kind": "source_or_stage_output",
+          "path": "data/vision-v1/synthetic-torn-parcel.png",
+          "sha256": "c3a405020cc71723d644d50c51ec2a4dd79de6e06d55381fcc241b024a587306"
+        }
+      ],
+      "input_note": "完整输入定位：运行报告paid_usage.events中kind=decision_input的scope；同文件保存模型尝试、工具回执和阶段主张。两张源图另附hash。汇总与后续验证均保留。",
+      "regression": {
+        "status": "REFERENCED",
+        "report": "reports/tau-p5-runtime-timeout-continuation-summary-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "INPUT_LOCATORS_INDEXED"
+    },
+    {
+      "id": "MEMORY-001",
+      "category": "memory",
+      "phase": "P4",
+      "title": "客户更正后旧判断必须失效",
+      "root_cause": "旧对象或诉求可能残留",
+      "status": "REGRESSION_COVERED",
+      "fix": "保留更正历史并复测同会话记忆；不宣称跨会话验收完成",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_P4_BAD_CASES.md",
+          "sha256": "434e39e84311dec01deea65807c4aff3eabc1753ca14943fc1eab36f72f09c6a"
+        },
+        {
+          "kind": "stage_output",
+          "path": "reports/tau-p4-chat-http-20261112.json",
+          "sha256": "b215a29256e58a56c3b0fffc2d4a64f99d8026e336143a44bd325ad05c41ee67"
+        }
+      ],
+      "input_note": "输入与输出直接定位：tau-p4-chat-http报告memory.before、memory.after及其latest_request/latest_update，包含原消息ID、文本和hash；这是回归防护场景，不冒充曾发生的线上错误。",
+      "regression": {
+        "status": "REFERENCED",
+        "report": "reports/tau-p4-chat-http-20261112.json"
+      },
+      "review_source": "PROJECT_ENGINEERING_REVIEW",
+      "input_completeness": "INPUT_LOCATORS_INDEXED"
+    },
+    {
+      "id": "TAU-OFFICIAL-5",
+      "category": "reasoning",
+      "phase": "P8-official",
+      "title": "官方任务：身份信息追问后客户退出",
+      "root_cause": "用户名和邮编后继续追问姓名；是否存在可行认证路径尚待复核",
+      "status": "OPEN",
+      "fix": "本批冻结不修改；后续在训练集验证改进后另开批次",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_OFFICIAL_BAD_CASES.md",
+          "sha256": "e8db665a1bb2efa1f33d13b4b541f73c662e5ede0605b91f2bd2e0b94637764f"
+        },
+        {
+          "kind": "official_trajectory_and_score",
+          "path": ".runtime/tau-official-full/official/5-strong_single.json",
+          "sha256": "6fbbc5c025c578affd41ee97833165f5992f014c680339a209dfb6ca2dd7bf24"
+        }
+      ],
+      "input_note": "官方公开客户对话、工具结果与评分见原始轨迹；隐藏任务要求不输入Agent",
+      "regression": {
+        "status": "PENDING",
+        "report": ".runtime/tau-official-full/official/5-strong_single.json"
+      },
+      "review_source": "OFFICIAL_SCORER_AND_TRACE_REVIEW",
+      "input_completeness": "OFFICIAL_TRAJECTORY_LINKED"
+    },
+    {
+      "id": "TAU-OFFICIAL-36",
+      "category": "reasoning",
+      "phase": "P8-official",
+      "title": "官方任务：转人工后未完成商品修改",
+      "root_cause": "观察到转人工结束；是否遗漏可行替代方案尚待复核",
+      "status": "OPEN",
+      "fix": "本批冻结不修改；后续在训练集验证改进后另开批次",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_OFFICIAL_BAD_CASES.md",
+          "sha256": "e8db665a1bb2efa1f33d13b4b541f73c662e5ede0605b91f2bd2e0b94637764f"
+        },
+        {
+          "kind": "official_trajectory_and_score",
+          "path": ".runtime/tau-official-full/official/36-multi_agent.json",
+          "sha256": "4cf344914a0777099b732a947feb73db7037777c69dd659deaed45c161b4f976"
+        }
+      ],
+      "input_note": "官方公开客户对话、工具结果与评分见原始轨迹；隐藏任务要求不输入Agent",
+      "regression": {
+        "status": "PENDING",
+        "report": ".runtime/tau-official-full/official/36-multi_agent.json"
+      },
+      "review_source": "OFFICIAL_SCORER_AND_TRACE_REVIEW",
+      "input_completeness": "OFFICIAL_TRAJECTORY_LINKED"
+    },
+    {
+      "id": "TAU-OFFICIAL-38",
+      "category": "policy",
+      "phase": "P8-official",
+      "title": "官方任务：取消原因与目标数据库不同",
+      "root_cause": "客户确认ordered by mistake；参考目标为no longer needed，官方DB评分为0",
+      "status": "OPEN",
+      "fix": "本批冻结不修改；后续在训练集验证改进后另开批次",
+      "evidence": [
+        {
+          "kind": "analysis",
+          "path": "docs/TAU_OFFICIAL_BAD_CASES.md",
+          "sha256": "e8db665a1bb2efa1f33d13b4b541f73c662e5ede0605b91f2bd2e0b94637764f"
+        },
+        {
+          "kind": "official_trajectory_and_score",
+          "path": ".runtime/tau-official-full/official/38-multi_agent.json",
+          "sha256": "f3b2ff0658f7e5944c9bd2e512bed182df02c1ae93939842fcffb02f7e473e5e"
+        }
+      ],
+      "input_note": "官方公开客户对话、工具结果与评分见原始轨迹；隐藏任务要求不输入Agent",
+      "regression": {
+        "status": "PENDING",
+        "report": ".runtime/tau-official-full/official/38-multi_agent.json"
+      },
+      "review_source": "OFFICIAL_SCORER_AND_TRACE_REVIEW",
+      "input_completeness": "OFFICIAL_TRAJECTORY_LINKED"
+    }
+  ]
+}

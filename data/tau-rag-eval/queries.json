@@ -1,0 +1,110 @@
+[
+  {
+    "id": "auth",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "The customer already gave me their account identifier. What checks do I still need before looking up their order?"
+  },
+  {
+    "id": "other_user",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "Can an authenticated shopper ask me to help with their spouse's separate profile in the same conversation?"
+  },
+  {
+    "id": "confirmation",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "What must be presented and obtained before changing stored order data?"
+  },
+  {
+    "id": "handoff",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "When can I escalate to a human and what is the order of the handoff steps?"
+  },
+  {
+    "id": "identifiers",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "Does an item identifier let me derive the identifier of its product?"
+  },
+  {
+    "id": "cancel",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "Can I cancel a processed order because the customer found a cheaper price? Which status and reasons are permitted?"
+  },
+  {
+    "id": "cancel_refund",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "After cancellation, when will the money come back for a gift card versus a bank card?"
+  },
+  {
+    "id": "modify_scope",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "What can still be edited before a pending order is processed?"
+  },
+  {
+    "id": "modify_payment",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "Can the replacement payment be split across two methods, including a low-balance store gift card?"
+  },
+  {
+    "id": "modify_items",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "If I swap a shirt for another size in an unshipped order, can I cancel afterward or change a second item later?"
+  },
+  {
+    "id": "return_refund",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "After delivery I want to send back an item and put the credit on a different credit card. Which refund destinations are accepted?"
+  },
+  {
+    "id": "return_steps",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "For a delivered return, what does the buyer need to confirm, and what instructions follow confirmation?"
+  },
+  {
+    "id": "exchange_scope",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "Can an already delivered shirt be exchanged for shoes? Do I have to check stock?"
+  },
+  {
+    "id": "exchange_payment",
+    "language": "en",
+    "synthetic_query": true,
+    "query": "I am exchanging a delivered item. Can I use a gift card with insufficient balance for the difference, and do I need to submit a fresh order?"
+  },
+  {
+    "id": "zh_auth",
+    "language": "zh",
+    "synthetic_query": true,
+    "query": "客户直接给了用户 ID，查询订单之前还要怎样核验身份？"
+  },
+  {
+    "id": "zh_return",
+    "language": "zh",
+    "synthetic_query": true,
+    "query": "订单已送达后想退货，退款能打到另一张信用卡吗？允许哪些退款方式？"
+  },
+  {
+    "id": "zh_modify",
+    "language": "zh",
+    "synthetic_query": true,
+    "query": "待处理订单换尺码后还能取消吗？是否能分两次修改商品？"
+  },
+  {
+    "id": "zh_exchange",
+    "language": "zh",
+    "synthetic_query": true,
+    "query": "换货时礼品卡余额不足以支付差价怎么办？换货后还要重新下单吗？"
+  }
+]

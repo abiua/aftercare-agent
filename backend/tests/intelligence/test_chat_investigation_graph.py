@@ -142,6 +142,7 @@ def _run(
     extra=None,
     protocol=LEGACY_V6,
     output_reserve=1800,
+    direct_recheck_request=False,
 ):
     audit = Audit()
     ctx = InvestigationContext(
@@ -157,6 +158,7 @@ def _run(
         arm=arm,
         protocol=protocol,
         output_reserve=output_reserve,
+        direct_recheck_request=direct_recheck_request,
     )
     graph = build_investigation_graph(InMemorySaver())
     config = {"configurable": {"thread_id": "controlled"}, "recursion_limit": 30}
@@ -212,10 +214,19 @@ def test_selected_v7_prompt_encoding_and_observation_limits_reach_every_arm(inve
     def checked(response):
         def invoke(kwargs):
             system = kwargs["messages"][0].content
-            assert "HUMAN_MATERIAL_REVIEW 仅表示审核员登记了此版材料的所见" in system
-            assert "多图不得相加" in system and "财务批准" in system
-            assert "订单付款事实仅使用已记录" in system
+            assert "表达规则plain-zh-v1" in system
+            assert "amount_cents仍用整数分" in system
             view = json.loads(kwargs["messages"][1].content)["frozen_input"]
+            if view.get("verifier_encoding"):
+                assert "材料审核记录说明人工对该版材料的业务判断" in system
+                assert "人审材料不证明图片真实性、运输责任或财务批准" in system
+                assert "同一行受影响数量不跨图相加" in system
+                assert "支付事实只取已记录数据" in system
+                assert "输出只用完整原ID" in system
+            else:
+                assert "HUMAN_MATERIAL_REVIEW 仅表示审核员登记了此版材料的所见" in system
+                assert "多图不得相加" in system and "财务批准" in system
+                assert "订单付款事实仅使用已记录" in system
             assert view["evidence_encoding"] == "compact-v7"
             assert view["input_digest"] == investigation.relevant_input_sha256
             return response
@@ -291,7 +302,7 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
             assert "POL06:1.0" in system
             visible = json.loads(kwargs["messages"][1].content)["frozen_input"]
             assert visible["customer_statements"][0]["ref"][1] == "m"
-            assert "m" not in scope["citable_evidence_ids"]
+            assert "m" in scope["citable_evidence_ids"]
             return response
 
         return check
@@ -299,14 +310,14 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
     model = Script(
         {
             f"p4:{PROMPT_VERSION}:single:0": round_response(
-                [],
+                ["m"],
                 [
                     _call("read_order_lines", line_ids=["line"]),
                     _call("read_order_lines", line_ids=["line2"]),
                 ],
             ),
             f"p4:{PROMPT_VERSION}:single:1": round_response(
-                ["line", "line2"],
+                ["line", "line2", "m"],
                 [
                     _call(
                         "read_policy_clause", policy_id="POL01", version="v1", product_id="product"
@@ -314,7 +325,7 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
                 ],
             ),
             f"p4:{PROMPT_VERSION}:single:2": round_response(
-                ["POL01:v1", "line", "line2"],
+                ["POL01:v1", "line", "line2", "m"],
                 {
                     "claims": [_claim("one", "line")],
                     "options": [
@@ -336,15 +347,27 @@ def test_strong_single_parallel_batch_then_second_read_turn(investigation):
     assert sum(kind == "investigation_tool" for kind, _ in events) == 3
 
 
-@pytest.mark.parametrize("arm", ["multi", "multi_no_recheck", "multi_sequential_claims"])
-def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
+@pytest.mark.parametrize(
+    ("arm", "direct"),
+    [
+        ("multi", False),
+        ("multi", True),
+        ("multi_no_recheck", False),
+        ("multi_sequential_claims", False),
+    ],
+)
+def test_multi_independent_roles_and_one_local_recheck(investigation, arm, direct):
     barrier = Barrier(2)
 
     def start(role, call):
         def check(kwargs):
             data = json.loads(kwargs["messages"][1].content)
             if arm == "multi_sequential_claims" and role == "policy":
-                assert {row["id"] for row in data["upstream_claims"]} == {"fact/f", "fact/child"}
+                assert {row["id"] for row in data["upstream_claims"]} == {
+                    "fact/f",
+                    "fact/child",
+                    "fact/other",
+                }
                 reference_scope = json.loads(kwargs["messages"][0].content.rsplit("\n", 1)[-1])
                 assert reference_scope["citable_evidence_ids"] == []
                 assert {tool["function"]["name"] for tool in kwargs["tools"]} == {
@@ -379,12 +402,17 @@ def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
 
     def after_check_request(kwargs):
         messages = kwargs["messages"]
-        assert messages[-2].tool_calls == [dict(check_call, type="tool_call")]
-        assert messages[-1].tool_call_id == check_call["id"]
-        assert json.loads(messages[-1].content) == {
-            "status": "REQUESTED",
-            "receipt_sha256": digest(raw_check),
-        }
+        if direct:
+            assert len(messages) == 2
+            assert kwargs["tools"] == []
+            assert "此项仅为申请" in messages[0].content
+        else:
+            assert messages[-2].tool_calls == [dict(check_call, type="tool_call")]
+            assert messages[-1].tool_call_id == check_call["id"]
+            assert json.loads(messages[-1].content) == {
+                "status": "REQUESTED",
+                "receipt_sha256": digest(raw_check),
+            }
         payload = json.loads(messages[1].content)
         originals = payload["frozen_input"]["original_frozen_evidence"]
         assert any(row["data"].get("delivered") is True for row in originals)
@@ -392,6 +420,7 @@ def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
         result = _review(
             ("fact/f", "line"),
             ("fact/child", "line"),
+            ("fact/other", "line2"),
             ("policy/p", "POL01:v1"),
             request={
                 "target_role": "fact",
@@ -407,19 +436,39 @@ def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
 
     def final_verifier(kwargs):
         payload = json.loads(kwargs["messages"][1].content)
-        assert {row["id"] for row in payload["upstream_claims"]} == {"fact/f", "policy/p"}
+        assert {row["id"] for row in payload["upstream_claims"]} == {
+            "fact/f",
+            "fact/other",
+            "policy/p",
+        }
         assert payload["frozen_input"]["unresolved_invalidated_claim_ids"] == ["fact/child"]
-        return _review(("fact/f", "line"), ("policy/p", "POL01:v1"))
+        return _review(("fact/f", "line"), ("fact/other", "line2"), ("policy/p", "POL01:v1"))
+
+    def replace_fact(kwargs):
+        payload = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        assert [row["id"] for row in payload["specific_claims"]] == ["fact/f"]
+        assert payload["counterexamples"] == [
+            {
+                "claim_id": "fact/f",
+                "contradicted_field": "fact",
+                "verdict": "CONTRADICTED",
+                "evidence_refs": ["line"],
+            }
+        ]
+        scope = json.loads(kwargs["messages"][0].content.rsplit("\n", 1)[-1])
+        assert scope["citable_evidence_ids"] == ["line"]
+        return {"claims": [_claim("f", "line", value="已交付")]}
 
     model = Script(
         {
             f"p4:{PROMPT_VERSION}:fact:0": start(
-                "fact", _call("read_order_lines", line_ids=["line"])
+                "fact", _call("read_order_lines", line_ids=["line", "line2"])
             ),
             f"p4:{PROMPT_VERSION}:fact:1": {
                 "claims": [
                     _claim("f", "line", value="未交付"),
                     _claim("child", "line", depends=("f",)),
+                    _claim("other", "line2", value="未交付"),
                 ]
             },
             f"p4:{PROMPT_VERSION}:policy:0": start(
@@ -427,13 +476,13 @@ def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
                 _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product"),
             ),
             f"p4:{PROMPT_VERSION}:policy:1": {"claims": [_claim("p", "POL01:v1")]},
-            f"p4:{PROMPT_VERSION}:verify-0:0": first_verifier,
+            f"p4:{PROMPT_VERSION}:verify-0:0": after_check_request if direct else first_verifier,
             f"p4:{PROMPT_VERSION}:verify-0:1": after_check_request,
-            f"p4:{PROMPT_VERSION}:recheck:0": {"claims": [_claim("f", "line", value="已交付")]},
+            f"p4:{PROMPT_VERSION}:recheck:0": replace_fact,
             f"p4:{PROMPT_VERSION}:verify-1:0": final_verifier,
         }
     )
-    result, events = _run(investigation, "MULTI", model, arm=arm)
+    result, events = _run(investigation, "MULTI", model, arm=arm, direct_recheck_request=direct)
     if arm == "multi_no_recheck":
         assert result["status"] == "NEEDS_REVIEW"
         assert result["reason"] == "INVESTIGATION_RECHECK_SUPPRESSED"
@@ -448,6 +497,7 @@ def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
             {
                 "claim_ids": ["fact/f"],
                 "target_role": "fact",
+                "executor_role": "fact",
                 "tool_name": "read_order_lines",
                 "reason": "原订单字段与事实判断冲突。",
             }
@@ -456,9 +506,32 @@ def test_multi_independent_roles_and_one_local_recheck(investigation, arm):
         assert len(model.calls) == 6
         return
     assert result["reason"] == "INVESTIGATION_DEPENDENT_CLAIMS_UNRESOLVED"
+    (revision,) = [payload for kind, payload in events if kind == "investigation_claim_revision"]
+    assert [row["id"] for row in revision["retired_claims"]] == ["fact/f", "fact/child"]
+    assert revision["retired_claims"][0]["value"] == "未交付"
+    assert revision["replacement_claims"][0]["value"] == "已交付"
+    assert revision["unresolved_stale_claim_ids"] == ["fact/child"]
     assert [
         payload["target_role"] for kind, payload in events if kind == "investigation_recheck"
     ] == ["fact"]
+    if direct:
+        (initial,) = [
+            payload
+            for kind, payload in events
+            if kind == "investigation_input" and payload["phase_id"] == "verify-0"
+        ]
+        assert initial["recheck_request_mode"] == "structured_result"
+        assert not any(payload.get("tool") == "request_targeted_check" for _, payload in events)
+        (actual,) = [
+            payload["receipt"]
+            for kind, payload in events
+            if kind == "investigation_receipt" and payload["phase_id"] == "recheck"
+        ]
+        assert actual["name"] == "read_order_lines"
+        assert [ref["source_id"] for ref in actual["refs"]] == ["line"]
+        assert f"p4:{PROMPT_VERSION}:verify-0:1" not in model.calls
+        assert len(model.calls) == 7
+        return
     (raw_event,) = [
         payload
         for kind, payload in events
@@ -791,7 +864,7 @@ def test_targeted_policy_recheck_can_read_another_frozen_version(investigation):
     from types import SimpleNamespace
 
     from aftercare.investigation.catalogue import CATALOGUE_VERSION
-    from aftercare.investigation.graph import _recheck
+    from aftercare.investigation.graph import _publish_options, _recheck
 
     alternate = Evidence(
         ref=_ref("POLICY", "POL01:v0"),
@@ -846,7 +919,371 @@ def test_targeted_policy_recheck_can_read_another_frozen_version(investigation):
     )
     assert result["path"] == "MULTI" and result["recheck_count"] == 1
     assert result["active_claims"][0]["supporting_refs"] == ["POL01:v0"]
+    assert result["evidence_ids"] == ["POL01:v0"]
+    assert result["retired_claims"][0]["supporting_refs"] == ["POL01:v1"]
     assert script.calls == [f"p4:{PROMPT_VERSION}:recheck:0"]
+    # Even a previously trusted record cannot support a candidate once its only
+    # associated claim has been replaced and it is outside the new evidence scope.
+    ctx.line_ids = frozenset({"line"})
+    ctx.trusted_evidence_ids = frozenset({"line", "POL01:v0", "POL01:v1"})
+    ctx.validate_draft = lambda **_: pytest.fail("Retired evidence must never reach validation")
+    published = _publish_options(
+        ctx,
+        {
+            "options": [
+                {
+                    "id": "old",
+                    "action": "REFUND",
+                    "lines": [{"line_id": "line", "amount_cents": 100}],
+                    "policy_ids": ["POL01"],
+                    "rationale": "引用已退出本轮有效范围的政策。",
+                    "evidence_ids": ["line", "POL01:v1"],
+                }
+            ],
+        },
+        claims=result["active_claims"],
+        evidence_scope=["line", *result["evidence_ids"]],
+    )
+    assert published["reason"] == "INVESTIGATION_RULE_OR_EVIDENCE_BLOCKED"
+    assert published["output"]["investigation_options"] == []
+
+
+def test_targeted_order_read_does_not_fetch_unrelated_order_line(investigation):
+    from aftercare.investigation.graph import _recheck
+
+    class NoReads(InvestigationTools):
+        def call(self, *_args, **_kwargs):
+            pytest.fail("A scope-invalid request must not fetch order lines")
+
+    ctx = InvestigationContext(
+        investigation, None, None, Audit(), NoReads(investigation), None, "analysis"
+    )
+    result = _recheck(
+        {
+            "recheck": {
+                "target_role": "fact",
+                "claim_ids": ["fact/one"],
+                "tool_name": "read_order_lines",
+                "arguments": {"line_ids": ["line", "line2"]},
+                "reason": "仅第一件商品的订单字段与原判断冲突。",
+            },
+            "active_claims": [
+                {**_claim("one", "line"), "id": "fact/one", "role": "fact", "conflicting_refs": []},
+                {
+                    **_claim("two", "line2"),
+                    "id": "fact/two",
+                    "role": "fact",
+                    "conflicting_refs": [],
+                },
+            ],
+        },
+        SimpleNamespace(context=ctx),
+    )
+    assert result["reason"] == "INVESTIGATION_RECHECK_SCOPE_INVALID"
+
+
+@pytest.mark.parametrize("requested", [["target-material"], ["target-material", "other-material"]])
+def test_targeted_material_read_uses_only_target_counterexample(investigation, requested):
+    from aftercare.investigation.graph import _recheck
+
+    value = investigation.model_copy(
+        update={
+            "evidence": (
+                *investigation.evidence,
+                *(
+                    Evidence(ref=_ref("MATERIAL", ident), trust="VERIFIED_RECORD", data={})
+                    for ident in ("target-material", "other-material")
+                ),
+            )
+        }
+    )
+    script = Script(
+        {
+            f"p4:{PROMPT_VERSION}:recheck:0": {"claims": [_claim("one", "target-material")]},
+        }
+    )
+    audit = Audit()
+    ctx = InvestigationContext(
+        value, None, script, audit, InvestigationTools(value), None, "analysis"
+    )
+    assessments = _review(("fact/one", "target-material"), ("fact/two", "other-material"))
+    for assessment in assessments["assessments"]:
+        assessment["verdict"] = "CONTRADICTED"
+    result = _recheck(
+        {
+            "assessment": assessments,
+            "recheck": {
+                "target_role": "fact",
+                "claim_ids": ["fact/one"],
+                "tool_name": "read_material_evidence",
+                "arguments": {"evidence_ids": requested},
+                "reason": "核对与第一件商品主张相冲突的材料。",
+            },
+            "active_claims": [
+                {**_claim("one", "line"), "id": "fact/one", "role": "fact", "conflicting_refs": []},
+                {
+                    **_claim("two", "line2"),
+                    "id": "fact/two",
+                    "role": "fact",
+                    "conflicting_refs": [],
+                },
+            ],
+        },
+        SimpleNamespace(context=ctx),
+    )
+    if len(requested) == 1:
+        assert result["recheck_count"] == 1
+        assert result["active_claims"][-1]["supporting_refs"] == ["target-material"]
+    else:
+        assert result["reason"] == "INVESTIGATION_RECHECK_SCOPE_INVALID"
+        assert script.calls == audit.events == []
+
+
+@pytest.mark.parametrize("linked_line", ["line", "line2"])
+def test_targeted_execution_read_requires_frozen_line_binding(investigation, linked_line):
+    from aftercare.investigation.graph import _recheck
+
+    execution_id = "12345678-1234-1234-1234-123456789abc"
+    value = investigation.model_copy(
+        update={
+            "evidence": (
+                *investigation.evidence,
+                Evidence(
+                    ref=_ref("EXECUTION", execution_id),
+                    trust="VERIFIED_RECORD",
+                    data={
+                        "id": execution_id,
+                        "action": "REFUND",
+                        "status": "SUCCEEDED",
+                        "amount_cents": 100,
+                        "created_at": "2026-11-12",
+                    },
+                ),
+            ),
+            "refund_execution_line_ids": {execution_id: (linked_line,)},
+        },
+    )
+
+    def revise(kwargs):
+        payload = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        execution = payload["check_receipt"]["data"]["execution"]
+        assert execution["scoped_line_ids"] == ["line"]
+        assert execution["amount_scope"] == "ENTIRE_EXECUTION"
+        return {"claims": [_claim("one", execution_id, value="部分已退")]}
+
+    script = Script({f"p4:{PROMPT_VERSION}:recheck:0": revise})
+    audit = Audit()
+    ctx = InvestigationContext(
+        value, None, script, audit, InvestigationTools(value), None, "analysis"
+    )
+    result = _recheck(
+        {
+            "recheck": {
+                "target_role": "fact",
+                "claim_ids": ["fact/one"],
+                "tool_name": "read_refund_execution",
+                "arguments": {"execution_id": execution_id},
+                "reason": "核对目标商品是否有一笔已执行的部分退款。",
+            },
+            "active_claims": [
+                {**_claim("one", "line"), "id": "fact/one", "role": "fact", "conflicting_refs": []},
+            ],
+        },
+        SimpleNamespace(context=ctx),
+    )
+    if linked_line == "line":
+        assert result["active_claims"][0]["supporting_refs"] == [execution_id]
+        assert result["recheck_count"] == 1
+    else:
+        assert result["reason"] == "INVESTIGATION_RECHECK_SCOPE_INVALID"
+        assert script.calls == audit.events == []
+
+
+@pytest.mark.parametrize("requested", [["line"], ["line", "line2"]])
+def test_policy_claim_recheck_dispatches_to_fact_tool_owner(investigation, requested):
+    from aftercare.investigation.graph import _recheck
+
+    calls = []
+
+    class RecordingTools(InvestigationTools):
+        def call(self, role, name, args):
+            calls.append((role, name, args))
+            return super().call(role, name, args)
+
+    def revise(kwargs):
+        payload = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        assert [row["id"] for row in payload["specific_claims"]] == ["policy/one"]
+        prior = payload["prior_target_evidence"]
+        assert [row["ref"]["source_id"] for row in prior] == ["POL01:v1"]
+        assert prior[0]["data"]
+        assert kwargs["tools"] == []
+        return {"claims": [{**_claim("one", "line"), "supporting_refs": ["line", "POL01:v1"]}]}
+
+    model = Script({f"p4:{PROMPT_VERSION}:recheck:0": revise})
+    audit = Audit()
+    ctx = InvestigationContext(
+        investigation, None, model, audit, RecordingTools(investigation), None, "analysis"
+    )
+    assessments = _review(("policy/one", "line"))
+    assessments["assessments"][0]["verdict"] = "CONTRADICTED"
+    result = _recheck(
+        {
+            "assessment": assessments,
+            "recheck": {
+                "target_role": "policy",
+                "claim_ids": ["policy/one"],
+                "tool_name": "read_order_lines",
+                "arguments": {"line_ids": requested},
+                "reason": "核对适用政策依赖的商品行事实。",
+            },
+            "active_claims": [
+                {
+                    **_claim("one", "POL01:v1"),
+                    "id": "policy/one",
+                    "role": "policy",
+                    "conflicting_refs": [],
+                },
+            ],
+            "policy_result": {"evidence_ids": ["POL01:v1"]},
+        },
+        SimpleNamespace(context=ctx),
+    )
+    if requested == ["line"]:
+        assert calls == [("fact", "read_order_lines", {"line_ids": ["line"]})]
+        event = next(payload for kind, payload in audit.events if kind == "investigation_recheck")
+        assert (event["target_role"], event["executor_role"]) == ("policy", "fact")
+        assert result["active_claims"][0]["supporting_refs"] == ["line", "POL01:v1"]
+    else:
+        assert result["reason"] == "INVESTIGATION_RECHECK_SCOPE_INVALID"
+        assert calls == model.calls == audit.events == []
+
+
+def test_verifier_recheck_schema_and_validation_repair(investigation):
+    from pydantic import ValidationError
+
+    from aftercare.investigation.orchestration import run_phase
+
+    valid = _review(
+        ("policy/one", "line"),
+        request={
+            "target_role": "policy",
+            "claim_ids": ["policy/one"],
+            "tool_name": "read_order_lines",
+            "arguments": {"line_ids": ["line"]},
+            "reason": "核对适用政策依赖的商品行事实。",
+        },
+    )
+    valid["assessments"][0]["verdict"] = "CONTRADICTED"
+
+    class RepairingModel:
+        def call(self, _audit, _logical_id, **kwargs):
+            system = kwargs["messages"][0].content
+            schema = json.JSONDecoder().raw_decode(system[system.index('{"$defs":') :])[0]
+            definitions = schema["$defs"]
+            rules = schema["properties"]["recheck"]["anyOf"][0]["allOf"]
+            expected_fields = {
+                "read_order_lines": {"line_ids"},
+                "read_material_evidence": {"evidence_ids"},
+                "read_refund_execution": {"execution_id"},
+                "search_applicable_policy": {"query", "condition_keys"},
+                "read_policy_clause": {"policy_id", "version", "product_id"},
+            }
+            for name, fields in expected_fields.items():
+                branch = next(
+                    rule for rule in rules if rule["if"]["properties"]["tool_name"]["const"] == name
+                )
+                ref = branch["then"]["properties"]["arguments"]["$ref"]
+                arg = definitions[ref.rsplit("/", 1)[-1]]
+                assert arg["additionalProperties"] is False
+                assert set(arg["properties"]) == fields
+            invalid = {
+                **valid,
+                "recheck": {
+                    **valid["recheck"],
+                    "arguments": {"line_ids": ["line"], "order_id": "order"},
+                },
+            }
+            with pytest.raises(ValidationError) as caught:
+                kwargs["validate"]([], json.dumps(invalid))
+            assert caught.value.errors()[0]["type"] == "extra_forbidden"
+            assert caught.value.errors()[0]["loc"][-1] == "order_id"
+            return kwargs["validate"]([], json.dumps(valid))
+
+    ctx = InvestigationContext(
+        investigation,
+        None,
+        RepairingModel(),
+        Audit(),
+        InvestigationTools(investigation),
+        None,
+        "analysis",
+        protocol=HUMAN_PAYMENT_V7,
+    )
+    result, *_ = run_phase(
+        ctx,
+        "verifier",
+        "verify-0",
+        prompt={},
+        known_evidence=["line"],
+        upstream=[
+            {
+                **_claim("one", "POL01:v1"),
+                "id": "policy/one",
+                "role": "policy",
+                "conflicting_refs": [],
+            }
+        ],
+        max_rounds=1,
+        tools_enabled=False,
+    )
+    assert result["recheck"] == valid["recheck"]
+
+
+def test_final_verifier_requires_null_recheck(investigation):
+    from aftercare.investigation.orchestration import run_phase
+
+    def verify(kwargs):
+        system = kwargs["messages"][0].content
+        schema = json.JSONDecoder().raw_decode(system[system.index('{"$defs":') :])[0]
+        assert schema["properties"]["recheck"]["type"] == "null"
+        assert kwargs["tools"] == []
+        result = _review(("fact/one", "line"))
+        for recheck in (
+            {
+                "target_role": "fact",
+                "tool_name": "read_order_lines",
+                "arguments": {"line_ids": ["line"]},
+            },
+            "malformed",
+        ):
+            with pytest.raises(InvalidOutput, match="RECHECK_NOT_ALLOWED_IN_FINAL") as error:
+                kwargs["validate"]([], json.dumps({**result, "recheck": recheck}))
+            assert error.value.field == "recheck"
+        return {**result, "recheck": None}
+
+    ctx = InvestigationContext(
+        investigation,
+        None,
+        Script({"p4:compact-v7:verify-1:0": verify}),
+        Audit(),
+        InvestigationTools(investigation),
+        None,
+        "analysis",
+        protocol=HUMAN_PAYMENT_V7,
+    )
+    result, *_ = run_phase(
+        ctx,
+        "verifier",
+        "verify-1",
+        prompt={},
+        known_evidence=["line"],
+        upstream=[
+            {**_claim("one", "line"), "id": "fact/one", "role": "fact", "conflicting_refs": []}
+        ],
+        max_rounds=1,
+        tools_enabled=False,
+    )
+    assert result["recheck"] is None
 
 
 def test_v7_tool_receipts_link_previously_shown_records(investigation):
@@ -1038,7 +1475,7 @@ def test_v7_verifier_indexes_only_full_matching_refs_and_roundtrips_claims(inves
     }
     legacy = PromptEvidence(investigation).prompt(view)
     compact = PromptEvidence(investigation, protocol=HUMAN_PAYMENT_V7).prompt(view)
-    assert compact["verifier_encoding"] == "verifier-record-index-v1"
+    assert compact["verifier_encoding"] == "verifier-record-index-v2"
     encoded_records = compact["original_frozen_evidence"]
     records = [
         dict(zip(encoded_records["columns"], row, strict=True)) for row in encoded_records["rows"]
@@ -1061,9 +1498,42 @@ def test_v7_verifier_indexes_only_full_matching_refs_and_roundtrips_claims(inves
     assert [
         {**row, "refs": expand(row["refs"])} for row in compact["original_read_receipts"]
     ] == legacy["original_read_receipts"]
-    claims = [_claim("first", "line"), _claim("second", "line", depends=("first",))]
-    encoded = verifier_claims(claims)
-    assert [dict(zip(encoded["columns"], row, strict=True)) for row in encoded["rows"]] == claims
+    claims = [
+        {
+            **_claim("first", "POL01:v1"),
+            "id": "policy/first",
+            "role": "policy",
+            "conflicting_refs": [],
+        },
+        {
+            **_claim("second", "m", depends=("policy/first",)),
+            "subject": "POL01:v1",
+            "id": "fact/second",
+            "role": "fact",
+            "conflicting_refs": ["unknown-fallback"],
+        },
+    ]
+    refs = {"m": ["message", 0], "POL01:v1": 0}
+    encoded = verifier_claims(claims, refs)
+    assert "role" not in encoded["columns"]
+
+    def decode(ref):
+        if type(ref) is int:
+            return records[ref]["ref"][1]
+        if ref == ["message", 0]:
+            return "m"
+        return ref
+
+    decoded = []
+    for row in encoded["rows"]:
+        claim = dict(zip(encoded["columns"], row, strict=True))
+        claim["role"] = claim["id"].split("/", 1)[0]
+        claim["subject"] = decode(claim["subject"])
+        for key in ("supporting_refs", "conflicting_refs"):
+            if key in claim:
+                claim[key] = [decode(ref) for ref in claim[key]]
+        decoded.append(claim)
+    assert decoded == claims
 
 
 def test_v7_strong_receipts_reuse_exact_available_ref_and_corpus(investigation):
@@ -1132,7 +1602,7 @@ def test_targeted_request_does_not_make_unread_refs_citable(investigation):
         "analysis",
         protocol=HUMAN_PAYMENT_V7,
     )
-    with pytest.raises(InvalidOutput, match="VERIFICATION_EVIDENCE_INCOMPLETE"):
+    with pytest.raises(InvalidOutput, match="VERIFICATION_EVIDENCE_OUT_OF_SCOPE"):
         run_phase(
             ctx,
             "verifier",
@@ -1142,6 +1612,146 @@ def test_targeted_request_does_not_make_unread_refs_citable(investigation):
             upstream=[_claim("fact/f", "line")],
             max_rounds=2,
             tool_limit=1,
+        )
+
+
+@pytest.mark.parametrize(
+    ("rows", "code", "field"),
+    [
+        ([("fact/visible", "line")], "VERIFICATION_MISSING_CLAIM", "assessments"),
+        (
+            [("fact/visible", "line"), ("fact/visible", "line")],
+            "VERIFICATION_DUPLICATE_CLAIM",
+            "assessments.1.claim_id",
+        ),
+        (
+            [("fact/visible", "line"), ("fact/untrusted-output", "line")],
+            "VERIFICATION_UNKNOWN_CLAIM",
+            "assessments.1.claim_id",
+        ),
+        (
+            [("fact/visible", "line"), ("policy/visible", "retired-ref")],
+            "VERIFICATION_EVIDENCE_OUT_OF_SCOPE",
+            "assessments.1.evidence_refs",
+        ),
+    ],
+)
+def test_verifier_reports_only_safe_paths_for_coverage_and_scope(rows, code, field):
+    from aftercare.intelligence.models import _validation_fields
+    from aftercare.investigation.orchestration import VerificationResult
+
+    with pytest.raises(InvalidOutput, match=code) as error:
+        _result(
+            json.dumps(_review(*rows)),
+            VerificationResult,
+            role="verifier",
+            evidence_ids={"line"},
+            upstream_ids={"fact/visible", "policy/visible"},
+        )
+    assert _validation_fields(error.value) == [{"field": field, "code": code}]
+
+
+@pytest.mark.parametrize("recheck", [False, True])
+def test_existing_material_is_available_for_verification_before_requesting_more(
+    investigation, recheck, monkeypatch
+):
+    monkeypatch.setattr("aftercare.investigation.graph.MAX_READ_IDS", 1)
+    initial = Evidence(
+        ref=_ref("MATERIAL", "first"), trust="VERIFIED_RECORD", data={"kind": "PARCEL"}
+    )
+    review = Evidence(
+        ref=_ref("REVIEW", "review"),
+        trust="VERIFIED_RECORD",
+        data={"material_ids": ["first"], "decision": "APPROVED"},
+    )
+    material = Evidence(
+        ref=_ref("MATERIAL", "uploaded"), trust="VERIFIED_RECORD", data={"kind": "ITEM_PHOTO"}
+    )
+    value = investigation.model_copy(
+        update={"evidence": (*investigation.evidence, initial, review, material)}
+    )
+
+    def fact_start(kwargs):
+        view = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        scope = json.loads(kwargs["messages"][0].content.rsplit("\n", 1)[-1])
+        assert "m" in scope["citable_evidence_ids"]
+        assert {"first", "review"} <= set(scope["citable_evidence_ids"])
+        assert "uploaded" not in scope["citable_evidence_ids"]
+        assert view["initial_material_receipt"]["data"]["records"][1]["data"] == review.data
+        assert "本轮最多调用 1 个工具" in kwargs["messages"][0].content
+        return [_call("read_order_lines", line_ids=["line"])]
+
+    def policy_start(kwargs):
+        view = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        assert "initial_material_receipt" not in view
+        return [
+            _call("read_policy_clause", policy_id="POL01", version="v1", product_id="product"),
+        ]
+
+    def verify(kwargs):
+        view = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        assert view["customer_statements"][0]["ref"][1] == "m"
+        assert view["unread_material_refs"] == [["MATERIAL", "uploaded", "v1"]]
+        result = _review(("fact/photo", "uploaded"), ("policy/p", "POL01:v1"))
+        result["assessments"][0]["verdict"] = "CONTRADICTED"
+        if recheck:
+            result["recheck"] = {
+                "target_role": "fact",
+                "claim_ids": ["fact/photo"],
+                "tool_name": "read_material_evidence",
+                "arguments": {"evidence_ids": ["uploaded"]},
+                "reason": "目录显示已有材料，读取记录核实。",
+            }
+        else:
+            result["options"] = [
+                {
+                    "id": "duplicate",
+                    "action": "REQUEST_EVIDENCE",
+                    "target_line_ids": ["line"],
+                    "rationale": "等待照片。",
+                    "missing_evidence": ["商品照片"],
+                    "evidence_ids": ["m"],
+                }
+            ]
+        return result
+
+    def final(kwargs):
+        view = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        assert "unread_material_refs" not in view
+        return _review(("fact/photo", "uploaded"), ("policy/p", "POL01:v1"))
+
+    script = Script(
+        {
+            f"p4:{PROMPT_VERSION}:fact:0": fact_start,
+            f"p4:{PROMPT_VERSION}:fact:1": {"claims": [_claim("photo", "m", value="没有材料")]},
+            f"p4:{PROMPT_VERSION}:policy:0": policy_start,
+            f"p4:{PROMPT_VERSION}:policy:1": {"claims": [_claim("p", "POL01:v1")]},
+            f"p4:{PROMPT_VERSION}:verify-0:0": verify,
+            f"p4:{PROMPT_VERSION}:recheck:0": {
+                "claims": [_claim("photo", "uploaded", value="已有材料")]
+            },
+            f"p4:{PROMPT_VERSION}:verify-1:0": final,
+        }
+    )
+    state, events = _run(value, "MULTI", script)
+    assert state["output"]["investigation_options"] == []
+    assert state["fact_result"]["tool_calls"] == 2
+    (preload,) = [
+        payload
+        for kind, payload in events
+        if kind == "investigation_receipt" and payload.get("origin") == "PROGRAM_REQUIRED_READ"
+    ]
+    assert preload["receipt_sha256"] == digest(preload["receipt"])
+    assert [row["source_id"] for row in preload["receipt"]["refs"]] == ["first", "review"]
+    if recheck:
+        assert state["recheck_receipt"]["data"]["records"][0]["data"] == material.data
+        assert state["retired_claims"][0]["value"] == "没有材料"
+        assert state["active_claims"][-1]["value"] == "已有材料"
+    else:
+        assert state["reason"] == "INVESTIGATION_MATERIAL_NOT_READ"
+        assert any(
+            kind == "investigation_material_unread" and payload["evidence_ids"] == ["uploaded"]
+            for kind, payload in events
         )
 
 
@@ -1191,3 +1801,37 @@ def test_v7_policy_fields_show_bare_ids_and_require_a_read_version(investigation
     (result,) = [row for kind, row in audit.events if kind == "investigation_result"]
     assert result["selected_option_ids"] == []
     assert result["program_checks"] == {"missing-citation": "INVESTIGATION_OPTION_SCOPE_INVALID"}
+
+
+def test_authorized_policy_retrieval_preserves_exact_frozen_refs(investigation):
+    from aftercare.intelligence.policies import document_key
+    from aftercare.investigation.catalogue import CATALOGUE_VERSION
+
+    clause = investigation.evidence[-1].data["clause"]
+    corpus_sha256 = digest([clause])
+    value = investigation.model_copy(
+        update={
+            "policy_catalogue_version": CATALOGUE_VERSION,
+            "policy_context": {"catalogue_sha256": corpus_sha256, "products": [{"id": "product"}]},
+        }
+    )
+
+    def ranked(query, documents):
+        assert query == "原始条款"
+        assert documents == [clause]
+        return [document_key(clause)], {"mode": "rerank", "status": "RETRIEVED"}
+
+    args = {"query": "原始条款"}
+    tools = InvestigationTools(value, authorized_policy_search=ranked)
+    receipt = tools.call("policy", "search_applicable_policy", args)
+    assert [ref.source_id for ref in receipt.refs] == ["POL01:v1"]
+    assert receipt.data["retrieval"]["corpus_sha256"] == corpus_sha256
+    assert receipt.data["retrieval"]["applicability"] == "NOT_ASSESSED"
+
+    tools = InvestigationTools(
+        value, authorized_policy_search=lambda *_: ([], {"mode": "rerank", "status": "UNAVAILABLE"})
+    )
+    receipt = tools.call("policy", "search_applicable_policy", args).model_dump(mode="json")
+    assert receipt["refs"] == []
+    projected = PromptEvidence(value).receipt(receipt)[0]
+    assert projected["data"]["retrieval"]["status"] == "UNAVAILABLE"

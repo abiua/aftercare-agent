@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+from evaluation_technical_fixtures import TechnicalCatalogue
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, delete, func, select
@@ -51,7 +52,7 @@ def system(tmp_path):
         object_secret_key="",
     )
     calls = []
-    service = EvaluationService(engine, settings, dispatch=calls.append)
+    service = EvaluationService(engine, settings, dispatch=calls.append, catalog=TechnicalCatalogue())
     app = FastAPI()
     app.state.evaluation, app.state.engine = service, engine
     app.include_router(api.router)
@@ -74,7 +75,7 @@ def create(system, repetitions=1, **options):
         "max_calls": 1,
         "budget_usd": 0,
         "source": "fixture",
-        "case_ids": ["AC02-C001"],
+        "case_ids": ["UNIT-DAMAGE"],
     }
     return system.service.create(TESTER, ExperimentInput(**{**defaults, **options}), "create")
 
@@ -259,18 +260,21 @@ def test_progress_writes_rollback_with_state(system, monkeypatch):
     assert system.dispatches == []
 
 
-def test_sse_crosses_page_boundary_from_last_event_id(system):
+def test_sse_crosses_page_boundary_from_last_event_id(system, monkeypatch):
+    from aftercare.evaluation import api
+
+    monkeypatch.setattr(api, "PAGE_SIZE", 2)
     experiment_id = create(system, repetitions=2, case_ids=None)["id"]
     response = system.client.get(
         path(experiment_id) + "/stream",
-        headers={**TESTER_HEADERS, "Last-Event-ID": "10"},
-        params={"follow": False, "after": 5},
+        headers={**TESTER_HEADERS, "Last-Event-ID": "2"},
+        params={"follow": False, "after": 1},
     )
     assert response.status_code == 200
     assert [line for line in response.text.splitlines() if line.startswith("id: ")] == [
-        f"id: {index}" for index in range(11, 122)
+        f"id: {index}" for index in range(3, 8)
     ]
-    assert '"latest_sequence": 121' in response.text
+    assert '"latest_sequence": 7' in response.text
     assert '"terminal": false' in response.text
 
 

@@ -20,7 +20,7 @@ from aftercare.business.rules import now
 from aftercare.config import Settings
 from aftercare.db import Base, User
 from aftercare.evaluation.api import router
-from aftercare.evaluation.dataset import load_cases, load_references
+from evaluation_technical_fixtures import TechnicalCatalogue
 from aftercare.evaluation.runner import EvaluationRunner, _interrupted_audit, score
 from aftercare.evaluation.service import EvaluationService, ExperimentInput, _allocate
 from aftercare.evaluation.tables import EvaluationResult, Experiment
@@ -68,7 +68,7 @@ def system(tmp_path):
         object_secret_key="",
     )
     dispatches = []
-    service = EvaluationService(engine, settings, dispatch=dispatches.append)
+    service = EvaluationService(engine, settings, dispatch=dispatches.append, catalog=TechnicalCatalogue())
     storage = MemoryObjects()
     runner = EvaluationRunner(engine, settings, InMemorySaver(), storage=storage)
     yield SimpleNamespace(
@@ -90,14 +90,14 @@ def _input(**changes):
             "max_calls": 10,
             "budget_usd": 0,
             "source": "fixture",
-            "case_ids": ["AC02-C001"],
+            "case_ids": ["UNIT-DAMAGE"],
             **changes,
         }
     )
 
 
 def _case(case_id):
-    return next(case for case in load_cases() if case["id"] == case_id), load_references()[case_id]
+    return next(case for case in TechnicalCatalogue().load_cases() if case["id"] == case_id), TechnicalCatalogue().load_references()[case_id]
 
 
 def test_datasets_roles_cancel_replay_and_csv(system):
@@ -105,9 +105,9 @@ def test_datasets_roles_cancel_replay_and_csv(system):
     with pytest.raises(BusinessError) as error:
         service.datasets(CUSTOMER)
     assert error.value.status == 403
-    assert service.datasets(TESTER)[0]["case_count"] == 144
+    assert service.datasets(TESTER)[0]["case_count"] == 3
     cases = service.cases(TESTER, "v0.2", split="dev")
-    assert len(cases) == 60
+    assert len(cases) == 3
     assert cases[0]["review_status"] == "PENDING"
     request = _input(name="=HYPERLINK(1)")
     plan = service.create(TESTER, request, "request")
@@ -186,10 +186,8 @@ def test_offline_application_result_and_append_only_review(system):
 @pytest.mark.parametrize(
     "case_id, source",
     [
-        ("AC02-C041", "fixture"),
-        ("AC02-C086", "fixture"),
-        ("AC02-R022", "fault"),
-        ("AC02-R023", "fault"),
+        ("UNIT-WRONG", "fixture"),
+        ("UNIT-STATUS", "fixture"),
     ],
 )
 def test_application_runner_actual_cases(system, case_id, source):
@@ -203,17 +201,7 @@ def test_application_runner_actual_cases(system, case_id, source):
         cancelled=lambda: False,
     )
     assert result["status"] == "NEEDS_REVIEW", result
-    if case_id == "AC02-R023":
-        assert result["actual"]["events"]["e03"]["output"] is None
-        assert all(
-            row["status"] == "PASS"
-            for row in result["checks"]
-            if row["path"] in {"status", "reason"}
-        )
-        assert result["actual"]["model_attempts"][0]["status"] == "UNKNOWN"
-        assert result["actual"]["observed_source"] == "fault_in_process"
-    else:
-        assert all(row["status"] == "PASS" for row in result["checks"])
+    assert all(row["status"] == "PASS" for row in result["checks"])
 
 
 def test_comparison_rejects_changed_evidence_and_both_axes(system):
@@ -468,7 +456,7 @@ def test_transport_timeout_is_reported_with_uncertain_usage(system):
         raise TimeoutError()
 
     runner = _fake_provider(system, timeout)
-    case, reference = _case("AC02-C081")
+    case, reference = _case("UNIT-STATUS")
     result = runner.run(
         str(uuid4()),
         case,
@@ -491,7 +479,7 @@ def test_cancellation_during_attempt_prevents_followup_call(system):
         return AIMessage(content="malformed output")
 
     runner = _fake_provider(system, malformed)
-    case, reference = _case("AC02-C081")
+    case, reference = _case("UNIT-STATUS")
     result = runner.run(
         str(uuid4()),
         case,
@@ -581,7 +569,7 @@ def test_retry_links_parent_without_overwriting_old_attempt(system):
 def test_load_source_records_real_repeated_isolated_access(system):
     service = system.service
     request = _input(
-        source="load", concurrency=2, load_reads=3, case_ids=["AC02-C001", "AC02-C041"]
+        source="load", concurrency=2, load_reads=3, case_ids=["UNIT-DAMAGE", "UNIT-WRONG"]
     )
     plan = service.create(TESTER, request, "load")
     service.process(plan["id"], system.runner)
@@ -627,7 +615,7 @@ def test_gate_freezes_external_human_gold_against_exact_case_and_reference(
     from aftercare.business.rules import digest
     from aftercare.evaluation.gates import GatePolicy
 
-    case, reference = _case("AC02-C001")
+    case, reference = _case("UNIT-DAMAGE")
     gold_file = tmp_path / "gold.json"
     gold = [
         {
@@ -686,6 +674,7 @@ def test_inline_plan_cannot_be_recovered_or_claimed_by_queue(system):
         system.engine,
         system.runner.settings,
         execution_driver="inline",
+        catalog=TechnicalCatalogue(),
         dispatch=lambda _: pytest.fail("Inline work published to queue"),
     )
     cli_plan = inline.create(TESTER, _input(), "same-key")
@@ -710,7 +699,7 @@ def test_fixture_persists_actual_policy_and_lexical_retrieval_evidence(system):
     from aftercare.evaluation.retrieval_evidence import SCHEMA_VERSION
 
     service = system.service
-    plan = service.create(TESTER, _input(case_ids=["AC02-C081"]), "retrieval-evidence")
+    plan = service.create(TESTER, _input(case_ids=["UNIT-STATUS"]), "retrieval-evidence")
     assert plan["config"]["retrieval_snapshot"]["mode"] == "BM25"
     assert plan["config"]["retrieval_snapshot"]["encoder"] is None
     assert plan["config"]["policy_snapshot"]["schema_version"] == SCHEMA_VERSION

@@ -6,7 +6,7 @@ import pytest
 
 from aftercare.business.errors import BusinessError
 from aftercare.business.rules import digest
-from aftercare.evaluation import dataset
+import evaluation_technical_fixtures as dataset
 from aftercare.evaluation.formal import package
 from aftercare.evaluation.formal.files import json_bytes
 from aftercare.evaluation.metrics import _gold

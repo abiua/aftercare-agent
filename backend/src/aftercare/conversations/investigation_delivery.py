@@ -36,6 +36,7 @@ def enabled(settings):
 def stage_material_review(business, db, conversation, case):
     """Queue a new investigation revision in the current material-review transaction."""
     from .analysis import MATERIAL_REVIEW_CHANGED, scheduler
+    from .memory import correction, pending_scope
 
     if (
         conversation.status != "OPEN"
@@ -57,6 +58,9 @@ def stage_material_review(business, db, conversation, case):
             case.customer_id,
         )
     ):
+        return
+
+    if correction(db, conversation) or pending_scope(db, conversation):
         return
 
     analysis = scheduler(business.engine, business.settings, clock=business.clock)

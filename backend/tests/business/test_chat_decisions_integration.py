@@ -189,7 +189,7 @@ def _accept(env, url, offer):
     return first.json()
 
 
-@pytest.mark.parametrize("change_after_approval", [None, "text", "material"])
+@pytest.mark.parametrize("change_after_approval", [None, "text", "material", "correction"])
 def test_managed_case_requires_offer_customer_and_finance_in_existing_routes(
     configured, change_after_approval
 ):
@@ -212,6 +212,20 @@ def test_managed_case_requires_offer_customer_and_finance_in_existing_routes(
     assert approval.status_code == 201, approval.text
     if change_after_approval == "text":
         assert send(env.client, url, "我不要退款，要换货").status_code == 201
+    elif change_after_approval == "correction":
+        corrected = send(env.client, url, "更正：裂痕在左上角")
+        assert corrected.status_code == 201
+        body = corrected.json()
+        response = env.client.post(
+            url + "/correction/confirm",
+            headers=headers(SUPPORT),
+            json={
+                "message_id": body["memory"]["correction"]["message_id"],
+                "expected_revision": body["conversation"]["revision"],
+            },
+        )
+        assert response.status_code == 409
+        assert response.json()["detail"]["code"] == "CORRECTION_SCOPE_CHANGED"
     elif change_after_approval == "material":
         version = env.service.context(case_id, SUPPORT)["case"]["version"]
         env.service.upload(
@@ -860,3 +874,188 @@ def test_adopting_custom_candidate_gaps_publishes_exact_items(configured, action
         ).json()
         == original
     )
+
+
+def test_correction_blocks_inflight_candidate_and_recovers_same_case(configured):
+    from aftercare.conversations.decisions import ConversationDecisions
+
+    env = configured
+    url, case_id = _link(env)
+    original = send(
+        env.client, url, "我想申请退款，补充原来那张照片", photos=[("original.png", _photo("blue"))]
+    ).json()["messages"][0]
+    attachment = original["attachments"][0]
+    started = env.client.post(url + "/decisions/run", headers=headers(SUPPORT), json={})
+    assert started.status_code == 202, started.text
+    run_id = started.json()["run_id"]
+    env.agent.process(run_id)
+    assert pending(env.db) == [run_id]
+
+    corrected = send(env.client, url, "更正：破损位置是左上角").json()
+    source = corrected["messages"][0]
+    later = send(env.client, url, "左上角外壳还有一道裂痕").json()
+    assert later["memory"]["state"] == "CORRECTION_NEEDS_SUPPORT"
+    assert later["memory"]["correction"]["message_id"] == source["id"]
+    assert later["memory"]["latest_update"]["text"] == "左上角外壳还有一道裂痕"
+    assert later["memory"]["confirmed_context"]["case_id"] == case_id
+    assert later["memory"]["recent_attachments"][0]["attachment_id"] == attachment["id"]
+
+    project(env.service, run_id)
+    with Session(env.db) as db:
+        stale = db.get(DecisionProjection, run_id)
+        assert (stale.state, stale.reason, stale.snapshot_id) == ("BLOCKED", "DECISION_STALE", None)
+    assert env.client.get(url + "/decisions/offer", headers=headers()).json()["offer"] is None
+    assert env.client.get(url, headers=headers(OTHER)).status_code == 404
+    assert env.client.get(url, headers=headers()).json()["memory"] == later["memory"]
+
+    confirm_url = url + "/correction/confirm"
+    values = {
+        "message_id": source["id"],
+        "expected_revision": later["conversation"]["revision"],
+        "retained_attachment_ids": [attachment["id"]],
+        "evidence_reason": "更正前原图也能看到左上角的裂痕",
+    }
+    assert env.client.post(confirm_url, headers=headers(), json=values).status_code == 403
+    rejected = env.client.post(
+        confirm_url,
+        headers=headers(SUPPORT),
+        json={**values, "retained_attachment_ids": [str(uuid4())]},
+    )
+    assert rejected.status_code == 422
+    confirmed = env.client.post(confirm_url, headers=headers(SUPPORT), json=values)
+    assert confirmed.status_code == 200, confirmed.text
+    memory = confirmed.json()["memory"]
+    assert memory["state"] == "CURRENT"
+    assert memory["confirmed_context"]["case_id"] == case_id
+    assert memory["confirmed_correction"]["source_message_id"] == source["id"]
+    assert (
+        memory["confirmed_correction"]["retained_attachments"][0]["sha256"] == attachment["sha256"]
+    )
+
+    env.client.app.state.conversations = ConversationService(env.service)
+    refreshed = env.client.get(url, headers=headers()).json()
+    refreshed_memory = refreshed["memory"]
+    assert "evidence_reason" not in refreshed_memory["confirmed_correction"]
+    assert env.client.get(url, headers=headers(SUPPORT)).json()["memory"] == memory
+    assert original in refreshed["messages"]
+    from aftercare.investigation.input import build_input
+
+    with Session(env.db) as db, db.begin():
+        scope = ConversationDecisions(env.service).resolve(
+            db, SUPPORT, refreshed["conversation"]["id"], memory["issue_id"]
+        )
+    frozen = scope.frozen_context
+    assert [item["id"] for item in frozen["messages"]] == [source["id"], later["messages"][0]["id"]]
+    assert frozen["case"]["description"] == source["text"]
+    assert frozen["attachments"][0]["id"] == attachment["id"]
+    role_input = build_input(scope).role_view("fact")
+    assert role_input["primary_customer_statement"] == source["id"]
+    assert [item["ref"]["source_id"] for item in role_input["customer_statements"]] == [
+        source["id"],
+        later["messages"][0]["id"],
+    ]
+    assert role_input["attachments"][0]["ref"]["source_id"] == attachment["id"]
+    assert role_input["requested_customer_action"] == refreshed_memory["requested_action"]
+    assert role_input["requested_customer_action"]["action"] == "REFUND"
+    assert role_input["requested_customer_action"]["message_id"] == original["id"]
+
+
+@pytest.mark.parametrize(
+    "statement, action",
+    [
+        ("不要退款了，换货", "REPLACE"),
+        ("不用退了", "WITHDRAWN"),
+        ("我不想退款了，只想了解退款政策", "WITHDRAWN"),
+        ("撤销退款申请", "WITHDRAWN"),
+        ("取消退款申请", "WITHDRAWN"),
+        ("我想退款或者换货", "NEEDS_CLARIFICATION"),
+        ("请问退款政策是什么？", None),
+        ("补充照片，谢谢", None),
+    ],
+)
+def test_memory_distinguishes_current_request_from_negation_and_supplement(statement, action):
+    from aftercare.conversations.memory import requested_action
+
+    assert requested_action(statement) == action
+
+
+def test_withdrawal_blocks_current_offer_until_customer_clarifies(configured):
+    env = configured
+    url, case_id = _link(env)
+    requested = send(env.client, url, "我想退款").json()
+    assert requested["memory"]["requested_action"]["action"] == "REFUND"
+    offer = _offer(env, url, case_id)
+    withdrawn = send(env.client, url, "不用退了").json()
+    assert withdrawn["memory"]["requested_action"]["action"] == "WITHDRAWN"
+    assert withdrawn["memory"]["state"] == "CORRECTION_NEEDS_SUPPORT"
+    assert env.client.get(url + "/decisions/offer", headers=headers()).json()["offer"] is None
+    attempted = env.client.post(
+        url + "/decisions/offer/respond",
+        headers=headers(),
+        json={"ref": _ref(offer), "response": {"action": "ACCEPT"}},
+    )
+    assert attempted.status_code == 409
+
+    def confirm(data):
+        return env.client.post(
+            url + "/correction/confirm",
+            headers=headers(SUPPORT),
+            json={
+                "message_id": data["memory"]["correction"]["message_id"],
+                "expected_revision": data["conversation"]["revision"],
+            },
+        )
+
+    held = confirm(withdrawn)
+    assert held.status_code == 409
+    assert held.json()["detail"]["code"] == "CORRECTION_REQUEST_UNCLEAR"
+    clarified = send(env.client, url, "我想换货").json()
+    response = confirm(clarified)
+    assert response.status_code == 200, response.text
+    assert response.json()["memory"]["requested_action"]["action"] == "REPLACE"
+    assert response.json()["conversation"]["active_case_id"] == case_id
+    assert env.client.get(url + "/decisions", headers=headers(SUPPORT)).json()["snapshot"] is None
+
+
+def test_confirmed_correction_fences_upload_staged_on_prior_basis(configured, monkeypatch):
+    env = configured
+    url, _ = _link(env)
+    chat = env.client.app.state.conversations
+    published = send(env.client, url, "", photos=[("published.png", _photo("green"))]).json()
+    original = published["messages"][0]["attachments"][0]
+    corrected = send(env.client, url, "更正：破损位置是左上角").json()
+    original_find = chat._find
+    conversation_id = corrected["conversation"]["id"]
+    upload_id = uuid4()
+    key = uuid4().hex
+    locks = 0
+
+    def interleave(db, ident, user, *, lock=False):
+        nonlocal locks
+        if lock and user.user_id == OWNER.user_id:
+            locks += 1
+            if locks == 2:
+                with Session(env.db) as check:
+                    staged = chat._message(check, ident, str(upload_id))
+                    assert staged is not None and staged.sequence is None
+                chat.confirm_correction(
+                    conversation_id,
+                    SUPPORT,
+                    message_id=corrected["memory"]["correction"]["message_id"],
+                    expected_revision=corrected["conversation"]["revision"],
+                    retained_attachment_ids=[original["id"]],
+                    evidence_reason="原图对应当前商品",
+                    key="confirm-while-staged",
+                )
+        return original_find(db, ident, user, lock=lock)
+
+    monkeypatch.setattr(chat, "_find", interleave)
+    image = ("unpublished.png", _photo("red"))
+    for retry_key in (key, key, uuid4().hex):
+        response = send(env.client, url, "", photos=[image], client_id=upload_id, key=retry_key)
+        assert response.status_code == 410, response.text
+    page = env.client.get(url, headers=headers()).json()
+    assert [item["attachment_id"] for item in page["memory"]["recent_attachments"]] == [
+        original["id"]
+    ]
+    assert env.client.get(original["content_path"], headers=headers()).content == _photo("green")
