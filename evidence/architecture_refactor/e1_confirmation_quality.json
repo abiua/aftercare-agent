@@ -1,0 +1,412 @@
+{
+  "post_hoc": true,
+  "changes_frozen_scores": false,
+  "purpose": "Future sample-generation regression, not a new evaluation",
+  "rows": [
+    {
+      "id": "96fbb8f1e315cc691148",
+      "task_id": "17",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "f7b049f984778b81dac8",
+      "task_id": "26",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "0b938a077683cfcf2ddb",
+      "task_id": "33",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "e8d49a32b54af158fa94",
+      "task_id": "36",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "6b72e7c232a97f78f7d8",
+      "task_id": "38",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "5434a9846f690fb735a0",
+      "task_id": "40",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "bcc6df55fb6879bf757a",
+      "task_id": "42",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "f0dca9b9a9a2ff0278ed",
+      "task_id": "42",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "f3b8c5dd2c3b3935d738",
+      "task_id": "42",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "26e2fdd3348c531ff1d7",
+      "task_id": "42",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "ca4d334e6653a947476f",
+      "task_id": "45",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "b5b2575fc96371424545",
+      "task_id": "49",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "7aa3ac5aa8b4f82ee201",
+      "task_id": "51",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "eae65a89d7ee5c21ab2d",
+      "task_id": "53",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "6b7d49cfd4e154dc7308",
+      "task_id": "55",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "afd0a9d0a85e99a01798",
+      "task_id": "55",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "c115319041b3be26c166",
+      "task_id": "55",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "1d0a009a032c7186bc83",
+      "task_id": "55",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "5652ee679d92aacc3dd6",
+      "task_id": "60",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "f9d8128e9c2f16ec5bdd",
+      "task_id": "61",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "94bbffb9df89a337212e",
+      "task_id": "64",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "0eaf5f9c93ccd443c9fa",
+      "task_id": "70",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "8842360e65350e6b8d98",
+      "task_id": "71",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "bd41313bef0a20baaf1c",
+      "task_id": "71",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "82a870e21510175f7e3e",
+      "task_id": "74",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "f47bfb23b49147a0168d",
+      "task_id": "74",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "2a8f18e561819c83f1e0",
+      "task_id": "79",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "724724d796160dcd54f3",
+      "task_id": "86",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "773e1674544190e59392",
+      "task_id": "86",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "9193f8dccb05b2413cd1",
+      "task_id": "90",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "8409e34cebb2f2abe0d1",
+      "task_id": "94",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "9981cabb9730f68a4a66",
+      "task_id": "97",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "c40ae7c6f2c06cfc1844",
+      "task_id": "97",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "ed3f1db425c50d469097",
+      "task_id": "100",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "26d1b48237ba690a2228",
+      "task_id": "100",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "b26c269acc7fce9f7a86",
+      "task_id": "101",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "c8435da82cd581c0c125",
+      "task_id": "101",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "634e5d3967ae1704b05b",
+      "task_id": "101",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "0bbed74d5c0292961a34",
+      "task_id": "102",
+      "applicable": true,
+      "status": "no_prior_assent_detected",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 0
+    },
+    {
+      "id": "b846cc0e40f60df1ed37",
+      "task_id": "102",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "44827853a1be33c6ae7e",
+      "task_id": "102",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "ab06a2e4a11c30999e86",
+      "task_id": "108",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 1
+    },
+    {
+      "id": "eb5145220af4dc42a4ad",
+      "task_id": "111",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "bc0dfd99e7079d6cec11",
+      "task_id": "111",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    },
+    {
+      "id": "8231178bc8a4c782d23f",
+      "task_id": "111",
+      "applicable": true,
+      "status": "needs_semantic_review",
+      "label_changed": false,
+      "limitation": "No prior marker is not proof of no authorization; implicit or differently phrased consent requires review.",
+      "earlier_assent_count": 2
+    }
+  ]
+}
