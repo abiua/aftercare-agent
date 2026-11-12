@@ -183,7 +183,7 @@ test('fixture: independent refund range uses exact cents and stale seal cannot r
 });
 
 for (const fails of [false, true]) {
-  test(`fixture: blind route isolates experiment reads when capability ${fails ? 'fails' : 'is disabled'}`, async ({page, fixtureApi}) => {
+  test(`fixture: blind route isolates official report reads when capability ${fails ? 'fails' : 'is disabled'}`, async ({page, fixtureApi}) => {
     fixtureApi.blindCapabilityError = fails;
     const before = fixtureApi.calls.length;
     await signIn(page, 'tester', '/?eval=blind&eval_experiment=blind-must-not-open&eval_case=hidden-case&eval_repeat=1');
@@ -191,10 +191,10 @@ for (const fails of [false, true]) {
     await expect(page.getByRole('tab', {name: '独立盲审'})).toHaveAttribute('aria-selected', 'true');
     expect(fixtureApi.calls.slice(before).filter(({path}) => path.startsWith('/api/evaluation/')).map(({path}) => path))
       .toEqual(['/api/evaluation/capabilities']);
-    await page.getByRole('tab', {name: '实验与能力指标'}).click();
-    await expect(page.getByRole('heading', {name: '实验记录'})).toBeVisible();
-    await expect(page).toHaveURL(/\?eval=experiments$/);
-    await expect.poll(() => fixtureApi.calls.slice(before).some(({path}) => path === '/api/evaluation/experiments')).toBe(true);
+    await page.getByRole('tab', {name: '官方 τ²-Bench'}).click();
+    await expect(page.getByText('τ²-Bench Retail 官方测试集', {exact: true})).toBeVisible();
+    await expect(page).toHaveURL(/\?eval=campaigns$/);
+    await expect.poll(() => fixtureApi.calls.slice(before).some(({path}) => path === '/api/evaluation/campaigns')).toBe(true);
     expect(fixtureApi.calls.slice(before).some(({path}) => path.includes('blind-must-not-open'))).toBe(false);
   });
 }

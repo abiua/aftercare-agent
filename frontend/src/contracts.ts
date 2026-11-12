@@ -1,4 +1,4 @@
-import type { ChatProposal } from './chatDecisionData';
+import type { ChatProposal, DecisionSnapshot } from './chatDecisionData';
 
 export type Role = 'customer' | 'support' | 'approver' | 'tester';
 export type User = {user_id: string; display_name: string; role: Role; customer_id?: string};
@@ -63,6 +63,7 @@ export type Execution = {
 };
 export type Policy = {id: string; title?: string; version?: string | number; text?: string; content?: string};
 export type CaseDetail = {
+  agent_advice?: {id: string; version: number; created_at: string; historical: true; candidate: DecisionSnapshot['candidate']; checks: DecisionSnapshot['checks']; policies: Policy[]} | null;
   chat_proposal?: ChatProposal;
   refund_lookup_available?: boolean;
   case: Case; order: Order; policies: Policy[]; materials: Material[]; reviews: MaterialReview[];

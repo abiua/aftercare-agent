@@ -8,6 +8,7 @@ export type Conversation = {
 export type ChatAttachment = {id: string; filename: string; content_type: string; size: number; sha256: string; content_path: string};
 export type OrderCandidate = Pick<Order, 'id' | 'items' | 'status' | 'version'> & Partial<Pick<Order, 'products'>>;
 export type ChatCard =
+  | {type: 'policy_consultation'; data: {retrieval: {source_url?: string; version?: string; status?: string}; excerpts: {text: string; title?: string; policy_id?: string; version?: string; effective_at?: string; line?: number; chunk_id: string}[]}}
   | {type: 'order_candidates'; data: {orders: OrderCandidate[]; new_issue: boolean}}
   | {type: 'case_link'; data: {case_id: string; order_id: string}}
   | {type: 'status'; data: {code: string; refunds?: {id: string; status: string; amount_cents: number; receipt_confirmed?: boolean}[]}}
@@ -28,7 +29,16 @@ export type ChatExecutionProgress = {
   simulated: boolean; receipt_confirmed: boolean; updated_at: string;
 };
 export type ChatInvestigationProgress = {state: 'QUEUED' | 'CHECKING' | 'PENDING_SUPPORT' | 'NEEDS_SUPPORT'};
-export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; analysis?: ChatAnalysis; features?: {chat_decisions?: boolean; chat_material_bridge?: boolean}; execution_progress?: ChatExecutionProgress | null; investigation_progress?: ChatInvestigationProgress | null};
+type CustomerStatement = {source: 'CUSTOMER_STATEMENT'; message_id: string; sequence: number; text: string; sha256: string};
+export type ChatMemory = {
+  schema_version: 1; issue_id: string; conversation_revision: number;
+  state: 'CURRENT' | 'CORRECTION_NEEDS_SUPPORT' | 'PENDING_SCOPE_CONFIRMATION';
+  confirmed_context: {case_id: string | null; order_id: string | null; line_ids: string[]};
+  latest_request: CustomerStatement | null; correction: CustomerStatement | null;
+  recent_attachments: {attachment_id: string; message_id: string; sequence: number; sha256: string; filename: string; current: boolean}[];
+  has_more_attachments: boolean;
+};
+export type ChatUpdate = {conversation: Conversation; messages: ChatMessage[]; memory?: ChatMemory; analysis?: ChatAnalysis; features?: {chat_decisions?: boolean; chat_material_bridge?: boolean}; execution_progress?: ChatExecutionProgress | null; investigation_progress?: ChatInvestigationProgress | null};
 export type ChatPage = ChatUpdate & {has_more: boolean; next_after: number};
 
 export const CHAT_PAGE_SIZE = 50;

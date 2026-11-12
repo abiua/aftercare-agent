@@ -3,11 +3,12 @@ import { Alert, Button, Card, Checkbox, Input, Modal, Select, Space, Tag } from 
 import { ApiError, errorMessage, segment, type Client } from './api';
 import type { Order, User } from './contracts';
 import { canAcceptOption, customerActions, decisionActions, decisionRef, editableMeasure, evidenceGaps, isExecutionOption, orderLineName, reviewActions, type ChatProposalHandoff, type CustomerAction, type CustomerOffer, type CustomerOfferView, type DecisionHistoryPage, type DecisionLine, type DecisionOption, type DecisionSnapshot, type EvidenceGap, type ProgramCheck, type ReviewAction, type SupportDecisionView } from './chatDecisionData';
+import { decisionCheck } from './decisionLanguage';
 import { investigationReason } from './investigationMessages';
 import { useActions, useResource } from './hooks';
 import { Evidence, Feedback, Json, money, time } from './ui';
 
-type Props = {api: Client; base: string; user: User; orderId?: string | null; issueId?: string; revision: number; conversationId: string; caseId?: string | null; onCase: (id: string, proposal?: ChatProposalHandoff) => void; refreshChat: () => void};
+type Props = {readOnly?: boolean; api: Client; base: string; user: User; orderId?: string | null; issueId?: string; revision: number; conversationId: string; caseId?: string | null; onCase: (id: string, proposal?: ChatProposalHandoff) => void; refreshChat: () => void};
 
 export function ChatDecisions(props: Props) {
   return props.user.role === 'customer' ? <CustomerDecisionPanel {...props} /> : <SupportDecisionPanel {...props} />;
@@ -64,8 +65,8 @@ function OfferCard({api, path, offer, order, orderId, locked, refresh}: {
   return <Card size="small" title="客服方案" className="chat-decision">
     <p>{orderId && `订单 ${orderId} · `}{decisionActions[offer.action]}</p>
     <Lines lines={offer.lines} order={order} />
-    {!!offer.policy_ids.length && <p>核对依据 · {offer.policy_ids.join('、')}</p>}
-    <p className="muted">请在 {time(offer.expires_at)} 前确认。确认后，仍由客服和审批人员按流程办理。</p>
+
+    <p className="muted">请在 {time(offer.expires_at)} 前确认。确认后我们会继续办理。</p>
     {response && <Tag>已提交 · {customerActions[response]}</Tag>}
     {choices.length > 0 && <Space wrap>
       {choices.map((action) =>
@@ -83,7 +84,7 @@ function OfferCard({api, path, offer, order, orderId, locked, refresh}: {
   </Card>;
 }
 
-function SupportDecisionPanel({api, base, issueId, revision, refreshChat, conversationId, caseId, onCase}: Props) {
+function SupportDecisionPanel({api, base, issueId, revision, refreshChat, conversationId, caseId, onCase, readOnly = false}: Props) {
   const path = `${base}/decisions`;
   const resource = useDecisionRead<SupportDecisionView>(api, path, revision);
   const actions = useActions(api);
@@ -115,18 +116,24 @@ function SupportDecisionPanel({api, base, issueId, revision, refreshChat, conver
   const order = useResource<Order>(api, draft ? `/orders/${segment(draft.input.order_id)}` : null);
   function refresh() {resource.refresh(); historyIndex.refresh(); refreshChat();}
   const stale = !!editor && (current?.id !== editor.snapshot.id || current.sha256 !== editor.snapshot.sha256 || view?.expected_review_id !== editor.reviewId);
-  return <Card size="small" className="chat-decision" title="售后方案复核" extra={!historyId && <Button disabled={actions.busy || !usable || !view?.issue_id} onClick={() =>
+  return <Card size="small" className="chat-decision" title="客服审核 Agent 方案" extra={!readOnly && !historyId && <Button disabled={actions.busy || !usable || !view?.issue_id} onClick={() =>
     void actions.submit(`${path}/run`, {}, {success: '已提交调查。', refresh})}>启动方案调查</Button>}>
     <Feedback error={resource.error || actions.error || history.error || historyIndex.error} notice={actions.notice} />
+    {readOnly && <Alert type="info" title="本工单已进入审批或执行阶段，以下审核记录仅供查看。" />}
+    {!readOnly && current && !historyId && <Space wrap>
+      {(Object.keys(reviewActions) as ReviewAction[]).map((action) => <Button key={action} aria-label={reviewActions[action]} disabled={resource.loading ||
+        (action === 'MODIFY' && !current.candidate.options.length) || (action === 'ACCEPT' && !current.candidate.options.some((option) => canAcceptOption(current, option)))}
+        onClick={() => setEditor({snapshot: current, reviewId: view?.expected_review_id ?? null, action})}>{reviewActions[action]}</Button>)}
+    </Space>}
     {currentIssue && <Button onClick={() => {
       setHistoryBrowse(browsing ? undefined : {scope, cursors: []});
-    }}>{browsing ? '收起候选历史' : '查看候选历史'}</Button>}
-    {browsing && <section aria-label="候选历史">
-      {historyIndex.loading && !index && <p>正在读取候选历史。</p>}
+    }}>{browsing ? '收起历史方案' : '查看历史方案'}</Button>}
+    {browsing && <section aria-label="历史方案">
+      {historyIndex.loading && !index && <p>正在读取历史方案。</p>}
       {index?.items.length === 0 && <p>本事项还没有候选记录。</p>}
       {!!index?.items.length && <ul>{index.items.map((item) => <li key={item.id}>
         <Button type="link" onClick={() => showHistory(item.id)}>
-          第 {item.version} 版 · {item.origin === 'AGENT' ? 'Agent 原始候选' : '客服修改方案'}
+          第 {item.version} 版 · {item.origin === 'AGENT' ? '助手建议' : '客服修改方案'}
         </Button>
         {item.id === current?.id && <Tag>当前版本</Tag>}
         <span>{time(item.created_at)}</span>
@@ -147,7 +154,7 @@ function SupportDecisionPanel({api, base, issueId, revision, refreshChat, conver
     {!historyId && reviewCheck?.status === 'NON_EXECUTING' && <Tag>客服复核记录为后续处理建议</Tag>}
     {!draft && <p className="muted">{historyId ?
       (history.loading ? '正在读取历史版本。' : '当前无法查看该历史版本。') :
-      (resource.loading ? '正在读取方案。' : '当前没有待复核的候选方案。')}</p>}
+      (resource.loading ? '正在读取方案。' : '当前没有待审核的方案。')}</p>}
     {draft && <SnapshotCard snapshot={draft} order={order.value} showParent={showHistory} />}
     {historyId && <Button onClick={() => setHistorySelection(undefined)}>返回当前方案</Button>}
     {!historyId && usable && view?.latest_review && <p>最近客服处理 · {reviewActions[view.latest_review.action]} · {view.latest_review.reason} · {time(view.latest_review.created_at)}</p>}
@@ -155,39 +162,33 @@ function SupportDecisionPanel({api, base, issueId, revision, refreshChat, conver
       <h3>客户对关联方案的回复</h3>
       <p>方案第 {view.customer_decision.offer.version} 版 · {customerActions[view.customer_decision.action]} · {time(view.customer_decision.created_at)}</p>
       {view.customer_decision.reason && <p>{view.customer_decision.reason}</p>}
-      {view.customer_decision.action === 'ACCEPT' && currentIssue && caseId && current?.input.case_id === caseId &&
+      {!readOnly && view.customer_decision.action === 'ACCEPT' && currentIssue && caseId && current?.input.case_id === caseId &&
         <Button disabled={resource.loading} onClick={() => onCase(caseId, {
           caseId, conversationId, issueId: currentIssue, offer: decisionRef(view.customer_decision!.offer),
         })}>到工单提交已确认方案</Button>}
       <p className="muted">后续办理时还会核对方案是否有效。</p>
     </section>}
-    {current && !historyId && <Space wrap>
-      {(Object.keys(reviewActions) as ReviewAction[]).map((action) => <Button key={action} aria-label={reviewActions[action]} disabled={resource.loading ||
-        (action === 'MODIFY' && !current.candidate.options.length) || (action === 'ACCEPT' && !current.candidate.options.some((option) => canAcceptOption(current, option)))}
-        onClick={() => setEditor({snapshot: current, reviewId: view?.expected_review_id ?? null, action})}>{reviewActions[action]}</Button>)}
-    </Space>}
-    {!historyId && editor && <ReviewEditor api={api} path={path} order={order.value} {...editor} stale={stale}
+    {!readOnly && !historyId && editor && <ReviewEditor api={api} path={path} order={order.value} {...editor} stale={stale}
       close={() => setEditor(undefined)} refresh={refresh} onSaved={setSavedReview} />}
   </Card>;
 }
 
 function SnapshotCard({snapshot, order, showParent}: {snapshot: DecisionSnapshot; order?: Order; showParent: (id: string) => void}) {
   return <section>
-    <h3>{snapshot.origin === 'AGENT' ? 'Agent 原始候选' : '客服修改方案'} · 第 {snapshot.version} 版</h3>
+    <h3>{snapshot.origin === 'AGENT' ? '助手建议' : '客服修改方案'} · 第 {snapshot.version} 版</h3>
     <p>订单 {snapshot.input.order_id} · 截至第 {snapshot.input.input_through_seq} 条消息</p>
     {snapshot.parent_id && <Button onClick={() => showParent(snapshot.parent_id!)}>查看修改前版本</Button>}
-    {snapshot.candidate.unresolved.length > 0 && <Alert type="warning" title="仍需核对" description={
-      <ul>{snapshot.candidate.unresolved.map((item) => <li key={item}>{investigationReason(item) ?? item}</li>)}</ul>
-    } />}
+    {snapshot.candidate.unresolved.length > 0 && <Evidence title="还需要客服核对什么"> <Alert type="warning" title="待办事项" description={
+      <ul>{snapshot.candidate.unresolved.map(item => investigationReason(item) ?? item).map((item) => <li key={item}>{item}</li>)}</ul>
+    } /></Evidence>}
     {snapshot.candidate.options.map((option) => <Card key={option.id} size="small" title={decisionActions[option.action]}>
       <p>{option.rationale}</p>
       <Lines lines={isExecutionOption(option) ? option.lines : option.target_line_ids.map((line_id) => ({line_id}))} order={order} />
       {!isExecutionOption(option) && <ul>{[...option.missing_evidence, ...option.alternatives].map((item, index) => <li key={index}>{item}</li>)}</ul>}
-      <Tag>{snapshot.checks[option.id]?.status === 'PASSED' ? '候选生成时核对通过' :
-        snapshot.checks[option.id]?.status === 'NON_EXECUTING' ? '仅后续处理建议' : '候选生成时核对未通过'}</Tag>
-      <Evidence title="查看依据和核对记录"><Json value={{evidence: option.evidence_ids, check: snapshot.checks[option.id]}} /></Evidence>
+      <Tag>{decisionCheck(snapshot.checks[option.id])}</Tag>
+      <Evidence title="技术记录：助手原文、引用与检查结果"><Json value={{original: option, evidence: option.evidence_ids, check: snapshot.checks[option.id]}} /></Evidence>
     </Card>)}
-    <Evidence title="查看候选证据与版本"><Json value={{input: snapshot.input, unresolved: snapshot.candidate.unresolved}} /></Evidence>
+    <Evidence title="技术记录：原始问题与版本"><Json value={{input: snapshot.input, unresolved: snapshot.candidate.unresolved}} /></Evidence>
   </section>;
 }
 

@@ -50,12 +50,19 @@ function readEvent(event: RunEvent) {
         upstream: strings(p.upstream_claim_ids), permittedTools: strings(p.tools)}];
     case 'investigation_tool':
       return [{...base, kind: 'tool' as const, role: str(p.role), phase: str(p.phase_id),
-        tool: str(p.tool), refs: strings(p.evidence_ids), evidence: evidenceRefs(p.evidence_refs)}];
+        tool: str(p.tool), origin: str(p.origin), refs: strings(p.evidence_ids), evidence: evidenceRefs(p.evidence_refs)}];
     case 'investigation_escalation':
       return [{...base, kind: 'escalation' as const, from: str(p.from), to: str(p.to), reason: str(p.reason)}];
     case 'investigation_recheck':
-      return [{...base, kind: 'recheck' as const, role: str(p.target_role), targets: strings(p.claim_ids),
-        invalidated: strings(p.stale_claim_ids), tool: str(p.tool), refs: strings(p.evidence_ids)}];
+      return [{...base, kind: 'recheck' as const, role: str(p.target_role), executor: str(p.executor_role), targets: strings(p.claim_ids),
+        invalidated: strings(p.stale_claim_ids), tool: str(p.tool), refs: strings(p.evidence_ids),
+        reason: str(p.reason), counterexamples: assessments(p.counterexamples)}];
+    case 'investigation_claim_revision':
+      return [{...base, kind: 'revision' as const, role: str(p.target_role), reason: str(p.reason),
+        retired: claims(p.retired_claims), replacements: claims(p.replacement_claims),
+        targets: strings(p.target_claim_ids), stale: strings(p.unresolved_stale_claim_ids)}];
+    case 'investigation_material_unread':
+      return [{...base, kind: 'unread' as const, refs: strings(p.evidence_ids), reason: str(p.reason)}];
     case 'investigation_draft_blocked':
       return [{...base, kind: 'blocked' as const, option: str(p.option_id), reason: str(p.code)}];
     case 'investigation_claims':

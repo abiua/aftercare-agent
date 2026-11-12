@@ -46,3 +46,18 @@ test('recheck differences require recorded before and after assessments and reta
   assert.deepEqual(comparison.revised, ['fact/revised']);
   assert.deepEqual(comparison.stale, ['policy/stale']);
 });
+
+
+test('explicit claim revision keeps retired content and unresolved dependencies without inventing replacements', () => {
+  const [step] = investigationTrace([row('claim_revision', {
+    target_role: 'fact', reason: '核对历史退款', target_claim_ids: ['fact/balance'],
+    retired_claims: [{id:'fact/balance', value:'可退100元'}, {id:'policy/limit', value:'依赖旧余额'}],
+    replacement_claims: [{id:'fact/balance', value:'可退60元', supporting_refs:['refund-1']}],
+    unresolved_stale_claim_ids:['policy/limit'], secret_input:'not-for-rendering',
+  })]);
+  assert.equal(step.kind, 'revision');
+  assert.equal(step.retired[0].value, '可退100元');
+  assert.equal(step.replacements[0].value, '可退60元');
+  assert.deepEqual(step.stale, ['policy/limit']);
+  assert.equal(JSON.stringify(step).includes('not-for-rendering'), false);
+});

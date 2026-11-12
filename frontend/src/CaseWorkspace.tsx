@@ -10,6 +10,8 @@ import { OrderFacts } from './OrderFacts';
 import { CaseMaterials } from './CaseMaterials';
 import { CaseFacts } from './CaseFacts';
 import { CaseProcessing } from './CaseProcessing';
+import { AgentAdvice } from './AgentAdvice';
+import { ChatDecisions } from './ChatDecisions';
 import { RunPanel } from './RunPanel';
 import { Evidence, Feedback, intents, Json, Placeholder, Reload, Status, StreamBadge, time } from './ui';
 
@@ -19,7 +21,8 @@ export function CaseWorkspace({api, user, runtime, id, onBack, handoff}: {api: C
   const refresh = resource.refresh;
   const eventRefresh = useEventRefresh(refresh);
   const [events, setEvents] = useState<BusinessEvent[]>([]);
-  const [tab, setTab] = useState(handoff ? 'processing' : 'materials');
+  const [tab, setTab] = useState(handoff || user.role === 'approver' ? 'processing' : user.role === 'support' ? 'decision' : 'materials');
+  const [localHandoff, setLocalHandoff] = useState<ChatProposalHandoff>();
   const [draft, setDraft] = useState<{output: RunOutput; version: number}>();
   const listen = useCallback((frame: SseFrame) => {
     const data = JSON.parse(frame.data) as BusinessEvent;
@@ -56,9 +59,27 @@ export function CaseWorkspace({api, user, runtime, id, onBack, handoff}: {api: C
     <div className="detail-layout">
       <Card className="workspace-card" title="处理工单">
         <Tabs activeKey={tab} onChange={setTab} items={[
+          ...(user.role === 'support' ? [{key: 'decision', label: 'Agent 建议与客服审核', children: <div className="stack">
+            <Space wrap>
+              <Button type="primary" onClick={() => document.getElementById('case-decision-review')?.scrollIntoView({block: 'start', behavior: 'smooth'})}>{detail.case.status === 'RESOLVED' ? '查看客服审核记录' : '审核 / 修改 Agent 方案'}</Button>
+              <Button onClick={() => setTab('processing')}>处理方案与执行进度</Button>
+              <Button onClick={() => setTab('materials')}>核对材料</Button>
+            </Space>
+            <AgentAdvice detail={detail} />
+            <div id="case-decision-review">
+              {detail.chat_proposal ? <ChatDecisions api={api} user={user}
+                base={`/conversations/${segment(detail.chat_proposal.conversation_id)}`}
+                conversationId={detail.chat_proposal.conversation_id} caseId={id}
+                issueId={detail.chat_proposal.issue_id} orderId={detail.case.order_id}
+                revision={detail.case.version} refreshChat={refresh}
+                readOnly={['RESOLVED', 'EXECUTION_PENDING', 'APPROVED', 'EXECUTION_FAILED'].includes(detail.case.status)}
+                onCase={(_, proposal) => {setLocalHandoff(proposal); setTab('processing');}} /> :
+                <Button onClick={() => setTab('agent')}>查看助手调查与草案</Button>}
+            </div>
+          </div>}] : []),
           {key: 'materials', label: '材料与审核', children: <CaseMaterials api={api} detail={detail} user={user} base={base} refresh={refresh} canOperate={canOperate} />},
-          ...(canSeeAgent ? [{key: 'agent', label: '助手协作', children: <RunPanel api={api} detail={detail} runtime={runtime} base={base} user={user} refreshCase={refresh} canOperate={canOperate} onDraft={(output) => {setDraft({output, version: detail.case.version}); setTab('processing');}} />}] : []),
-          {key: 'processing', label: '方案与回执', children: <CaseProcessing api={api} detail={detail} user={user} base={base} refresh={refresh} canOperate={canOperate} readFailed={!!resource.error} handoff={handoff} draft={draft?.version === detail.case.version ? draft.output : undefined} />},
+          ...(canSeeAgent ? [{key: 'agent', label: '调查过程与运行记录', children: <RunPanel api={api} detail={detail} runtime={runtime} base={base} user={user} refreshCase={refresh} canOperate={canOperate} onDraft={(output) => {setDraft({output, version: detail.case.version}); setTab('processing');}} />}] : []),
+          {key: 'processing', label: user.role === 'approver' ? '财务审批与依据' : '方案与回执', children: <CaseProcessing api={api} detail={detail} user={user} base={base} refresh={refresh} canOperate={canOperate} readFailed={!!resource.error} handoff={localHandoff ?? handoff} draft={draft?.version === detail.case.version ? draft.output : undefined} />},
         ]} />
       </Card>
       <div className="stack">
@@ -66,10 +87,10 @@ export function CaseWorkspace({api, user, runtime, id, onBack, handoff}: {api: C
         <Card title="工单摘要">
           <Descriptions size="small" column={1} items={[
             {key: 'submitted', label: '提交时间', children: time(detail.case.created_at)},
-            {key: 'conditions', label: '处理条件', children: <Status value={detail.eligibility.status} />},
+            {key: 'conditions', label: '处理条件', children: <Status value={detail.case.status === 'RESOLVED' ? 'RESOLVED' : detail.eligibility.status} />},
           ]} />
-          {detail.eligibility.reason && <p className="muted">{detail.eligibility.reason}</p>}
-          {!!detail.eligibility.reasons?.length && <ul>{detail.eligibility.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
+          {detail.case.status === 'RESOLVED' ? <p className="muted">本工单已完成，可查看历史方案、审批与执行回执。</p> : detail.eligibility.reason && <p className="muted">{detail.eligibility.reason}</p>}
+          {detail.case.status !== 'RESOLVED' && !!detail.eligibility.reasons?.length && <ul>{detail.eligibility.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
           {user.role !== 'customer' && <Evidence title="适用政策与事实版本"><Json value={{policies: detail.policies, versions: detail.versions}} /></Evidence>}
         </Card>
         <CaseFacts api={api} detail={detail} user={user} base={base} refresh={refresh} canOperate={canOperate} />

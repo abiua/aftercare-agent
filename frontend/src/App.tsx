@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Button, Card, Form, Input, Space, Tag } from 'antd';
+import { Alert, Button, Card, Space, Tag } from 'antd';
 import { ApartmentOutlined, ExperimentOutlined, LogoutOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { client, errorMessage } from './api';
 import type { Runtime, User } from './contracts';
@@ -40,12 +40,17 @@ export function App() {
     return () => controller.abort();
   }, [token, api]);
 
-  function login(value: {token: string}) {
-    const credential = value.token.trim();
-    if (!credential) return;
+  async function login(role: User['role']) {
     setError('');
-    sessionStorage.setItem(storageKey, credential);
-    setToken(credential);
+    setVerifying(true);
+    try {
+      const result = await client('').post<{token: string}>('/auth/demo-role', {role});
+      sessionStorage.setItem(storageKey, result.token);
+      setToken(result.token);
+    } catch (failure) {
+      setError(errorMessage(failure));
+      setVerifying(false);
+    }
   }
 
   function logout() {
@@ -70,15 +75,19 @@ export function App() {
       <Card className="login-card">
         <SafetyCertificateOutlined className="login-icon" />
         <h2>登录工作台</h2>
-        <p className="muted">请输入分配给你的访问凭据。</p>
+        <p className="muted">选择一个角色，直接进入演示。</p>
         <Space orientation="vertical" size={16} className="full">
           <Feedback error={error} />
-          <Form layout="vertical" onFinish={login}>
-            <Form.Item name="token" label="访问凭据" rules={[{required: true, whitespace: true, message: '请输入访问凭据'}]}>
-              <Input.Password autoComplete="off" placeholder="粘贴访问凭据" size="large" />
-            </Form.Item>
-            <Button block type="primary" htmlType="submit" size="large" loading={verifying}>登录</Button>
-          </Form>
+          {([
+            ['customer', '客户', '发起售后、补充照片、查看进度'],
+            ['support', '客服', '调查工单、审核方案、回复客户'],
+            ['approver', '财务审批人', '独立审批退款与换发'],
+            ['tester', '测试员', '查看评测与演示结果'],
+          ] as const).map(([role, label, description]) => <div key={role}>
+            <Button block type={role === 'customer' ? 'primary' : 'default'} size="large"
+              disabled={verifying} onClick={() => void login(role)}>以{label}身份进入</Button>
+            <p className="muted" style={{margin: '6px 0 0'}}>{description}</p>
+          </div>)}
         </Space>
       </Card>
     </main>

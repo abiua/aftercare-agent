@@ -1,6 +1,7 @@
 import type { ChatProposalHandoff } from './chatDecisionData';
 import { ChatMaterialBridge } from './ChatMaterialBridge';
 import { ChatDecisions } from './ChatDecisions';
+import { ChatCorrection } from './ChatCorrection';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Checkbox, Input, Modal, Space, Tag } from 'antd';
 import { ApiError, errorMessage, segment, type Client } from './api';
@@ -38,7 +39,10 @@ export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCa
   const [offset, setOffset] = useState(0);
   const [drafts] = useState(() => new Map<string, ComposeDraft>());
   const listing = useResource<Items<Conversation>>(api, `/conversations?limit=${listSize}&offset=${offset}`);
-  const {refresh} = listing;
+  const unfinished = useResource<Items<Conversation>>(api, user.role === 'customer' ? '/conversations/unfinished' : null);
+  const refreshListing = listing.refresh;
+  const refreshUnfinished = unfinished.refresh;
+  const refresh = useCallback(() => {refreshListing(); refreshUnfinished();}, [refreshListing, refreshUnfinished]);
   const create = useActions(api);
   useEffect(() => {
     const timer = setInterval(refresh, 8000);
@@ -63,7 +67,11 @@ export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCa
   const rows = listing.value?.items ?? [];
   return <div className="chat-layout">
     <Card title="售后对话" extra={user.role === 'customer' && <Button type="primary" loading={create.busy} onClick={() => void start()}>新对话</Button>}>
-      <Feedback error={listing.error || create.error} />
+      <Feedback error={listing.error || create.error || unfinished.error} />
+      {!!unfinished.value?.items.length && <Card size="small" title="继续之前的售后">
+        <p>回到原对话，之前的说明和照片都在。</p>
+        <Space orientation="vertical">{unfinished.value.items.map(row=><Button key={row.id} onClick={()=>select(row.id)}>继续处理订单 {row.active_order_id}</Button>)}</Space>
+      </Card>}
       {!rows.length && <p className="muted">{listing.loading ? '正在读取对话…' : '暂无对话'}</p>}
       <div className="stack chat-list">{rows.map((row) => <Button key={row.id} type={id === row.id ? 'primary' : 'default'} onClick={() => select(row.id)}>
         {row.active_order_id ? `订单 ${row.active_order_id}` : `对话 · ${time(row.created_at)}`} · {statuses[row.status]}
@@ -104,6 +112,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
   const merge = useCallback((update: ChatUpdate, request: number) => setState((old) => ({
     conversation: !old || update.conversation.revision >= old.conversation.revision ? update.conversation : old.conversation,
     features: !old || update.conversation.revision >= old.conversation.revision ? update.features : old.features,
+    memory: !old || update.conversation.revision >= old.conversation.revision ? update.memory : old.memory,
     messages: mergeChatMessages(old?.messages ?? [], update.messages),
     executionRead: mergeExecutionProgress(old?.executionRead, update, request),
     investigationRead: mergeInvestigationProgress(old?.investigationRead, update, request),
@@ -196,9 +205,11 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
 
   const conversation = state?.conversation;
   const analysis = state?.analysisRead.value;
-  const statusText = (user.role === 'customer' && !readError &&
-    investigationStatus(state?.investigationRead.value, analysis)) || analysisStatus(analysis);
   const progress = state?.executionRead.value;
+  const completed = progress?.receipt_confirmed === true && progress.status === 'SUCCEEDED' &&
+    progress.case_id === conversation?.active_case_id;
+  const statusText = completed ? '' : (user.role === 'customer' && !readError &&
+    investigationStatus(state?.investigationRead.value, analysis)) || analysisStatus(analysis);
   const attachments = new Map(state?.messages.flatMap((row) => row.attachments.map((attachment) =>
     [attachment.id, attachment.filename] as const)));
   const latestOrderPrompt = state?.messages.slice().reverse().find((row) => row.cards.some((card) => card.type === 'order_candidates'))?.sequence;
@@ -213,6 +224,9 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
   </Space>}>
     <Feedback error={readError || controls.error} />
     {statusText && <p role="status" className="chat-analysis-status">{statusText}</p>}
+    {user.role === 'support' && conversation && !readError && state?.features?.chat_decisions === true &&
+      <ChatDecisions key={JSON.stringify([conversation.revision, conversation.active_order_id, conversation.active_case_id, analysis?.issue_id])} api={api} base={base} user={user} orderId={conversation.active_order_id}
+        issueId={analysis?.issue_id} conversationId={id} caseId={conversation.active_case_id} onCase={onCase} revision={conversation.revision} refreshChat={load} />}
     <div className="chat-messages" aria-label="对话消息">
       {state?.messages.map((row) => <article key={row.id} className={`chat-message chat-${row.role}`}>
         <div className="chat-byline">{row.role === 'customer' ? '客户' : row.role === 'support' ? '客服' : row.cards.some((card) => card.type === 'photo_observation') ? '售后助手（照片观察）' : '售后助手（程序回复）'} · {time(row.created_at)}</div>
@@ -235,7 +249,12 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
       </article>)}
       {conversation && !state?.messages.length && <p className="muted">发送一条消息开始对话。</p>}
     </div>
-    {conversation && !readError && state?.features?.chat_decisions === true &&
+    {user.role === 'support' && !blocked && conversation && state?.memory?.state === 'CORRECTION_NEEDS_SUPPORT' &&
+      <ChatCorrection key={`${state.memory.issue_id}:${state.memory.correction?.message_id}`} memory={state.memory}
+        revision={conversation.revision} busy={sending || controls.busy}
+        confirm={(body) => act('correction/confirm', body)} photo={(item) =>
+          <ChatPhoto api={api} base={base} attachment={{id: item.attachment_id, filename: item.filename || '聊天照片'}} />} />}
+    {user.role === 'customer' && conversation && !readError && state?.features?.chat_decisions === true &&
       <ChatDecisions key={JSON.stringify([conversation.revision, conversation.active_order_id, conversation.active_case_id, analysis?.issue_id])} api={api} base={base} user={user} orderId={conversation.active_order_id}
         issueId={analysis?.issue_id} conversationId={id} caseId={conversation.active_case_id} onCase={onCase} revision={conversation.revision} refreshChat={load} />}
     {conversation && !readError && progress?.case_id === conversation.active_case_id &&
@@ -277,6 +296,17 @@ function MessageCard({card, onCase, messageText, attachments, offerCannotProvide
   choose: (order: string, lines: string[], newIssue: boolean) => Promise<boolean>;
   currentOrder?: string | null; busy: boolean;
 }) {
+  if (card.type === 'policy_consultation') {
+    if (!card.data.excerpts.length) return null;
+    return <details className="chat-policy-citations">
+      <summary>查看政策依据</summary>
+      {card.data.excerpts.map((item, index) => <blockquote key={`${item.chunk_id}:${index}`}>
+        {item.title && <strong>{item.title}</strong>}
+        <p>{item.text}</p>
+        <small>{item.version ? `版本 ${item.version}` : ''}{item.effective_at ? ` · 生效时间 ${time(item.effective_at)}` : ''}</small>
+      </blockquote>)}
+    </details>;
+  }
   if (card.type === 'case_link') {
     return <Button onClick={() => onCase(card.data.case_id)}>查看订单 {card.data.order_id} 的工单</Button>;
   }
@@ -334,14 +364,25 @@ function ChatPhoto({api, base, attachment, onLoaded}: {api: Client; base: string
   const [source, setSource] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState(false);
+  const [dimensions, setDimensions] = useState<{width: number; height: number}>();
   const request = useRef<AbortController | null>(null);
   const image = useRef('');
   useEffect(() => () => {
     request.current?.abort();
     if (image.current) URL.revokeObjectURL(image.current);
   }, []);
+  function failedImage() {
+    if (image.current) URL.revokeObjectURL(image.current);
+    image.current = '';
+    setSource('');
+    setDimensions(undefined);
+    setPreview(false);
+    setError('照片暂时无法显示，请点击查看照片重试。');
+  }
   async function open() {
-    if (request.current || image.current) return;
+    if (request.current) return;
+    if (image.current) {setPreview(true); return;}
     const controller = new AbortController();
     request.current = controller;
     setLoading(true);
@@ -351,6 +392,7 @@ function ChatPhoto({api, base, attachment, onLoaded}: {api: Client; base: string
       if (controller.signal.aborted) return;
       image.current = URL.createObjectURL(blob);
       setSource(image.current);
+      setPreview(true);
     } catch (failure) {
       if (!controller.signal.aborted) setError(errorMessage(failure));
     } finally {
@@ -360,7 +402,21 @@ function ChatPhoto({api, base, attachment, onLoaded}: {api: Client; base: string
       }
     }
   }
-  return <div>{source ? <img src={source} alt={attachment.filename} onLoad={onLoaded} /> : <Button loading={loading} onClick={() => void open()}>查看照片 · {attachment.filename}</Button>}
+  return <div className="chat-photo-viewer">
+    {source && <button type="button" className="chat-photo-thumbnail" aria-label={`放大照片 · ${attachment.filename}`} onClick={() => setPreview(true)}>
+      <img src={source} alt={attachment.filename} onError={failedImage} onLoad={(event) => {
+        setDimensions({width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight});
+        onLoaded?.();
+      }} />
+    </button>}
+    <Button aria-label={`查看照片 · ${attachment.filename}`} loading={loading} onClick={() => void open()}>查看照片 · {attachment.filename}</Button>
     <Feedback error={error} />
+    <Modal open={preview && !!source} title={`照片预览 · ${attachment.filename}`} width={900}
+      onCancel={() => setPreview(false)} footer={<Button onClick={() => setPreview(false)}>关闭预览</Button>}>
+      {dimensions && <p className="muted">原图 {dimensions.width} × {dimensions.height} 像素
+        {Math.min(dimensions.width, dimensions.height) < 64 && ' · 原图尺寸较小，放大后细节有限'}
+      </p>}
+      {source && <img className="chat-photo-original" src={source} alt={`原图 · ${attachment.filename}`} onError={failedImage} />}
+    </Modal>
   </div>;
 }

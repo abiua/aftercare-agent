@@ -10,13 +10,6 @@ export const financialCaseId = 'fixture-case-financial';
 export const refundLookupCaseId = 'fixture-case-refund-lookup';
 export const refundLookupIds = ['1b17965e-8ecd-44f2-a983-482e334af445', 'cc6c8009-2f82-4ba7-835f-7bd02a83bc07'];
 export const financialExecutionId = 'fixture-execution-pending';
-const experimentId = 'fixture-experiment';
-export const reviewExperimentId = 'fixture-review-experiment';
-export const reviewResultId = 'fixture-review-result';
-export const progressExperimentId = 'fixture-progress-experiment';
-export const scenarioExperimentId = 'fixture-scenario-experiment';
-export const compareLeftId = 'fixture-compare-left';
-export const compareRightId = 'fixture-compare-right';
 export const tokens = {
   customer: 'fixture-customer-token', support: 'fixture-support-token', tester: 'fixture-tester-token',
   approver: 'fixture-approver-token',
@@ -81,160 +74,51 @@ function refundLookupDetail(state) {
     proposals: [], approvals: [], ...(!state.lookupLegacy && {refund_lookup_available: true}),
   };
 }
-const reference = {
-  allowed_draft_actions: ['REFUND'], required_policy_ids: ['POL06'], refund_amount_cents: {min: 35900, max: 35900},
-  checks: [{path: 'status', equals: 'WAITING_INPUT'}, {path: 'output.missing_materials', equals: ['ITEM']}],
-};
-const evaluationResult = {
-  id: 'fixture-eval-result', case_id: 'AC02-C001', repetition: 1, status: 'NEEDS_REVIEW', version: 1, intent: 'damaged',
-  failure_reason: 'HUMAN_REFERENCE_PENDING', expected: reference,
-  actual: {
-    observed_source: 'application_offline', model_audit_complete: true, model_attempts: [],
-    events: {e01: {status: 'WAITING_INPUT', reason: 'WAITING_INPUT', output: {missing_materials: ['ITEM']}}},
-    final_business: {ledger: []},
-  },
-  checks: [{path: 'output.missing_materials', status: 'PASS'}], trace: [], reviews: [],
-};
-const experiment = {
-  id: experimentId, name: '受控评测记录', status: 'COMPLETED', version: 1, created_at: createdAt,
-  config: {dataset_id: 'v0.2', source: 'fixture', mode: 'single', strategy: 'routed', repetitions: 1, concurrency: 1, max_calls: 4, budget_usd: 0},
-  counts: {planned: 2, started: 1, finished: 1, not_run: 1},
-  metrics: [{key: 'coverage', label: '执行覆盖率', value: 0.5, numerator: 1, denominator: 2, unit: 'ratio', source: '执行记录'}],
-  gate: {status: 'INCOMPLETE', release_status: 'BLOCKED', checks: []},
-  results: [evaluationResult, {
-    ...evaluationResult, id: 'fixture-eval-not-run', case_id: 'AC02-C002', status: 'NOT_RUN',
-    failure_reason: undefined, actual: {}, checks: [],
-  }],
-};
-const granularResult = {
-  ...evaluationResult, id: reviewResultId,
-  expected: {...reference, required_facts: ['material_review'], tool_decisions: [{required_arguments: {}}]},
-  trace: [
-    {kind: 'tool_validation', seq: 5, payload: {call_id: 'fixture-call'}},
-    {kind: 'tool', seq: 6, payload: {name: 'read_case_facts', role: 'coordinator', call_id: 'fixture-call',
-      schema_valid: true, arguments: {}}},
-  ],
-  actual: {
-    ...evaluationResult.actual,
-    events: {...evaluationResult.actual.events, e03: {output: {
-      notes: '助手记录照片审核已通过，等待客服确认具体方案。',
-      citations: [{id: 'POL06', version: '1.0', quote: '验收用示例条款原文。'}],
-    }}},
-    citation_audit: [{key: 'POL06@1.0', applicable: true}],
-    final_business: {
-      case: {...originalCase, materials_version: 1}, order: orders[0], ledger: [],
-      reviews: [{materials_version: 1, effective: true, decision: 'APPROVED'}],
-    },
-  },
-};
-const readingResult = {
-  ...granularResult, intent: 'wrong_item',
-  trace: [
-    {event_id: 'e01', op: 'create_case', actor: 'customer'},
-    {event_id: 'e02', op: 'start', actor: 'support'},
-    {event_id: 'e03', op: 'upload', actor: 'customer'},
-    {event_id: 'e04', op: 'resume', actor: 'support'},
-    {kind: 'agent', payload: {stage: 'finish', role: 'policy', notes: '内部笔记称退款已批准。'}},
-  ],
-  actual: {
-    ...granularResult.actual,
-    events: {
-      e04: {status: 'NEEDS_REVIEW', reason: 'MODEL_COST_BUDGET_EXHAUSTED', output: null},
-      e03: {id: 'fixture-upload-reading', kind: 'LABEL'},
-      e02: {status: 'WAITING_INPUT', output: {notes: '请补齐照片后继续。', missing_materials: ['WRONG_ITEM', 'LABEL']}},
-      e01: {id: originalCaseId, order_id: 'A1001', intent: 'wrong_item', description: '耳机发错了，我要拍哪几张？'},
-    },
-  },
-};
-const reviewExperiment = {...experiment, id: reviewExperimentId, name: '受控逐项复核实验',
-  counts: {planned: 1, started: 1, finished: 1, not_run: 0},
-};
+const architectures = ['strong_single', 'staged_single', 'multi_agent'];
+const usage = {agent_calls: 2, user_calls: 1, review_calls: 0,
+  agent_cost_usd: 0.01, user_cost_usd: 0.02, review_cost_usd: 0, duration_seconds: 5};
 
-const scenarioResults = [
-  {...evaluationResult, id: 'fixture-scenario-first', status: 'PASSED', expected: {...reference, family: 'D_PHOTO'}},
-  {...evaluationResult, id: 'fixture-scenario-third', repetition: 3, status: 'TIMEOUT', expected: {...reference, family: 'D_PHOTO'}},
-  {...evaluationResult, id: 'fixture-scenario-other', case_id: 'AC02-C002', status: 'PASSED',
-    intent: 'refund_status', expected: {...reference, family: 'R_RECEIPT'}},
-];
-const scenarioExperiment = {...experiment, id: scenarioExperimentId, name: '受控场景指标实验',
-  counts: {planned: 3, started: 3, finished: 3, not_run: 0}, results: scenarioResults};
-
-function scenarioSummary(state, search, id = scenarioExperimentId) {
-  const scope = {scenario: search.get('scenario'), intent: search.get('intent')};
-  const alternate = id !== scenarioExperimentId;
-  const sourceRows = alternate ? scenarioResults.slice(2) : scenarioResults;
-  const rows = sourceRows.filter((item) => (!scope.scenario || item.expected.family === scope.scenario)
-    && (!scope.intent || item.intent === scope.intent));
-  const failed = rows.filter((item) => item.status === 'TIMEOUT').length;
-  const count = rows.length;
-  const metric = {key: 'task_success', label: '任务成功率', value: count ? (count - failed) / count : null,
-    numerator: count - failed, denominator: count, unit: 'ratio', source: '程序及人工复核',
-    sample_unit: 'run', denominator_unit: 'run', measured_samples: count,
-    unique_cases: new Set(rows.map((item) => item.case_id)).size, unknown: 1, evidence_unknown: 0, unknown_unit: 'run', drilldown_supported: true,
-  };
-  const unknownCheck = {...metric, key: 'check_unknown', label: '程序检查未确定项', unit: 'count',
-    value: count ? 1 : null, numerator: count ? 1 : 0, sample_unit: 'check', denominator_unit: 'check',
-    unknown: 0, evidence_unknown: count ? 1 : 0, unknown_unit: 'check', unknown_includes_measured: true,
-    drilldown_supported: false,
-  };
-  return {
-    rows, summary: {
-      schema_version: 'ac-v1', experiment_id: id, dataset_id: 'v0.2', config_hash: 'a'.repeat(64),
-      frozen_metrics_version: state.scenarioHistorical ? null : 'ac-metrics-2', computed_metrics_version: 'ac-metrics-2',
-      status: state.scenarioHistorical ? 'HISTORICAL_DEFINITION_UNAVAILABLE' : 'AVAILABLE', basis_revision: (state.scenarioRevision ?? '1').repeat(64),
-      scenario_options: [...(alternate ? [] : [{key: 'D_PHOTO', label: '照片补证'}]), {key: 'R_RECEIPT', label: '退款回执'}],
-      intent_options: [{key: 'damaged', label: '商品破损'}, {key: 'refund_status', label: '退款进度'}],
-      scope, scope_counts: {planned: count, started: count, finished: count, not_run: 0,
-        unique_cases: metric.unique_cases, repeated_runs: count - metric.unique_cases},
-      metrics: state.scenarioHistorical ? [] : [metric, unknownCheck],
-    },
-  };
+function groups(rows) {
+  return architectures.map(architecture => {
+    const group = rows.filter(row => row.architecture === architecture);
+    const passed = group.filter(row => row.official_reward === 1).length;
+    const unscored = group.filter(row => row.official_reward == null).length;
+    return {...usage, architecture, scheduled: group.length,
+      completed: group.filter(row => row.status === 'completed').length,
+      passed, unscored,
+      agent_cost_usd: group.some(row => row.agent_cost_usd == null) ? null : usage.agent_cost_usd};
+  });
 }
 
-const progressExperiment = {...experiment, id: progressExperimentId, name: '受控进度实验'};
-
-function progressDetail(state) {
-  const status = state.progressStatus ?? 'RUNNING';
-  const settled = state.progressSettled ?? false;
-  return {...progressExperiment, status, version: state.progressVersion ?? 1,
-    counts: {planned: 1, started: 1, finished: settled ? 1 : 0, not_run: 0},
-    results: [{...evaluationResult, status: settled ? 'FAILED' : 'RUNNING'}],
-  };
+function officialReport(kind) {
+  const rows = architectures.flatMap(architecture => ['demo-a', 'demo-b'].map((task_id, index) => ({
+    ...usage, architecture, task_id, seed: 42 + index, status: 'completed',
+    official_reward: index === 0 ? 1 : 0, task_summary: 'Customer asked to check an order.',
+  })));
+  const repair = rows[1];
+  rows[1] = {...repair, status: 'unknown', official_reward: null, agent_cost_usd: null};
+  const primary = {scope: 'smoke', revision: 'official-fixture-revision', complete: true, all_scored: false,
+    agent_model: 'fixture-agent', user_model: 'fixture-customer', review_model: 'fixture-review',
+    task_ids: ['demo-a', 'demo-b'], trials_per_task: 1, rows, architectures: groups(rows),
+    tool_names: ['get_order_details'], budget: {max_agent_calls_per_run: 8, max_user_calls_per_run: 8,
+      max_review_calls_per_run: 1, max_steps: 25, timeout_seconds_per_run: 60,
+      max_output_tokens_per_call: 512, max_calls: 100, max_usd: 2},
+    billing: {known_usd: 0.42, unsettled_calls: 1, unsettled_reserved_usd: 0.07}};
+  if (kind === 'primary') return primary;
+  if (kind === 'repair') return {...primary, scope: 'repair', all_scored: true, task_ids: ['demo-b'],
+    rows: [repair], architectures: groups([repair])};
+  if (kind === 'combined') {
+    const effective = rows.map((row, index) => index !== 1 ? row : {
+      ...repair, attempt_count: 2, score_source: 'technical_retry', initial_status: row.status,
+      original_attempt: row, repair_attempt: repair, agent_cost_usd: null,
+    });
+    return {...primary, rows: effective, architectures: groups(effective), all_scored: true,
+      original_architectures: primary.architectures, original_directory: 'full', repair_directory: 'full.repair'};
+  }
+  rows[2] = {...rows[2], status: 'budget_exhausted', official_reward: null};
+  rows[3] = {...rows[3], status: 'not_run', official_reward: null};
+  return {...primary, complete: false, rows, architectures: groups(rows)};
 }
-
-function progressFrame(sequence, status) {
-  return `id: ${sequence}\nevent: evaluation-progress\ndata: ${JSON.stringify({
-    experiment_id: progressExperimentId, sequence, kind: 'EXPERIMENT_STATUS', experiment_version: sequence, status,
-  })}\n\n`;
-}
-
-function progressState(sequence, status, terminal, history = 'RECORDED') {
-  return `event: evaluation-state\ndata: ${JSON.stringify({
-    experiment_id: progressExperimentId, latest_sequence: sequence, status, terminal, history,
-  })}\n\n`;
-}
-
-const comparedExperiments = [
-  {...experiment, id: compareLeftId, name: '受控基线实验',
-    counts: {planned: 2, started: 2, finished: 2, not_run: 0}, results: [
-      {...evaluationResult, id: 'fixture-left-first'}, {...evaluationResult, id: 'fixture-left-third', repetition: 3},
-  ]},
-  {...experiment, id: compareRightId, name: '受控对照实验', config: {...experiment.config, mode: 'multi'},
-    counts: {planned: 2, started: 2, finished: 2, not_run: 0},
-    results: [
-      {...evaluationResult, id: 'fixture-right-first'},
-      {...evaluationResult, id: 'fixture-right-third', repetition: 3, status: 'FAILED',
-        failure_reason: 'DETERMINISTIC_CHECK_FAILED'},
-    ]},
-];
-const comparison = {
-  compatible: true, reasons: [], metrics: [],
-  pairing: {planned: 2, finished: 2, complete: true},
-  rows: [
-    {case_id: 'AC02-C001', repetition: 1, left_status: 'NEEDS_REVIEW', right_status: 'NEEDS_REVIEW', change: 'UNCHANGED'},
-    {case_id: 'AC02-C001', repetition: 3, left_status: 'NEEDS_REVIEW', right_status: 'FAILED', change: 'CHANGED'},
-  ],
-};
 
 const json = (route, value, status = 200) => route.fulfill({status, json: value});
 const denied = (route, status, code, message) => json(route, {detail: {code, message}}, status);
@@ -242,11 +126,9 @@ const denied = (route, status, code, message) => json(route, {detail: {code, mes
 export const test = base.extend({
   fixtureApi: async ({context, baseURL}, use) => {
     const {promise: heldExecution, resolve: releaseExecution} = Promise.withResolvers();
-    const {promise: heldScenario, resolve: releaseScenario} = Promise.withResolvers();
-    const {promise: heldProgress, resolve: releaseProgress} = Promise.withResolvers();
     const {promise: heldRefundLookup, resolve: releaseRefundLookup} = Promise.withResolvers();
-    const state = {releaseRefundLookup, refundLookupCalls: [], releaseProgress, progressStreams: [], progressProbes: [], progressReads: 0, releaseScenario, calls: [], confirmed: [], uploads: [], executions: [], created: undefined, releaseExecution,
-      reviewHistory: [], reviewCalls: [], reviewConflict: false, chatPosts: [], chatMessages: [], chatCreated: false,
+    const state = {releaseRefundLookup, refundLookupCalls: [], calls: [], confirmed: [], uploads: [], executions: [], created: undefined, releaseExecution,
+      chatPosts: [], chatMessages: [], chatCreated: false,
       chatContext: [], chatAbortFirst: false, chatDetails: [], chatDecisionPosts: []};
     const conversation = {id: chatId, customer_id: 'C-FIXTURE', status: 'OPEN', revision: 1,
       created_at: createdAt, updated_at: createdAt, active_order_id: null, active_case_id: null};
@@ -273,9 +155,17 @@ export const test = base.extend({
       const headers = request.headers();
       const role = Object.keys(tokens).find((key) => headers.authorization === `Bearer ${tokens[key]}`);
       const body = headers['content-type']?.includes('application/json') ? request.postDataJSON() : undefined;
-      state.calls.push({path, method, role, body, key: headers['idempotency-key'],
-        ...(path.includes('/scenario-metrics') && {search: url.search})});
+      state.calls.push({path, method, role, body, key: headers['idempotency-key']});
 
+      if (method === 'POST' && path === '/api/auth/demo-role') {
+        const token = tokens[body?.role];
+        if (!token) return denied(route, 400, 'DEMO_ROLE_INVALID', '身份无效。');
+        if (state.rejectNextLogin) {
+          state.rejectNextLogin = false;
+          return json(route, {token: 'invalid-fixture-token'});
+        }
+        return json(route, {token});
+      }
       if (!role) return denied(route, 401, 'AUTH_REQUIRED', '凭据失效。');
       if (method === 'GET' && path === '/api/me') return json(route, users[role]);
       if (method === 'GET' && path === '/api/runtime') return json(route, {mode: 'offline', models: [], features: {}});
@@ -561,10 +451,17 @@ export const test = base.extend({
       }
       if (method === 'GET' && path === '/api/evaluation/capabilities') {
         if (state.blindCapabilityError) return denied(route, 503, 'CAPABILITY_UNAVAILABLE', '评测服务暂时不可用。');
-        return json(route, {eval_import: false, eval_retry: true, eval_gates: false,
-          ...(state.scenarioEnabled && {eval_scenario_metrics: true}),
-          ...(state.progressMode && {eval_progress_events: true}),
+        return json(route, {eval_import: false, eval_retry: false, eval_gates: false,
           chat_blind_review: !!state.blindReview});
+      }
+      if (method === 'GET' && path === '/api/evaluation/campaigns') {
+        return json(route, {items: state.officialReport ? [officialReport(state.officialReport)] : []});
+      }
+      if (method === 'GET' && path === '/api/evaluation/campaigns/tau-official-primary') {
+        return json(route, officialReport('primary'));
+      }
+      if (method === 'GET' && path === '/api/evaluation/campaigns/tau-official-repair') {
+        return json(route, officialReport('repair'));
       }
       if (state.blindReview && path.startsWith('/api/evaluation/chat-blind-reviews')) {
         const {task, candidates, posts} = state.blindReview;
@@ -610,129 +507,8 @@ export const test = base.extend({
         }
         return denied(route, 404, 'BLIND_REVIEW_NOT_FOUND', '任务不存在。');
       }
-      if (method === 'GET' && path === '/api/evaluation/datasets') {
-        return json(route, {items: [{id: 'v0.2', name: '受控案例库', version: 'v0.2', case_count: 1}]});
-      }
-      if (method === 'GET' && path === '/api/evaluation/cases') {
-        return json(route, {items: [{id: 'AC02-C001', dataset_id: 'v0.2', intent: 'damaged', scenario: '模拟破损',
-          difficulty: 'easy', split: 'dev', review_status: 'PENDING', input: {message: '包装破损'}, expected: reference}]});
-      }
-      if (method === 'GET' && path === '/api/evaluation/experiments') {
-        return json(route, {items: [experiment, reviewExperiment, scenarioExperiment, ...(state.progressMode ? [progressDetail(state)] : []), ...comparedExperiments].map((item) => ({...item, results: []}))});
-      }
-      if (method === 'GET' && path === '/api/evaluation/compare'
-        && url.searchParams.get('left') === compareLeftId && url.searchParams.get('right') === compareRightId) {
-        return json(route, comparison);
-      }
-      const compared = comparedExperiments.find((item) => path === `/api/evaluation/experiments/${item.id}`);
-      if (method === 'GET' && compared) {
-        return json(route, compared);
-      }
-      const progressPath = `/api/evaluation/experiments/${progressExperimentId}`;
-      if (method === 'GET' && path === progressPath && state.progressMode) {
-        state.progressReads += 1;
-        if (state.progressMode === 'historical' && state.progressReads >= 3) {
-          state.progressStatus = 'COMPLETED';
-          state.progressSettled = true;
-        }
-        return json(route, progressDetail(state));
-      }
-      if (method === 'GET' && path === `${progressPath}/progress` && state.progressMode) {
-        state.progressProbes.push({after: url.searchParams.get('after'), limit: url.searchParams.get('limit')});
-        if (state.progressMode === 'revoked') return denied(route, 403, 'AUTH_REQUIRED', '凭据已撤销。');
-        if (state.progressMode === 'gap') return denied(route, 409, 'PROGRESS_HISTORY_INCOMPLETE', '进度记录不完整。');
-        const sequence = state.progressMode === 'network' ? 0 : 2;
-        return json(route, {experiment_id: progressExperimentId, latest_sequence: sequence, status: 'CANCELLED',
-          terminal: false, history: 'RECORDED', events: sequence ? [{sequence}] : []});
-      }
-      if (method === 'GET' && path === `${progressPath}/progress/stream` && state.progressMode) {
-        state.progressStreams.push({after: url.searchParams.get('after'), lastEventId: headers['last-event-id']});
-        const attempt = state.progressStreams.length;
-        const sse = (body) => route.fulfill({status: 200, contentType: 'text/event-stream', body});
-        if (state.progressMode === 'historical') {
-          return sse(progressState(0, 'RUNNING', false, 'HISTORICAL_SNAPSHOT'));
-        }
-        if (state.progressMode === 'network') return route.abort('failed');
-        if (attempt === 1) {
-          state.progressStatus = 'CANCELLED';
-          state.progressVersion = 2;
-          return sse(progressFrame(1, 'CANCELLED') + progressState(1, 'CANCELLED', false));
-        }
-        await heldProgress;
-        state.progressSettled = true;
-        state.progressVersion = 3;
-        return sse(progressFrame(1, 'CANCELLED') + progressFrame(2, 'CANCELLED') + progressState(2, 'CANCELLED', true));
-      }
-      if (method === 'GET' && path === `/api/evaluation/experiments/${scenarioExperimentId}`) {
-        return json(route, scenarioExperiment);
-      }
-      const scenarioPath = `/api/evaluation/experiments/${scenarioExperimentId}/scenario-metrics`;
-      if (method === 'GET' && state.scenarioEnabled && path === scenarioPath) {
-        const response = scenarioSummary(state, url.searchParams).summary;
-        if (state.holdPhotoScope && response.scope.scenario === 'D_PHOTO') {
-          await heldScenario;
-          await json(route, response).catch(() => undefined); // A changed scope may already have aborted this request.
-          state.releasedPhotoScope = true;
-          return;
-        }
-        return json(route, response);
-      }
-      if (method === 'GET' && state.scenarioEnabled && path === `/api/evaluation/experiments/${reviewExperimentId}/scenario-metrics`) {
-        return json(route, scenarioSummary(state, url.searchParams, reviewExperimentId).summary);
-      }
-      if (method === 'GET' && state.scenarioEnabled && path === `${scenarioPath}/task_success/contributors`) {
-        if (state.scenarioConflict) {
-          state.scenarioConflict = false;
-          state.scenarioRevision = '2';
-        }
-        const {rows, summary} = scenarioSummary(state, url.searchParams);
-        const {basis_revision, scope, metrics} = summary;
-        if (basis_revision !== url.searchParams.get('basis_revision')) {
-          return denied(route, 409, 'METRIC_BASIS_CHANGED', '指标依据已变化。');
-        }
-        const bucket = url.searchParams.get('bucket');
-        const limit = Number(url.searchParams.get('limit'));
-        const offset = Number(url.searchParams.get('offset'));
-        const items = rows.map((item) => ({result_id: item.id, case_id: item.case_id, repetition: item.repetition,
-          machine_status: item.status, effective_status: item.status, review_version: null,
-          contributions: [{bucket: item.status === 'PASSED' ? 'included' : 'attention',
-            reason: item.status === 'PASSED' ? 'TASK_PASSED' : 'TASK_NOT_PASSED',
-            numerator: item.status === 'PASSED' ? 1 : 0, denominator: 1, measured: true}],
-        }));
-        const selected = bucket ? items.filter((item) => item.contributions.some((entry) => entry.bucket === bucket || (bucket === 'included' && entry.measured))) : items;
-        return json(route, {schema_version: 'ac-v1', experiment_id: scenarioExperimentId, scope, basis_revision, metric: metrics[0],
-          bucket_counts: {included: items.length,
-            attention: items.filter((item) => item.effective_status !== 'PASSED').length, unknown: 0, excluded: 0},
-          items: selected.slice(offset, offset + limit), limit, offset, total: selected.length,
-        });
-      }
-      if (method === 'GET' && path === `/api/evaluation/experiments/${reviewExperimentId}`) {
-        const result = state.reviewLegacy ? evaluationResult : state.reviewReading ? readingResult : granularResult;
-        return json(route, {...reviewExperiment, results: [{...result, id: reviewResultId,
-          reviews: state.reviewHistory, version: state.reviewHistory.at(-1)?.version ?? 1}]});
-      }
-      if (method === 'POST' && path === `/api/evaluation/results/${reviewResultId}/reviews`) {
-        const key = headers['idempotency-key'];
-        const version = state.reviewHistory.at(-1)?.version ?? 1;
-        state.reviewCalls.push({body, key});
-        if (!key || body?.expected_version !== version) {
-          return denied(route, 409, 'VERSION_CONFLICT', '评测记录已更新。');
-        }
-        const next = {id: `fixture-review-${version + 1}`, version: version + 1, created_at: createdAt, reviewer_id: users.tester.user_id};
-        if (state.reviewConflict) {
-          state.reviewConflict = false;
-          state.reviewHistory.push({...next, decision: 'UNKNOWN', notes: '另一位复核员已保存。', annotations: {}});
-          return denied(route, 409, 'VERSION_CONFLICT', '评测记录已更新。');
-        }
-        const saved = {...next, decision: body.decision, notes: body.notes, annotations: body.annotations ?? {}};
-        state.reviewHistory.push(saved);
-        return json(route, saved);
-      }
-      if (method === 'GET' && path === `/api/evaluation/experiments/${experimentId}`) {
-        return json(route, experiment);
-      }
-      if (method === 'GET' && path === `/api/evaluation/experiments/${experimentId}/export`) {
-        return denied(route, 503, 'CODE_RESTART_REQUIRED', 'restart required');
+      if (/^\/api\/evaluation\/(?:datasets|cases|experiments|imports|compare)(?:\/|$)/.test(path)) {
+        return denied(route, 410, 'EVALUATION_RETIRED', '项目用例评测已退役，请查看官方评测。');
       }
       unexpected.push(`${method} ${path}`);
       return denied(route, 500, 'FIXTURE_MISSING', '该请求没有测试替身。');
@@ -744,7 +520,7 @@ export const test = base.extend({
 
 export async function signIn(page, role, location = '/') {
   await page.goto(location);
-  await page.getByLabel('访问凭据').fill(tokens[role]);
-  await page.getByRole('button', {name: /^登\s*录$/}).click();
+  const labels = {customer: '客户', support: '客服', approver: '财务审批人', tester: '测试员'};
+  await page.getByRole('button', {name: `以${labels[role]}身份进入`}).click();
   await expect(page.getByText(users[role].display_name, {exact: true})).toBeVisible();
 }

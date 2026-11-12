@@ -8,6 +8,7 @@ export class ApiError extends Error {
 }
 
 const messages: Record<string, string> = {
+  LOGIN_FAILED: '账号或密码不正确。',
   NETWORK_ERROR: '服务暂时无法连接，请稍后重试。',
   INVALID_REFUND_EXECUTION_ID: '请输入一个完整的退款执行编号。',
   REFUND_LOOKUP_INTENT_REQUIRED: '请在退款进度工单中查询指定退款。',

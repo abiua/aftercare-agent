@@ -14,6 +14,7 @@ const states: Record<string, string> = {SUPPORTED: '有支持证据', CONFIRMED:
 const reasons: Record<string, string> = {SCOPED_STANDARD: '事项范围清楚', COMPLEX_EVIDENCE: '证据需要交叉核对',
   FACT_CONFLICT: '事实有分歧', POLICY_CONFLICT: '政策依据有分歧', SCOPE_AMBIGUOUS: '处理范围待澄清',
   CUSTOMER_DISPUTES_RECORDED_DELIVERY: '客户描述与签收记录有分歧',
+  MULTIPLE_CLAIMED_LINES: '涉及多个售后商品',
   MULTIPLE_APPLICABLE_POLICY_VERSIONS: '发现多个可能适用的条款版本'};
 const named = (values: Record<string, string>, key: string) => Object.hasOwn(values, key) ? values[key] : key || '未记录';
 function Refs({title, values}: {title: string; values: string[]}) {
@@ -35,6 +36,9 @@ export function InvestigationTrace({events}: {events: RunEvent[]}) {
   if (!steps.length) return null;
   return <Card size="small" title="调查过程" className="stack">
     <p>这里展示调查使用的记录及角色提出的判断。候选仍须经业务校验和人工审批。</p>
+    <p><strong>过程概览：</strong>{steps.some(step => step.kind === 'recheck') ? (steps.some(step => step.kind === 'revision')
+      ? '已完成局部修订，具体结果见下方判断变更与核验记录。' : '已读取补查记录，但尚未完成判断修订；请查看运行状态和待处理原因。') :
+      '本次记录尚无局部补查，不代表已经发生纠错。'}</p>
     {steps.map((step) => <section key={step.seq}>
       {step.kind === 'route' && <>
         <h4>调查方式 · {named(routes, step.selected || step.proposed)}</h4>
@@ -54,7 +58,7 @@ export function InvestigationTrace({events}: {events: RunEvent[]}) {
       </>}
       {step.kind === 'tool' && <>
         <h4>{named(roles, step.role)} · 已读取记录</h4>
-        <p>查询 · {named(tools, step.tool)}</p>
+        <p>查询 · {named(tools, step.tool)}{step.origin === 'PROGRAM_REQUIRED_READ' && ' · 程序必查，交给本角色核对'}</p>
         <Refs title="返回的记录编号" values={step.refs} />
         {!!step.evidence.length && <Evidence title="读取版本与来源">
           {step.evidence.map((ref, index) => <p key={index}>{ref.id} · {ref.kind || '来源类型未记录'} · {ref.version || '版本未记录'}</p>)}
@@ -66,12 +70,34 @@ export function InvestigationTrace({events}: {events: RunEvent[]}) {
       </>}
       {step.kind === 'recheck' && <>
         <h4>{named(roles, step.role)} · 局部复查</h4>
+        {step.executor && <p>记录查询：{named(roles, step.executor)} · 判断修订：{named(roles, step.role)}</p>}
+        {step.reason && <p>补查原因 · {step.reason}</p>}
+        {step.counterexamples.map((item, index) => <p key={index}>触发核验 · {item.claim} · {item.field} · {named(states, item.verdict)} · 证据 {item.refs.join('、') || '未记录'}</p>)}
         <Refs title="复查目标" values={step.targets} />
         <Refs title="复查启动时标为待重新确认" values={step.invalidated} />
         <p>查询 · {named(tools, step.tool)}</p>
         <Refs title="复查读取的记录编号" values={step.refs} />
       </>}
-      {step.kind === 'blocked' && <>
+      {step.kind === 'revision' && <>
+        <h4>局部补查后的判断变更</h4>
+        {step.reason && <p>{step.reason}</p>}
+        {step.retired.map(old => {
+          const replacement = step.replacements.find(item => item.id === old.id);
+          return <div key={old.id}>
+            <p><strong>{named(roles, old.role)} · {old.subject}</strong></p>
+            <p>原判断（已撤销）：{old.value || '未记录'}</p>
+            <p>补查后：{replacement ? `${replacement.value} · ${named(states, replacement.state)}` : '仍待重新核对，不能继续沿用原判断'}</p>
+            <Refs title="补查后的支持记录" values={replacement?.supporting ?? []} />
+          </div>;
+        })}
+        <Refs title="仍未解决的依赖判断" values={step.stale} />
+      </>}
+      {step.kind === 'unread' && <>
+        <h4>已有材料尚未核对</h4>
+        <p>{investigationReason(step.reason)}</p>
+        <Refs title="待读取的材料与审核记录" values={step.refs} />
+      </>}
+      {step.kind === 'blocked'  && <>
         <h4>候选未通过业务检查</h4>
         <p>{step.option} · {investigationReason(step.reason) ?? named(reasons, step.reason)}</p>
       </>}

@@ -5,7 +5,7 @@ import type { Intent, Role } from './contracts';
 import type { StreamState } from './hooks';
 import { materialLabels } from './casePresentation';
 
-export const roles: Record<Role, string> = {customer: '客户', support: '售后客服', approver: '审批人', tester: '评测人员'};
+export const roles: Record<Role, string> = {customer: '客户', support: '售后客服', approver: '财务审批人', tester: '评测人员'};
 export const intents: Record<Intent, string> = {
   damaged: '商品破损', wrong_item: '收到错发商品', refund_status: '查询退款进度',
   cancel: '取消订单', return: '退货申请', warranty: '保修申请',

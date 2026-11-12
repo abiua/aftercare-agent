@@ -6,6 +6,7 @@ import { useActions } from './hooks';
 import { decisionRef, type ChatProposalHandoff, type ProposalOffer } from './chatDecisionData';
 import { RefundLookupPanel, useRefundLookup } from './RefundLookupPanel';
 import { refundExecutionId } from './refundLookup';
+import { AgentAdvice } from './AgentAdvice';
 import { productName } from './OrderFacts';
 import { canActBeforeExecution, confirmedRefundReceiptId, orderRefundPresentation, receiptId } from './casePresentation';
 import { Evidence, Feedback, Json, label, money, Placeholder, Status, time } from './ui';
@@ -60,7 +61,25 @@ export function CaseProcessing({api, detail, user, base, refresh, canOperate, re
     detail.eligibility.status === 'ELIGIBLE' && actions.length > 0 &&
     !['PROPOSED', 'APPROVED', 'EXECUTION_PENDING', 'EXECUTION_FAILED', 'RESOLVED'].includes(detail.case.status);
 
+  const recordedApproval = latest && detail.approvals.filter(item => item.proposal_id === latest.id).at(-1);
+  const latestApproval = latest && detail.approvals.find(item => item.proposal_id === latest.id && item.effective);
+  const latestApprovalValid = !!latestApproval && (!latestApproval.expires_at || Date.parse(latestApproval.expires_at) > Date.now());
+  const mayApproveLatest = approver && latest && canActBeforeExecution(detail, latest.id) &&
+    (latest.status === 'PROPOSED' || (latest.status === 'APPROVED' && !latestApprovalValid));
   return <div className="stack">
+    {approver && <Card size="small" title="财务审批 · 当前处理方案" extra={mayApproveLatest &&
+      <Button type="primary" disabled={!canOperate} onClick={() => setEditor({type: 'approval', version, proposal: latest})}>审核财务方案</Button>}>
+      {latest ? <>
+        <Space wrap><strong>{label(latest.action)} · {latest.action === 'REFUND' ? money(latest.amount_cents) : `${latest.lines.reduce((n, line) => n + (line.quantity ?? 0), 0)} 件`}</strong><Status value={latest.status} /></Space>
+        <p><strong>客服提交说明：</strong>{latest.notes}</p>
+        <ul>{latest.lines.map(line => <li key={line.line_id}>商品行 {line.line_id} · {latest.action === 'REFUND' ? money(line.amount_cents ?? 0) : `${line.quantity ?? 0} 件`}</li>)}</ul>
+        {latest.policy_ids.map(id => {const policy = detail.policies.find(p => p.id === id); return <p key={id}><strong>关联政策（当前版本）：{policy?.title ?? id}</strong>{policy?.text && <> — {policy.text}</>}</p>;})}
+        {recordedApproval && <p>已记录的财务结论：{label(recordedApproval.decision)} · {recordedApproval.notes}</p>}
+        {!mayApproveLatest && <p className="muted">{detail.case.status === 'RESOLVED' ? '该工单已办结，无需再次审批。' : '当前没有可审批的最新方案，请以方案状态和回执为准。'}</p>}
+      </> : <p>客服尚未提交财务方案。Agent 的建议不等于待审批方案。</p>}
+    </Card>}
+    {approver && <AgentAdvice detail={detail} />}
+
     <div className="section-row">
       <div><h2>{refund ? '退款进度' : '处理方案'}</h2><p className="muted">{refund ? '按订单查询退款执行记录，包括该订单其他工单登记的退款。' : '审批通过后，客服可按批准内容发起模拟执行。'}</p></div>
       {canPropose && <Button type="primary" disabled={!canOperate} onClick={() => setEditor({
