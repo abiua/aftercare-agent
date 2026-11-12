@@ -21,6 +21,7 @@ from tau_official_summary import ARCHITECTURES, read_json, row_key, summarize, w
 from tau_official_summary import combined_summary, write_repair_comparison
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "backend/src"))
 SOURCE = ROOT / ".runtime/tau-official-source"
 REVISION = "da0835f6c67baef58bdda18f2a3b037dfb3a1754"
 PUBLIC = ROOT / "evidence/tau_official/latest.json"
@@ -66,7 +67,8 @@ def initialize_official():
         # Registry also supplies the full task to factories. Do not forward it.
         return create_agent(architecture, tools, domain_policy, llm, llm_args)
 
-    for architecture in ARCHITECTURES:
+    from aftercare.agent_kernel.contracts import architectures as kernel_architectures
+    for architecture in (*ARCHITECTURES, *kernel_architectures()):
         registry.register_agent_factory(partial(factory, architecture), architecture)
 
     def completion(**kwargs):

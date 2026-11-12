@@ -70,7 +70,7 @@ class OfficialCampaignTests(unittest.TestCase):
                 barrier.wait()
                 try:
                     return row.completion(model=AGENT, messages=[{"role": "user", "content": "hi"}],
-                                          tools=None, tool_choice=None)
+                                          tools=None, tool_choice=None, aftercare_role="executor")
                 except BudgetExhausted:
                     return None
 

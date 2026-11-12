@@ -1,0 +1,12 @@
+{
+  "stage": 2,
+  "paid_calls": 0,
+  "hashes": {
+    "backend/src/aftercare/agent_kernel/engine.py": "bc8ccf681b81ab9dfac3b86bf4d793fccf9aceec2ac9eacbc0038af161fa6af3",
+    "scripts/tau_official_agents.py": "ed324a5e6140515dbda4e8d2006351998be8e53b0ff2d5228faee606d9d3d813",
+    "scripts/tau_official_agents_legacy.py": "cc1846a0e83ed2d0a0de4cded31470c41e5dbce0c00a215b1b7fe68a3742d393",
+    "scripts/tau_official_budget.py": "9967aa4acfeea753816ab131843a935a147fdbdb466a453626e4536c85f94a66"
+  },
+  "replay": "s0_replay.json",
+  "new_group_live_ready": false
+}

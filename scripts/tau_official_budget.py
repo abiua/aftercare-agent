@@ -13,6 +13,7 @@ USER = "gpt-6.1-terra"
 REVIEW = "gpt-5.4-mini-2026-03-17"
 PRICES = {
     AGENT: ("2", "10", "0.10"),
+    "deepseek-flash": ("0.30", "1.20", "0.006"),
     USER: ("1", "5", "0.05"),
     REVIEW: ("0.75", "4.50", "0.075"),
 }
@@ -41,12 +42,12 @@ class Budget:
             stream.flush()
             os.fsync(stream.fileno())
 
-    def reserve(self, row, role, stage, amount):
+    def reserve(self, row, role, stage, amount, *, actor=None, model=None):
         with self.lock:
             if self.calls >= self.max_calls or self.committed + amount > self.max_usd:
                 raise BudgetExhausted("campaign call or cost limit")
             call_id = self.calls + 1
-            self._write({"call_id": call_id, "row": row, "role": role, "stage": stage, "reserve_usd": str(amount)})
+            self._write({"call_id": call_id, "row": row, "role": role, "stage": stage, "reserve_usd": str(amount), "actor": actor, "model": model})
             self.calls = call_id
             self.committed += amount
             return call_id
@@ -89,11 +90,13 @@ def responses_input(messages):
 
 
 class RowTransport:
-    def __init__(self, row, limits, budget, client):
+    def __init__(self, row, limits, budget, client, deepseek_client=None):
         self.row = row
         self.limits = limits
         self.budget = budget
         self.client = client
+        self.deepseek_client = deepseek_client
+        self.actor_calls = {}
         self.calls = dict.fromkeys(("agent", "user", "review"), 0)
         self.costs = dict.fromkeys(self.calls, Decimal(0))
         self.failure_status = None
@@ -108,6 +111,7 @@ class RowTransport:
             **{f"{role}_cost_usd": None if cost is None else float(cost)
                for role, cost in self.costs.items()},
             "token_usage": self.usage, "calls_by_stage": self.calls_by_stage,
+            "calls_by_actor": dict(self.actor_calls),
         }
 
     def completion(self, *, model, messages, tools, tool_choice, call_name=None, **kwargs):
@@ -115,7 +119,10 @@ class RowTransport:
         from litellm import ModelResponse
 
         model = model.split("/")[-1]
-        role = {AGENT: "agent", USER: "user", REVIEW: "review"}[model]
+        actor = kwargs.pop("aftercare_role", None) or legacy_actor(call_name)
+        role = role_bucket(actor)
+        if model == "deepseek-flash" and self.deepseek_client is None:
+            raise ValueError("DeepSeek transport is not configured")
         inputs = responses_input(messages)
         function_tools = [
             {"type": "function", "strict": False, **tool["function"]}
@@ -149,14 +156,19 @@ class RowTransport:
                 raise BudgetExhausted(f"{role} call limit")
             stage = call_name or role
             try:
-                call_id = self.budget.reserve(self.row, role, stage, reserve)
+                call_id = self.budget.reserve(self.row, role, stage, reserve, actor=actor, model=model)
             except BudgetExhausted:
                 self.failure_status = "budget_exhausted"
                 raise
             self.calls[role] += 1
+            self.actor_calls[actor] = self.actor_calls.get(actor, 0) + 1
             self.calls_by_stage[stage] = self.calls_by_stage.get(stage, 0) + 1
         try:
-            response = self.client.responses.create(**payload)
+            if model == "deepseek-flash":
+                response = deepseek_response(self.deepseek_client, model, messages, tools, tool_choice,
+                                             payload["max_output_tokens"])
+            else:
+                response = self.client.responses.create(**payload)
             usage = response.usage
             cached = getattr(usage.input_tokens_details, "cached_tokens", 0) or 0
             billed = ((usage.input_tokens - cached) * in_price + cached * cache_price
@@ -193,3 +205,39 @@ class RowTransport:
         )
         model_response._hidden_params["aftercare_cost_usd"] = float(billed)
         return model_response
+
+
+def role_bucket(actor):
+    if actor in {"executor", "reviewer", "self_check", "fact_expert", "policy_expert", "vision_expert"}:
+        return "agent"
+    if actor == "user": return "user"
+    if actor == "judge": return "review"
+    raise ValueError("Unknown explicit actor")
+
+
+def legacy_actor(stage):
+    # Historical call sites declare intent through named stages, never model identity.
+    if stage == "user_simulator_response": return "user"
+    if stage in {"nl_assertions_eval", "communicate_info_eval"}: return "judge"
+    mapping = {"agent_response":"executor", "agent_fact_analysis":"fact_expert",
+               "agent_policy_review":"policy_expert", "agent_verification":"reviewer", "agent_counterexample":"reviewer"}
+    if stage in mapping: return mapping[stage]
+    raise ValueError(f"Call site must declare aftercare_role: {stage}")
+
+
+def deepseek_response(client, model, messages, tools, tool_choice, output_limit):
+    from types import SimpleNamespace
+    kwargs = dict(model=model, messages=messages, max_tokens=output_limit,
+                  extra_body={"thinking":{"type":"disabled"}})
+    if tools: kwargs.update(tools=tools, tool_choice=tool_choice or "auto")
+    reply=client.chat.completions.create(**kwargs)
+    choice=reply.choices[0]
+    usage=reply.usage
+    details=getattr(usage,"prompt_tokens_details",None)
+    cached=getattr(details,"cached_tokens",0) or getattr(usage,"prompt_cache_hit_tokens",0) or 0
+    return SimpleNamespace(id=reply.id, status="completed" if choice.finish_reason in {"stop","tool_calls"} else "incomplete",
+        output_text=choice.message.content,
+        output=[SimpleNamespace(type="function_call",call_id=c.id,name=c.function.name,arguments=c.function.arguments)
+                for c in choice.message.tool_calls or []],
+        usage=SimpleNamespace(input_tokens=usage.prompt_tokens,output_tokens=usage.completion_tokens,
+            input_tokens_details=SimpleNamespace(cached_tokens=cached)))

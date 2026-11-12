@@ -13,7 +13,7 @@ if find_spec("tau2") is None:
 from tau2.data_model.message import AssistantMessage, ToolCall, ToolMessage, UserMessage
 from tau2.domains.retail.environment import get_environment
 
-from scripts.tau_official_agents import _authenticated_scope, create_agent
+from scripts.tau_official_agents_legacy import _authenticated_scope, create_agent
 
 
 class OfficialAgentTests(unittest.TestCase):
@@ -87,7 +87,7 @@ class OfficialAgentTests(unittest.TestCase):
                 role="assistant", tool_calls=actions, usage={"total_tokens": 123}, cost=0.01
             )
 
-        with patch("scripts.tau_official_agents.generate", fake_generate):
+        with patch("scripts.tau_official_agents_legacy.generate", fake_generate):
             _, state = agent.generate_next_message(auth_result, state)
             followup_result = env.get_response(
                 call("get_user_details", "public_followup", user_id=user_id)
