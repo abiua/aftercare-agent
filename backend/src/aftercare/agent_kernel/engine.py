@@ -45,6 +45,13 @@ class ExecutionKernel:
                 output=proposal.model_dump(mode='json',exclude={'private_context'}),elapsed_seconds=monotonic()-start))
             if not self.architecture.guards:
                 return proposal
+            if hasattr(self.guard, 'normalize'):
+                normalized=self.guard.normalize(proposal)
+                if normalized != proposal:
+                    self.trace.append(TraceEvent(role='executor',stage='single_tool_normalization',
+                        input_sha256=self.trace[-1].input_sha256,
+                        output=normalized.model_dump(mode='json',exclude={'private_context'})))
+                proposal=normalized
             result=self.guard.check(messages,proposal,tools)
             self.trace.append(TraceEvent(role='executor',stage='guard',input_sha256=self.trace[-1].input_sha256,
                 output=result.model_dump(mode='json')))

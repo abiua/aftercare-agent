@@ -1,0 +1,3369 @@
+{
+  "steps": 1345,
+  "by_rule": {
+    "authentication_reply": 197,
+    "authentication": 3,
+    "single_user": 6,
+    "payment_owner": 6
+  },
+  "findings": [
+    {
+      "task_id": "5",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/5-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with those exchanges. Please provide your account email address so I can verify your identity and locate your orders.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "5",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/5-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "5",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/5-strong_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can use your ZIP code, but I also need your first and last name to verify your identity. Could you provide those?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "5",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/5-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with those exchanges. First, please provide your email address so I can locate and verify your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "5",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/5-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "5",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/5-staged_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can’t locate your account using a username and ZIP code alone. Please provide your first and last name so I can look it up with ZIP code 28236.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "5",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/5-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check exchange options for both items. What is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "5",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/5-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "9",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/9-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with those exchanges. Please provide your email address so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "9",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/9-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first and last name and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "9",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/9-staged_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I need your first and last name along with ZIP code 28236 to locate your account. What are your first and last name?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "9",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/9-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check exchange options for both items. First, please provide your account email address so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "9",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/9-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "9",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/9-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that. To locate your account, please provide your email address.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "9",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/9-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "9",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/9-strong_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I need your first and last name along with your ZIP code to verify your identity. Could you please provide your first and last name?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "12",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/12-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help review your orders and identify items you want to cancel or return. First, please provide the email address on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "12",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/12-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help review your orders and identify the non-gaming items for cancellation or return. First, please provide the email address associated with your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "12",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/12-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help review your purchases for cancellation or return. First, what is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "17",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/17-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that if your order is still pending. Please provide your account email address so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "17",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/17-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "17",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/17-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check whether your order’s shipping address can be changed to Suite 641. Please provide the email address on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "17",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/17-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and the ZIP code on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "17",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/17-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help update the shipping address if your order is still pending. Please provide your account email address so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "18",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/18-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I’m sorry the chair arrived with broken pieces. I’ll help you with the return. What’s the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "18",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/18-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "18",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/18-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I'm sorry your chair arrived with broken pieces, especially on an already rough day. I can help with the return. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "18",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/18-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "18",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/18-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I’m sorry the chair arrived with broken pieces, especially when you’re already having a difficult day. I can help with the return. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "18",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/18-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "26",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/26-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help find your order and tracking number, then check whether the items other than the pet bed are eligible for return. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "26",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/26-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and the ZIP code on your account so I can locate it.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "26",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/26-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help look up your order and tracking number and check whether the items can be returned. Please provide the email address on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "26",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/26-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code on the account so I can locate it.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "26",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/26-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help look up the tracking number and check whether the items are eligible for return, excluding the pet bed. To get started, what email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "26",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/26-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and account ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "27",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/27-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with those returns and check whether a waterproof version of the hiking boots is available for exchange. What email address is on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "27",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/27-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "27",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/27-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check those returns and the boot exchange. Please provide the email address on your account so I can locate it.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "27",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/27-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "27",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/27-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that. Please provide your account email address so I can verify your identity and find the order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "27",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/27-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "32",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/32-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help look up your tablet order’s tracking number. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "32",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/32-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "32",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/32-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can look up your order and tracking information. Please provide the email address on your account so I can verify your identity. Since you received the tablet and then lost it, our return process would require sending the item back; I cannot issue a refund for a lost item or place a new order. I can transfer you to a human agent for help with those requests after verifying your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "32",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/32-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and the ZIP code on your account so I can locate it.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "33",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/33-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help identify the office items and check your order status. However, cancelling only some items in an order is not supported; cancellation applies to the entire pending order. If the order has been delivered, we can check whether the office items can be returned instead. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "33",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/33-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account. Then I can check your order status and identify the office items to see whether they can be returned.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "33",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/33-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help look up the items you ordered. I can’t cancel individual items from an order, but I can cancel an entire order if it’s still pending. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "33",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/33-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes, I can look up your account using your first name, last name, and ZIP code. Please provide those details. Once I locate your account and the order, I can use its Seattle shipping address for your default profile address without you typing it here. I’ll ask for confirmation before making the change, and I won’t cancel your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "33",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/33-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Please provide your account email address so I can verify your identity and look up your order and its items. I can cancel an entire pending order, but I can’t cancel individual items while keeping the rest.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "36",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/36-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"An order can only use one payment method, so I can’t split the total between two cards. If your order is still pending, I can help switch it to another single payment method. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "36",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/36-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"An order’s payment can only be changed to one different payment method, not split between two cards. If your order is still pending, I can help you switch to another single payment method. Please provide your account email address so I can locate your account and check the order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "36",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/36-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"An order can only use one payment method; splitting payment between cards isn't supported. If your order is still pending, I can help switch it to a single different payment method. What is the email address on your account so I can look up your order?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "38",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/38-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"An order cannot be split across two cards. If your order is still pending, you can switch to one different payment method that covers the full total. Please provide your account email address so I can verify your identity and check your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "38",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/38-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"An order can use only one payment method, so I can’t split payment between two cards. If your order is still pending, I can help switch it to another payment method that covers the full total. Please provide your account email address so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "38",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/38-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"An order's payment cannot be split across multiple cards. If your order is still pending, you can switch it to one different payment method for the full amount. To get started, please provide the email address on your account so I can verify your identity and check your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "39",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/39-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help update your default address and check the cheapest available T-shirt, but I can’t place new orders. To get started, please provide the email address on your account and your complete new address, including street, apartment or unit (if any), city, state, country, and ZIP code.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "39",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/39-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help update your default address using the address on a recent order and check the cheapest available T-shirt. I can provide product information, but I can’t place a new order for you. To get started, what’s the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "39",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/39-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can look you up using your first name, last name, and ZIP code. Please provide those details so I can authenticate your account before checking your recent order and T-shirt prices.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "39",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/39-strong_single.json",
+      "message_index": 8,
+      "rule": "authentication",
+      "feedback": "First authenticate by email OR first name, last name and ZIP code; do not transfer yet.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_kGVOR7isCWd7wRfkhsV3M1pG",
+            "name": "transfer_to_human_agents",
+            "arguments": {
+              "summary": "Customer requests a supervisor to help verify identity another way. Authentication is incomplete: customer cannot recall account email or confirm account first and last name. Provided username fatima_taylor_3452, current Phoenix ZIP 85033, and old Florida ZIP 32169. Customer wants default address updated using the Phoenix address on a recent order without saying it aloud, and wants the cheapest available T-shirt price and help ordering. No account or product lookups or updates have been performed."
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "未完成认证就转人工；按本计划新状态机应先提供两种认证方式。客户仍不能认证时不得绕过身份验证。"
+    },
+    {
+      "task_id": "39",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/39-strong_single.json",
+      "message_index": 10,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "39",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/39-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help update your default address using your recent order without asking you to say the address aloud, and check the cheapest available T-shirt. I can’t place new orders myself. First, what’s the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "40",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/40-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your gift card balance, the payment method on your most recent order, and whether its payment can be changed. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "40",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/40-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your gift card balance and recent order’s payment method, then see whether a payment change is possible. What email address is on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "40",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/40-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your gift card balance, the payment method on your recent order, and whether the gift card can be applied. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "42",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/42-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes, we can check your account address and the shipping addresses on your recent orders. What email address did you use for your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "42",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/42-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can look up your account using your first and last name and ZIP code instead. Could you provide those details?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "42",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/42-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your account and order addresses. What email address did you use to create your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "42",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/42-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I need to locate your account using your name and ZIP code rather than your user ID. Please provide your first name, last name, and ZIP code.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "42",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/42-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check your address. What email address did you use for your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "45",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/45-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check whether those vacuums are variants of the same product. Exchanges must be for the same product type, and the order must be delivered. Please provide your account email address so I can verify your identity and locate your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "45",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/45-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "45",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/45-multi_agent.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Please provide your first and last name. The value you shared appears to be a user ID, which I can’t use to verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "45",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/45-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check whether that exchange is available. Please provide the email address on your account so I can verify your identity and locate your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "45",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/45-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "45",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/45-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check whether that exchange is eligible. Exchanges must be for an available variant of the same product; being from the same product line alone does not qualify. What is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "45",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/45-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "45",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/45-staged_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I need your first and last name to look up your account using ZIP code 80273. Could you please provide them?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "49",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/49-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check your order and eligible options. Please provide your account email address so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "49",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/49-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "49",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/49-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check your order and eligible replacements. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "49",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/49-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "49",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/49-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check your order and available options. Please provide your account email address so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "49",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/49-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "51",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/51-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help start your camera return with a refund to your original payment method. Please provide your account email address so I can verify your identity and find the order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "51",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/51-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide the account holder’s first name, last name, and ZIP code so I can verify your identity and locate your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "51",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/51-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that. Please provide the email address associated with your account so I can verify your identity and locate your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "51",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/51-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "51",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/51-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that. Please provide the email address on your account so I can verify your identity and locate your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "51",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/51-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "53",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/53-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help request a return and refund to your original credit card after verifying that the order is delivered. First, what is the email address on your account? I’ll need to check the order before I can confirm the refund details or timing.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "53",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/53-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide the first name, last name, and ZIP code on your account so I can locate it.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "53",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/53-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help request a return and refund to your original credit card after verifying your account and order. I cannot confirm the refund timing yet. What is the email address associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "53",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/53-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "53",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/53-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help request a return and refund to your original credit card, but I can’t confirm a refund timeline yet. Please provide the email address on your account so I can verify your identity. If you have your order number, please include it too.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "53",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/53-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "55",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/55-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help look up your orders, list the items, and check which orders are eligible for cancellation or return before making any changes. Please provide the email address on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "55",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/55-strong_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I couldn't find an account with silva7872@example.com. What is the other email address you use?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "55",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/55-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help review your orders, list the items in delivered orders, and check which orders are eligible for cancellation or return. Before we begin, what email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your order. Please share your account email address so I can verify your identity and look it up.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can’t verify your account using a username, but I can use your name and ZIP code. Please provide your first name, last name, and ZIP code.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-staged_single.json",
+      "message_index": 6,
+      "rule": "authentication",
+      "feedback": "First authenticate by email OR first name, last name and ZIP code; do not transfer yet.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_3wxDyRry12OClOHAEf4DLlqB",
+            "name": "transfer_to_human_agents",
+            "arguments": {
+              "summary": "Customer wants arrival timing/status for an air purifier order. Authentication is incomplete: customer says they have no email and cannot provide a name, and supplied only username ivan_hernandez_6923 and ZIP 92133. Username plus ZIP is not an allowed authentication method. No account or order information has been accessed. Transfer requested because authentication cannot be completed with available methods."
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "未完成认证就转人工；按本计划新状态机应先提供两种认证方式。客户仍不能认证时不得绕过身份验证。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-staged_single.json",
+      "message_index": 8,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your air purifier’s order status. Please provide the email address associated with your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can look up your account using your first name, last name, and ZIP code instead. Please provide those details.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your order. What is the email address associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can look up your account using your first name, last name, and ZIP code instead. Please provide those details.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "56",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/56-strong_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I need your first and last name along with your ZIP code to verify your account; a username alone cannot be used. Could you confirm your first and last name?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "60",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/60-multi_agent.json",
+      "message_index": 4,
+      "rule": "single_user",
+      "feedback": "Read the authenticated user profile to establish order ownership first.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_na9e8T4m8mXMW56zT6CEh8j6",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W5061109"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有读取用户资料建立订单清单；旧流程直接使用客户提供的订单号。需增加一次资料读取以证明归属，不否认旧流程最终成功。"
+    },
+    {
+      "task_id": "60",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/60-multi_agent.json",
+      "message_index": 10,
+      "rule": "payment_owner",
+      "feedback": "Read user payment methods; the selected method must belong to this user.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_8xwPQcBiNGANuDqbDNoBFLXz",
+            "name": "modify_pending_order_items",
+            "arguments": {
+              "order_id": "#W5061109",
+              "item_ids": [
+                "3694871183"
+              ],
+              "new_item_ids": [
+                "8555936349"
+              ],
+              "payment_method_id": "paypal_3742148"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有用户支付方式清单；原订单支付记录可支持原方式，但当前规则要求已读取用户资料。与归属拦截同属缺资料读取，不是已证实用了外人账户。"
+    },
+    {
+      "task_id": "60",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/60-strong_single.json",
+      "message_index": 4,
+      "rule": "single_user",
+      "feedback": "Read the authenticated user profile to establish order ownership first.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_3rEgRtT6ucfuGo0KavADfgE5",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W5061109"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有读取用户资料建立订单清单；旧流程直接使用客户提供的订单号。需增加一次资料读取以证明归属，不否认旧流程最终成功。"
+    },
+    {
+      "task_id": "60",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/60-strong_single.json",
+      "message_index": 10,
+      "rule": "payment_owner",
+      "feedback": "Read user payment methods; the selected method must belong to this user.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_7nvDSqTMC4ETrzy6RHJp735w",
+            "name": "modify_pending_order_items",
+            "arguments": {
+              "order_id": "#W5061109",
+              "item_ids": [
+                "3694871183"
+              ],
+              "new_item_ids": [
+                "6077640618"
+              ],
+              "payment_method_id": "paypal_3742148"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有用户支付方式清单；原订单支付记录可支持原方式，但当前规则要求已读取用户资料。与归属拦截同属缺资料读取，不是已证实用了外人账户。"
+    },
+    {
+      "task_id": "60",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/60-staged_single.json",
+      "message_index": 4,
+      "rule": "single_user",
+      "feedback": "Read the authenticated user profile to establish order ownership first.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_FHQlXCzqU4EuHZQyALn7hBDJ",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W5061109"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有读取用户资料建立订单清单；旧流程直接使用客户提供的订单号。需增加一次资料读取以证明归属，不否认旧流程最终成功。"
+    },
+    {
+      "task_id": "60",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/60-staged_single.json",
+      "message_index": 12,
+      "rule": "payment_owner",
+      "feedback": "Read user payment methods; the selected method must belong to this user.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_1UZ1pcAFC91GdJhH4sOuuc0J",
+            "name": "modify_pending_order_items",
+            "arguments": {
+              "order_id": "#W5061109",
+              "item_ids": [
+                "3694871183"
+              ],
+              "new_item_ids": [
+                "8555936349"
+              ],
+              "payment_method_id": "paypal_3742148"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有用户支付方式清单；原订单支付记录可支持原方式，但当前规则要求已读取用户资料。与归属拦截同属缺资料读取，不是已证实用了外人账户。"
+    },
+    {
+      "task_id": "61",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/61-strong_single.json",
+      "message_index": 4,
+      "rule": "single_user",
+      "feedback": "Read the authenticated user profile to establish order ownership first.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_LrJzWwOhXbIhNqSran3Mfins",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W5061109"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有读取用户资料建立订单清单；旧流程直接使用客户提供的订单号。需增加一次资料读取以证明归属，不否认旧流程最终成功。"
+    },
+    {
+      "task_id": "61",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/61-strong_single.json",
+      "message_index": 12,
+      "rule": "payment_owner",
+      "feedback": "Read user payment methods; the selected method must belong to this user.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_Kobw2ke7nvft1pt5ADpHpsry",
+            "name": "modify_pending_order_items",
+            "arguments": {
+              "order_id": "#W5061109",
+              "item_ids": [
+                "3694871183"
+              ],
+              "new_item_ids": [
+                "8555936349"
+              ],
+              "payment_method_id": "paypal_3742148"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有用户支付方式清单；原订单支付记录可支持原方式，但当前规则要求已读取用户资料。与归属拦截同属缺资料读取，不是已证实用了外人账户。"
+    },
+    {
+      "task_id": "61",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/61-staged_single.json",
+      "message_index": 4,
+      "rule": "single_user",
+      "feedback": "Read the authenticated user profile to establish order ownership first.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_7SG0lw7NnFp8F9eeostJLxzK",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W5061109"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有读取用户资料建立订单清单；旧流程直接使用客户提供的订单号。需增加一次资料读取以证明归属，不否认旧流程最终成功。"
+    },
+    {
+      "task_id": "61",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/61-staged_single.json",
+      "message_index": 12,
+      "rule": "payment_owner",
+      "feedback": "Read user payment methods; the selected method must belong to this user.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_qvN2kVTm2u6WiEvvOPOIqRY5",
+            "name": "modify_pending_order_items",
+            "arguments": {
+              "order_id": "#W5061109",
+              "item_ids": [
+                "3694871183"
+              ],
+              "new_item_ids": [
+                "8555936349"
+              ],
+              "payment_method_id": "paypal_3742148"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有用户支付方式清单；原订单支付记录可支持原方式，但当前规则要求已读取用户资料。与归属拦截同属缺资料读取，不是已证实用了外人账户。"
+    },
+    {
+      "task_id": "61",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/61-multi_agent.json",
+      "message_index": 4,
+      "rule": "single_user",
+      "feedback": "Read the authenticated user profile to establish order ownership first.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_rKAJz7899EFy5nUEbHp4r4w3",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W5061109"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有读取用户资料建立订单清单；旧流程直接使用客户提供的订单号。需增加一次资料读取以证明归属，不否认旧流程最终成功。"
+    },
+    {
+      "task_id": "61",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/61-multi_agent.json",
+      "message_index": 12,
+      "rule": "payment_owner",
+      "feedback": "Read user payment methods; the selected method must belong to this user.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_qbguEQycaG30GICCNKId3Vuu",
+            "name": "modify_pending_order_items",
+            "arguments": {
+              "order_id": "#W5061109",
+              "item_ids": [
+                "3694871183"
+              ],
+              "new_item_ids": [
+                "8555936349"
+              ],
+              "payment_method_id": "paypal_3742148"
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "此前没有用户支付方式清单；原订单支付记录可支持原方式，但当前规则要求已读取用户资料。与归属拦截同属缺资料读取，不是已证实用了外人账户。"
+    },
+    {
+      "task_id": "62",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/62-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication",
+      "feedback": "First authenticate by email OR first name, last name and ZIP code; do not transfer yet.",
+      "proposal": {
+        "text": "",
+        "calls": [
+          {
+            "id": "call_WzkHOU7ssMPUOE2HlCBuLGnV",
+            "name": "transfer_to_human_agents",
+            "arguments": {
+              "summary": "The user requests identification of a famous poem from its first line, which is outside the permitted retail assistance scope."
+            },
+            "sources": {}
+          }
+        ],
+        "private_context": []
+      },
+      "explanation": "未完成认证就转人工；按本计划新状态机应先提供两种认证方式。客户仍不能认证时不得绕过身份验证。"
+    },
+    {
+      "task_id": "62",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/62-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "62",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/62-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can only help with retail account, order, and related product requests. If you need assistance with one of those, please provide your account email so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "62",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/62-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate and verify your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "62",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/62-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with retail orders, returns, exchanges, and profile information, but identifying poems is outside my support scope.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "62",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/62-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide the email address on your account so I can verify your identity and look up your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "62",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/62-strong_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "64",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/64-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check your camera’s exchange options. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "64",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/64-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "64",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/64-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check exchange options. What is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "64",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/64-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can look up your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "64",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/64-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Please provide the email address on your account so I can look up your camera order and check eligible exchange options.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "64",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/64-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please share your first and last name and ZIP code so I can look up your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "65",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/65-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can only exchange an item for a different variant of the same product, so I can’t exchange a bookshelf for a camera. I can check whether the bookshelf is eligible for return and look up cameras priced at or below its price. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "65",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/65-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "65",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/65-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Exchanges must stay within the same product type, so I can’t exchange a bookshelf for a camera. If the bookshelf has been delivered, I can check whether a return is available and help compare camera prices. Please provide your account email so I can verify your identity and look up your most recent order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "65",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/65-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "65",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/65-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can only exchange an item for another variant of the same product, so I cannot exchange a bookshelf for a camera. I can check whether your bookshelf is eligible for a return and look up cameras priced at or below its price. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "65",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/65-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "68",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/68-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help look that up. What is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "68",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/68-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please share your first and last name and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "68",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/68-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help find your most recent order and how much you paid. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "68",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/68-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "68",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/68-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help you check that. What is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "68",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/68-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can look up your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "68",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/68-strong_single.json",
+      "message_index": 6,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Thanks. I still need your first and last name to verify your account using your ZIP code.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "70",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/70-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that exchange. Please provide the email address associated with your account so I can locate your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "70",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/70-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "70",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/70-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that exchange. Please provide your account email address so I can verify your identity and locate your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "70",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/70-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "70",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/70-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check exchange eligibility and availability for a medium helmet with high ventilation, but I can’t confirm same-day completion yet. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "70",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/70-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first and last name and ZIP code so I can look up your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "71",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/71-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help change the shipping address and item options if the order is still pending. First, please provide your account email address so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "71",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/71-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and the ZIP code associated with your account so I can look you up.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "71",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/71-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check whether your order is eligible for those changes. Please share your email address so I can look up your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "71",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/71-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and the ZIP code associated with your account so I can look it up.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "71",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/71-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help change the shipping address and item options if your order is still pending. Please provide your account email address so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "71",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/71-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and the ZIP code associated with your account so I can look it up.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "74",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/74-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with both requests. Please provide your account email address so I can verify your identity and look up your orders.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "74",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/74-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "74",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/74-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help look up both orders, check the laptop exchange options, and cancel the pending order if eligible. Please provide the email address on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "74",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/74-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "77",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/77-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your order and the available perfume sizes to see whether an exchange is possible. What is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "77",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/77-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "77",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/77-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check the available sizes and whether your order is eligible for an exchange. What email address is associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "77",
+      "architecture": "strong_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/77-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes, I can look up your account using your first name, last name, and ZIP code. Please provide those details.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "77",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/77-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check the available sizes. Would you like to exchange your current bottle for the largest available size, or get information for a separate purchase? Please provide the email address on your account so I can look up your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "77",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/77-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes, I can look up your account using your first name, last name, and ZIP code. Please provide those details. I can then find your perfume and check the largest available size, though I can’t place a separate purchase for you.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "79",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/79-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check whether the 500ml bottle can be changed to a 1000ml variant without cancelling either order. Please provide your account email address so I can verify your identity and look up your orders.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "79",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/79-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "79",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/79-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check whether the 500ml bottle can be changed to a 1000ml version without cancelling either order. First, please provide your account email address so I can verify your identity. Also, do you want only the order containing the 500ml bottle changed, leaving your separate 1000ml bottle order unchanged?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "79",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/79-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account. I’ll leave your separate 1000ml bottle order unchanged.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "79",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/79-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check whether your 500ml bottle can be changed to a 1000ml variant without cancelling either order. Please provide the email address on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "79",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/79-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account. I won’t cancel either order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "86",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/86-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with both requests and look up the Washington, DC address from your orders so you don’t need to say it aloud. To begin, what is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "86",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/86-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with both requests. Please provide your account email address so I can verify your identity and locate your orders.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "86",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/86-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with both requests. Please provide your account email address so I can locate your profile.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "90",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/90-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check that. Please provide the email address on your account so I can verify your identity and locate your camera purchase.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "90",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/90-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check the camera’s details. What is the email address associated with your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "90",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/90-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check your camera’s zoom specifications. Please provide your email address so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "94",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/94-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check exchange options for your laptop. What email address is associated with your account? Once authenticated, I can check your order and availability for an i7 model with 8GB RAM and a 1TB SSD. I don't yet have a verified exchange timeline.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "94",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/94-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "94",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/94-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check whether that configuration is available and help with the exchange. Please provide your account email address so I can verify your identity. I haven't verified an exchange timeframe yet.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "94",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/94-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "94",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/94-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that. Please provide your account email address so I can verify your identity and locate your order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "94",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/94-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "97",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/97-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Please provide the email address associated with your account so I can locate your orders, check the Bluetooth speaker options, and find the NYC address on your other order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "97",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/97-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and the ZIP code associated with your account so I can look it up.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "100",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/100-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help check the luggage and skateboard exchange options and the hiking boots return. First, please provide the email address on your account so I can verify your identity and locate the order.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "100",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/100-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "100",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/100-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check the options for exchanging the luggage set and skateboard and returning the hiking boots. First, please provide the email address on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "100",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/100-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and billing ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "101",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/101-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that. Please provide your account email address so I can verify your identity and locate your orders.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "101",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/101-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "101",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/101-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that. Please provide your account email address so I can locate your orders and check the shipping address.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "101",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/101-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "101",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/101-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that if the order is still pending. Please provide your account email address so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "101",
+      "architecture": "multi_agent",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/101-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "102",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/102-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that. Please provide your account email address so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "102",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/102-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "102",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/102-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help with that if your watch order is still pending. What email address is associated with your account so I can locate your orders?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "102",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/102-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "108",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/108-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your delivered order and calculate the refund for everything except the tablet, including the e-reader. Please provide the email address on your account so I can verify your identity.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "108",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/108-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "108",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/108-strong_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check your recently delivered order and calculate the refund for everything except the tablet, including the E-Reader. What is the email address on your account?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "108",
+      "architecture": "strong_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/108-strong_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "108",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/108-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can check the refund amount for everything except the tablet, including the e-reader. Please provide your email address so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "108",
+      "architecture": "staged_single",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/108-staged_single.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "111",
+      "architecture": "staged_single",
+      "official_success": false,
+      "source": ".runtime/tau-official-full/official/111-staged_single.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help you check both requests and review the details with you before making any changes. First, what email address is associated with your account? Also, what would you like to change about the laptop order, and which watch variant would you like in exchange?\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "111",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/111-multi_agent.json",
+      "message_index": 2,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"I can help change the laptop’s shipping address and specs if its order is pending, and exchange the watch if its order is delivered and the requested variant is available. Please provide your account email so I can verify your identity and look up your orders.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    },
+    {
+      "task_id": "111",
+      "architecture": "multi_agent",
+      "official_success": true,
+      "source": ".runtime/tau-official-full/official/111-multi_agent.json",
+      "message_index": 4,
+      "rule": "authentication_reply",
+      "feedback": "Offer BOTH authentication routes: account email OR first and last name plus ZIP code.",
+      "proposal": {
+        "text": "{\"message\":\"Yes. Please provide your first name, last name, and ZIP code so I can locate your account.\"}",
+        "calls": [],
+        "private_context": []
+      },
+      "explanation": "旧回复未同时列出邮箱和姓名加邮编两条路线；这是新计划的严格交互要求，并非官方判定违规。保留规则，不把这次拦截说成已提升成功率。"
+    }
+  ],
+  "success_findings": 130
+}

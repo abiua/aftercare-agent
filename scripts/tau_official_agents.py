@@ -6,6 +6,7 @@ from tau2.data_model.message import AssistantMessage, MultiToolMessage, ToolCall
 from tau2.utils.llm_utils import generate
 from aftercare.agent_kernel.contracts import StepProposal, ToolCall, ToolDefinition, ToolKind, architectures
 from aftercare.agent_kernel.engine import ExecutionKernel
+from aftercare.agent_kernel.retail_guards import RetailGuards
 import tau_official_agents_legacy as legacy
 
 ARCHITECTURES=legacy.ARCHITECTURES
@@ -53,7 +54,9 @@ def public_messages(messages):
     result=[]
     for m in messages:
         row={'role':m.role,'content':m.content}
-        if m.role=='tool':row['tool_call_id']=m.id
+        if m.role=='tool':
+            row['tool_call_id']=m.id
+            row['error']=getattr(m,'error',False)
         if getattr(m,'tool_calls',None):
             row['tool_calls']=[{'id':c.id,'type':'function','function':{'name':c.name,'arguments':json.dumps(c.arguments)}} for c in m.tool_calls]
         result.append(row)
@@ -64,7 +67,7 @@ class KernelRetailAgent(LLMAgent):
     def __init__(self, *, architecture, **kwargs):
         super().__init__(**kwargs)
         self.port=OfficialModelPort(self.tools,self.llm_args)
-        self.kernel=ExecutionKernel(architectures()[architecture],self.port)
+        self.kernel=ExecutionKernel(architectures()[architecture],self.port,guard=RetailGuards())
         self.private_trace=[]
 
     def _generate_next_message(self, message, state):
