@@ -1,0 +1,41 @@
+name: tau-chat-p5
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg16
+    environment:
+      POSTGRES_USER: tau_chat_p5
+      POSTGRES_PASSWORD: tau_chat_p5_local
+      POSTGRES_DB: tau_chat_p5
+    command: [postgres, -c, cluster_name=tau-chat-p5]
+    ports: ["127.0.0.1:15440:5432"]
+    volumes: ["business:/var/lib/postgresql/data"]
+    healthcheck:
+      test: [CMD, pg_isready, -U, tau_chat_p5, -d, tau_chat_p5]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7.4-alpine
+    command: [redis-server, --appendonly, "yes"]
+    ports: ["127.0.0.1:16390:6379"]
+    volumes: ["queue:/data"]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  objects:
+    image: chrislusf/seaweedfs@sha256:57877e32bb90073b37dc109b438ba66e84fd5ed9ced5f5c04f56444ef243ce59
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        cat >/tmp/p5-s3.json <<'JSON'
+        {"identities":[{"name":"tau-chat-p5","credentials":[{"accessKey":"tau-chat-p5","secretKey":"tau-chat-p5-local"}],"actions":["Admin","Read","Write","List","Tagging"]}]}
+        JSON
+        exec weed server -dir=/data -ip=objects -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/tmp/p5-s3.json
+    ports: ["127.0.0.1:18340:8333"]
+    volumes: ["objects:/data"]
+volumes:
+  business:
+  queue:
+  objects:

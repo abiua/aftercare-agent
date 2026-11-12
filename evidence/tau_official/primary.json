@@ -1,0 +1,5710 @@
+{
+  "schema_version": 1,
+  "benchmark": "tau2-bench",
+  "domain": "retail",
+  "split": "test",
+  "scope": "full",
+  "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754",
+  "task_ids": [
+    "5",
+    "9",
+    "12",
+    "17",
+    "18",
+    "26",
+    "27",
+    "32",
+    "33",
+    "36",
+    "38",
+    "39",
+    "40",
+    "42",
+    "45",
+    "49",
+    "51",
+    "53",
+    "55",
+    "56",
+    "60",
+    "61",
+    "62",
+    "64",
+    "65",
+    "68",
+    "70",
+    "71",
+    "74",
+    "77",
+    "79",
+    "86",
+    "90",
+    "94",
+    "97",
+    "100",
+    "101",
+    "102",
+    "108",
+    "111"
+  ],
+  "trials_per_task": 1,
+  "agent_model": "gpt-6.1-sol",
+  "user_model": "gpt-6.1-terra",
+  "review_model": "gpt-5.4-mini-2026-03-17",
+  "tool_names": [
+    "calculate",
+    "cancel_pending_order",
+    "exchange_delivered_order_items",
+    "find_user_id_by_email",
+    "find_user_id_by_name_zip",
+    "get_item_details",
+    "get_order_details",
+    "get_product_details",
+    "get_user_details",
+    "list_all_product_types",
+    "modify_pending_order_address",
+    "modify_pending_order_items",
+    "modify_pending_order_payment",
+    "modify_user_address",
+    "return_delivered_order_items",
+    "transfer_to_human_agents"
+  ],
+  "budget": {
+    "max_agent_calls_per_run": 48,
+    "max_user_calls_per_run": 24,
+    "max_review_calls_per_run": 1,
+    "max_output_tokens_per_call": 1500,
+    "max_steps": 100,
+    "timeout_seconds_per_run": 900,
+    "timeout_seconds_per_request": 120,
+    "max_calls": 8760,
+    "max_usd": 30.0
+  },
+  "dataset_sha256": {
+    "db.json": "413a65160adbdb5fde0ffc0015c49b6d70250b10c18128de169b597af7766765",
+    "tasks.json": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+    "split_tasks.json": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20",
+    "policy.md": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467"
+  },
+  "evaluation_type": "ALL",
+  "reasoning_effort": "low",
+  "agent_adapter_sha256": "cc1846a0e83ed2d0a0de4cded31470c41e5dbce0c00a215b1b7fe68a3742d393",
+  "pricing_usd_per_million": {
+    "gpt-6.1-sol": [
+      "2",
+      "10",
+      "0.10"
+    ],
+    "gpt-6.1-terra": [
+      "1",
+      "5",
+      "0.05"
+    ],
+    "gpt-5.4-mini-2026-03-17": [
+      "0.75",
+      "4.50",
+      "0.075"
+    ]
+  },
+  "pricing_sources": [
+    "https://developers.openai.com/api/docs/pricing",
+    "https://developers.openai.com/api/docs/models/gpt-5.4-mini"
+  ],
+  "price_order": [
+    "input",
+    "output",
+    "cached_input"
+  ],
+  "cache_mode": "explicit with no breakpoints for gpt-6.1 models",
+  "seed_scope": "official orchestrator; Responses does not expose a provider seed",
+  "concurrency": 6,
+  "complete": true,
+  "billing": {
+    "attempted_calls": 2779,
+    "settled_calls": 2778,
+    "unsettled_calls": 1,
+    "known_usd": 22.1893165,
+    "unsettled_reserved_usd": 0.038076,
+    "accounted_and_reserved_usd": 22.2273925
+  },
+  "all_scored": false,
+  "architectures": [
+    {
+      "architecture": "strong_single",
+      "scheduled": 40,
+      "completed": 39,
+      "passed": 28,
+      "failed": 11,
+      "unscored": 1,
+      "failure_types": {
+        "user_out_of_scope": 5,
+        "db_mismatch": 10,
+        "user_transfer": 6,
+        "nl_assertion_failed": 3,
+        "unknown": 1
+      },
+      "pass_rate": 0.7,
+      "mean_official_reward": 0.717948717948718,
+      "duration_seconds": 1755.3,
+      "agent_calls": 455,
+      "user_calls": 231,
+      "review_calls": 11,
+      "agent_cost_usd": null,
+      "user_cost_usd": 0.278058,
+      "review_cost_usd": 0.02974725
+    },
+    {
+      "architecture": "staged_single",
+      "scheduled": 40,
+      "completed": 40,
+      "passed": 25,
+      "failed": 15,
+      "unscored": 0,
+      "failure_types": {
+        "user_out_of_scope": 5,
+        "db_mismatch": 13,
+        "user_transfer": 7,
+        "user_stop": 3,
+        "nl_assertion_failed": 6
+      },
+      "pass_rate": 0.625,
+      "mean_official_reward": 0.625,
+      "duration_seconds": 3656.389,
+      "agent_calls": 805,
+      "user_calls": 220,
+      "review_calls": 11,
+      "agent_cost_usd": 7.972628,
+      "user_cost_usd": 0.262692,
+      "review_cost_usd": 0.026727
+    },
+    {
+      "architecture": "multi_agent",
+      "scheduled": 40,
+      "completed": 39,
+      "passed": 25,
+      "failed": 14,
+      "unscored": 1,
+      "failure_types": {
+        "user_out_of_scope": 5,
+        "db_mismatch": 13,
+        "user_transfer": 7,
+        "user_stop": 2,
+        "nl_assertion_failed": 4,
+        "budget_exhausted": 1
+      },
+      "pass_rate": 0.625,
+      "mean_official_reward": 0.6410256410256411,
+      "duration_seconds": 2721.867,
+      "agent_calls": 800,
+      "user_calls": 235,
+      "review_calls": 11,
+      "agent_cost_usd": 8.267198,
+      "user_cost_usd": 0.278866,
+      "review_cost_usd": 0.02544825
+    }
+  ],
+  "rows": [
+    {
+      "task_id": "5",
+      "architecture": "strong_single",
+      "seed": 42,
+      "task_summary": "Hi there, I’d like to exchange a water bottle for a bigger one and a desk lamp for a less bright one. For the lamp, I’d prefer battery-powered if possible.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 25.673,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.023996,
+      "user_cost_usd": 0.004296,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11523,
+          "output_tokens": 95,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3506,
+          "output_tokens": 158,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "5",
+      "architecture": "staged_single",
+      "seed": 42,
+      "task_summary": "Hi there, I’d like to exchange a water bottle for a bigger one and a desk lamp for one that’s less bright.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 58.273,
+      "agent_calls": 9,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.054236,
+      "user_cost_usd": 0.00424,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 22723,
+          "output_tokens": 879,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3485,
+          "output_tokens": 151,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_response": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "5",
+      "architecture": "multi_agent",
+      "seed": 42,
+      "task_summary": "Hi there, I’d like to exchange a water bottle for a bigger one and a desk lamp for one that’s less bright. For the lamp, I’d prefer battery-powered if possible, then USB, then AC.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 24.898,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.024204,
+      "user_cost_usd": 0.00436,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11552,
+          "output_tokens": 110,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3550,
+          "output_tokens": 162,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "9",
+      "architecture": "staged_single",
+      "seed": 43,
+      "task_summary": "Yeah, hi. I want to exchange a water bottle for a bigger one and a desk lamp for a brighter one. For the lamp, I’d prefer an AC adapter, then battery, then USB.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 49.147,
+      "agent_calls": 9,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.049906,
+      "user_cost_usd": 0.003917,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 22183,
+          "output_tokens": 554,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2992,
+          "output_tokens": 185,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_response": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "9",
+      "architecture": "multi_agent",
+      "seed": 43,
+      "task_summary": "Yeah, hi. I need to exchange a water bottle for a bigger one and a desk lamp for a brighter one. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 26.208,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.024138,
+      "user_cost_usd": 0.003739,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11509,
+          "output_tokens": 112,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3009,
+          "output_tokens": 146,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "9",
+      "architecture": "strong_single",
+      "seed": 43,
+      "task_summary": "Yeah, hi. I want to exchange my water bottle for a bigger one and my desk lamp for a brighter one. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 26.266,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.023856,
+      "user_cost_usd": 0.003665,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11483,
+          "output_tokens": 89,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2960,
+          "output_tokens": 141,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "12",
+      "architecture": "multi_agent",
+      "seed": 44,
+      "task_summary": "Yeah, hi. I just got into gaming, but I’ve also realized I need to study hard. I want to cancel or return everything that isn’t related to gaming. Can you help me sort that out?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 77.078,
+      "agent_calls": 19,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.16668,
+      "user_cost_usd": 0.005037,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 75070,
+          "output_tokens": 1654,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4332,
+          "output_tokens": 141,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 10,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "12",
+      "architecture": "strong_single",
+      "seed": 44,
+      "task_summary": "Yeah, hi. I just got into gaming, but I’ve also realized I need to focus on studying hard. I want to cancel or return everything I ordered that isn’t related to gaming. Can you help me sort that out?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 37.395,
+      "agent_calls": 9,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.088104,
+      "user_cost_usd": 0.005612,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 40957,
+          "output_tokens": 619,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4647,
+          "output_tokens": 193,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 9
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "12",
+      "architecture": "staged_single",
+      "seed": 44,
+      "task_summary": "Yeah, hi. I just got into gaming, but I’ve also realized I need to study hard. I want to cancel or return everything that isn’t associated with gaming. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 87.441,
+      "agent_calls": 18,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.156806,
+      "user_cost_usd": 0.005045,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 68593,
+          "output_tokens": 1962,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4260,
+          "output_tokens": 157,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 10
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "17",
+      "architecture": "strong_single",
+      "seed": 45,
+      "task_summary": "Yeah, hi. I need to change my order delivery to Suite 641 instead. Can you help with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 40.09,
+      "agent_calls": 10,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.094604,
+      "user_cost_usd": 0.005602,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 45297,
+          "output_tokens": 401,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4697,
+          "output_tokens": 181,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 10
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "17",
+      "architecture": "staged_single",
+      "seed": 45,
+      "task_summary": "Yeah, hi. I need to change my order so it’s delivered to Suite 641 instead. Can you help with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 79.94,
+      "agent_calls": 19,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.140248,
+      "user_cost_usd": 0.005569,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 61604,
+          "output_tokens": 1704,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4789,
+          "output_tokens": 156,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 9
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "17",
+      "architecture": "multi_agent",
+      "seed": 45,
+      "task_summary": "Yeah, hi. I need to change my order delivery to Suite 641. Can you do that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 55.439,
+      "agent_calls": 18,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.13965,
+      "user_cost_usd": 0.005187,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 65290,
+          "output_tokens": 907,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4702,
+          "output_tokens": 97,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 9,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "18",
+      "architecture": "staged_single",
+      "seed": 46,
+      "task_summary": "Yeah, hi. I need to return an office chair. It came with some broken pieces. Things are rough today, so I’d appreciate getting this sorted quickly.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 85.137,
+      "agent_calls": 19,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.143608,
+      "user_cost_usd": 0.00583,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 62664,
+          "output_tokens": 1828,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5120,
+          "output_tokens": 142,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 9
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "18",
+      "architecture": "multi_agent",
+      "seed": 46,
+      "task_summary": "Yeah, hi. My office chair came with broken pieces, and I want to return it. I’m already in debt and having a rough day, so I need this sorted.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 78.483,
+      "agent_calls": 22,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.171482,
+      "user_cost_usd": 0.006955,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 77156,
+          "output_tokens": 1717,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6225,
+          "output_tokens": 146,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 10,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_counterexample": 4
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "18",
+      "architecture": "strong_single",
+      "seed": 46,
+      "task_summary": "Yeah, hi. I need to return an office chair. It came with broken pieces. I’m already in debt and feeling pretty down today, so I need this sorted out.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 36.275,
+      "agent_calls": 9,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.08193,
+      "user_cost_usd": 0.00594,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 38730,
+          "output_tokens": 447,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5195,
+          "output_tokens": 149,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 9
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "26",
+      "architecture": "multi_agent",
+      "seed": 47,
+      "task_summary": "Yeah, hi. My order was sent to Texas by accident. I need the tracking number, and I want to return everything in it except the pet bed. I don’t remember the order number. This is urgent, so can you help me find it?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 51.651,
+      "agent_calls": 16,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.145258,
+      "user_cost_usd": 0.004841,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 67274,
+          "output_tokens": 1071,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4186,
+          "output_tokens": 131,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 10,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "26",
+      "architecture": "strong_single",
+      "seed": 47,
+      "task_summary": "Yeah, hi, my order was sent to Texas by accident. I need the tracking number, and I want to return everything in it except the pet bed. This is urgent, and I don’t remember the order number. Can you help?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 36.934,
+      "agent_calls": 11,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.108482,
+      "user_cost_usd": 0.004907,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 51746,
+          "output_tokens": 499,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4162,
+          "output_tokens": 149,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 11
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "26",
+      "architecture": "staged_single",
+      "seed": 47,
+      "task_summary": "Yeah, hi, so my order got sent to Texas by accident. I need the tracking number, and I want to return everything in it except the pet bed. This is urgent.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 77.155,
+      "agent_calls": 19,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.163528,
+      "user_cost_usd": 0.00466,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 73089,
+          "output_tokens": 1735,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4090,
+          "output_tokens": 114,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 11
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "27",
+      "architecture": "strong_single",
+      "seed": 48,
+      "task_summary": "Yeah, hi, I need to return a hose and a backpack from a recent order, and exchange the hiking boots for the exact same item in a waterproof version. Can we get that done quickly?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 34.237,
+      "agent_calls": 9,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.08696,
+      "user_cost_usd": 0.003464,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 41270,
+          "output_tokens": 442,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3039,
+          "output_tokens": 85,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 9
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "27",
+      "architecture": "staged_single",
+      "seed": 48,
+      "task_summary": "Yeah, hi. I need to return a hose and a backpack from a recent order, and exchange the hiking boots for the same ones in a waterproof version. Can we get that done quickly?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 70.166,
+      "agent_calls": 15,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.12415,
+      "user_cost_usd": 0.003458,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 55030,
+          "output_tokens": 1409,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3028,
+          "output_tokens": 86,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_response": 9
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "27",
+      "architecture": "multi_agent",
+      "seed": 48,
+      "task_summary": "Yeah, hi. I need to return a hose and a backpack from a recent order, and exchange the hiking boots for the same ones in a waterproof version. Can we get that done quickly?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 35.919,
+      "agent_calls": 11,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.092228,
+      "user_cost_usd": 0.003439,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 43529,
+          "output_tokens": 517,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3019,
+          "output_tokens": 84,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 8,
+        "agent_fact_analysis": 1,
+        "agent_policy_review": 1,
+        "agent_counterexample": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "32",
+      "architecture": "staged_single",
+      "seed": 49,
+      "task_summary": "Yeah, hi, I just lost the tablet I received, and I’m really not in a good mood about it. Can you give me the tracking number for the order? And is there any chance you can help me get a refund or reorder it?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 56.344,
+      "agent_calls": 12,
+      "user_calls": 3,
+      "review_calls": 0,
+      "agent_cost_usd": 0.101576,
+      "user_cost_usd": 0.002848,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 45098,
+          "output_tokens": 1138,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2408,
+          "output_tokens": 88,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 3,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_response": 8
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "32",
+      "architecture": "multi_agent",
+      "seed": 49,
+      "task_summary": "Yeah, hi. I just lost the tablet I received, and I need the tracking number for the order. Can you help me find it?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 53.419,
+      "agent_calls": 16,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.133208,
+      "user_cost_usd": 0.004495,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 61849,
+          "output_tokens": 951,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4000,
+          "output_tokens": 99,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 10,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "32",
+      "architecture": "strong_single",
+      "seed": 49,
+      "task_summary": "Yeah, hi. I just received my tablet and then lost it. Can you give me the tracking number for the order? And is there any chance I can get a refund or reorder it?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 32.478,
+      "agent_calls": 9,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.083332,
+      "user_cost_usd": 0.003856,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 39256,
+          "output_tokens": 482,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3341,
+          "output_tokens": 103,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 9
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "33",
+      "architecture": "multi_agent",
+      "seed": 50,
+      "task_summary": "Yeah, hi. I ordered some home office stuff and hiking gear, but my company just announced we’re going back to the office. So much for my work-from-Seattle plan. Can I cancel just the three office items and keep the hiking stuff? I don’t remember exactly which office items I ordered. If that’s possible, I’d like to know the total refund and have it sent back to my original payment method.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0
+      },
+      "duration_seconds": 69.018,
+      "agent_calls": 18,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.151614,
+      "user_cost_usd": 0.008064,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 67012,
+          "output_tokens": 1759,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6699,
+          "output_tokens": 273,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 9,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "33",
+      "architecture": "strong_single",
+      "seed": 50,
+      "task_summary": "Yeah, hi. I ordered some home office stuff and hiking gear, but my company just announced we’re going back to the office. So much for my remote-work plan. Can I cancel just the office items and keep the hiking gear? I don’t remember exactly which office items I ordered.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0
+      },
+      "duration_seconds": 32.717,
+      "agent_calls": 8,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.073468,
+      "user_cost_usd": 0.005962,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 34839,
+          "output_tokens": 379,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4977,
+          "output_tokens": 197,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 8
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "33",
+      "architecture": "staged_single",
+      "seed": 50,
+      "task_summary": "Yeah, hi. My company just announced we’re going back to the office, so my work-from-home plans kind of fell apart. I ordered three home office items along with some hiking stuff. Can I cancel just the office items and keep the hiking gear? I don’t remember exactly which office items I ordered.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0
+      },
+      "duration_seconds": 74.514,
+      "agent_calls": 16,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.123258,
+      "user_cost_usd": 0.006045,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 54054,
+          "output_tokens": 1515,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4940,
+          "output_tokens": 221,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 8
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "36",
+      "architecture": "strong_single",
+      "seed": 51,
+      "task_summary": "Hi, I just placed an order, but my card only has $1,131 in credit left and the total is over $1,160. Can I split the payment with another card?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 56.919,
+      "agent_calls": 16,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.204396,
+      "user_cost_usd": 0.006276,
+      "review_cost_usd": 0.00462525,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 97618,
+          "output_tokens": 916,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5506,
+          "output_tokens": 154,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 5285,
+          "output_tokens": 147,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 16,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "36",
+      "architecture": "staged_single",
+      "seed": 51,
+      "task_summary": "Hi, I just placed an order, but my card only has $1,131 left and the total is over $1,160. Can I split the payment with another card?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 103.891,
+      "agent_calls": 26,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.322988,
+      "user_cost_usd": 0.006416,
+      "review_cost_usd": 0.00526125,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 148884,
+          "output_tokens": 2522,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5556,
+          "output_tokens": 172,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 5851,
+          "output_tokens": 194,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 18,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "36",
+      "architecture": "multi_agent",
+      "seed": 51,
+      "task_summary": "Hi, I just placed an order over $1,160, but my card only has $1,131 left. Can I split the payment with another card?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 51.994,
+      "agent_calls": 15,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.121604,
+      "user_cost_usd": 0.005591,
+      "review_cost_usd": 0.001632,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 55637,
+          "output_tokens": 1033,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5081,
+          "output_tokens": 102,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 1258,
+          "output_tokens": 153,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 9,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "38",
+      "architecture": "staged_single",
+      "seed": 52,
+      "task_summary": "Hi, I just placed an order over $1,100, but my card only has $950 left. Can I split the payment with another card?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 137.621,
+      "agent_calls": 33,
+      "user_calls": 8,
+      "review_calls": 1,
+      "agent_cost_usd": 0.403988,
+      "user_cost_usd": 0.01084,
+      "review_cost_usd": 0.00479625,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 185934,
+          "output_tokens": 3212,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 9850,
+          "output_tokens": 198,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 5459,
+          "output_tokens": 156,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 8,
+        "agent_fact_analysis": 7,
+        "agent_policy_review": 7,
+        "agent_response": 19,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": [
+        "user_stop",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "38",
+      "architecture": "multi_agent",
+      "seed": 52,
+      "task_summary": "Hi, I just placed an order, but my card only has $950 left and the total is over $1,100. Can I split the payment with another card?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 86.307,
+      "agent_calls": 29,
+      "user_calls": 7,
+      "review_calls": 1,
+      "agent_cost_usd": 0.38394,
+      "user_cost_usd": 0.009496,
+      "review_cost_usd": 0.00478425,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 182105,
+          "output_tokens": 1973,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 8631,
+          "output_tokens": 173,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 5419,
+          "output_tokens": 160,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 17,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_counterexample": 4,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": [
+        "user_stop",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "38",
+      "architecture": "strong_single",
+      "seed": 52,
+      "task_summary": "Hi, I just placed an order over $1,100, but my card only has $950 left. Can I split the payment with another card?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 62.697,
+      "agent_calls": 18,
+      "user_calls": 8,
+      "review_calls": 1,
+      "agent_cost_usd": 0.224048,
+      "user_cost_usd": 0.010441,
+      "review_cost_usd": 0.004719,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 107609,
+          "output_tokens": 883,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 9561,
+          "output_tokens": 176,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 5458,
+          "output_tokens": 139,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 8,
+        "agent_response": 18,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "39",
+      "architecture": "multi_agent",
+      "seed": 53,
+      "task_summary": "Yeah, hi. I just moved from Florida to Phoenix, but my account is still living in the past. I need my address updated. Also, what’s the cheapest T-shirt available right now, and can I order it through you?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 22.925,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 1,
+      "agent_cost_usd": 0.025902,
+      "user_cost_usd": 0.004986,
+      "review_cost_usd": 0.00095775,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11796,
+          "output_tokens": 231,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3611,
+          "output_tokens": 275,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 641,
+          "output_tokens": 106,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "39",
+      "architecture": "strong_single",
+      "seed": 53,
+      "task_summary": "Yeah, hi! I just moved from Florida to Phoenix, but my account’s still stuck in Florida. Guess it didn’t get the moving memo. I need my address updated. My new one should be on a recent order, but I don’t want to say it out loud. Also, what’s the cheapest available T-shirt right now, and can I order it through you?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 32.079,
+      "agent_calls": 5,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.043606,
+      "user_cost_usd": 0.006286,
+      "review_cost_usd": 0.00105075,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 20218,
+          "output_tokens": 317,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4686,
+          "output_tokens": 320,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 663,
+          "output_tokens": 123,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 5,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "39",
+      "architecture": "staged_single",
+      "seed": 53,
+      "task_summary": "Yeah, hi! I just moved from Florida to Phoenix, but my address is still the old one. Can you update it using the address on my recent order? I’d rather not say it out loud. Also, what’s the cheapest available T-shirt right now, and can I order it through you? My wardrobe moved too, but apparently it left the good shirts behind.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 58.678,
+      "agent_calls": 9,
+      "user_calls": 4,
+      "review_calls": 1,
+      "agent_cost_usd": 0.061128,
+      "user_cost_usd": 0.004885,
+      "review_cost_usd": 0.0008445,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 24254,
+          "output_tokens": 1262,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3545,
+          "output_tokens": 268,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 574,
+          "output_tokens": 92,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_response": 3,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "40",
+      "architecture": "strong_single",
+      "seed": 54,
+      "task_summary": "Yeah, hi. I need to check my gift card balance and find out which card I used for my recent order. Can I apply the gift card to that order? If not, I want to switch the payment to Visa. I’m in the middle of finals, so I’d really like to get this sorted quickly.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 29.28,
+      "agent_calls": 7,
+      "user_calls": 4,
+      "review_calls": 1,
+      "agent_cost_usd": 0.063044,
+      "user_cost_usd": 0.003953,
+      "review_cost_usd": 0.001671,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 29787,
+          "output_tokens": 347,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3433,
+          "output_tokens": 104,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 1358,
+          "output_tokens": 145,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 7,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "40",
+      "architecture": "staged_single",
+      "seed": 54,
+      "task_summary": "Yeah, hi. I need to check my gift card balance and find out which credit card I used for my recent order. Can I apply the gift card to that order? If not, I’d like to switch the payment to Visa. I’m in the middle of finals, so I’m hoping to get this sorted quickly.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 62.853,
+      "agent_calls": 13,
+      "user_calls": 4,
+      "review_calls": 1,
+      "agent_cost_usd": 0.103486,
+      "user_cost_usd": 0.004056,
+      "review_cost_usd": 0.00162075,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 44673,
+          "output_tokens": 1414,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3431,
+          "output_tokens": 125,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 1363,
+          "output_tokens": 133,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_response": 7,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "40",
+      "architecture": "multi_agent",
+      "seed": 54,
+      "task_summary": "Yeah, hi. I need to check my gift card balance and find out which card I used for my recent order. Can I apply the gift card to that order? I’m in the middle of finals, so I’d really like to get this sorted quickly.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 55.687,
+      "agent_calls": 17,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.132914,
+      "user_cost_usd": 0.005086,
+      "review_cost_usd": 0.00168075,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 59667,
+          "output_tokens": 1358,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4461,
+          "output_tokens": 125,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 1425,
+          "output_tokens": 136,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 8,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "42",
+      "architecture": "staged_single",
+      "seed": 55,
+      "task_summary": "Yeah, hi. I just created an account and placed some orders, but I think I might have typed my address wrong. Can we check it?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 130.988,
+      "agent_calls": 30,
+      "user_calls": 8,
+      "review_calls": 0,
+      "agent_cost_usd": 0.307962,
+      "user_cost_usd": 0.009367,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 138751,
+          "output_tokens": 3046,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 8327,
+          "output_tokens": 208,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 8,
+        "agent_fact_analysis": 7,
+        "agent_policy_review": 7,
+        "agent_response": 16
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "42",
+      "architecture": "multi_agent",
+      "seed": 55,
+      "task_summary": "Yeah, hi. I just created an account and placed an order, but I think I might have typed my address wrong. Can you check it for me?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 101.741,
+      "agent_calls": 32,
+      "user_calls": 8,
+      "review_calls": 0,
+      "agent_cost_usd": 0.364946,
+      "user_cost_usd": 0.009643,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 170608,
+          "output_tokens": 2373,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 8493,
+          "output_tokens": 230,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 8,
+        "agent_response": 17,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_counterexample": 5
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "42",
+      "architecture": "strong_single",
+      "seed": 55,
+      "task_summary": "Hi. I just created an account and placed some orders, but I think I might have typed my address wrong. Can you check it for me?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 58.761,
+      "agent_calls": 17,
+      "user_calls": 8,
+      "review_calls": 0,
+      "agent_cost_usd": 0.205608,
+      "user_cost_usd": 0.009446,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 98179,
+          "output_tokens": 925,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 8376,
+          "output_tokens": 214,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 8,
+        "agent_response": 17
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "45",
+      "architecture": "multi_agent",
+      "seed": 56,
+      "task_summary": "Hi there, I’d like to exchange a robotic vacuum from a recent order for a canister vacum from the same product line. Can you help with that?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 19.542,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 1,
+      "agent_cost_usd": 0.024354,
+      "user_cost_usd": 0.004448,
+      "review_cost_usd": 0.000801,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11567,
+          "output_tokens": 122,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3773,
+          "output_tokens": 135,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 450,
+          "output_tokens": 103,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "45",
+      "architecture": "strong_single",
+      "seed": 56,
+      "task_summary": "Hi there, I’d like to exchange the robotic vacuum from my recent order for a canister one from the same product line, if thats possible.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 56.692,
+      "agent_calls": 14,
+      "user_calls": 8,
+      "review_calls": 1,
+      "agent_cost_usd": 0.154146,
+      "user_cost_usd": 0.010512,
+      "review_cost_usd": 0.00309825,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 73558,
+          "output_tokens": 703,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 9317,
+          "output_tokens": 239,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 3423,
+          "output_tokens": 118,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 8,
+        "agent_response": 14,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "45",
+      "architecture": "staged_single",
+      "seed": 56,
+      "task_summary": "Hi there, I’d like to exchage the robotic vacuum from my recent order for a canister vacuum from the same product line. Can you help with that?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 71.783,
+      "agent_calls": 12,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.077392,
+      "user_cost_usd": 0.006138,
+      "review_cost_usd": 0.00083175,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 31496,
+          "output_tokens": 1440,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4873,
+          "output_tokens": 253,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 515,
+          "output_tokens": 99,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 4,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "49",
+      "architecture": "strong_single",
+      "seed": 57,
+      "task_summary": "Hi there, I ordered wireless earbuds with IPX7 water resistance by mistake. I’d like to exchange them for the cheapest other earbuds in the same order, with the same water resistance as those. Can you help?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 45.965,
+      "agent_calls": 14,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.155586,
+      "user_cost_usd": 0.005458,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 74883,
+          "output_tokens": 582,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4833,
+          "output_tokens": 125,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 14
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "49",
+      "architecture": "staged_single",
+      "seed": 57,
+      "task_summary": "Hi there, I ordered a wireless earbud with IPX7 water resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of my order, with the same water resistance as the others.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 102.419,
+      "agent_calls": 24,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.248494,
+      "user_cost_usd": 0.007113,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 111902,
+          "output_tokens": 2469,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6163,
+          "output_tokens": 190,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 14
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "49",
+      "architecture": "multi_agent",
+      "seed": 57,
+      "task_summary": "Hi there, I ordered a wireless earbud with IPX7 water resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of that order, with the same water resistance as the others. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 72.8,
+      "agent_calls": 24,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.27259,
+      "user_cost_usd": 0.006805,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 129135,
+          "output_tokens": 1432,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6090,
+          "output_tokens": 143,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 15,
+        "agent_policy_review": 3,
+        "agent_fact_analysis": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "51",
+      "architecture": "staged_single",
+      "seed": 58,
+      "task_summary": "Yeah, hi. I want to return the digital camera I received and get a refund to my original payment method. Can you help me get that started?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 107.167,
+      "agent_calls": 24,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.207308,
+      "user_cost_usd": 0.007891,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 90264,
+          "output_tokens": 2678,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6641,
+          "output_tokens": 250,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_fact_analysis": 6,
+        "agent_policy_review": 6,
+        "agent_response": 12
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "51",
+      "architecture": "multi_agent",
+      "seed": 58,
+      "task_summary": "Yeah, hi. I want to return the digital camera I received and get a refund to my original payment method. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 81.543,
+      "agent_calls": 24,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.212314,
+      "user_cost_usd": 0.007636,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 96482,
+          "output_tokens": 1935,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6486,
+          "output_tokens": 230,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 12,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_counterexample": 4
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "51",
+      "architecture": "strong_single",
+      "seed": 58,
+      "task_summary": "Yeah, hi. I want to return the digital camera I received and get a refund to my original payment method. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 29.028,
+      "agent_calls": 8,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.070918,
+      "user_cost_usd": 0.004643,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 33649,
+          "output_tokens": 362,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3983,
+          "output_tokens": 132,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 8
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "53",
+      "architecture": "multi_agent",
+      "seed": 59,
+      "task_summary": "Yeah, hi. The bicycle I received was damaged during delivery. It was very expensive, and I want a refund to my original credit card as soon as possible. How quickly can you fix this?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 55.313,
+      "agent_calls": 16,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.143174,
+      "user_cost_usd": 0.004708,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 66182,
+          "output_tokens": 1081,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4133,
+          "output_tokens": 115,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 10,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "53",
+      "architecture": "strong_single",
+      "seed": 59,
+      "task_summary": "Yeah, hi. The bicycle I received was damaged during delivery. It was very expensive, and I need a refund to my original credit card as soon as possible. How quickly can you get that done?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 50.247,
+      "agent_calls": 13,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.134258,
+      "user_cost_usd": 0.00733,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 63799,
+          "output_tokens": 666,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6350,
+          "output_tokens": 196,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 13
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "53",
+      "architecture": "staged_single",
+      "seed": 59,
+      "task_summary": "Yeah, hi, so the bicycle I received was damaged during delivery. It was very expensive, and I want a refund to my original credit card as soon as possible. How quickly can you get that done?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 116.522,
+      "agent_calls": 25,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.23147,
+      "user_cost_usd": 0.007918,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 102260,
+          "output_tokens": 2695,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6493,
+          "output_tokens": 285,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_fact_analysis": 6,
+        "agent_policy_review": 6,
+        "agent_response": 13
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "55",
+      "architecture": "strong_single",
+      "seed": 60,
+      "task_summary": "Hi there. I’ve recently run into a financial issue, and I’m a bit stressed about it. I need to cancel any orders that haven’t arrived yet, then return everything I can from the ones that have been delivered. I don’t remember exactly what I ordered, though, so could you list those items for me before we start the returns? I’ve been a loyal customer, and I’d really appreciate your help sorting this out.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 74.023,
+      "agent_calls": 19,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.247768,
+      "user_cost_usd": 0.011504,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 117779,
+          "output_tokens": 1221,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 9799,
+          "output_tokens": 341,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 19
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "55",
+      "architecture": "staged_single",
+      "seed": 60,
+      "task_summary": "Hi there. I’ve run into a financial issue, and I’m feeling pretty stressed about it. I’ve been a loyal customer, but I need to cancel any orders that haven’t arrived yet. After that, I’d like to return everything from the orders that have been delivered. I don’t remember exactly what I ordered, though, so could you list those items for me before we start the returns?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 116.836,
+      "agent_calls": 28,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.336322,
+      "user_cost_usd": 0.009204,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 152946,
+          "output_tokens": 3043,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 7944,
+          "output_tokens": 252,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 18
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "55",
+      "architecture": "multi_agent",
+      "seed": 60,
+      "task_summary": "Hi, yeah, I’ve had a financial issue come up, and I’m honestly a bit stressed about it. I’m a loyal customer, but I need to cancel any orders that haven’t arrived yet. Then I’d like to return everything from the ones that have been delivered. I don’t remember exactly what I ordered, so could you list those items for me before we start the returns?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 90.989,
+      "agent_calls": 27,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.343264,
+      "user_cost_usd": 0.009328,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 160192,
+          "output_tokens": 2288,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 7733,
+          "output_tokens": 319,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 18,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "56",
+      "architecture": "staged_single",
+      "seed": 61,
+      "task_summary": "Hi there, I’m wondering when my air purifier is arriving. Can you check the order for me?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 45.38,
+      "agent_calls": 10,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.061598,
+      "user_cost_usd": 0.004354,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 26824,
+          "output_tokens": 795,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3569,
+          "output_tokens": 157,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_response": 4
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "56",
+      "architecture": "multi_agent",
+      "seed": 61,
+      "task_summary": "Hi there, I’m wondering when my air purifier is arriving. Has it shipped yet?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 47.401,
+      "agent_calls": 15,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.126266,
+      "user_cost_usd": 0.005043,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 59053,
+          "output_tokens": 816,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4538,
+          "output_tokens": 101,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 9,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "56",
+      "architecture": "strong_single",
+      "seed": 61,
+      "task_summary": "Hi there, I’m wondering when my air purifier is arriving. Can you check on it for me?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 16.829,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.023896,
+      "user_cost_usd": 0.004305,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11463,
+          "output_tokens": 97,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3540,
+          "output_tokens": 153,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "60",
+      "architecture": "multi_agent",
+      "seed": 62,
+      "task_summary": "Yeah, hi. I’m Chen Johnson from Houston, TX, 77004. I want to change the wireless earbuds in order W5061109 to blue. I don’t remember my email address. Please verify that the blue ones cost the same or less, and get this resolved as soon as possible.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 46.736,
+      "agent_calls": 12,
+      "user_calls": 3,
+      "review_calls": 1,
+      "agent_cost_usd": 0.101932,
+      "user_cost_usd": 0.003328,
+      "review_cost_usd": 0.00207,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 46066,
+          "output_tokens": 980,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2513,
+          "output_tokens": 163,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 2130,
+          "output_tokens": 105,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 3,
+        "agent_response": 6,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": [
+        "user_stop",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "60",
+      "architecture": "strong_single",
+      "seed": 62,
+      "task_summary": "Yeah, hi, I need to change the wireless earbuds in order W5061109 to blue. I’m Chen Johnson in Houston, TX 77004, and I don’t remember my email address. Please verify the blue ones are the same price or lower, and get this resolved as soon as possible. If there are several options, I want the one without water resistance.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 25.778,
+      "agent_calls": 6,
+      "user_calls": 3,
+      "review_calls": 1,
+      "agent_cost_usd": 0.059308,
+      "user_cost_usd": 0.003132,
+      "review_cost_usd": 0.00204375,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 27964,
+          "output_tokens": 338,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2497,
+          "output_tokens": 127,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 2113,
+          "output_tokens": 102,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 3,
+        "agent_response": 6,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "60",
+      "architecture": "staged_single",
+      "seed": 62,
+      "task_summary": "Yeah, hi. I’m Chen Johnson from Houston TX, 77004. I want to change the wireless earbuds in order W5061109 to blue. Please verify that the price will be the same or lower, and get this resolved as soon as possible. I don’t remember my email address.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 47.824,
+      "agent_calls": 11,
+      "user_calls": 3,
+      "review_calls": 1,
+      "agent_cost_usd": 0.101628,
+      "user_cost_usd": 0.003122,
+      "review_cost_usd": 0.002064,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 45589,
+          "output_tokens": 1045,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2507,
+          "output_tokens": 123,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 2140,
+          "output_tokens": 102,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 3,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_response": 7,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": [
+        "user_stop",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "61",
+      "architecture": "strong_single",
+      "seed": 63,
+      "task_summary": "Hi there, I’m Chen Johnson from Houston, TX 77004. I’d like to change the wireless earbuds in order W5061109 to a blue pair, as long as the price is the same or lower. I don’t remember my email address. Could you please help get that sorted as soon as possible?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 24.521,
+      "agent_calls": 7,
+      "user_calls": 3,
+      "review_calls": 0,
+      "agent_cost_usd": 0.06986,
+      "user_cost_usd": 0.003476,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 33115,
+          "output_tokens": 363,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2766,
+          "output_tokens": 142,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 3,
+        "agent_response": 7
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "61",
+      "architecture": "staged_single",
+      "seed": 63,
+      "task_summary": "Hi there, I’m Chen Johnson from Houston, TX 77004. I’d like to change the wireless earbuds in order W5061109 to blue, as long as the price is the same or lower. I don’t remember the email address I used. Could you help get that sorted as soon as possible?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 47.76,
+      "agent_calls": 11,
+      "user_calls": 3,
+      "review_calls": 0,
+      "agent_cost_usd": 0.10286,
+      "user_cost_usd": 0.003468,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 45930,
+          "output_tokens": 1100,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2733,
+          "output_tokens": 147,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 3,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_response": 7
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "61",
+      "architecture": "multi_agent",
+      "seed": 63,
+      "task_summary": "Hi there, I’m Chen Johnson from Houston, TX, 77004. I’d like to change the wireless earbuds in order W5061109 to blue, as long as the price is the same or lower. I don’t remember my email address. Could you help get this sorted as soon as possible?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 40.897,
+      "agent_calls": 13,
+      "user_calls": 3,
+      "review_calls": 0,
+      "agent_cost_usd": 0.113558,
+      "user_cost_usd": 0.003542,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 52209,
+          "output_tokens": 914,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2742,
+          "output_tokens": 160,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 3,
+        "agent_response": 7,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "62",
+      "architecture": "staged_single",
+      "seed": 64,
+      "task_summary": "Hi there! Can you guess a famous poem from its first line? “Once upon a midnight dreary, while I pondered, weak and weary.”",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 21.847,
+      "agent_calls": 4,
+      "user_calls": 2,
+      "review_calls": 1,
+      "agent_cost_usd": 0.02591,
+      "user_cost_usd": 0.002197,
+      "review_cost_usd": 0.00098475,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11345,
+          "output_tokens": 322,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 1872,
+          "output_tokens": 65,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 323,
+          "output_tokens": 165,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 2,
+        "agent_fact_analysis": 1,
+        "agent_policy_review": 1,
+        "agent_response": 2,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "62",
+      "architecture": "multi_agent",
+      "seed": 64,
+      "task_summary": "Hi there! Can you guess a famous poem from its first line: “Shall I compare thee to a summer’s day?”",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 77.589,
+      "agent_calls": 26,
+      "user_calls": 8,
+      "review_calls": 1,
+      "agent_cost_usd": 0.221182,
+      "user_cost_usd": 0.010839,
+      "review_cost_usd": 0.00228825,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 104241,
+          "output_tokens": 1270,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 9484,
+          "output_tokens": 271,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 2241,
+          "output_tokens": 135,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 8,
+        "agent_response": 11,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_counterexample": 5,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "62",
+      "architecture": "strong_single",
+      "seed": 64,
+      "task_summary": "Hi there! Can you guess a famous poem from its first line? “Once upon a midnight dreary, while I pondered, weak and weary.”",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 48.717,
+      "agent_calls": 12,
+      "user_calls": 8,
+      "review_calls": 1,
+      "agent_cost_usd": 0.116346,
+      "user_cost_usd": 0.010486,
+      "review_cost_usd": 0.00244575,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 56278,
+          "output_tokens": 379,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 9151,
+          "output_tokens": 267,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 2415,
+          "output_tokens": 141,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 8,
+        "agent_response": 12,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "64",
+      "architecture": "multi_agent",
+      "seed": 65,
+      "task_summary": "Hi there, I’d like to exchange a camera I bought. I’m hoping to get the highest-resolution waterproof camera I can for the price I paid.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 62.688,
+      "agent_calls": 19,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.163146,
+      "user_cost_usd": 0.006614,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 75303,
+          "output_tokens": 1254,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5644,
+          "output_tokens": 194,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 10,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "64",
+      "architecture": "strong_single",
+      "seed": 65,
+      "task_summary": "Hi there, I’d like to exchange a camera I bought for the highest-resolution waterproof camera I can get for the same price. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 34.216,
+      "agent_calls": 8,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.072058,
+      "user_cost_usd": 0.005694,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 34234,
+          "output_tokens": 359,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4444,
+          "output_tokens": 250,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 8
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "64",
+      "architecture": "staged_single",
+      "seed": 65,
+      "task_summary": "Hi there, I’d like to exchange a camera I bought. I’m looking for the highest-resolution waterproof camera I can get for the price I already paid.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 94.134,
+      "agent_calls": 22,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.19503,
+      "user_cost_usd": 0.006491,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 88810,
+          "output_tokens": 1741,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5616,
+          "output_tokens": 175,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 12
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "65",
+      "architecture": "strong_single",
+      "seed": 66,
+      "task_summary": "Hi there, I’d like to exchange the bookshelf from my most recent order for a camera. I’m looking for one as close as possible to the bookshelf’s price without costing more.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 42.488,
+      "agent_calls": 12,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.132466,
+      "user_cost_usd": 0.006805,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 63588,
+          "output_tokens": 529,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5905,
+          "output_tokens": 180,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 12
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "65",
+      "architecture": "staged_single",
+      "seed": 66,
+      "task_summary": "Hi there, I’d like to exchange the bookshelf from my most recent order for a camera. I’m looking for one that’s as close as possible to the bookshelf’s price without costing more.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 109.376,
+      "agent_calls": 23,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.241844,
+      "user_cost_usd": 0.007034,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 108282,
+          "output_tokens": 2528,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6069,
+          "output_tokens": 193,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 13
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "65",
+      "architecture": "multi_agent",
+      "seed": 66,
+      "task_summary": "Hi there, I’d like to exchange the bookshelf from my most recent order for a camera. I’m looking for one as close as possible to the bookshelf’s price without costing more.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 72.547,
+      "agent_calls": 21,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.228348,
+      "user_cost_usd": 0.006772,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 106079,
+          "output_tokens": 1619,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5977,
+          "output_tokens": 159,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 12,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "68",
+      "architecture": "staged_single",
+      "seed": 67,
+      "task_summary": "Hi there, I’m trying to find out how much I paid for my most recent order. I’m not sure when I placed it, though.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 41.385,
+      "agent_calls": 9,
+      "user_calls": 4,
+      "review_calls": 1,
+      "agent_cost_usd": 0.051858,
+      "user_cost_usd": 0.004208,
+      "review_cost_usd": 0.0007335,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 22459,
+          "output_tokens": 694,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3428,
+          "output_tokens": 156,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 420,
+          "output_tokens": 93,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_response": 3,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "68",
+      "architecture": "multi_agent",
+      "seed": 67,
+      "task_summary": "Hi there, I’m trying to find out how much I paid for my most recent order. I’m not sure when I placed it, though.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 18.305,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 1,
+      "agent_cost_usd": 0.024108,
+      "user_cost_usd": 0.004332,
+      "review_cost_usd": 0.0008055,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11509,
+          "output_tokens": 109,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3462,
+          "output_tokens": 174,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 438,
+          "output_tokens": 106,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "68",
+      "architecture": "strong_single",
+      "seed": 67,
+      "task_summary": "Hi there, I’d like to check how much I paid for the most recent order I placed. I’m not sure how long ago it was.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 19.119,
+      "agent_calls": 3,
+      "user_calls": 4,
+      "review_calls": 1,
+      "agent_cost_usd": 0.023786,
+      "user_cost_usd": 0.004283,
+      "review_cost_usd": 0.00074625,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 11488,
+          "output_tokens": 81,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3413,
+          "output_tokens": 174,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 401,
+          "output_tokens": 99,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 3,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_out_of_scope",
+      "failure_types": [
+        "user_out_of_scope",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "70",
+      "architecture": "multi_agent",
+      "seed": 68,
+      "task_summary": "Yeah, hi, I got a helmet and it’s too small. I want to exchange it for a medium with high ventilation. Can you help me get that sorted?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 81.276,
+      "agent_calls": 23,
+      "user_calls": 6,
+      "review_calls": 1,
+      "agent_cost_usd": 0.257498,
+      "user_cost_usd": 0.00617,
+      "review_cost_usd": 0.00335025,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 120014,
+          "output_tokens": 1747,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5345,
+          "output_tokens": 165,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 3783,
+          "output_tokens": 114,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 14,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "70",
+      "architecture": "strong_single",
+      "seed": 68,
+      "task_summary": "Yeah, hi. I just got a helmet and it’s too small. I need to exchange it for a medium with high ventilation. Can we get that sorted?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 49.472,
+      "agent_calls": 14,
+      "user_calls": 6,
+      "review_calls": 1,
+      "agent_cost_usd": 0.158728,
+      "user_cost_usd": 0.00623,
+      "review_cost_usd": 0.0033255,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 76189,
+          "output_tokens": 635,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5435,
+          "output_tokens": 159,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 3810,
+          "output_tokens": 104,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 14,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "70",
+      "architecture": "staged_single",
+      "seed": 68,
+      "task_summary": "Yeah, hi. I just got a helmet, and it’s too small. I want to exchange it for a medium with high ventilation. Can we get that sorted today?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 99.56,
+      "agent_calls": 23,
+      "user_calls": 6,
+      "review_calls": 1,
+      "agent_cost_usd": 0.231666,
+      "user_cost_usd": 0.006254,
+      "review_cost_usd": 0.003372,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 104808,
+          "output_tokens": 2205,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5544,
+          "output_tokens": 142,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 3812,
+          "output_tokens": 114,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 13,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "71",
+      "architecture": "strong_single",
+      "seed": 69,
+      "task_summary": "Hi there. I accidentally sent an order to my son’s address in Washington, DC, but he’s coming back home. Could I change the delivery address? I’d also like to make a couple of changes to the items in the order.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 75.543,
+      "agent_calls": 18,
+      "user_calls": 10,
+      "review_calls": 0,
+      "agent_cost_usd": 0.224836,
+      "user_cost_usd": 0.016215,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 106393,
+          "output_tokens": 1205,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 14525,
+          "output_tokens": 338,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 10,
+        "agent_response": 18
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "71",
+      "architecture": "staged_single",
+      "seed": 69,
+      "task_summary": "Hi there, I made a mistake with an order and had it sent to my son’s address in Washington, DC. He’s coming back home, so I’d like to change the delivery address. I also need to make a couple of changes to the items.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 153.531,
+      "agent_calls": 32,
+      "user_calls": 9,
+      "review_calls": 0,
+      "agent_cost_usd": 0.354384,
+      "user_cost_usd": 0.014732,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 157317,
+          "output_tokens": 3975,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 12667,
+          "output_tokens": 413,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 9,
+        "agent_fact_analysis": 8,
+        "agent_policy_review": 8,
+        "agent_response": 16
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "71",
+      "architecture": "multi_agent",
+      "seed": 69,
+      "task_summary": "Hi there, I made a mistake with an order and had it sent to my son’s address in Washington, DC. He’s coming back home, so I’d like to change the delivery address. I also need to make a couple of changes to the items. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 126.173,
+      "agent_calls": 33,
+      "user_calls": 9,
+      "review_calls": 0,
+      "agent_cost_usd": 0.377758,
+      "user_cost_usd": 0.014517,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 172064,
+          "output_tokens": 3363,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 12597,
+          "output_tokens": 384,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 9,
+        "agent_response": 15,
+        "agent_fact_analysis": 6,
+        "agent_policy_review": 6,
+        "agent_counterexample": 6
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "74",
+      "architecture": "staged_single",
+      "seed": 70,
+      "task_summary": "Hi there. Um, I recently bought a laptop and I was hoping to exchange it for one with an i9 processor. I also have a pending order I’d like to cancel, if that’s okay.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 107.942,
+      "agent_calls": 25,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.296354,
+      "user_cost_usd": 0.008296,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 135522,
+          "output_tokens": 2531,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 7161,
+          "output_tokens": 227,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 15
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": [
+        "user_stop",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "74",
+      "architecture": "multi_agent",
+      "seed": 70,
+      "task_summary": "Hi there. Um, I recently bought a laptop and was hoping to exchange it for one with an i9 CPU. I also have a pending order I’d like to cancel, if that’s okay.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 82.157,
+      "agent_calls": 23,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.275172,
+      "user_cost_usd": 0.007968,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 127066,
+          "output_tokens": 2104,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6808,
+          "output_tokens": 232,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 14,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "74",
+      "architecture": "strong_single",
+      "seed": 70,
+      "task_summary": "Hi, um, I recently bought a laptop and was hoping to exchange it for one with an i9 CPU. I also have a pending order with five items that I’d like to cancel, but I don’t remember the order ID. Could you help me with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 58.314,
+      "agent_calls": 16,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.201772,
+      "user_cost_usd": 0.009436,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 96671,
+          "output_tokens": 843,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 8331,
+          "output_tokens": 221,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 16
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "77",
+      "architecture": "multi_agent",
+      "seed": 71,
+      "task_summary": "Hi there, I ordered a perfume and just tried a little bit of it. I like it a lot, and I’d like to get the largest size available. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 58.294,
+      "agent_calls": 16,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.137216,
+      "user_cost_usd": 0.005412,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 63228,
+          "output_tokens": 1076,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4627,
+          "output_tokens": 157,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 10,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "77",
+      "architecture": "strong_single",
+      "seed": 71,
+      "task_summary": "Hi there, I ordered a perfume and just tried a little bit of it. I really like it, and I’d like to get the largest size available. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 38.954,
+      "agent_calls": 10,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.093682,
+      "user_cost_usd": 0.005406,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 44571,
+          "output_tokens": 454,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4611,
+          "output_tokens": 159,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 10
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "77",
+      "architecture": "staged_single",
+      "seed": 71,
+      "task_summary": "Hi there, I ordered a perfume and just tried a little bit. I really like it, so I’d like to get the largest size available. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 110.223,
+      "agent_calls": 21,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.182704,
+      "user_cost_usd": 0.007468,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 79347,
+          "output_tokens": 2401,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6323,
+          "output_tokens": 229,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 11
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch"
+      ]
+    },
+    {
+      "task_id": "79",
+      "architecture": "strong_single",
+      "seed": 72,
+      "task_summary": null,
+      "status": "unknown",
+      "official_reward": null,
+      "official_components": {},
+      "duration_seconds": 20.337,
+      "agent_calls": 3,
+      "user_calls": 3,
+      "review_calls": 0,
+      "agent_cost_usd": null,
+      "user_cost_usd": 0.00279,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 7670,
+          "output_tokens": 79,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 2330,
+          "output_tokens": 92,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 3,
+        "agent_response": 3
+      },
+      "error_type": "ProviderResultUnknown",
+      "user_terminal_signal": null,
+      "failure_types": [
+        "unknown"
+      ]
+    },
+    {
+      "task_id": "79",
+      "architecture": "staged_single",
+      "seed": 72,
+      "task_summary": "Yeah, hi. I just bought a 500ml water bottle, but I regret getting that size. I want to change it to the 1000ml bottle I just ordered. I don’t want to cancel either order. Can you help?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 95.157,
+      "agent_calls": 19,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.18382,
+      "user_cost_usd": 0.005797,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 81695,
+          "output_tokens": 2043,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4732,
+          "output_tokens": 213,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 11
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "79",
+      "architecture": "multi_agent",
+      "seed": 72,
+      "task_summary": "Yeah, hi. I just bought a 500ml water bottle, but I regret the size. Can I change it to the 1000ml bottle I just ordered? I don’t want to cancel either order.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 77.291,
+      "agent_calls": 21,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.220946,
+      "user_cost_usd": 0.006705,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 102018,
+          "output_tokens": 1691,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5725,
+          "output_tokens": 196,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 12,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "86",
+      "architecture": "staged_single",
+      "seed": 73,
+      "task_summary": "Hi there. I’d like to exchange my fleece jacket for a red one with a half zipper. I also want to change my default address to my Washington, DC address. It’s on one of my orders, but I’d rather not say it out loud.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 98.514,
+      "agent_calls": 23,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.249768,
+      "user_cost_usd": 0.005781,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 114154,
+          "output_tokens": 2146,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5066,
+          "output_tokens": 143,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 15
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "86",
+      "architecture": "multi_agent",
+      "seed": 73,
+      "task_summary": "Hi, I’d like to exchange my fleece jacket for a red one with a half zipper. I also need to change my default address to my Washington, DC address. It’s on one of my orders.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 72.064,
+      "agent_calls": 24,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.263156,
+      "user_cost_usd": 0.005632,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 123768,
+          "output_tokens": 1562,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4992,
+          "output_tokens": 128,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 15,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "86",
+      "architecture": "strong_single",
+      "seed": 73,
+      "task_summary": "Hi there. I’d like to exchange my fleece jacket for a red one with a half zipper. I also need to change my default address to my Washington, DC address. It’s on one of my orders.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 51.721,
+      "agent_calls": 15,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.168754,
+      "user_cost_usd": 0.005644,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 80952,
+          "output_tokens": 685,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4984,
+          "output_tokens": 132,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 15
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "90",
+      "architecture": "multi_agent",
+      "seed": 74,
+      "task_summary": "Hi there, I just bought a digital camera and wanted to check if it has 10x zoom. Could you help me with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 84.695,
+      "agent_calls": 29,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.315054,
+      "user_cost_usd": 0.007984,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 149007,
+          "output_tokens": 1704,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 7144,
+          "output_tokens": 168,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 14,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_counterexample": 5
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "90",
+      "architecture": "strong_single",
+      "seed": 74,
+      "task_summary": "Hi there, I just bought a digital camera and wanted to check if it has 10x zoom. Could you help me check?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 45.37,
+      "agent_calls": 14,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.15689,
+      "user_cost_usd": 0.007978,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 75735,
+          "output_tokens": 542,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 7278,
+          "output_tokens": 140,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 14
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "90",
+      "architecture": "staged_single",
+      "seed": 74,
+      "task_summary": "Hi there, I just bought a digital camera and wanted to check if it has 10x zoom. Can you help me with that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 104.082,
+      "agent_calls": 27,
+      "user_calls": 7,
+      "review_calls": 0,
+      "agent_cost_usd": 0.287386,
+      "user_cost_usd": 0.008296,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 132938,
+          "output_tokens": 2151,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 7471,
+          "output_tokens": 165,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_fact_analysis": 6,
+        "agent_policy_review": 6,
+        "agent_response": 15
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "94",
+      "architecture": "strong_single",
+      "seed": 75,
+      "task_summary": "Yeah, hi. I received a laptop, and I want to exchange it for one with an i7 processor, 8GB of RAM, and a 1TB SSD. How quickly can we get that done?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 38.328,
+      "agent_calls": 11,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.11935,
+      "user_cost_usd": 0.005028,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 56855,
+          "output_tokens": 564,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4318,
+          "output_tokens": 142,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 11
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "94",
+      "architecture": "staged_single",
+      "seed": 75,
+      "task_summary": "Yeah, hi. I received a laptop, and I want to exchange it for one with an i7 processor, 8GB of RAM, and a 1TB SSD. How soon can we get that done?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 83.815,
+      "agent_calls": 19,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.18033,
+      "user_cost_usd": 0.005022,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 80790,
+          "output_tokens": 1875,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4202,
+          "output_tokens": 164,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 11
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "94",
+      "architecture": "multi_agent",
+      "seed": 75,
+      "task_summary": "Yeah, hi. I received a laptop, and I want to exchange it for one with an i7 processor, 8GB of RAM, and a 1TB SSD. Can you help me get that sorted?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 50.909,
+      "agent_calls": 17,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.173088,
+      "user_cost_usd": 0.00483,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 81394,
+          "output_tokens": 1030,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4085,
+          "output_tokens": 149,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 11,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "97",
+      "architecture": "staged_single",
+      "seed": 76,
+      "task_summary": "Hi there. I’d like to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s delivery address to my NYC address. The NYC address is on my other order, so I’d rather not give it out again if you can use that.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 90.567,
+      "agent_calls": 20,
+      "user_calls": 5,
+      "review_calls": 0,
+      "agent_cost_usd": 0.211672,
+      "user_cost_usd": 0.006259,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 94296,
+          "output_tokens": 2308,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5379,
+          "output_tokens": 176,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 12
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "97",
+      "architecture": "multi_agent",
+      "seed": 76,
+      "task_summary": "Hi there. I’d like to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change the shipping address to my NYC address. It’s on my other order, so I’d rather not give it out again if you can find it there.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 64.692,
+      "agent_calls": 21,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.213518,
+      "user_cost_usd": 0.007271,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 99099,
+          "output_tokens": 1532,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6276,
+          "output_tokens": 199,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 12,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "97",
+      "architecture": "strong_single",
+      "seed": 76,
+      "task_summary": "Hi there. I’d like to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s shipping address to my NYC address. The address is on my other order, so I’d prefer to use that if possible.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 36.034,
+      "agent_calls": 10,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.10598,
+      "user_cost_usd": 0.004731,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 50095,
+          "output_tokens": 579,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 3961,
+          "output_tokens": 154,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_response": 10
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "100",
+      "architecture": "multi_agent",
+      "seed": 77,
+      "task_summary": "Yeah, hi. I need to return my luggage set and get the exact same one in red. I also want to return the skateboard from that order and get a new one that’s 34 inches with a custom design. And I need to return the hiking boots too. Can you help me get this sorted? I’m worried this is going to get complicated.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 93.315,
+      "agent_calls": 27,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.359832,
+      "user_cost_usd": 0.00738,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 167571,
+          "output_tokens": 2469,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6280,
+          "output_tokens": 220,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 18,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_counterexample": 3
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "100",
+      "architecture": "strong_single",
+      "seed": 77,
+      "task_summary": "Yeah, hi. I need to return my luggage set and get the exact same one in red. I also want to return the skateboard in that order and get a 34-inch one with a custom design. And I need to return the hiking boots too. Can we get this fixed?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 62.812,
+      "agent_calls": 18,
+      "user_calls": 6,
+      "review_calls": 0,
+      "agent_cost_usd": 0.238506,
+      "user_cost_usd": 0.007233,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 114113,
+          "output_tokens": 1028,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 6148,
+          "output_tokens": 217,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_response": 18
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "100",
+      "architecture": "staged_single",
+      "seed": 77,
+      "task_summary": "Yeah, hi, so I need to exchange my luggage set for the exact same one in red. I also want to exchange the skateboard in the same order for a 34-inch one with a custom design. And I need to return the hiking boots. Can you actually get all that done?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 94.864,
+      "agent_calls": 23,
+      "user_calls": 4,
+      "review_calls": 0,
+      "agent_cost_usd": 0.297562,
+      "user_cost_usd": 0.004933,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 136801,
+          "output_tokens": 2396,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4018,
+          "output_tokens": 183,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 4,
+        "agent_fact_analysis": 3,
+        "agent_policy_review": 3,
+        "agent_response": 17
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": []
+    },
+    {
+      "task_id": "101",
+      "architecture": "strong_single",
+      "seed": 78,
+      "task_summary": "Hi there, I just placed an order for two watches, and I need to change the delivery address. It’s the New York address on another one of my orders.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 91.071,
+      "agent_calls": 25,
+      "user_calls": 13,
+      "review_calls": 0,
+      "agent_cost_usd": 0.324554,
+      "user_cost_usd": 0.020452,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 155187,
+          "output_tokens": 1418,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 18712,
+          "output_tokens": 348,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 13,
+        "agent_response": 25
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "101",
+      "architecture": "staged_single",
+      "seed": 78,
+      "task_summary": "Hi there, I just placed an order for two watches, and I need to change the shipping address. It’s my New York address from another order—could you use that?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 183.39,
+      "agent_calls": 40,
+      "user_calls": 11,
+      "review_calls": 0,
+      "agent_cost_usd": 0.455048,
+      "user_cost_usd": 0.016015,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 203074,
+          "output_tokens": 4890,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 14690,
+          "output_tokens": 265,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 11,
+        "agent_fact_analysis": 10,
+        "agent_policy_review": 10,
+        "agent_response": 20
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "101",
+      "architecture": "multi_agent",
+      "seed": 78,
+      "task_summary": null,
+      "status": "budget_exhausted",
+      "official_reward": null,
+      "official_components": {},
+      "duration_seconds": 147.81,
+      "agent_calls": 48,
+      "user_calls": 12,
+      "review_calls": 0,
+      "agent_cost_usd": 0.551156,
+      "user_cost_usd": 0.018387,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 255223,
+          "output_tokens": 4071,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 16797,
+          "output_tokens": 318,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 12,
+        "agent_response": 21,
+        "agent_fact_analysis": 9,
+        "agent_policy_review": 9,
+        "agent_counterexample": 9
+      },
+      "error_type": "BudgetExhausted",
+      "user_terminal_signal": null,
+      "failure_types": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "task_id": "102",
+      "architecture": "staged_single",
+      "seed": 79,
+      "task_summary": "Hi there, I just placed an order for two watches, and I need to change the delivery address.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 168.779,
+      "agent_calls": 38,
+      "user_calls": 10,
+      "review_calls": 0,
+      "agent_cost_usd": 0.42739,
+      "user_cost_usd": 0.014282,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 192205,
+          "output_tokens": 4298,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 12772,
+          "output_tokens": 302,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 10,
+        "agent_fact_analysis": 9,
+        "agent_policy_review": 9,
+        "agent_response": 20
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "102",
+      "architecture": "multi_agent",
+      "seed": 79,
+      "task_summary": "Hi there, I just placed an order for two watches, and I need to change the shipping address.",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 163.296,
+      "agent_calls": 47,
+      "user_calls": 12,
+      "review_calls": 0,
+      "agent_cost_usd": 0.516532,
+      "user_cost_usd": 0.017128,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 237711,
+          "output_tokens": 4111,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 15623,
+          "output_tokens": 301,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 12,
+        "agent_response": 20,
+        "agent_fact_analysis": 9,
+        "agent_policy_review": 9,
+        "agent_counterexample": 9
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "102",
+      "architecture": "strong_single",
+      "seed": 79,
+      "task_summary": "Hi there, I just placed an order for two watches, and I need to change the shipping address. It’s the New York address on another order I placed. Can you use that one?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 85.516,
+      "agent_calls": 22,
+      "user_calls": 12,
+      "review_calls": 0,
+      "agent_cost_usd": 0.273054,
+      "user_cost_usd": 0.017976,
+      "review_cost_usd": 0.0,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 130272,
+          "output_tokens": 1251,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 16436,
+          "output_tokens": 308,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 12,
+        "agent_response": 22
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "108",
+      "architecture": "multi_agent",
+      "seed": 80,
+      "task_summary": "Yeah, hi. My order was recently delivered, and I want to return everything except the tablet. That includes the e-reader. How much money can I get back?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 49.92,
+      "agent_calls": 17,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.15926,
+      "user_cost_usd": 0.004624,
+      "review_cost_usd": 0.0022485,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 74565,
+          "output_tokens": 1013,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4024,
+          "output_tokens": 120,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 2494,
+          "output_tokens": 84,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 11,
+        "agent_fact_analysis": 2,
+        "agent_policy_review": 2,
+        "agent_counterexample": 2,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "108",
+      "architecture": "strong_single",
+      "seed": 80,
+      "task_summary": "Yeah, hi. I want to return everything in my recently delivered order except the tablet. There’s an E-Reader in there too. How much money can I get back?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 39.047,
+      "agent_calls": 11,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.10893,
+      "user_cost_usd": 0.004738,
+      "review_cost_usd": 0.0022845,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 52000,
+          "output_tokens": 493,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4043,
+          "output_tokens": 139,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 2506,
+          "output_tokens": 90,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 11,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "108",
+      "architecture": "staged_single",
+      "seed": 80,
+      "task_summary": "Yeah, hi. I want to return everything from my recent order except the tablet. There’s an e-reader in there too. How much money can I get back?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 80.0,
+      "agent_calls": 19,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.165016,
+      "user_cost_usd": 0.004565,
+      "review_cost_usd": 0.00227325,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 73663,
+          "output_tokens": 1769,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 4010,
+          "output_tokens": 111,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 2491,
+          "output_tokens": 90,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_response": 11,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    },
+    {
+      "task_id": "111",
+      "architecture": "strong_single",
+      "seed": 81,
+      "task_summary": "Hi there. I’m hoping to make a couple of changes together. I’d like my laptop order sent to my NYC address on my orders profile, and change it to an i5, 256GB SSD, and space grey. I’d also like to exchange my watch for a black dial but keep the leather strap. Is that possible?",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 53.357,
+      "agent_calls": 15,
+      "user_calls": 5,
+      "review_calls": 1,
+      "agent_cost_usd": 0.190956,
+      "user_cost_usd": 0.006867,
+      "review_cost_usd": 0.00373725,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 90983,
+          "output_tokens": 899,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 5692,
+          "output_tokens": 235,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 4269,
+          "output_tokens": 119,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 5,
+        "agent_response": 15,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "111",
+      "architecture": "staged_single",
+      "seed": 81,
+      "task_summary": "Hi there. I’m hoping to make a couple of changes together. I’d like to update my laptop order and exchange my watch, if that’s possible. I’m a little worried about getting it all right.",
+      "status": "completed",
+      "official_reward": 0.0,
+      "official_components": {
+        "DB": 0.0,
+        "NL_ASSERTION": 0.0
+      },
+      "duration_seconds": 131.384,
+      "agent_calls": 26,
+      "user_calls": 6,
+      "review_calls": 1,
+      "agent_cost_usd": 0.310946,
+      "user_cost_usd": 0.008678,
+      "review_cost_usd": 0.003945,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 139793,
+          "output_tokens": 3136,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 7178,
+          "output_tokens": 300,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 4408,
+          "output_tokens": 142,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 6,
+        "agent_fact_analysis": 5,
+        "agent_policy_review": 5,
+        "agent_response": 16,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_transfer",
+      "failure_types": [
+        "user_transfer",
+        "db_mismatch",
+        "nl_assertion_failed"
+      ]
+    },
+    {
+      "task_id": "111",
+      "architecture": "multi_agent",
+      "seed": 81,
+      "task_summary": "Hi there. I’m hoping to change my laptop order to the NYC address in my orders profile, and also change its specs. I’d like to exchange my watch for a black dial while keeping the leather strap, too. Is that possible?",
+      "status": "completed",
+      "official_reward": 1.0,
+      "official_components": {
+        "DB": 1.0,
+        "NL_ASSERTION": 1.0
+      },
+      "duration_seconds": 92.858,
+      "agent_calls": 29,
+      "user_calls": 7,
+      "review_calls": 1,
+      "agent_cost_usd": 0.395008,
+      "user_cost_usd": 0.010544,
+      "review_cost_usd": 0.00483,
+      "token_usage": {
+        "agent": {
+          "input_tokens": 186329,
+          "output_tokens": 2235,
+          "cached_input_tokens": 0
+        },
+        "user": {
+          "input_tokens": 9049,
+          "output_tokens": 299,
+          "cached_input_tokens": 0
+        },
+        "review": {
+          "input_tokens": 5660,
+          "output_tokens": 130,
+          "cached_input_tokens": 0
+        }
+      },
+      "calls_by_stage": {
+        "user_simulator_response": 7,
+        "agent_response": 17,
+        "agent_fact_analysis": 4,
+        "agent_policy_review": 4,
+        "agent_counterexample": 4,
+        "nl_assertions_eval": 1
+      },
+      "termination_reason": "user_stop",
+      "user_terminal_signal": "user_stop",
+      "failure_types": []
+    }
+  ]
+}

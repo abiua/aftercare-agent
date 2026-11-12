@@ -1,5 +1,11 @@
 # 电商售后多 Agent 工作台
 
+当前评测已切换为固定版本官方 τ²-bench Retail：40 个测试任务，强单 Agent、单 Agent 三阶段、多 Agent 各运行一次，使用官方评分器。旧自定义评测用例库及对应 P8/P9 对比已移除；官方主批次与一次技术补跑已结束，强单29/40、三阶段25/40、多 Agent25/40（含1条预算未完成）；最终结果见 [官方评测](docs/TAU_OFFICIAL_EVALUATION.md)。[测试中台](http://127.0.0.1:5225/?eval=campaigns) 可选择测试员直接进入；[环境安装](docs/TAU_OFFICIAL_SETUP.md)、[命令入口](docs/TAU_P6_P9_OPERATIONS.md)。P6 失败回退与会话找回、P7 问题目录、P9 路由能力继续保留。以下早期部署段落只作历史记录。
+
+历史阶段记录：2026-11-12：τ-bench P0—P4 已完成阶段验收，P5 已修复本轮超时与参数问题，两条真实复杂案例形成待人工建议并通过浏览器回读，受控定向补查纠错通过；自然定向补查及完整政策覆盖仍未全部证实，退款候选未执行。P6 未开始。见 [P5续验收与保留项](docs/TAU_P5_CONTINUATION_ACCEPTANCE.md)。P4 已接入客户聊天政策检索，真实模型49元模拟退款闭环和更正后会话记忆通过实际接口、浏览器与重启验证。见 [P4验收](docs/TAU_P4_ACCEPTANCE.md)、[独立演示运行](infra/TAU_P4_RUNTIME.md)。P3 已实测 Milvus/pgvector、混合召回、语义重排、持久化与引用生成；18条开发查询上结构重排 Recall@5 为80.56%，仍保留缺证据坏例。见 [P3验收](docs/TAU_P3_ACCEPTANCE.md)、[完整计划](docs/TAU_IMPLEMENTATION_PLAN.md)、[OCR技术选型](docs/TECH_STACK_OCR.md)。以下历史演示与记录保留。
+
+当前P4演示入口 http://127.0.0.1:5224/ 点击客户、客服、审批人或测试员即可进入，无需输入账号密码。角色权限和原工单保持；验证见 `reports/demo-role-login.json`。下文旧体验栈登录说明为历史部署记录。
+
 快速启动/关闭/重启：见 [一键启停说明](docs/QUICK_SERVICE_CONTROL.md)，也可以双击项目根目录的四个 `.command` 文件。
 
 2026-11-12 当前以可用演示版收尾：[三个演示场景与操作步骤](docs/DEMO_GUIDE.md)。普通退款已完成真实模型提案、客服核对、客户确认、独立审批和 49 元模拟回执；双商品案例可在原聊天补证。正式质量对照和扩展机制暂缓。
@@ -54,8 +60,9 @@ Docker Compose 插件可用时，将 `docker-compose` 换为 `docker compose`。
 
 ## 数据和验证边界
 
-- `data/v0.1/`：原始 60 个合成案例、30 商品、100 客户、300 订单。固定种子 42，可逐字节复现，保留 S0 历史基线。
-- `data/v0.2/`：120 个核心案例（三意图各 40，开发 60/验证 30/留出 30）和 24 个冲突回归案例。私有参考、标签与 Agent 输入分离。
+- `data/v0.1/`：只保留演示业务底库（30 商品、100 客户、300 订单），自定义评测案例及参考答案已删除。
+- `data/v0.2/`：旧案例和评分材料已删除，清单仅保留版本识别信息，禁止恢复为活跃评测库。
+- `data/tau/manifest.json`：官方数据与源码的固定版本和校验值；实际评测运行官方原始任务、环境和评分器。
 - 图像是明确标记的合成测试材料，只验证上传、存储和人工审核流程，不宣称自动识别真实破损。
 - 数据及实现作者已接触案例，不能称为独立盲测；人工金标和单次结果复核分别记录。
 - fixture、真实模型、故障注入与负载实验分开报告。失败、超时、未运行和未知费用不抹掉；未完成的对照不显示误导性比较指标。
@@ -68,7 +75,7 @@ Docker Compose 插件可用时，将 `docker-compose` 换为 `docker compose`。
 AFTERCARE_RUN_PG=1 ./scripts/check.sh pg
 ```
 
-参考 [完整要求矩阵](docs/FULL_IMPLEMENTATION_PLAN.md)、[评测数据说明](docs/EVALUATION_DATASET.md)、[智能工作流](docs/HANDOFF_INTELLIGENCE.md)、[业务执行](docs/HANDOFF_BUSINESS.md)、[评测后端](docs/HANDOFF_EVALUATION.md)、[备份恢复](docs/BACKUP_RESTORE.md) 与 [集成证据](docs/HANDOFF_INTEGRATION.md)。S0 阶段文档保留其当时边界，不代表当前实现仍停留在数据准备。
+参考 [完整要求矩阵](docs/FULL_IMPLEMENTATION_PLAN.md)、[官方评测说明](docs/TAU_OFFICIAL_EVALUATION.md)、[智能工作流](docs/HANDOFF_INTELLIGENCE.md)、[业务执行](docs/HANDOFF_BUSINESS.md)、[评测后端](docs/HANDOFF_EVALUATION.md)、[备份恢复](docs/BACKUP_RESTORE.md) 与 [集成证据](docs/HANDOFF_INTEGRATION.md)。S0 阶段文档保留其当时边界，不代表当前实现仍停留在数据准备。
 
 最近一次部署验收记录为后端 `acceptance-20261110-formal`、前端 `acceptance-20261110-refund-fixed`，包含正式评测执行接线、逐项复核、场景统计与指定退款查询。升级时数据与凭据核对一致；完整质量验收仍未完成。[部署记录](reports/deployment/formal-app.json)
 

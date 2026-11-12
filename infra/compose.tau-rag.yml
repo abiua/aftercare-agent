@@ -1,0 +1,55 @@
+name: tau-rag-p3
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg16
+    environment:
+      POSTGRES_USER: tau_rag
+      POSTGRES_PASSWORD: tau_rag_local
+      POSTGRES_DB: tau_rag
+    ports:
+      - "127.0.0.1:15438:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tau_rag -d tau_rag"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  milvus:
+    image: milvusdb/milvus:v2.6.9
+    command: ["milvus", "run", "standalone"]
+    security_opt: ["seccomp:unconfined"]
+    environment:
+      ETCD_USE_EMBED: "true"
+      ETCD_DATA_DIR: /var/lib/milvus/etcd
+      ETCD_CONFIG_PATH: /var/lib/milvus/configs/embedEtcd.yaml
+      COMMON_STORAGETYPE: local
+      DEPLOY_MODE: STANDALONE
+      MQ_TYPE: rocksmq
+    ports:
+      - "127.0.0.1:19538:19530"
+    volumes:
+      - milvus:/var/lib/milvus
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        mkdir -p /var/lib/milvus/configs
+        cat > /var/lib/milvus/configs/embedEtcd.yaml <<'ETCD'
+        listen-client-urls: http://127.0.0.1:2379
+        advertise-client-urls: http://127.0.0.1:2379
+        quota-backend-bytes: 4294967296
+        auto-compaction-mode: revision
+        auto-compaction-retention: "1000"
+        ETCD
+        exec /tini -- "$$@"
+      - --
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+volumes:
+  postgres:
+  milvus:

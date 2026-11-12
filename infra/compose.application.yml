@@ -64,6 +64,9 @@ x-beat: &beat
 
 x-api: &api
   <<: *backend
+  volumes:
+    - ../.runtime/local.json:/workspace/.runtime/local.json:ro
+    - ../evidence/tau_official:/workspace/evidence/tau_official:ro
   healthcheck:
     test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/readyz', timeout=4).close()"]
     interval: 5s

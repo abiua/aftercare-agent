@@ -10,7 +10,7 @@ case "${1:-pure}" in
       printf '%s\n' 'Usage: scripts/check.sh [pure|pg]' >&2
       exit 2
     fi
-    PYTHONPATH="$repo/src" uv run --project "$repo/backend" --frozen --no-sync python -m unittest discover -s tests
+    PYTHONPATH="$repo/src:$repo/backend/src:$repo" uv run --project "$repo/backend" --frozen --no-sync pytest -q tests
     uv run --project "$repo/backend" --frozen --no-sync python scripts/verify_dataset.py
     (cd backend && uv run --frozen --no-sync pytest -m 'not pg')
     (cd frontend && npm run lint && npm test && npm run build)

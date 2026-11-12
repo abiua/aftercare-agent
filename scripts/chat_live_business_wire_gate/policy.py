@@ -376,10 +376,11 @@ def _check_transcript(items, role):
 
 def _indexed_v7_refs(view, role, approved, valid_ref):
     """Resolve verifier-only indices without trusting evidence outside the pinned scope."""
+    encoding = view.get("verifier_encoding")
     if (
         role != "verifier"
         or view.get("evidence_encoding") != "compact-v7"
-        or view.get("verifier_encoding") != "verifier-record-index-v1"
+        or encoding not in {"verifier-record-index-v1", "verifier-record-index-v2"}
     ):
         return None
     table = view.get("original_frozen_evidence")
@@ -414,7 +415,7 @@ def _indexed_v7_refs(view, role, approved, valid_ref):
     if len({tuple(ref[:3]) for ref in original}) != len(original):
         return None
 
-    def expand(refs):
+    def expand(refs, *, available=False):
         if not isinstance(refs, list):
             return None
         resolved = []
@@ -423,6 +424,11 @@ def _indexed_v7_refs(view, role, approved, valid_ref):
                 if not 0 <= ref < len(original):
                     return None
                 ref = original[ref]
+            if available and encoding == "verifier-record-index-v2" and isinstance(ref, str):
+                candidates = [row for row in approved if row[:2] == ("POLICY", ref)]
+                if len(candidates) != 1:
+                    return None
+                ref = list(candidates[0])
             if not complete(ref):
                 return None
             resolved.append(ref[:3])
@@ -443,7 +449,7 @@ def _indexed_v7_refs(view, role, approved, valid_ref):
         or len(set(corpus_rows)) != len(corpus_rows)
     ):
         return None
-    return expand(view.get("available_evidence"))
+    return expand(view.get("available_evidence"), available=True)
 
 
 def _text_payload(plan, binding, payload, raw):
