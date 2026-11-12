@@ -1,0 +1,8 @@
+{
+  "version": "v1",
+  "sha256": {
+    "docs/REFACTOR_PREREGISTRATION_V1.md": "adbd79ac39b544d86d0ed89f8f3f409cc3f965044a3fd0dc38e641fef27593b5",
+    "docs/REFACTOR_CONTRACTS_AND_ADR.md": "eecb05eff50c74151ea5614ec892b6fbc5e2abcb4e1491a3ddafd8d5050e4b0b",
+    "backend/src/aftercare/agent_kernel/contracts.py": "2a4866108bacbd3775eabcfd60e6338b83531bd27efd1cf7a4930e0fcaa3709b"
+  }
+}
