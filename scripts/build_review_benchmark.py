@@ -25,7 +25,8 @@ def build():
     payment_owners={payment:uid for uid,user in db['users'].items() for payment in user.get('payment_methods',{})}
     policy=(ROOT/'.runtime/tau-official-source/data/tau2/domains/retail/policy.md').read_text()
     def add(row,path,history,call,kind,mutation,verdict):
-        canonical=json.dumps([row['task_id'],kind,mutation,call['name'],call['arguments']],sort_keys=True)
+        dedup_args={} if kind=='correct_abandon' else call['arguments']
+        canonical=json.dumps([row['task_id'],kind,mutation,call['name'],dedup_args],sort_keys=True)
         if canonical in seen:return
         seen.add(canonical)
         samples.append({'id':sha256(canonical.encode()).hexdigest()[:20],'task_id':row['task_id'],
@@ -52,7 +53,7 @@ def build():
                 # Remove the latest customer confirmation (and later customer turns).
                 last_reply=next((i for i in range(len(history)-1,-1,-1) if history[i]['role']=='assistant' and text(history[i]) and not history[i].get('tool_calls')),None)
                 if last_reply is not None and any(m['role']=='user' for m in history[last_reply+1:]):
-                    truncated=[m for i,m in enumerate(history) if not(i>last_reply and m['role']=='user')]
+                    truncated=history[:last_reply+1]
                     add(row,path,truncated,call,'wrong_write','remove_confirmation','revise')
                 state=facts(history)
                 args=call['arguments'];order=state.orders.get(args.get('order_id'),{})
@@ -75,7 +76,7 @@ def build():
                     variants=state.products.get(original.get('product_id'),{}).get('variants',{})
                     # A merely different available variant need not be wrong. Require exact customer selection.
                     selected=args['new_item_ids'][0]
-                    customer_explicit=any(selected in text(m) for m in history if m['role']=='user')
+                    customer_explicit=last_reply is not None and any(selected in text(m) for m in history[last_reply+1:] if m['role']=='user')
                     alternative=next((k for k,v in variants.items() if k!=selected and k!=args['item_ids'][0] and v.get('available')),None)
                     if customer_explicit and alternative:
                         other=deepcopy(call);other['arguments']['new_item_ids'][0]=alternative
@@ -87,7 +88,7 @@ def build():
                         add(row,path,history,other,'wrong_write','different_product','revise')
                     else:excluded.append({'task_id':row['task_id'],'mutation':'different_product','reason':'No other product visible'})
             history.append(message)
-    return {'version':'e1-candidates-v2','status':'requires label and input audit before paid run',
+    return {'version':'e1-candidates-v3','status':'requires label and input audit before paid run',
         'policy':policy,'splits':splits,'samples':samples,'exclusions':excluded,'real_abandon_challenges':challenges,
         'limitations':['No complete executor reasoning saved; self-check uses saved system/public context only.',
             'Official success is a source selection rule, not independent proof that every intermediate write was correct.',
