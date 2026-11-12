@@ -1,0 +1,1513 @@
+{
+  "version": "e1-candidates-v3",
+  "dataset_sha256": "ebc4ef4bff5505ab292a22bbf7d16d5020e61eaeb0e11c90b552b22bdab2506d",
+  "audit_sha256": "00b70b2471adc4ffd2480b8229828a8bdbfba41e0803ee65bfb62edfd79ec0a4",
+  "audit_type": "developer evidence audit, not independent human adjudication",
+  "splits": {
+    "5": "development",
+    "9": "holdout",
+    "12": "development",
+    "17": "holdout",
+    "18": "development",
+    "26": "holdout",
+    "27": "development",
+    "32": "holdout",
+    "33": "development",
+    "36": "holdout",
+    "38": "development",
+    "39": "holdout",
+    "40": "development",
+    "42": "holdout",
+    "45": "development",
+    "49": "holdout",
+    "51": "development",
+    "53": "holdout",
+    "55": "development",
+    "56": "holdout",
+    "60": "development",
+    "61": "holdout",
+    "62": "development",
+    "64": "holdout",
+    "65": "development",
+    "68": "holdout",
+    "70": "development",
+    "71": "holdout",
+    "74": "development",
+    "77": "holdout",
+    "79": "development",
+    "86": "holdout",
+    "90": "development",
+    "94": "holdout",
+    "97": "development",
+    "100": "holdout",
+    "101": "development",
+    "102": "holdout",
+    "108": "development",
+    "111": "holdout"
+  },
+  "samples": [
+    {
+      "id": "d77f472f24a001dced45",
+      "task_id": "12",
+      "split": "development",
+      "kind": "correct_abandon",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "15184b6868c0b42283d6871a53280fc2dbc89a872e91a5c2175a6e392a95b14c"
+    },
+    {
+      "id": "1558c1b981618207509f",
+      "task_id": "17",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "d024f972d8df6f66eb143d69c1a28d209e0e960b1aabd79c07fbe8315f16b4d9"
+    },
+    {
+      "id": "83ed0ba865d9794aa10e",
+      "task_id": "17",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "d024f972d8df6f66eb143d69c1a28d209e0e960b1aabd79c07fbe8315f16b4d9"
+    },
+    {
+      "id": "96fbb8f1e315cc691148",
+      "task_id": "17",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "d024f972d8df6f66eb143d69c1a28d209e0e960b1aabd79c07fbe8315f16b4d9"
+    },
+    {
+      "id": "470adcc9975e1476be31",
+      "task_id": "26",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "626d4c3d51e0260e0a897d99e89f5fdaa2a66b7e1d3ab379a437088f65f16d08"
+    },
+    {
+      "id": "4fc0f5f5ac473b37e700",
+      "task_id": "26",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "626d4c3d51e0260e0a897d99e89f5fdaa2a66b7e1d3ab379a437088f65f16d08"
+    },
+    {
+      "id": "f7b049f984778b81dac8",
+      "task_id": "26",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "626d4c3d51e0260e0a897d99e89f5fdaa2a66b7e1d3ab379a437088f65f16d08"
+    },
+    {
+      "id": "2dfa4ba4cd9fc3a95efa",
+      "task_id": "26",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "626d4c3d51e0260e0a897d99e89f5fdaa2a66b7e1d3ab379a437088f65f16d08"
+    },
+    {
+      "id": "c7bf518d745901c1d344",
+      "task_id": "33",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "6d56fed6dc1e538952ea4b806172a8e13398578a81a2b7c5b86e1002200a70fa"
+    },
+    {
+      "id": "19b6d3ad1777558d3cb0",
+      "task_id": "33",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "6d56fed6dc1e538952ea4b806172a8e13398578a81a2b7c5b86e1002200a70fa"
+    },
+    {
+      "id": "0b938a077683cfcf2ddb",
+      "task_id": "33",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "6d56fed6dc1e538952ea4b806172a8e13398578a81a2b7c5b86e1002200a70fa"
+    },
+    {
+      "id": "c7f6c2e91994ce2554ad",
+      "task_id": "36",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "1ccec0cfe86f77e7b7b9ccc70b8e5640cb6bf5196bd33f3085db07e6129fd2fb"
+    },
+    {
+      "id": "87c90ab52d2224087af6",
+      "task_id": "36",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "1ccec0cfe86f77e7b7b9ccc70b8e5640cb6bf5196bd33f3085db07e6129fd2fb"
+    },
+    {
+      "id": "e8d49a32b54af158fa94",
+      "task_id": "36",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "1ccec0cfe86f77e7b7b9ccc70b8e5640cb6bf5196bd33f3085db07e6129fd2fb"
+    },
+    {
+      "id": "a75a73fbc411f6950e1e",
+      "task_id": "36",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "1ccec0cfe86f77e7b7b9ccc70b8e5640cb6bf5196bd33f3085db07e6129fd2fb"
+    },
+    {
+      "id": "bb350050c6f987c7e840",
+      "task_id": "36",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "different_product",
+      "expected": "revise",
+      "source_sha256": "1ccec0cfe86f77e7b7b9ccc70b8e5640cb6bf5196bd33f3085db07e6129fd2fb"
+    },
+    {
+      "id": "6187907ea6ea3a5f8288",
+      "task_id": "36",
+      "split": "holdout",
+      "kind": "correct_abandon",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "1ccec0cfe86f77e7b7b9ccc70b8e5640cb6bf5196bd33f3085db07e6129fd2fb"
+    },
+    {
+      "id": "5474a9d17bc315867781",
+      "task_id": "38",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "425c786aab53d01cc78916d47977fae573dcdca2d9d647926fce1fcc7ca3f841"
+    },
+    {
+      "id": "82c17a428e1cd678a65f",
+      "task_id": "38",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "425c786aab53d01cc78916d47977fae573dcdca2d9d647926fce1fcc7ca3f841"
+    },
+    {
+      "id": "6b72e7c232a97f78f7d8",
+      "task_id": "38",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "425c786aab53d01cc78916d47977fae573dcdca2d9d647926fce1fcc7ca3f841"
+    },
+    {
+      "id": "0c679ed31b4bc7183466",
+      "task_id": "40",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "86883d7a7416bce2e80028a31911cd45f0b1e12a49b0f8425c1039c76e2f3876"
+    },
+    {
+      "id": "24726b64cdf43322d7e1",
+      "task_id": "40",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "86883d7a7416bce2e80028a31911cd45f0b1e12a49b0f8425c1039c76e2f3876"
+    },
+    {
+      "id": "5434a9846f690fb735a0",
+      "task_id": "40",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "86883d7a7416bce2e80028a31911cd45f0b1e12a49b0f8425c1039c76e2f3876"
+    },
+    {
+      "id": "92a0710730d711646ecf",
+      "task_id": "40",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "86883d7a7416bce2e80028a31911cd45f0b1e12a49b0f8425c1039c76e2f3876"
+    },
+    {
+      "id": "8c0e115ac1c9fd565d32",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "49d8e216599ca39adb40",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "bcc6df55fb6879bf757a",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "dd5f8d08ad9753fb94b9",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "f0dca9b9a9a2ff0278ed",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "29ce968d5943ad07dc50",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "f3b8c5dd2c3b3935d738",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "51cd9b1161ee521fa405",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "26e2fdd3348c531ff1d7",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "bf4da629893575f1e639",
+      "task_id": "42",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122"
+    },
+    {
+      "id": "7ce8fe5b5331e47329ef",
+      "task_id": "45",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "198752e5c4ec7c971f64fae70c02a49c05d9e34851d9c4c7cf129f350a67f485"
+    },
+    {
+      "id": "cfbea0769e0018571cca",
+      "task_id": "45",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "198752e5c4ec7c971f64fae70c02a49c05d9e34851d9c4c7cf129f350a67f485"
+    },
+    {
+      "id": "ca4d334e6653a947476f",
+      "task_id": "45",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "198752e5c4ec7c971f64fae70c02a49c05d9e34851d9c4c7cf129f350a67f485"
+    },
+    {
+      "id": "db6832c3da883373ced7",
+      "task_id": "45",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "198752e5c4ec7c971f64fae70c02a49c05d9e34851d9c4c7cf129f350a67f485"
+    },
+    {
+      "id": "90500abd3ae86681c9c9",
+      "task_id": "49",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "9c52da4c94625382968f2cfef322b7bf57c67b61732cf637f0bddd630a8bd47f"
+    },
+    {
+      "id": "fd3063ee7600b32efcd7",
+      "task_id": "49",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "9c52da4c94625382968f2cfef322b7bf57c67b61732cf637f0bddd630a8bd47f"
+    },
+    {
+      "id": "b5b2575fc96371424545",
+      "task_id": "49",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "9c52da4c94625382968f2cfef322b7bf57c67b61732cf637f0bddd630a8bd47f"
+    },
+    {
+      "id": "8e8998a013118bf2e468",
+      "task_id": "49",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "9c52da4c94625382968f2cfef322b7bf57c67b61732cf637f0bddd630a8bd47f"
+    },
+    {
+      "id": "42cfc2da72e991ff60c6",
+      "task_id": "51",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "6825c2580c3fae14038cac0aaefd754370b33ed8558800da6e88de385a14546d"
+    },
+    {
+      "id": "c1d83d1511ad850d4a2f",
+      "task_id": "51",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "6825c2580c3fae14038cac0aaefd754370b33ed8558800da6e88de385a14546d"
+    },
+    {
+      "id": "7aa3ac5aa8b4f82ee201",
+      "task_id": "51",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "6825c2580c3fae14038cac0aaefd754370b33ed8558800da6e88de385a14546d"
+    },
+    {
+      "id": "e261b54818624a4d10e4",
+      "task_id": "51",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "6825c2580c3fae14038cac0aaefd754370b33ed8558800da6e88de385a14546d"
+    },
+    {
+      "id": "7882b93333a363e7f334",
+      "task_id": "51",
+      "split": "development",
+      "kind": "correct_abandon",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "e504e05666603e5d21184c4878d305149f0b08112cab2f7571e2a57cad1fab87"
+    },
+    {
+      "id": "3e775bd941b0e9dbd003",
+      "task_id": "53",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "0a06716138e372879c0747378835496b55b106761a079cf701ec0e89a6e4db17"
+    },
+    {
+      "id": "4cc3ab2ddf66414a0cef",
+      "task_id": "53",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "0a06716138e372879c0747378835496b55b106761a079cf701ec0e89a6e4db17"
+    },
+    {
+      "id": "eae65a89d7ee5c21ab2d",
+      "task_id": "53",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "0a06716138e372879c0747378835496b55b106761a079cf701ec0e89a6e4db17"
+    },
+    {
+      "id": "95cffa291a4cec24d589",
+      "task_id": "53",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "0a06716138e372879c0747378835496b55b106761a079cf701ec0e89a6e4db17"
+    },
+    {
+      "id": "4a90d62ec179c746c04a",
+      "task_id": "53",
+      "split": "holdout",
+      "kind": "correct_abandon",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "0a06716138e372879c0747378835496b55b106761a079cf701ec0e89a6e4db17"
+    },
+    {
+      "id": "01b1b7cea4bdb8c7238f",
+      "task_id": "55",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "ad78c019518f0c9fe902",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "6b7d49cfd4e154dc7308",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "1dd39d79bd2e40f3b636",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "cancel_reason",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "bd1e9d07e715f3c3feb6",
+      "task_id": "55",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "afd0a9d0a85e99a01798",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "af56a869b6f1ded09bfe",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "cancel_reason",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "7a1147ca0d944a7b6527",
+      "task_id": "55",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "c115319041b3be26c166",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "a05a3dfb2fe52799ecbe",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "ab6a98f330809ff58305",
+      "task_id": "55",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "1d0a009a032c7186bc83",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "44a024a13b1ae95d04c4",
+      "task_id": "55",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e"
+    },
+    {
+      "id": "3b96cd1a845e24adf8b5",
+      "task_id": "60",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "3bf1fda571934de297bb0c6f44b020975c661efa464330d0f71e49b6e111badc"
+    },
+    {
+      "id": "393a9fb50f5d5ed4c420",
+      "task_id": "60",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "3bf1fda571934de297bb0c6f44b020975c661efa464330d0f71e49b6e111badc"
+    },
+    {
+      "id": "5652ee679d92aacc3dd6",
+      "task_id": "60",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "3bf1fda571934de297bb0c6f44b020975c661efa464330d0f71e49b6e111badc"
+    },
+    {
+      "id": "dac6174430e3725d6d32",
+      "task_id": "61",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "b0fa68725728966b4627b3852fb021d79a5b2056eaa050243e7642dc53e67ae0"
+    },
+    {
+      "id": "9f2912e141f91f2998d3",
+      "task_id": "61",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "b0fa68725728966b4627b3852fb021d79a5b2056eaa050243e7642dc53e67ae0"
+    },
+    {
+      "id": "f9d8128e9c2f16ec5bdd",
+      "task_id": "61",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "b0fa68725728966b4627b3852fb021d79a5b2056eaa050243e7642dc53e67ae0"
+    },
+    {
+      "id": "37e32b79820c8d19fe21",
+      "task_id": "64",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "384d080fbe5ec3d3f3b81d7e5edb030c89df8f4be8f1d37a67d6a2b96ff1e421"
+    },
+    {
+      "id": "5f18229e2e5e44fa56ef",
+      "task_id": "64",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "384d080fbe5ec3d3f3b81d7e5edb030c89df8f4be8f1d37a67d6a2b96ff1e421"
+    },
+    {
+      "id": "94bbffb9df89a337212e",
+      "task_id": "64",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "384d080fbe5ec3d3f3b81d7e5edb030c89df8f4be8f1d37a67d6a2b96ff1e421"
+    },
+    {
+      "id": "a9cb1fa43653c7b46afe",
+      "task_id": "64",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "384d080fbe5ec3d3f3b81d7e5edb030c89df8f4be8f1d37a67d6a2b96ff1e421"
+    },
+    {
+      "id": "95fa91d906c34063b051",
+      "task_id": "65",
+      "split": "development",
+      "kind": "correct_abandon",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "fd1b889ae3892369f870e37c9e84873811f0376bf1ce9cfdd20fea5ccb864579"
+    },
+    {
+      "id": "2069df05b5998407625d",
+      "task_id": "70",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "68c38fe63832a537ebd1f1863c0c4a330c60053057367d7a83028e2aadfd7a68"
+    },
+    {
+      "id": "18f2feedf559b538331c",
+      "task_id": "70",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "68c38fe63832a537ebd1f1863c0c4a330c60053057367d7a83028e2aadfd7a68"
+    },
+    {
+      "id": "0eaf5f9c93ccd443c9fa",
+      "task_id": "70",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "68c38fe63832a537ebd1f1863c0c4a330c60053057367d7a83028e2aadfd7a68"
+    },
+    {
+      "id": "8c68092d90c0728cdb96",
+      "task_id": "70",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "68c38fe63832a537ebd1f1863c0c4a330c60053057367d7a83028e2aadfd7a68"
+    },
+    {
+      "id": "4abcd6f48c9b28f70d41",
+      "task_id": "70",
+      "split": "development",
+      "kind": "correct_abandon",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "5b5efa71e966aaf94d9a28f4e2ff6a40323edcb47123b14214eaaf8957b5bf1f"
+    },
+    {
+      "id": "bce5dd5796f8de24a725",
+      "task_id": "71",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "0a1d604ab43867b99e7d7a3e6372ad0b707a34b13c78e0d6ccce516b5ce359ae"
+    },
+    {
+      "id": "bca56b25babca2c5e1fb",
+      "task_id": "71",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "0a1d604ab43867b99e7d7a3e6372ad0b707a34b13c78e0d6ccce516b5ce359ae"
+    },
+    {
+      "id": "8842360e65350e6b8d98",
+      "task_id": "71",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "0a1d604ab43867b99e7d7a3e6372ad0b707a34b13c78e0d6ccce516b5ce359ae"
+    },
+    {
+      "id": "11c7e2433f03da6b85d6",
+      "task_id": "71",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "0a1d604ab43867b99e7d7a3e6372ad0b707a34b13c78e0d6ccce516b5ce359ae"
+    },
+    {
+      "id": "bd41313bef0a20baaf1c",
+      "task_id": "71",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "0a1d604ab43867b99e7d7a3e6372ad0b707a34b13c78e0d6ccce516b5ce359ae"
+    },
+    {
+      "id": "7ae9bbb7594fe00d8fc7",
+      "task_id": "71",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "0a1d604ab43867b99e7d7a3e6372ad0b707a34b13c78e0d6ccce516b5ce359ae"
+    },
+    {
+      "id": "6825e24cf316a34041ca",
+      "task_id": "71",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "different_product",
+      "expected": "revise",
+      "source_sha256": "0a1d604ab43867b99e7d7a3e6372ad0b707a34b13c78e0d6ccce516b5ce359ae"
+    },
+    {
+      "id": "09fac63c6b5f538c5de7",
+      "task_id": "74",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "44d914aa8aefba39d6094c46ed51d5e8cb9a72d68cc62603e87de7e9a0b145a0"
+    },
+    {
+      "id": "37584fb34f8b79702343",
+      "task_id": "74",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "44d914aa8aefba39d6094c46ed51d5e8cb9a72d68cc62603e87de7e9a0b145a0"
+    },
+    {
+      "id": "82a870e21510175f7e3e",
+      "task_id": "74",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "44d914aa8aefba39d6094c46ed51d5e8cb9a72d68cc62603e87de7e9a0b145a0"
+    },
+    {
+      "id": "b7332a93a8d5119b271e",
+      "task_id": "74",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "44d914aa8aefba39d6094c46ed51d5e8cb9a72d68cc62603e87de7e9a0b145a0"
+    },
+    {
+      "id": "f47bfb23b49147a0168d",
+      "task_id": "74",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "44d914aa8aefba39d6094c46ed51d5e8cb9a72d68cc62603e87de7e9a0b145a0"
+    },
+    {
+      "id": "ee1cdd3135528a14338b",
+      "task_id": "74",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "44d914aa8aefba39d6094c46ed51d5e8cb9a72d68cc62603e87de7e9a0b145a0"
+    },
+    {
+      "id": "a9d25e9d1fb33160b523",
+      "task_id": "79",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "4485c7d916f398a9dbc5cbd2d839ec7caac0cd69810cc5d12ff81ea9b8ed64d9"
+    },
+    {
+      "id": "50dac3ba0ed56311f0bb",
+      "task_id": "79",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "4485c7d916f398a9dbc5cbd2d839ec7caac0cd69810cc5d12ff81ea9b8ed64d9"
+    },
+    {
+      "id": "2a8f18e561819c83f1e0",
+      "task_id": "79",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "4485c7d916f398a9dbc5cbd2d839ec7caac0cd69810cc5d12ff81ea9b8ed64d9"
+    },
+    {
+      "id": "efa991dc42adc0f41bbd",
+      "task_id": "79",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "4485c7d916f398a9dbc5cbd2d839ec7caac0cd69810cc5d12ff81ea9b8ed64d9"
+    },
+    {
+      "id": "8bdc4cc35523b51435b6",
+      "task_id": "86",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "c8c363f3934dca6a1759204b79d86a92110faef8d5d69007b36377203f9409c1"
+    },
+    {
+      "id": "db7714df5bd4e4f59cda",
+      "task_id": "86",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "c8c363f3934dca6a1759204b79d86a92110faef8d5d69007b36377203f9409c1"
+    },
+    {
+      "id": "724724d796160dcd54f3",
+      "task_id": "86",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "c8c363f3934dca6a1759204b79d86a92110faef8d5d69007b36377203f9409c1"
+    },
+    {
+      "id": "2a40f9ca5cebc8edad8a",
+      "task_id": "86",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "c8c363f3934dca6a1759204b79d86a92110faef8d5d69007b36377203f9409c1"
+    },
+    {
+      "id": "773e1674544190e59392",
+      "task_id": "86",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "c8c363f3934dca6a1759204b79d86a92110faef8d5d69007b36377203f9409c1"
+    },
+    {
+      "id": "bdb51f870adf4b23b1bb",
+      "task_id": "86",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "c8c363f3934dca6a1759204b79d86a92110faef8d5d69007b36377203f9409c1"
+    },
+    {
+      "id": "6ce9c1ee4c24a57dfd54",
+      "task_id": "90",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "ef01da1a0489a689ca52c919c29e136b8fb41d23b3438019f57823fdb56fae44"
+    },
+    {
+      "id": "aa3e0b16ed52e35bfa70",
+      "task_id": "90",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "ef01da1a0489a689ca52c919c29e136b8fb41d23b3438019f57823fdb56fae44"
+    },
+    {
+      "id": "9193f8dccb05b2413cd1",
+      "task_id": "90",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "ef01da1a0489a689ca52c919c29e136b8fb41d23b3438019f57823fdb56fae44"
+    },
+    {
+      "id": "97734b18b9b9bc1ec821",
+      "task_id": "90",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "cancel_reason",
+      "expected": "revise",
+      "source_sha256": "8f84c8337a169552e3ba61c485db3354cd9c4badb01fdc95ed38094e4387037c"
+    },
+    {
+      "id": "cace5399f38d4e4c4636",
+      "task_id": "94",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "d7c2d8731f0c18c8e909bfff7f26ba7409a278a14dfc780ffd6643f1711aac13"
+    },
+    {
+      "id": "a4b437a8dca9ec6784e8",
+      "task_id": "94",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "d7c2d8731f0c18c8e909bfff7f26ba7409a278a14dfc780ffd6643f1711aac13"
+    },
+    {
+      "id": "8409e34cebb2f2abe0d1",
+      "task_id": "94",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "d7c2d8731f0c18c8e909bfff7f26ba7409a278a14dfc780ffd6643f1711aac13"
+    },
+    {
+      "id": "dcb0811f8c8970f98846",
+      "task_id": "94",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "d7c2d8731f0c18c8e909bfff7f26ba7409a278a14dfc780ffd6643f1711aac13"
+    },
+    {
+      "id": "52e3d2258b7e1066ef1b",
+      "task_id": "97",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "09ea055f7aaef4d1cd5b4bcbe5014484ac3b1a61eac4a8c7a944341916ec5988"
+    },
+    {
+      "id": "a82a94526a21dfb4cc5e",
+      "task_id": "97",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "09ea055f7aaef4d1cd5b4bcbe5014484ac3b1a61eac4a8c7a944341916ec5988"
+    },
+    {
+      "id": "9981cabb9730f68a4a66",
+      "task_id": "97",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "09ea055f7aaef4d1cd5b4bcbe5014484ac3b1a61eac4a8c7a944341916ec5988"
+    },
+    {
+      "id": "793cc06cdc0ba0947035",
+      "task_id": "97",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "09ea055f7aaef4d1cd5b4bcbe5014484ac3b1a61eac4a8c7a944341916ec5988"
+    },
+    {
+      "id": "c40ae7c6f2c06cfc1844",
+      "task_id": "97",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "09ea055f7aaef4d1cd5b4bcbe5014484ac3b1a61eac4a8c7a944341916ec5988"
+    },
+    {
+      "id": "8b096038c0e99ae391c1",
+      "task_id": "97",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "09ea055f7aaef4d1cd5b4bcbe5014484ac3b1a61eac4a8c7a944341916ec5988"
+    },
+    {
+      "id": "6b9af5880839af492e30",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "f73a220b50ac67eab951",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "ed3f1db425c50d469097",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "f6980468d5bbf576c955",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "532dc360e0c146d15eef",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "26d1b48237ba690a2228",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "54e52aee127944ab9784",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "bbfaab63084955f49926",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "different_product",
+      "expected": "revise",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "1d115874d3e543f83311",
+      "task_id": "100",
+      "split": "holdout",
+      "kind": "correct_abandon",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78"
+    },
+    {
+      "id": "42828b5422bb350409bf",
+      "task_id": "101",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "ef49e9815257b419c801",
+      "task_id": "101",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "b26c269acc7fce9f7a86",
+      "task_id": "101",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "360864fc333f0b83e19e",
+      "task_id": "101",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "c8435da82cd581c0c125",
+      "task_id": "101",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "d107466d2c41e795976c",
+      "task_id": "101",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "b553b090400488a661a1",
+      "task_id": "101",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "634e5d3967ae1704b05b",
+      "task_id": "101",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "36cd18473723a08487a2",
+      "task_id": "101",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "5d245e23e271081e3903",
+      "task_id": "101",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "different_product",
+      "expected": "revise",
+      "source_sha256": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4"
+    },
+    {
+      "id": "efadac98b6710955d6d8",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "5f81b1dc9c632aa4247f",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "0bbed74d5c0292961a34",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "1804d3ecf94cd3665465",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "b846cc0e40f60df1ed37",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "22984fca1e19ca3f4837",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "10463dea870e05e67e60",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "44827853a1be33c6ae7e",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "939c96ae7a7a62f566a3",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "de75402ae6f12e720d69",
+      "task_id": "102",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "different_product",
+      "expected": "revise",
+      "source_sha256": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7"
+    },
+    {
+      "id": "317366f74c872cfa988e",
+      "task_id": "108",
+      "split": "development",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "26ded6da5209a6b0cf9e836b73f227c177591df570551a86a7cce200bc9571dd"
+    },
+    {
+      "id": "e9a6b9068f3a010d21a4",
+      "task_id": "108",
+      "split": "development",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "26ded6da5209a6b0cf9e836b73f227c177591df570551a86a7cce200bc9571dd"
+    },
+    {
+      "id": "ab06a2e4a11c30999e86",
+      "task_id": "108",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "26ded6da5209a6b0cf9e836b73f227c177591df570551a86a7cce200bc9571dd"
+    },
+    {
+      "id": "bae45eedc687105057cf",
+      "task_id": "108",
+      "split": "development",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "26ded6da5209a6b0cf9e836b73f227c177591df570551a86a7cce200bc9571dd"
+    },
+    {
+      "id": "acab3fad4c8ead3fea4f",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "771c965334097cffb8b3",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "wrong_abandon",
+      "mutation": "replace_write_with_handoff",
+      "expected": "revise",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "eb5145220af4dc42a4ad",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "05429d8f54c975c82410",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "bc0dfd99e7079d6cec11",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "1d0745bac06ca6502b5e",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "8e824786e58e3d735ae5",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "different_product",
+      "expected": "revise",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "35512f70135b0f551218",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "correct_write",
+      "mutation": "none",
+      "expected": "allow",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "8231178bc8a4c782d23f",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "remove_confirmation",
+      "expected": "revise",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "85ef857fa9988c662861",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "foreign_payment",
+      "expected": "revise",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    },
+    {
+      "id": "adcb58eda08b51d17f30",
+      "task_id": "111",
+      "split": "holdout",
+      "kind": "wrong_write",
+      "mutation": "different_product",
+      "expected": "revise",
+      "source_sha256": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005"
+    }
+  ],
+  "limitations": [
+    "No complete executor reasoning saved; self-check uses saved system/public context only.",
+    "Official success is a source selection rule, not independent proof that every intermediate write was correct.",
+    "Foreign-payment mutations use an actual other-user method; its owner is never supplied to the model."
+  ]
+}
