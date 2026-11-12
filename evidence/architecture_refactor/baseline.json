@@ -1,0 +1,1123 @@
+{
+  "baseline_tag": "aftercare-pre-kernel-20261113",
+  "counts": {
+    "strong_single": {
+      "authentication_failed": 4,
+      "success": 29,
+      "handoff": 6,
+      "inaction": 1
+    },
+    "staged_single": {
+      "authentication_failed": 5,
+      "success": 25,
+      "handoff": 7,
+      "wrong_write": 3
+    },
+    "multi_agent": {
+      "authentication_failed": 5,
+      "success": 25,
+      "handoff": 6,
+      "wrong_write": 3,
+      "unfinished": 1
+    }
+  },
+  "rows": [
+    {
+      "task_id": "5",
+      "architecture": "strong_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/5-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "5",
+      "architecture": "staged_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/5-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "5",
+      "architecture": "multi_agent",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/5-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "9",
+      "architecture": "staged_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/9-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "9",
+      "architecture": "multi_agent",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/9-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "9",
+      "architecture": "strong_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/9-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "12",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/12-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "12",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/12-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "12",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/12-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "17",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/17-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "17",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/17-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "17",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/17-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "18",
+      "architecture": "staged_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/18-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "18",
+      "architecture": "multi_agent",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/18-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "18",
+      "architecture": "strong_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/18-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "26",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/26-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "26",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/26-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "26",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/26-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "27",
+      "architecture": "strong_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/27-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "27",
+      "architecture": "staged_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/27-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "27",
+      "architecture": "multi_agent",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/27-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "32",
+      "architecture": "staged_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/32-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "32",
+      "architecture": "multi_agent",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/32-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "32",
+      "architecture": "strong_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/32-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "33",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/33-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "33",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/33-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "33",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/33-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "36",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/36-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "36",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/36-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "36",
+      "architecture": "multi_agent",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/36-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "38",
+      "architecture": "staged_single",
+      "outcome": "wrong_write",
+      "source": ".runtime/tau-official-full/official/38-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "38",
+      "architecture": "multi_agent",
+      "outcome": "wrong_write",
+      "source": ".runtime/tau-official-full/official/38-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "38",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/38-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "39",
+      "architecture": "multi_agent",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/39-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "39",
+      "architecture": "strong_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/39-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "39",
+      "architecture": "staged_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/39-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "40",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/40-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "40",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/40-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "40",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/40-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "42",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/42-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "42",
+      "architecture": "multi_agent",
+      "outcome": "wrong_write",
+      "source": ".runtime/tau-official-full/official/42-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "42",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/42-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "45",
+      "architecture": "multi_agent",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/45-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "45",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/45-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "45",
+      "architecture": "staged_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/45-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "49",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/49-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "49",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/49-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "49",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/49-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "51",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/51-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "51",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/51-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "51",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/51-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "53",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/53-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "53",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/53-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "53",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/53-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "55",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/55-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "55",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/55-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "55",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/55-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "56",
+      "architecture": "staged_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/56-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "56",
+      "architecture": "multi_agent",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/56-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "56",
+      "architecture": "strong_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/56-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "60",
+      "architecture": "multi_agent",
+      "outcome": "wrong_write",
+      "source": ".runtime/tau-official-full/official/60-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "60",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/60-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "60",
+      "architecture": "staged_single",
+      "outcome": "wrong_write",
+      "source": ".runtime/tau-official-full/official/60-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "61",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/61-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "61",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/61-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "61",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/61-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "62",
+      "architecture": "staged_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/62-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "62",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/62-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "62",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/62-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "64",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/64-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "64",
+      "architecture": "strong_single",
+      "outcome": "inaction",
+      "source": ".runtime/tau-official-full/official/64-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "64",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/64-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "65",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/65-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "65",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/65-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "65",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/65-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "68",
+      "architecture": "staged_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/68-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "68",
+      "architecture": "multi_agent",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/68-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "68",
+      "architecture": "strong_single",
+      "outcome": "authentication_failed",
+      "source": ".runtime/tau-official-full/official/68-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "70",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/70-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "70",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/70-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "70",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/70-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "71",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/71-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "71",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/71-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "71",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/71-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "74",
+      "architecture": "staged_single",
+      "outcome": "wrong_write",
+      "source": ".runtime/tau-official-full/official/74-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "74",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/74-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "74",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/74-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "77",
+      "architecture": "multi_agent",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/77-multi_agent.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "77",
+      "architecture": "strong_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/77-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "77",
+      "architecture": "staged_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/77-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "79",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/79-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "79",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/79-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "79",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/79-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "86",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/86-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "86",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/86-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "86",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/86-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "90",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/90-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "90",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/90-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "90",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/90-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "94",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/94-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "94",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/94-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "94",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/94-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "97",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/97-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "97",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/97-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "97",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/97-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "100",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/100-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "100",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/100-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "100",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/100-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "101",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/101-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "101",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/101-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "101",
+      "architecture": "multi_agent",
+      "outcome": "unfinished",
+      "source": ".runtime/tau-official-full/official/101-multi_agent.json",
+      "official_reward": null
+    },
+    {
+      "task_id": "102",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/102-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "102",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/102-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "102",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/102-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "108",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/108-multi_agent.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "108",
+      "architecture": "strong_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/108-strong_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "108",
+      "architecture": "staged_single",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/108-staged_single.json",
+      "official_reward": 1.0
+    },
+    {
+      "task_id": "111",
+      "architecture": "strong_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/111-strong_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "111",
+      "architecture": "staged_single",
+      "outcome": "handoff",
+      "source": ".runtime/tau-official-full/official/111-staged_single.json",
+      "official_reward": 0.0
+    },
+    {
+      "task_id": "111",
+      "architecture": "multi_agent",
+      "outcome": "success",
+      "source": ".runtime/tau-official-full/official/111-multi_agent.json",
+      "official_reward": 1.0
+    }
+  ],
+  "sha256": {
+    ".runtime/tau-official-full/.DS_Store": "b474afcfca316c2bb48043b3676728986c5fc7db63ad81b3117a4e5cd9d79d58",
+    ".runtime/tau-official-full/calls.jsonl": "e3a0c8a58ba16370e6b39c5abd64900862224595a6f2f229f6640ddcad91c4a2",
+    ".runtime/tau-official-full/manifest.json": "14cccf00c6d8ecf6d335e6240f344837bd722d4b565c8c75489c26f4ac538339",
+    ".runtime/tau-official-full/official/100-multi_agent.json": "38ade1f34551e202289fd6eeb9a7674046f4b88c0c53c022bfffa2443541b40a",
+    ".runtime/tau-official-full/official/100-staged_single.json": "f373538d8c90130c4decb95fd535a35710095b7dd88e134876e85e1e5e65925f",
+    ".runtime/tau-official-full/official/100-strong_single.json": "1e468cfada827c409c327b69457e350e1682fa9e89a31ef10390e0b52db1bd78",
+    ".runtime/tau-official-full/official/101-multi_agent.json": "a3593f0cde0f1397e80f1369de8a342f07dd43492dcf3249df120c6360cde60b",
+    ".runtime/tau-official-full/official/101-staged_single.json": "97b070999df20a23b27d10d443678becd52eda9b44f0289989a64dc353a378fc",
+    ".runtime/tau-official-full/official/101-strong_single.json": "bd3756074d9ca7a34b71b43b776a10da26c6ac0836839c317c881bb53ce25fd4",
+    ".runtime/tau-official-full/official/102-multi_agent.json": "c03374b463525ddbfec9d8cb68e5777456b897489192fb3b1976ea70d1fddbb3",
+    ".runtime/tau-official-full/official/102-staged_single.json": "eeefd6cd9069b1be69dc98d1180b33a379c7dc1556190e60ae15b6c96cea2a0f",
+    ".runtime/tau-official-full/official/102-strong_single.json": "5c769a873f852a5afe63cb54a57754418944b8c997cc48eda743f04b77d7acb7",
+    ".runtime/tau-official-full/official/108-multi_agent.json": "aaffeb2637af1e6e7e71b1700735cf2c7acf9eb0b91bf3e67df970ac4f59cd7c",
+    ".runtime/tau-official-full/official/108-staged_single.json": "a23ae2780f29e40c1e5cf6a59fadb8c0a596206547580c000fa112dc0317f2b7",
+    ".runtime/tau-official-full/official/108-strong_single.json": "26ded6da5209a6b0cf9e836b73f227c177591df570551a86a7cce200bc9571dd",
+    ".runtime/tau-official-full/official/111-multi_agent.json": "ed672318cc8d825b13eb88ac1a42b5a84091112c9989de03e962e1b3da74f005",
+    ".runtime/tau-official-full/official/111-staged_single.json": "c14fd226755799d0827f8db98fc78a25f4ec9ba6d7d855195636ab0776650e93",
+    ".runtime/tau-official-full/official/111-strong_single.json": "9674fd6a55eb931ea071c8ebef99997c49f82b57ed0d9f0f5b0dc76f1c215cdd",
+    ".runtime/tau-official-full/official/12-multi_agent.json": "654b27533f982611253c8e0314e2f57d1c29c708794576f5baeb48c1cb5055d5",
+    ".runtime/tau-official-full/official/12-staged_single.json": "0aebb925573f6bbfb1f64e52fa889a903fb2d34f7539995a46ddfc2d92045775",
+    ".runtime/tau-official-full/official/12-strong_single.json": "15184b6868c0b42283d6871a53280fc2dbc89a872e91a5c2175a6e392a95b14c",
+    ".runtime/tau-official-full/official/17-multi_agent.json": "41b163202f01c4b93c7aaf3ec383cf9ddfba236f01da58762afe313159ba9de0",
+    ".runtime/tau-official-full/official/17-staged_single.json": "58cf0b0127f7488d8bb1576d81fb4f15608e972fb8a016f27efe806450965712",
+    ".runtime/tau-official-full/official/17-strong_single.json": "d024f972d8df6f66eb143d69c1a28d209e0e960b1aabd79c07fbe8315f16b4d9",
+    ".runtime/tau-official-full/official/18-multi_agent.json": "d2c38147423c6279d60df1bd3f390dec6e43deca5293e6160ec1d154e6aba129",
+    ".runtime/tau-official-full/official/18-staged_single.json": "52b2d90cd2f5b575014adb9175dac360bf31c0fc5c61accb42766b8784b28480",
+    ".runtime/tau-official-full/official/18-strong_single.json": "7188d767c3ea8bd761ab6a020a0b60515353b4d12790e5620eb3dec47aa29232",
+    ".runtime/tau-official-full/official/26-multi_agent.json": "1d084e9aed6d90b44a101690d7ff7bf142379380e60819de6186fec6f67d8181",
+    ".runtime/tau-official-full/official/26-staged_single.json": "a6b958a0806647e515b84f23295dfadb2b04bbfb4897467c635e652802fb8e32",
+    ".runtime/tau-official-full/official/26-strong_single.json": "626d4c3d51e0260e0a897d99e89f5fdaa2a66b7e1d3ab379a437088f65f16d08",
+    ".runtime/tau-official-full/official/27-multi_agent.json": "b7c8c2ff36eebb8da1aacf9df3f491dd23f33084b014dc6c861d5be2e1c4ffcf",
+    ".runtime/tau-official-full/official/27-staged_single.json": "665cff4eb2175e5eec9c16a608432b7d0f1bbd4a5ad7364b3cf7e14d7ff3e1b1",
+    ".runtime/tau-official-full/official/27-strong_single.json": "bab7bff99ced7b28ef9759382ca5ce79c53c6e0536aeab88765bb8c072063528",
+    ".runtime/tau-official-full/official/32-multi_agent.json": "9ca1e6f6aa666e475c65fbf53658a6ccc770eddd9a522c6c3e4083e4f9acbc1c",
+    ".runtime/tau-official-full/official/32-staged_single.json": "de8c1a784ce6d59eb247ca8b60bfb3d06de32f4ccec595c77cab04606ffa5e4f",
+    ".runtime/tau-official-full/official/32-strong_single.json": "e5606d2d25163b5d1811b7b56787931a8e1d38485149de2f5e3d6791281d29bd",
+    ".runtime/tau-official-full/official/33-multi_agent.json": "277c6b1db4cfff430d395ba707d8b0e590efa9c70eb0d18f013054b5faf34b3f",
+    ".runtime/tau-official-full/official/33-staged_single.json": "dc6cdba8a4f34369d5761bb0a15ad059a9a85cdec628bf2e00f449628dd21694",
+    ".runtime/tau-official-full/official/33-strong_single.json": "6d56fed6dc1e538952ea4b806172a8e13398578a81a2b7c5b86e1002200a70fa",
+    ".runtime/tau-official-full/official/36-multi_agent.json": "4cf344914a0777099b732a947feb73db7037777c69dd659deaed45c161b4f976",
+    ".runtime/tau-official-full/official/36-staged_single.json": "4a0677be65e3166672550ef4ee23ed613bf8f76470f44b496bc53cd87591b192",
+    ".runtime/tau-official-full/official/36-strong_single.json": "1ccec0cfe86f77e7b7b9ccc70b8e5640cb6bf5196bd33f3085db07e6129fd2fb",
+    ".runtime/tau-official-full/official/38-multi_agent.json": "f3b2ff0658f7e5944c9bd2e512bed182df02c1ae93939842fcffb02f7e473e5e",
+    ".runtime/tau-official-full/official/38-staged_single.json": "648b1c165a068eeea4b7a7fecb211f542967cec00f4d587e186fdcc1b86a05a4",
+    ".runtime/tau-official-full/official/38-strong_single.json": "425c786aab53d01cc78916d47977fae573dcdca2d9d647926fce1fcc7ca3f841",
+    ".runtime/tau-official-full/official/39-multi_agent.json": "02abbfa3f30d17059d9610d336e540879983b454e3ffb30996e25b09829d95d2",
+    ".runtime/tau-official-full/official/39-staged_single.json": "bed6128821e1110c38f857e47f5ee3654a86e42fa4eda2ee43f092c12ead04d1",
+    ".runtime/tau-official-full/official/39-strong_single.json": "a959d59b6fd762ca2a95d1cbf43537ed1777453d8c98e3b9d471624bbea0bfff",
+    ".runtime/tau-official-full/official/40-multi_agent.json": "e946ad5d6828f3f84acc647b5716f66ef1b64e922348cebfe03870009b442c83",
+    ".runtime/tau-official-full/official/40-staged_single.json": "03a534a7ef22d95f116833bcc2377dc98dc8cc8020223a28cce6570ddf37d2b9",
+    ".runtime/tau-official-full/official/40-strong_single.json": "86883d7a7416bce2e80028a31911cd45f0b1e12a49b0f8425c1039c76e2f3876",
+    ".runtime/tau-official-full/official/42-multi_agent.json": "67a30209bd66c3252223b49d457f4e8ebd26f327151d5ab716cb4d42fa27f036",
+    ".runtime/tau-official-full/official/42-staged_single.json": "4880e3620a78b4918d239e74ac068bb6090188a72be6e47e6aa55c0bbc3b14cc",
+    ".runtime/tau-official-full/official/42-strong_single.json": "5097c73d77abc0131a0b02d10459b26e9b591dabcebd9973ced6ccf08c6cf122",
+    ".runtime/tau-official-full/official/45-multi_agent.json": "d3839bfa4add8417e15ae2d5ccf73424a8db562d2cec29d02f7148f846bbb2d5",
+    ".runtime/tau-official-full/official/45-staged_single.json": "18726b104c015f943751731faf7399a0d765d5e336671b98417198c4cc7a15e2",
+    ".runtime/tau-official-full/official/45-strong_single.json": "198752e5c4ec7c971f64fae70c02a49c05d9e34851d9c4c7cf129f350a67f485",
+    ".runtime/tau-official-full/official/49-multi_agent.json": "128c317e27df11599c7b4304a42820b4d71970a595f0f67e4e0b4b8d87549a26",
+    ".runtime/tau-official-full/official/49-staged_single.json": "b66d09eb659db510dd15a09f7a381442bf7e43932b052c086ed2218a8231159e",
+    ".runtime/tau-official-full/official/49-strong_single.json": "9c52da4c94625382968f2cfef322b7bf57c67b61732cf637f0bddd630a8bd47f",
+    ".runtime/tau-official-full/official/5-multi_agent.json": "60eba1af4c093e9d1d6c03b98c3f38a247d62bff9d413b8e3ef2c4f99dc304aa",
+    ".runtime/tau-official-full/official/5-staged_single.json": "589a0efc4b26678e643e1a0b349d7489fb116e8afc7231b927951c6da4fd3921",
+    ".runtime/tau-official-full/official/5-strong_single.json": "6fbbc5c025c578affd41ee97833165f5992f014c680339a209dfb6ca2dd7bf24",
+    ".runtime/tau-official-full/official/51-multi_agent.json": "68c59ae298e8d09a0916628e4f2f629fc8208b4ee5513cf909936ed905e207e4",
+    ".runtime/tau-official-full/official/51-staged_single.json": "e504e05666603e5d21184c4878d305149f0b08112cab2f7571e2a57cad1fab87",
+    ".runtime/tau-official-full/official/51-strong_single.json": "6825c2580c3fae14038cac0aaefd754370b33ed8558800da6e88de385a14546d",
+    ".runtime/tau-official-full/official/53-multi_agent.json": "b7d391aba0505eb8e1a17058c551fb63aa9d533f29d0b73cce1e1bb6ea0cfdb8",
+    ".runtime/tau-official-full/official/53-staged_single.json": "588c0d101f81ded20e4fd1c527f0217316c14e42b8c72a766fd153f07f5fe02e",
+    ".runtime/tau-official-full/official/53-strong_single.json": "0a06716138e372879c0747378835496b55b106761a079cf701ec0e89a6e4db17",
+    ".runtime/tau-official-full/official/55-multi_agent.json": "5b4abae521df97eef7a0561520643668ed5f6ce97aafa813c96d099b6dfeeb6e",
+    ".runtime/tau-official-full/official/55-staged_single.json": "09e81844aa065d5afb6fff846955ca580b3744cc5d7b1c11a5737b4e53dbf942",
+    ".runtime/tau-official-full/official/55-strong_single.json": "da73307610318188e1ad53e941c073e20ce80c951be81bd7c2dcf5ccf88dee8e",
+    ".runtime/tau-official-full/official/56-multi_agent.json": "634a2d1394b5b0e27f32f098b2f2c819c58cb36725937a025653e4d8eb04bf6d",
+    ".runtime/tau-official-full/official/56-staged_single.json": "9adc34a36622219caa036edd68aa9e2bbfa201d3e45923e299022e856b7a3dbd",
+    ".runtime/tau-official-full/official/56-strong_single.json": "5451d4c8e835566923ac7fe4e6e082ba84bee65add93f1a7c8415ef5ece99968",
+    ".runtime/tau-official-full/official/60-multi_agent.json": "c1688704218563b8117e17d9184fb41d136b9e3fa9ed793e3c79fdede99b1ef1",
+    ".runtime/tau-official-full/official/60-staged_single.json": "14ad87112e4eae769be475d78490f6620a926f5f72cfa9fddf8f6d214af62233",
+    ".runtime/tau-official-full/official/60-strong_single.json": "3bf1fda571934de297bb0c6f44b020975c661efa464330d0f71e49b6e111badc",
+    ".runtime/tau-official-full/official/61-multi_agent.json": "583b0c4fa13064ca81e6230e26c55d52a42a18ae91baae077fc92ad8551bbcb4",
+    ".runtime/tau-official-full/official/61-staged_single.json": "4a00c2729e73770a17375d488d6c0b7afc310df20359b14a2ed875a1db872e3b",
+    ".runtime/tau-official-full/official/61-strong_single.json": "b0fa68725728966b4627b3852fb021d79a5b2056eaa050243e7642dc53e67ae0",
+    ".runtime/tau-official-full/official/62-multi_agent.json": "6e60ac6784612f492511497cf422c49587edc5390737059aabff2745951cfd2c",
+    ".runtime/tau-official-full/official/62-staged_single.json": "864ce7a8490a59b7c859aa2aa9eb52c6b4f97c9d95a87e75f9c37aded8936a6d",
+    ".runtime/tau-official-full/official/62-strong_single.json": "0c94420e35c1cbc9657ebdc0107aca346823bd2cd5fbab5257bc98838948cf97",
+    ".runtime/tau-official-full/official/64-multi_agent.json": "ef3250c4189dc812ab899db2c3b0d01c79bd35b529c2eb29249c8a3cc2c3fe7a",
+    ".runtime/tau-official-full/official/64-staged_single.json": "384d080fbe5ec3d3f3b81d7e5edb030c89df8f4be8f1d37a67d6a2b96ff1e421",
+    ".runtime/tau-official-full/official/64-strong_single.json": "55ec3539f0ff87e87e9c0a768aad30b4ca31ac962e4dbeffc3b20f51b59ff0f7",
+    ".runtime/tau-official-full/official/65-multi_agent.json": "5921f9fdcc987513dc6970b61f8a8adfec01d1226cc02da804f7e500084a0cd6",
+    ".runtime/tau-official-full/official/65-staged_single.json": "fd1b889ae3892369f870e37c9e84873811f0376bf1ce9cfdd20fea5ccb864579",
+    ".runtime/tau-official-full/official/65-strong_single.json": "f8aae198ec99f15a9c35c1a1e72607d8ff798816453b6ae04c6c2336a532162b",
+    ".runtime/tau-official-full/official/68-multi_agent.json": "a1ab3fcb0a449c915f16871fed9e97b4ac52dd7ea3669e5ab718c9b2e44553a8",
+    ".runtime/tau-official-full/official/68-staged_single.json": "5becd051aa23e286b10f961dc61d58accec45040767187e7bfbed735cfb30912",
+    ".runtime/tau-official-full/official/68-strong_single.json": "74868f387071a6ed43ef269dbc6f34c77d754447df22352292deaa0d9a8c91dd",
+    ".runtime/tau-official-full/official/70-multi_agent.json": "5b5efa71e966aaf94d9a28f4e2ff6a40323edcb47123b14214eaaf8957b5bf1f",
+    ".runtime/tau-official-full/official/70-staged_single.json": "090a0be23aa30d37e8d9fe3788041992a7ab5bbbc5540172651d82dfbf226a9a",
+    ".runtime/tau-official-full/official/70-strong_single.json": "68c38fe63832a537ebd1f1863c0c4a330c60053057367d7a83028e2aadfd7a68",
+    ".runtime/tau-official-full/official/71-multi_agent.json": "246c3dfcd9099f70e21d7e6f961feaf4a7b4057bd549bea18a983550a5b74384",
+    ".runtime/tau-official-full/official/71-staged_single.json": "6d9a9a383cac5c4fb54dd8014820ec56209bfe4e75f5e0ad4d7f64d74459e1c3",
+    ".runtime/tau-official-full/official/71-strong_single.json": "0a1d604ab43867b99e7d7a3e6372ad0b707a34b13c78e0d6ccce516b5ce359ae",
+    ".runtime/tau-official-full/official/74-multi_agent.json": "5620c054f9cb1c7af1f9a4c13d4decd2624c4ff933527625b102d731cda5dbed",
+    ".runtime/tau-official-full/official/74-staged_single.json": "e21eaff4ea9df056490ab47e51bf7fa41aac7e4d0b642a513fd35c3c1c00adcc",
+    ".runtime/tau-official-full/official/74-strong_single.json": "44d914aa8aefba39d6094c46ed51d5e8cb9a72d68cc62603e87de7e9a0b145a0",
+    ".runtime/tau-official-full/official/77-multi_agent.json": "9f801da7cc7ad0ffa70c36b83ad5d5f3e9816aefba57e8393617f45267042242",
+    ".runtime/tau-official-full/official/77-staged_single.json": "037a02b22a0db977d3c1d6719e1b24d306fceaf718eda127fbc134e029851cca",
+    ".runtime/tau-official-full/official/77-strong_single.json": "d82c6e4a7ac34e96c2b6bd0c2f0d63f67de418129cfeaa75ebe28edaacad08c2",
+    ".runtime/tau-official-full/official/79-multi_agent.json": "11497765acc27ebb45d2abd4c9355738ad73143790a42601ea3b076162317224",
+    ".runtime/tau-official-full/official/79-staged_single.json": "4485c7d916f398a9dbc5cbd2d839ec7caac0cd69810cc5d12ff81ea9b8ed64d9",
+    ".runtime/tau-official-full/official/79-strong_single.json": "7dd6ea56141d6678be4ad411e63ad834abacd980f5c7675d54e48542e5b3de4a",
+    ".runtime/tau-official-full/official/86-multi_agent.json": "abc86addf4f1de70cc642dff7c121a97c8cfd31c0b99ea7740f68cd1004bd91e",
+    ".runtime/tau-official-full/official/86-staged_single.json": "f6b34ab407db6d4667c7b2e2eb93e3398a931cb18a389a7d843619e57c70d751",
+    ".runtime/tau-official-full/official/86-strong_single.json": "c8c363f3934dca6a1759204b79d86a92110faef8d5d69007b36377203f9409c1",
+    ".runtime/tau-official-full/official/9-multi_agent.json": "6a7a9984c5c84df1cb0a5b280613891a32d0dad26867c7f5adb16e4daa3ab797",
+    ".runtime/tau-official-full/official/9-staged_single.json": "0269b659112f6a9ccadb014a15ecb468d40eb0cce7ddaf1015bad311361dd62b",
+    ".runtime/tau-official-full/official/9-strong_single.json": "36c992b3060edb3b22fc555482d24db8f45f95fdb02c841eddddc65586863bcc",
+    ".runtime/tau-official-full/official/90-multi_agent.json": "f4eb8365819fad58f66e214d4dafd69191b4692c3ba79701ce65bd0b07ea59ee",
+    ".runtime/tau-official-full/official/90-staged_single.json": "8f84c8337a169552e3ba61c485db3354cd9c4badb01fdc95ed38094e4387037c",
+    ".runtime/tau-official-full/official/90-strong_single.json": "ef01da1a0489a689ca52c919c29e136b8fb41d23b3438019f57823fdb56fae44",
+    ".runtime/tau-official-full/official/94-multi_agent.json": "89a27897bbc00aaa688c371856e74b95adac448b11ab492ac2052905c8d74630",
+    ".runtime/tau-official-full/official/94-staged_single.json": "619e1fbe83f37d8c13f5aeda85b016afdd5308665319774f8d63229d0a868793",
+    ".runtime/tau-official-full/official/94-strong_single.json": "d7c2d8731f0c18c8e909bfff7f26ba7409a278a14dfc780ffd6643f1711aac13",
+    ".runtime/tau-official-full/official/97-multi_agent.json": "0b0247db35e357ad749dd708bbb595adac30ef3d4debd35af7798a1c8e1674f3",
+    ".runtime/tau-official-full/official/97-staged_single.json": "46d1adedecbba49d9a376446a816ff2d0bdd450025bc7d1e746c00495f4077ce",
+    ".runtime/tau-official-full/official/97-strong_single.json": "09ea055f7aaef4d1cd5b4bcbe5014484ac3b1a61eac4a8c7a944341916ec5988",
+    ".runtime/tau-official-full/rows/100-multi_agent.json": "8e5d4be24b48d4f2279dfcef172c205bbe6fce6c6e700c361bd02d2a61578d65",
+    ".runtime/tau-official-full/rows/100-staged_single.json": "01d4ffe69d4d0b90060bb4ff9f6c04f435c8bdf59302a115e36906f78c20ad02",
+    ".runtime/tau-official-full/rows/100-strong_single.json": "59c1a3bdecf5c6e8e411c066c61ae9683fe0078eb1ae8f4a76650cb68e393e18",
+    ".runtime/tau-official-full/rows/101-multi_agent.json": "2cf8d50613b8e8c8e12ee30f1a7589621706f6c0b81bdd3ec0aceaf1e2435ede",
+    ".runtime/tau-official-full/rows/101-staged_single.json": "6b2bf38e9bbff9c195b9bd7a7d80c102bc0605a1ebfc44bfc0c4e7499c23f795",
+    ".runtime/tau-official-full/rows/101-strong_single.json": "3f59bdbd076f1644e24f12cdfbd88b790e04fffe11f4cd075d0e83922e6549a0",
+    ".runtime/tau-official-full/rows/102-multi_agent.json": "3a2814a2e6bd6f54b7196d0378d6d890cf3cc0daeef3ee50838d487a67152f24",
+    ".runtime/tau-official-full/rows/102-staged_single.json": "088df08d12b1adf863b84bb9a1e096ec4ad6f6a03e5964d139b480346730d146",
+    ".runtime/tau-official-full/rows/102-strong_single.json": "b0c109f0ff9f0959684226aa6964154f516141a753a3ff0eb5d573777a052646",
+    ".runtime/tau-official-full/rows/108-multi_agent.json": "a62de2a4fea80652d0356627747ad7e422cc22caf8b84842c47d495f35542ed7",
+    ".runtime/tau-official-full/rows/108-staged_single.json": "3fad6a5404ae2642a568a17f8cf3170996956396d25340f734611cb1a05588cc",
+    ".runtime/tau-official-full/rows/108-strong_single.json": "a57ddc90a916a5ca90c3a125eb080f8522e9238b93eb3d72e2e5674a3e0f01da",
+    ".runtime/tau-official-full/rows/111-multi_agent.json": "0aba549bfa74a72314b81970299ae63f9bc9cead7dbae81701adfc41cfb9ca5c",
+    ".runtime/tau-official-full/rows/111-staged_single.json": "35615bf9b19107fe2c62281eb7ec1e8bfe2364ce3ae404288f9a88cce64af7e5",
+    ".runtime/tau-official-full/rows/111-strong_single.json": "894cbc821898d644b35155817bcba49f5ed13c7a89045196b7be49e4265f0e70",
+    ".runtime/tau-official-full/rows/12-multi_agent.json": "5310ff3621c73fbb9be4d920af4cb2f2a2a069c50a3d24e7f1072c8af1180b25",
+    ".runtime/tau-official-full/rows/12-staged_single.json": "403987642826d16615a3023d996ef7623154b83432074d5f4b7a21723527fc42",
+    ".runtime/tau-official-full/rows/12-strong_single.json": "47ef4012db36f634222573fc43db09e904ca002abb64aee06317891f776ef998",
+    ".runtime/tau-official-full/rows/17-multi_agent.json": "6392eb86a7b2f822d74183429d9dae0e987b1f9ac5e14c954bcfb513aba7ddbe",
+    ".runtime/tau-official-full/rows/17-staged_single.json": "ebbac40fff87fd0ee0cea9ca99579df60d233b4e1c4a2d8f7789c8c678b12e81",
+    ".runtime/tau-official-full/rows/17-strong_single.json": "88920c7d5802900032e850f7fb6ed1d16c31b2cc49301c01950a7f667e69b7ef",
+    ".runtime/tau-official-full/rows/18-multi_agent.json": "c41e0b81d63affea74592437963d6cc7c01452c0a67e418c9e680a7808160565",
+    ".runtime/tau-official-full/rows/18-staged_single.json": "d429a31ce9b7055279abe3c282f74eddd0959cea14885cdcfc4b531683a82453",
+    ".runtime/tau-official-full/rows/18-strong_single.json": "6b583245eebaa8f5d564af27438886f5e754a0cb80a43cd4a35b35ef36191c1b",
+    ".runtime/tau-official-full/rows/26-multi_agent.json": "5add4bf92b9305647e60823979d045d6c2c9e5c51f95ed4793ddf0d61c08779c",
+    ".runtime/tau-official-full/rows/26-staged_single.json": "3f819e2d66241af0c4bf1b308a089bcb7529abe76936a517ecea639c94853e96",
+    ".runtime/tau-official-full/rows/26-strong_single.json": "5d359bf7eb565e8bbb0cf7a5a22edb9e01117ddfaf5d7c77734f1b95152ba467",
+    ".runtime/tau-official-full/rows/27-multi_agent.json": "036e62e0b094accc45703a50b9e4c9a9d2f8027c49b05c6b81cd8416d7ff8324",
+    ".runtime/tau-official-full/rows/27-staged_single.json": "ad62a955a688138e157828d7b30d4b6121ec44d303ccc851a3462c610cd2c35a",
+    ".runtime/tau-official-full/rows/27-strong_single.json": "0d72466bccc253043daa2e6f27060c46eb6204e8b557526975dd6386014543ec",
+    ".runtime/tau-official-full/rows/32-multi_agent.json": "56a885cb65e9f67f04a65a71d957e17d0b112a83f77271255c3df1757008a624",
+    ".runtime/tau-official-full/rows/32-staged_single.json": "2cc9bb8b63e1c064bc67d370900a8fd5a21b308f5280bd80e845134542292b8a",
+    ".runtime/tau-official-full/rows/32-strong_single.json": "2363a0ea11719c83ec1f8572e8d3c6797c3250f74e0a9de3911f2d818c4fb2f6",
+    ".runtime/tau-official-full/rows/33-multi_agent.json": "6390bdbcb6967d45db1e25095461686f89c74691d34b8a6398eaddb9cfca8474",
+    ".runtime/tau-official-full/rows/33-staged_single.json": "571209f767611d1489d427bb2497d5d758eaefff18d6f50b450fcbfbb51cc9d6",
+    ".runtime/tau-official-full/rows/33-strong_single.json": "b7dc7c918d2678da059696a85a5ae5419c8b10cd3ad19542444836530a94e412",
+    ".runtime/tau-official-full/rows/36-multi_agent.json": "5bd3e2c38d5522fb0738ba609de95695c99167fdff185db9ec07a80585a774bc",
+    ".runtime/tau-official-full/rows/36-staged_single.json": "2d85de25d699c9c05ce11eeebb0f180326a715e28d86036881a9e2ad493d09ff",
+    ".runtime/tau-official-full/rows/36-strong_single.json": "e12eca04c50c6e24de7a5e3150a0d6e763c4e8aaad82e6399386df032b5395b3",
+    ".runtime/tau-official-full/rows/38-multi_agent.json": "d1d9305a73ddebce83fdf69aea6bab2d6dd89c2d73fbc13f9fc353b98e23c244",
+    ".runtime/tau-official-full/rows/38-staged_single.json": "f3569e944e1187e6d0daac53538088c2a3c76368fe521569c2849ff6ffd62ac3",
+    ".runtime/tau-official-full/rows/38-strong_single.json": "88238c5f5f1659dd66f35400846eb44182840f3daca8de513740f3f0e91e3749",
+    ".runtime/tau-official-full/rows/39-multi_agent.json": "9856b1ca83cfd40892815908c332ce919639188d8006ad06b43c4a0007d3515a",
+    ".runtime/tau-official-full/rows/39-staged_single.json": "d67fbb682746521160498f48953530d84a4cbfbd3c0d87007b262c1ed413c90c",
+    ".runtime/tau-official-full/rows/39-strong_single.json": "f310e45d05d22dd0b158b05e4a3634eee8127bc5cb58af3b56581e185dc8ab49",
+    ".runtime/tau-official-full/rows/40-multi_agent.json": "72a705879ec181c8034669f7d9f1d478538d31cf6e03f9459c411042c7420d94",
+    ".runtime/tau-official-full/rows/40-staged_single.json": "9353cac594d891c092456034c848b4326c452f4248cbfa8fe9ac10edfca8614c",
+    ".runtime/tau-official-full/rows/40-strong_single.json": "e65ace3f377ea47e228563fd8b2da7aa8f892f2bb187698f3af2dd93be536753",
+    ".runtime/tau-official-full/rows/42-multi_agent.json": "1a9c32019e03f6101cc83f6b66896ddfc5ec68fc06b0580088ab94da8b80a48b",
+    ".runtime/tau-official-full/rows/42-staged_single.json": "f6f42f84bb6880ff7c67945a663ddf568717312cf1de08e5b00c21fe7f074ad4",
+    ".runtime/tau-official-full/rows/42-strong_single.json": "4b397933d0df7ce866c69b215d4c9efa4cbdea55b1d966b8fe1692e0f5a8a985",
+    ".runtime/tau-official-full/rows/45-multi_agent.json": "765741a7f3d40aef0040d347c2a5b4fe8be18e823309c397743ebdc3f76d06f3",
+    ".runtime/tau-official-full/rows/45-staged_single.json": "5d7e5c8c58e6f4aaceca028886c3ba9e236b7336d7a3ac9b5f1298926623fbc9",
+    ".runtime/tau-official-full/rows/45-strong_single.json": "deccf062212ed4dd9e0e2fb44fc7bcd4070887f77d8ed20a9e5dd412678da11a",
+    ".runtime/tau-official-full/rows/49-multi_agent.json": "fa1b82ac8e3e140817115afedd02439342f7d1a71207307ba8cb3fe1dfad6be2",
+    ".runtime/tau-official-full/rows/49-staged_single.json": "7ee129cbbc0f0cb09f8a1dbe403516385e0d7b3d72d66dccec7e85d3aa35bf63",
+    ".runtime/tau-official-full/rows/49-strong_single.json": "333ca391dcce59299a319e421117ad51bebf45e7f408528e076240f0bd19bb41",
+    ".runtime/tau-official-full/rows/5-multi_agent.json": "ef1f63d6b0a0a06580969e9061b52983383c8f9b470dfeb05b82c91609ec19fa",
+    ".runtime/tau-official-full/rows/5-staged_single.json": "00a00533f64b792ba8242c0d99e8d5e7bc723e5129b1fd4d93c052fffdffe062",
+    ".runtime/tau-official-full/rows/5-strong_single.json": "f7a77ae85d4e7c4517792120a2782be729515df35e07562a8e5d133cee28371e",
+    ".runtime/tau-official-full/rows/51-multi_agent.json": "58076c688b24cf8866e574a72aae48d6076667eba96aba85508c7353fb9a266d",
+    ".runtime/tau-official-full/rows/51-staged_single.json": "3d96fcd086b003b548a09c9e0f069b1b05594af8021194aca4d362a1ea2cf738",
+    ".runtime/tau-official-full/rows/51-strong_single.json": "3d60c87762517c3ab8c63f58d7f97676c46deb5aead62800ff198aa992e7b41a",
+    ".runtime/tau-official-full/rows/53-multi_agent.json": "c9a189bb0a3776168dd872c83cfb052f30fc8fd6850121ae2015b0a24b041ada",
+    ".runtime/tau-official-full/rows/53-staged_single.json": "187e483524c161870ffc845f507cc9eb791bea1180f59705523d61efe81c9e87",
+    ".runtime/tau-official-full/rows/53-strong_single.json": "f1c60ebd4a838d060a12a469d553d4797572ab086da1644da3a8b255f928d34a",
+    ".runtime/tau-official-full/rows/55-multi_agent.json": "c3c271691439922aee074da61e5d4d5c928c735da5d47d14b69c8df123506983",
+    ".runtime/tau-official-full/rows/55-staged_single.json": "59fcafa1d96b237137f23b74726b4ebeb04cc6f7166b24c46b51b1c3557490f3",
+    ".runtime/tau-official-full/rows/55-strong_single.json": "e7cfcbb030eb50a17af8c5c892fc8f225455f50ea133d8751814868df3ea715e",
+    ".runtime/tau-official-full/rows/56-multi_agent.json": "26e47eee5a26152f4cd5f07174ae3be8b6e6b7e7ee266603b9568f315d6ff1da",
+    ".runtime/tau-official-full/rows/56-staged_single.json": "d091d33acb5772257ab3a2a6c7021bc3628d5e92157ac65eea6683770f8c8fdf",
+    ".runtime/tau-official-full/rows/56-strong_single.json": "43ab49830af6dfd52d8665e14cbbc4cf86cf6786fec54a78941342cd2df3b93c",
+    ".runtime/tau-official-full/rows/60-multi_agent.json": "5bcefa07c2cd67f1a259f3a67058567909f4935afb8e8061dd1d4824ae28818e",
+    ".runtime/tau-official-full/rows/60-staged_single.json": "af94f13c419ec5befd7ba4d7fea17a4551a3f8156bae201888a946fda509b6e9",
+    ".runtime/tau-official-full/rows/60-strong_single.json": "4410843ddb1c0a2b1628af1b87440605ddcc899df269e3b966d95089781ddd8e",
+    ".runtime/tau-official-full/rows/61-multi_agent.json": "ca7644d1c56f6bdd1e94bdd8bd973482865c3e0875732baaadf973c487f446ba",
+    ".runtime/tau-official-full/rows/61-staged_single.json": "950694a89f576a96af4498d7181b292528ff1fee485c2e14068bca58bed0b431",
+    ".runtime/tau-official-full/rows/61-strong_single.json": "c21a05c499eae311c0ea8a318a361d124b8cee2d0e798fb486ee9be91693cae4",
+    ".runtime/tau-official-full/rows/62-multi_agent.json": "d7851c9af4e801207825709e507db0bdb1b3c447cc0208684f4fd489d2dfe4a0",
+    ".runtime/tau-official-full/rows/62-staged_single.json": "79c76f1b9925e18d6d1b9e7a2d7aca17abc487ab004b45b92f6ce830603ead94",
+    ".runtime/tau-official-full/rows/62-strong_single.json": "84edfef9364711039586896712db24a0de6f62c316eb151f8bf17106600429c1",
+    ".runtime/tau-official-full/rows/64-multi_agent.json": "f16e13e12b7e821ccf68f799fac99625794bb215a6944c790c21819062237c2e",
+    ".runtime/tau-official-full/rows/64-staged_single.json": "da60cb48b51392ed1e6232ac83b92a3f442024608b684f2433c4532de2c07fa7",
+    ".runtime/tau-official-full/rows/64-strong_single.json": "e0a7652c851716bd97eb55d25ea4dec5ba917a4e4d7e6ab08d607785f0030059",
+    ".runtime/tau-official-full/rows/65-multi_agent.json": "4954be9a763c8dde02da5843b9a6e90a206ad952ec1458a7402de8044b587230",
+    ".runtime/tau-official-full/rows/65-staged_single.json": "ff519f27167c45d90448fbc3bf090a49566d60710e4a932bd6ecd0b4e4a4c7f3",
+    ".runtime/tau-official-full/rows/65-strong_single.json": "d6e591526e3096b6e74a0727bac26ad671d6575c8107cc80db6e4d24cef8a049",
+    ".runtime/tau-official-full/rows/68-multi_agent.json": "b7299b685679dc9adec5346729eddd05df44880596920e9e37470285320bd90e",
+    ".runtime/tau-official-full/rows/68-staged_single.json": "d6e60759e30ae2bdca9d7648885d567cc2f61bf143051b52cbd3c1e24537f54f",
+    ".runtime/tau-official-full/rows/68-strong_single.json": "304e06834f823bce99b06a6bd95fdcb46a5157c3af5fc9b34fabe00de31e18e5",
+    ".runtime/tau-official-full/rows/70-multi_agent.json": "841fcb1e3bc934b179c35e16fe2d626ed8d1dbd8cf8d008b1cb818a93dd4148f",
+    ".runtime/tau-official-full/rows/70-staged_single.json": "666edc952d6c6750b44564fec3f74c2e58c3d44f9ba95859b31c82e7231397cc",
+    ".runtime/tau-official-full/rows/70-strong_single.json": "6f2eca2d9941ef9c63ad8d88f53e10ebb29f466af6356f7e4069b05a0beac136",
+    ".runtime/tau-official-full/rows/71-multi_agent.json": "abdffe48f0a9105059aefee8963d4c5817bde500c14b45266dbcfe5dc525dd45",
+    ".runtime/tau-official-full/rows/71-staged_single.json": "fddae7039cc3f1b8a40f4865b71bcd07c2d8ff7fc54a4da9020b83a9b7e626ad",
+    ".runtime/tau-official-full/rows/71-strong_single.json": "9819615f795bc2c949fdf132d2c52a3761bac4b965659183fbc91c90e3cb5173",
+    ".runtime/tau-official-full/rows/74-multi_agent.json": "b93b698bfa8c0fefcf4844e93d9d229a74c42c0bb6afb34e30ba2069a7ea6afb",
+    ".runtime/tau-official-full/rows/74-staged_single.json": "f0aca3429f0fb5e82719e5caeab73207dfb7eca0fd0c9241c5d22df3834c38e1",
+    ".runtime/tau-official-full/rows/74-strong_single.json": "958159ae954ff26307b07b5724240e1f4970deb1fd9c946853e636cfbcc4904f",
+    ".runtime/tau-official-full/rows/77-multi_agent.json": "96275e33f7114ee98ab7d2e1e5c75900301c8685b9efcaf1caa3148995f53020",
+    ".runtime/tau-official-full/rows/77-staged_single.json": "e17927fbb99a7218b2dfe41a2b611e78857ed88361a62d2cdf86591e2f54d0e2",
+    ".runtime/tau-official-full/rows/77-strong_single.json": "7161ef99eb66b604bca7bd002a2aede52717e3bc654422e6069699934da74a97",
+    ".runtime/tau-official-full/rows/79-multi_agent.json": "ab5ab4e0662d79076ea0212ed65ae1c9bf7f6b4e944e6ffa918d7f0903960218",
+    ".runtime/tau-official-full/rows/79-staged_single.json": "c18b912e469b8f8a1ab0be1a55b0a6c90b8f1fa06a207102d1aff00c8ef25c6d",
+    ".runtime/tau-official-full/rows/79-strong_single.json": "391041f4e8e40363754f2112fe34a4e0225a87296e18d9ac51881875aec8f6c4",
+    ".runtime/tau-official-full/rows/86-multi_agent.json": "980fa5e8dde20d02836d6da0368767d5860ffb2eeb8591b3ee6091d494b69d1a",
+    ".runtime/tau-official-full/rows/86-staged_single.json": "eed986cf2cfffe4847852492ade2766c688150a422057d0db11ee5de04488d1d",
+    ".runtime/tau-official-full/rows/86-strong_single.json": "94983e2b97a0bad7eca97d7ee3b68ec779a4f197fa469a6b038d1de1daf993c8",
+    ".runtime/tau-official-full/rows/9-multi_agent.json": "b8a43fd7b7573b689a070e45f7d7da5f288169292e6f0e56588e83fe86e46e32",
+    ".runtime/tau-official-full/rows/9-staged_single.json": "d6538c8a43e33e188ad3655ee6805812578713bc775411d3b7093ad9d5bbd3f3",
+    ".runtime/tau-official-full/rows/9-strong_single.json": "6b39d06db50a041e5a6415a7041bd829f666130490ada49547b1c7e39133c3b8",
+    ".runtime/tau-official-full/rows/90-multi_agent.json": "40d0dc852b08fac1528f4fa95de4f4ddae49e89d4cfd81a4396534cd285cdf3f",
+    ".runtime/tau-official-full/rows/90-staged_single.json": "3d3c4d6f0bd250673b774161ab176be1dbef5f439131eb3d05a83eda53282d4f",
+    ".runtime/tau-official-full/rows/90-strong_single.json": "3c0a2622551666826ccd1a1bdeff01a362a01453245edd157de4657c4fde8206",
+    ".runtime/tau-official-full/rows/94-multi_agent.json": "d2f596f27e984ef6bc35d3d2d0fbe2309a265dcebe29fad7410ecfd657551de5",
+    ".runtime/tau-official-full/rows/94-staged_single.json": "58206e32859a7f01f225576f46acdee615c8ec2be708ff6d289c37e3f91cff1a",
+    ".runtime/tau-official-full/rows/94-strong_single.json": "170056e87ae04471a3556146eaa39c96f3f6488f4b9d04e3094e28a749ad83b9",
+    ".runtime/tau-official-full/rows/97-multi_agent.json": "e8e16331b401863ed8d56fada13aac20ae17dba12334e5809ead8f67f4be6739",
+    ".runtime/tau-official-full/rows/97-staged_single.json": "72df02faf09b60c7bd3c1c5d51685c94cd714123e3d6c2eec4275fb89d36059a",
+    ".runtime/tau-official-full/rows/97-strong_single.json": "db64c9897e4041925457884a4c92700f54132145f3db08f9a97c0ccd138b9d47",
+    ".runtime/tau-official-full/summary-with-repair.json": "56deb325a0d0982abf60dd733356e71f8a50c5cfb80056f6e104f88611e9af43",
+    ".runtime/tau-official-full/summary.json": "d9fa2d300408fba6bf177d3cb81ba5de92e8e88da649b2374167972fdd354c56",
+    ".runtime/tau-official-full.repair/.DS_Store": "c754bbcc976bc3f631fad7dd50659aa722f654e80e5337fb2ab453e5d2b128a3",
+    ".runtime/tau-official-full.repair/calls.jsonl": "037e82b3249ba314b5a28280f39b94d0bb2472108eba754bce67b0c2cb0d5fa9",
+    ".runtime/tau-official-full.repair/comparison.json": "759df82db2e0375b15fe8d98b77df2ad17a315ab4fc3f726d0ee39540a213d44",
+    ".runtime/tau-official-full.repair/manifest.json": "a652b27b4cfed7d4618f3875fe80d6ab21464f1bd345b5c6b7e549a293c1c856",
+    ".runtime/tau-official-full.repair/official/79-strong_single.json": "e5db6e802fa78c1236736e0136ec3e9c48ade8eb3b50e4be2ffa0ab183f9601d",
+    ".runtime/tau-official-full.repair/rows/79-strong_single.json": "7435e5dbfecd1893d2026362472900c99c23ceab794c3520adcd0e550d53e2fd",
+    ".runtime/tau-official-full.repair/summary.json": "193c59c32ddf3995cdb7d8e7bd786d50e88de8ed9e69abeaec3fd5a5571cb2d5",
+    "evidence/tau_official/latest.json": "56deb325a0d0982abf60dd733356e71f8a50c5cfb80056f6e104f88611e9af43",
+    "evidence/tau_official/primary.json": "d9fa2d300408fba6bf177d3cb81ba5de92e8e88da649b2374167972fdd354c56",
+    "evidence/tau_official/repair.json": "193c59c32ddf3995cdb7d8e7bd786d50e88de8ed9e69abeaec3fd5a5571cb2d5"
+  }
+}
