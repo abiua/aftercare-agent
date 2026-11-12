@@ -1,0 +1,25 @@
+{
+  "manifests": [
+    {
+      "split": "development",
+      "manifest_sha256": "b494d59550dd536bed4fe44afcf8b2589fc6dd3d39d8694e065ab293a9ed706d"
+    },
+    {
+      "split": "holdout",
+      "manifest_sha256": "0d71ffcbfc0407cf528695dfc30605e1451fc6fd4383263bdbb27d3405bd693a"
+    }
+  ],
+  "planned": 180,
+  "counts": {
+    "complete": 70,
+    "started": 1,
+    "missing": 109
+  },
+  "calls": 71,
+  "settled": 70,
+  "known_usd": "1.223810",
+  "held_usd": "0.035748",
+  "fallbacks": {},
+  "complete": false,
+  "scope": "receipt integrity, not label correctness or model superiority"
+}
