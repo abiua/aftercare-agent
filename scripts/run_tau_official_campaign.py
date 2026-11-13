@@ -17,7 +17,7 @@ import sys
 import time
 
 from tau_official_budget import AGENT, PRICES, REVIEW, USER, Budget, RowTransport
-from tau_official_summary import ARCHITECTURES, read_json, row_key, summarize, write_json
+from tau_official_summary import ARCHITECTURES, read_json, row_key, summarize, write_json, call_receipts
 from tau_official_summary import combined_summary, write_repair_comparison
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -279,6 +279,24 @@ def select_repairs(source, manifest):
     return schedule, original_attempts
 
 
+def remaining_campaign_budget(source, original):
+    """Unknown calls keep their reservation; repairs share the original total ceiling."""
+    journal = source / "calls.jsonl"
+    if not journal.exists() or (journal.read_bytes() and not journal.read_bytes().endswith(b"\n")):
+        raise SystemExit("Original billing journal is missing or incomplete")
+    reservations, settlements = call_receipts(journal)
+    if set(settlements) - set(reservations):
+        raise SystemExit("Billing settlement has no reservation")
+    committed = Decimal(0)
+    for ident, event in reservations.items():
+        reserve = Decimal(event["reserve_usd"])
+        actual = Decimal(settlements[ident]["actual_usd"]) if ident in settlements else reserve
+        if actual > reserve or actual < 0:
+            raise SystemExit("Original accounting bound requires reconciliation")
+        committed += actual
+    return max(Decimal(0), Decimal(str(original["budget"]["max_usd"])) - committed)
+
+
 def repair_campaign(args):
     source = args.source.resolve()
     original = read_json(source / "manifest.json")
@@ -303,6 +321,14 @@ def repair_campaign(args):
     task_ids = list(dict.fromkeys(item["task_id"] for item in schedule))
     if not set(task_ids) <= set(official_ids):
         raise SystemExit("Repair selected an unofficial task")
+    if original.get("kernel_sha256") != {
+        path.name: sha256(path.read_bytes()).hexdigest()
+        for path in sorted((ROOT / "backend/src/aftercare/agent_kernel").glob("*.py"))
+    }:
+        raise SystemExit("Kernel differs from original campaign")
+    remaining = remaining_campaign_budget(source, original)
+    if args.max_usd > remaining:
+        raise SystemExit("Repair budget exceeds remaining original campaign ceiling")
     limits = dict(original["budget"])
     limits["max_calls"] = len(schedule) * sum(limits[f"max_{role}_calls_per_run"]
                                                for role in ("agent", "user", "review"))
@@ -321,7 +347,7 @@ def repair_campaign(args):
 
     tasks = {task.id: task for task in get_tasks("retail", task_split_name="test", task_ids=task_ids)}
     execute_campaign(directory, manifest, tasks, args.live, args.max_usd)
-    if args.live:
+    if args.live and set(original.get("architectures", ARCHITECTURES)) <= set(ARCHITECTURES):
         write_repair_comparison(source, directory)
 
 

@@ -6,6 +6,7 @@ own frozen run and labelled as a separate run in every comparison.
 """
 from __future__ import annotations
 
+from hashlib import sha256
 import argparse
 from collections import Counter, defaultdict
 from decimal import Decimal
@@ -62,6 +63,43 @@ def load(directory):
             'row': row, 'outcome': classify(row, trace.get('messages', [])),
             'private': trace.get('private_trace', []), 'calls': by_row.get(key, [])}
     return manifest, rows
+
+
+def merge_repair(directory, manifest, rows):
+    repair = directory.with_name(directory.name + '.repair')
+    if not repair.exists():
+        return None
+    repaired_manifest, repaired = load(repair)
+    if repaired_manifest.get('repair_of', {}).get('manifest_sha256') != sha256((directory / 'manifest.json').read_bytes()).hexdigest():
+        raise ValueError('Repair source manifest mismatch')
+    original_schedule = {(r['architecture'], r['task_id']): r for r in manifest['schedule']}
+    seen = set()
+    provenance = {}
+    for item in repaired_manifest['schedule']:
+        key = (item['architecture'], item['task_id'])
+        if key in seen or key not in original_schedule or item != original_schedule[key]:
+            raise ValueError('Repair schedule mismatch')
+        seen.add(key)
+        original = rows[key]
+        filename = f"{item['task_id']}-{item['architecture']}"
+        path = directory / 'rows' / f'{filename}.json'
+        expected = repaired_manifest.get('original_attempts', {}).get(filename, {}).get('row_sha256')
+        if not path.is_file() or sha256(path.read_bytes()).hexdigest() != expected:
+            raise ValueError('Original row changed since repair')
+        if original['row']['status'] not in {'unknown', 'error'} or original['row'].get('official_reward') is not None:
+            raise ValueError('Repair attempted a scored or ineligible row')
+        latest = repaired[key]
+        if any(latest['row'].get(k) != item[k] for k in ('task_id', 'architecture', 'seed')):
+            raise ValueError('Repair row identity mismatch')
+        provenance[filename] = {'original_status': original['row']['status'],
+            'original_outcome': original['outcome'], 'repair_status': latest['row']['status'],
+            'score_source': 'repair' if latest['row'].get('official_reward') is not None else 'unscored'}
+        # Scores belong to the repair, but every attempt contributes cost, time and role calls.
+        durations = [e['row'].get('duration_seconds') for e in (original, latest)]
+        rows[key] = {**latest, 'row': {**latest['row'],
+            'duration_seconds': sum(v for v in durations if v is not None) if any(v is not None for v in durations) else None},
+            'calls': original['calls'] + latest['calls'], 'private': original['private'] + latest['private']}
+    return {'directory': repair.name, 'attempts': provenance}
 
 
 def arm_report(name, tasks, rows):
@@ -143,8 +181,9 @@ def baseline_s0():
     return outcomes, costs, unsettled
 
 
-def analyse(directory, *, include_s0=True):
+def analyse(directory, *, include_s0=True, include_repair=False):
     manifest, rows = load(directory)
+    repair_info = merge_repair(directory, manifest, rows) if include_repair else None
     tasks = manifest['task_ids']
     arms = {name: arm_report(name, tasks, rows) for name in manifest.get('architectures', NEW_ARMS)}
     outcome = {(name, task): rows[name, task]['outcome'] if (name, task) in rows else 'unfinished'
@@ -179,7 +218,7 @@ def analyse(directory, *, include_s0=True):
             'mcnemar_p': mcnemar(len(first_only), len(second_only)),
             'same_run': 'S0' not in (first, second)}
     return {'directory': directory.name, 'split': manifest['split'], 'tasks': len(tasks), 'arms': arms,
-            'pairs': pairs, 'hypotheses': hypotheses(arms, pairs), 's0_note': s0_note,
+            'pairs': pairs, 'hypotheses': hypotheses(arms, pairs), 's0_note': s0_note, 'repair': repair_info,
             'per_task': {task: {name: outcome[name, task] for name in arms} for task in tasks},
             'complete': all(arms[n]['outcomes']['unfinished'] == 0 and not arms[n].get('unsettled_calls') for n in arms)}
 
@@ -220,8 +259,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--include-repair', action='store_true')
     args = parser.parse_args()
-    report = analyse(args.directory.resolve())
+    report = analyse(args.directory.resolve(), include_repair=args.include_repair)
     text = json.dumps(report, ensure_ascii=False, indent=2) + '\n'
     if args.output:
         args.output.write_text(text)

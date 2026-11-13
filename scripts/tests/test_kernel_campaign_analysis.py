@@ -117,3 +117,37 @@ def test_historical_costs_keep_unknown_receipts(tmp_path, monkeypatch):
         json.dumps({'call_id': 1, 'actual_usd': '0.1'}) + '\n')
     outcomes, cost, unsettled = analysis.baseline_s0()
     assert outcomes == {'1': 'success'} and cost == Decimal('0.3') and unsettled == 1
+
+
+def test_repair_preserves_denominator_original_costs_and_unknowns(tmp_path):
+    from hashlib import sha256
+    from analyze_kernel_campaign import load, merge_repair
+    root = campaign(tmp_path, {'S1': {'1': (0.0, None), '2': (1.0, None)}})
+    path = root / 'rows/1-S1.json'
+    original = json.loads(path.read_text())
+    original.update(status='unknown', official_reward=None, seed=42)
+    path.write_text(json.dumps(original))
+    repair = root.with_name(root.name + '.repair'); repair.mkdir()
+    campaign(repair, {'S1': {'1': (1.0, None)}})
+    repair_row = repair / 'rows/1-S1.json'
+    repaired = json.loads(repair_row.read_text()); repaired['seed'] = 42
+    repair_row.write_text(json.dumps(repaired))
+    manifest = json.loads((repair / 'manifest.json').read_text())
+    manifest.update(repair_of={'manifest_sha256': sha256((root / 'manifest.json').read_bytes()).hexdigest()},
+                    original_attempts={'1-S1': {'row_sha256': sha256(path.read_bytes()).hexdigest()}})
+    (repair / 'manifest.json').write_text(json.dumps(manifest))
+    with (root / 'calls.jsonl').open('a') as f:
+        f.write(json.dumps({'call_id': 99, 'row': '1-S1', 'actor': 'executor', 'reserve_usd': '0.5'}) + '\n')
+    report = analyse(root, include_repair=True)
+    arm = report['arms']['S1']
+    assert arm['tasks'] == 2 and arm['success'] == 2
+    assert arm['known_total_cost_usd'] == 0.33 and arm['unsettled_calls'] == 1
+    assert arm['calls_by_actor'] == {'executor': 4, 'user': 3}
+    assert arm['total_cost_per_success_usd'] is None
+    assert report['repair']['attempts']['1-S1']['original_status'] == 'unknown'
+    assert original == json.loads(path.read_text())
+    original['official_reward'] = 0
+    path.write_text(json.dumps(original))
+    import pytest
+    with pytest.raises(ValueError, match='Original row changed'):
+        analyse(root, include_repair=True)

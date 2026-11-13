@@ -16,7 +16,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from run_tau_official_campaign import SOURCE, initialize_official, load_official_source, run_row
-from run_tau_official_campaign import select_repairs
+from run_tau_official_campaign import select_repairs, remaining_campaign_budget
 from tau_official_budget import AGENT, REVIEW, USER, Budget, BudgetExhausted, RowTransport
 from tau_official_summary import ARCHITECTURES, call_receipts, combined_summary, read_json, summarize
 from tau_official_summary import write_json
@@ -37,6 +37,19 @@ def fake_response(content):
 
 
 class OfficialCampaignTests(unittest.TestCase):
+    def test_repair_shares_original_ceiling_and_keeps_pending_reservations(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            budget = Budget(10, 40, root / 'calls.jsonl')
+            settled = budget.reserve('a', 'agent', 's', Decimal('2'))
+            budget.settle(settled, Decimal('2'), Decimal('1'))
+            budget.reserve('b', 'agent', 's', Decimal('3'))
+            self.assertEqual(remaining_campaign_budget(root, {'budget': {'max_usd': 40}}), Decimal('36'))
+            with (root / 'calls.jsonl').open('a') as f:
+                f.write('{')
+            with self.assertRaisesRegex(SystemExit, 'incomplete'):
+                remaining_campaign_budget(root, {'budget': {'max_usd': 40}})
+
     def test_campaign_reservation_is_atomic(self):
         with TemporaryDirectory() as tmp:
             budget = Budget(3, "0.20", Path(tmp) / "calls.jsonl")
