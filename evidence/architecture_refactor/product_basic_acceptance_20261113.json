@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-13",
+  "scope": "PRODUCT_BASIC_ACCEPTANCE_NOT_BENCHMARK",
+  "code_base": "d6e9422",
+  "cost_usd": "0.2736850",
+  "model_calls": 22,
+  "normal": {
+    "status": "PASSED_WITH_SUPPORT_MODIFICATION",
+    "conversation_id": "117e31cb-7ffc-4c9e-a4b6-9c58df09e5b6",
+    "amount_cents": 4900,
+    "review_revised": true,
+    "ledger_count": 1
+  },
+  "complex": {
+    "status": "PARTIAL_MECHANISM_COVERAGE",
+    "conversation_id": "a6824dea-cba2-4813-8561-39f3caaa58bd",
+    "first_attempt": "PROVIDER_IN_FLIGHT_LIMIT",
+    "continued_after_customer_clarification": true,
+    "separate_fact_policy_verifier": true,
+    "outcome": "L01_REFUND_CANDIDATE_BLOCKED_PENDING_PARTIAL_RESOLUTION; L02_EVIDENCE_REQUEST_REVIEWED_AND_SENT",
+    "local_recheck_triggered": false,
+    "executions": 0
+  },
+  "failure": {
+    "status": "PASSED_CONTROLLED_TIMEOUT",
+    "conversation_id": "30546b30-8b85-44d2-a5b2-b516152306c3",
+    "provider_calls": 0,
+    "original_thread_recovered": true,
+    "executions": 0
+  },
+  "restart": {
+    "api_restarted": true,
+    "projection_replayed": true,
+    "messages_unchanged": true,
+    "execution_ids_unchanged": true
+  },
+  "photos": {
+    "support_preview_three_threads": true,
+    "assets": "AI_GENERATED_SYNTHETIC",
+    "new_vision_model_acceptance": false
+  },
+  "regression": {
+    "passed": 1033,
+    "failed": 0,
+    "skipped": 5,
+    "deselected": 40
+  },
+  "formal_evaluation_started": false
+}

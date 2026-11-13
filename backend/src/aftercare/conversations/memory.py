@@ -47,6 +47,9 @@ def requested_action(text):
             request = clause
         else:
             continue
+        # One compound request: refund with a return, not mutually exclusive remedies.
+        # Keep the original customer statement unchanged for policy/return conditions.
+        request = request.replace("退货退款", "退款")
         actions.update(action for action, pattern in _ACTION.items() if pattern.search(request))
     if len(actions) == 1:
         return next(iter(actions))
