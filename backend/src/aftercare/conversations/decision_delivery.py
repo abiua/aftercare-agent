@@ -53,8 +53,8 @@ def project(business, run_id):
             )
         )
         run = db.get_one(AgentRun, run_id)
-        delivered_failure = notify(business, db, run)
         if ready is None:
+            delivered_failure = notify(business, db, run)
             if run.reason in FAILURES and run.status in {'FAILED', 'NEEDS_REVIEW'}:
                 db.add(DecisionProjection(run_id=run_id, snapshot_id=None, state='BLOCKED',
                                           reason=run.reason if delivered_failure else 'FAILURE_NOTICE_STALE_OR_REVOKED',
@@ -74,6 +74,9 @@ def project(business, run_id):
                     )
             except BusinessError as error:
                 reason = error.code
+        # Freeze the candidate against the original input before sending its failure notice.
+        # The published candidate itself is the durable support handoff.
+        notify(business, db, run, candidate_pending=snapshot is not None)
         db.add(
             DecisionProjection(
                 run_id=run_id,

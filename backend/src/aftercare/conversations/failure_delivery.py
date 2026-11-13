@@ -35,7 +35,7 @@ def message_for(reason):
     return '这次自动查询没有完成，已转客服处理。之前的说明和照片都已保留。'
 
 
-def notify(business, db, run: AgentRun):
+def notify(business, db, run: AgentRun, *, candidate_pending=False):
     if run.reason not in FAILURES or run.status not in {'FAILED', 'NEEDS_REVIEW'}:
         return False
     request = db.scalar(select(InvestigationRequest).where(InvestigationRequest.run_id == run.id))
@@ -53,9 +53,13 @@ def notify(business, db, run: AgentRun):
     if row.status != 'OPEN' or turn.state != 'PUBLISHED' or run.owner_id != request.actor_id:
         return False
     chat = ConversationService(business)
-    row.status = 'HUMAN_HANDOFF'
-    chat._touch(row)
+    # A published decision already queues support review. Changing the input revision here
+    # would invalidate that very snapshot. Only failures without a candidate need a state move.
+    if not candidate_pending:
+        row.status = 'HUMAN_HANDOFF'
+        chat._touch(row)
     chat._reply(db, row, message_for(run.reason), [
-        {'type':'status','data':{'code':'HUMAN_HANDOFF','run_id':run.id,'reason':run.reason}}
+        {'type':'status','data':{'code':'PENDING_SUPPORT' if candidate_pending else 'HUMAN_HANDOFF',
+                              'run_id':run.id,'reason':run.reason}}
     ])
     return True

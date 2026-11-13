@@ -582,7 +582,8 @@ def run_phase(
     )
     projected_prompt = projection.prompt(prompt)
     indexed_verifier = "verifier_encoding" in projected_prompt
-    prompt_schema = schema.model_json_schema()
+    # Generated schema titles repeat field names; omit them without removing constraints.
+    prompt_schema = _prompt_schema(schema.model_json_schema())
     can_propose = role in {"strong_single", "verifier", "synthesizer"}
     if projection.receipt_encoding:
         policy_ids = {
@@ -649,6 +650,7 @@ def run_phase(
             "phase_id": phase_id,
             "input_sha256": digest(prompt),
             "prompt_sha256": digest(projected_prompt),
+            "output_schema_encoding": "schema-without-titles-v1",
             "prompt_version": prompt_version,
             "language_version": LANGUAGE_VERSION,
             "upstream_claim_ids": sorted(upstream_ids),

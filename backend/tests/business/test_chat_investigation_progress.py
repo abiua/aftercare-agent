@@ -193,6 +193,15 @@ def test_material_review_queues_new_native_candidate_without_customer_message(en
     assert progress() == {"state": "CHECKING"}
     project(business, new_run)
     assert progress() == {"state": "PENDING_SUPPORT"}
+    delivered = enabled.client.get(url, headers=headers()).json()
+    assert "已转客服" in delivered["messages"][-1]["text"]
+    assert delivered["messages"][-1]["cards"][0]["data"]["code"] == "PENDING_SUPPORT"
+    project(business, new_run)
+    assert enabled.client.get(url, headers=headers()).json() == delivered
+    support_view = enabled.client.get(url + "/decisions", headers=headers(SUPPORT))
+    assert support_view.status_code == 200
+    support_snapshot = support_view.json()["snapshot"]
+    assert support_snapshot["original_run_id"] == new_run
     with Session(enabled.engine) as db:
         replacement = db.scalar(select(DecisionSnapshot).where(DecisionSnapshot.run_id == new_run))
         assert replacement.input["dependency_sha256"] != original_input["dependency_sha256"]
@@ -220,6 +229,14 @@ def test_material_review_queues_new_native_candidate_without_customer_message(en
             assert not (transports or attempts or observations)
         assert db.scalar(select(Approval.id)) is None
         assert db.scalar(select(Execution.id)) is None
+    # The notice must not merely display a stale card: support can actually review it.
+    response = enabled.client.post(
+        url + "/decisions/review", headers=headers(SUPPORT),
+        json={"ref": {key: support_snapshot[key] for key in ("id", "version", "sha256")},
+              "review": {"action": "REJECT", "reason": "自动调查未完成，由客服继续核对"},
+              "expected_review_id": None},
+    )
+    assert response.status_code == 200, response.text
 
 
 def test_material_review_preserves_pending_customer_text(enabled):

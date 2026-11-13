@@ -400,6 +400,8 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         ]
         assert len(rounds) == 2
         assert rounds[1]["preflight"] == "FIT"
+        assert rounds[1]["estimated_with_tools"] <= rounds[1]["limit"]
+        assert rounds[1]["allowed_tool_batch"] > 0
         assert rounds[1]["evidence_count"] == len(
             initial_statement_refs
             | {

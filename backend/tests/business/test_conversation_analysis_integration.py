@@ -320,7 +320,14 @@ def test_confirmed_new_issue_keeps_only_its_own_photos_in_input(enabled):
     ordinary_attachment = ordinary["messages"][0]["attachments"][0]["id"]
     with Session(enabled.engine) as db:
         current = db.scalar(select(ChatAnalysisTurn).order_by(ChatAnalysisTurn.generation.desc()))
-        assert {ref["id"] for ref in current.attachments} == {old_attachment, ordinary_attachment}
+        # Pending new-issue confirmation cancels analysis instead of feeding ambiguous
+        # follow-up images into the old issue. The original input stays immutable.
+        assert current.state == "STALE"
+        assert {ref["id"] for ref in current.attachments} == {old_attachment}
+    advance(enabled)
+    premature = []
+    work(enabled, controlled_model(premature))
+    assert premature == []  # No model may consume either issue while scope is unresolved.
     confirmed = change(
         enabled.client, url, ordinary["conversation"]["revision"], lines=("L01",), new=True
     ).json()
