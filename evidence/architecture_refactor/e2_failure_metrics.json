@@ -1,0 +1,302 @@
+{
+  "scope": "post-hoc offline diagnosis; final selected traces; durations and calls include original plus repair; no paid calls",
+  "arms": {
+    "S1": {
+      "final_attempt_metrics": {
+        "actual_handoff_tasks": 8,
+        "successful_handoff_tasks": 3,
+        "tool_error_responses": 4,
+        "tasks_with_tool_errors": 4
+      },
+      "expert_tasks": [],
+      "revised_tasks": [],
+      "duration_including_repair": {
+        "median": 42.183499999999995,
+        "p95_nearest_rank": 64.047
+      },
+      "mean_agent_calls_including_repair": 12.125
+    },
+    "S2": {
+      "final_attempt_metrics": {
+        "actual_handoff_tasks": 7,
+        "successful_handoff_tasks": 5,
+        "tool_error_responses": 3,
+        "tasks_with_tool_errors": 3
+      },
+      "expert_tasks": [],
+      "revised_tasks": [
+        {
+          "task": "18",
+          "outcome": "success",
+          "revisions": 1
+        },
+        {
+          "task": "27",
+          "outcome": "success",
+          "revisions": 2
+        },
+        {
+          "task": "32",
+          "outcome": "handoff",
+          "revisions": 1
+        },
+        {
+          "task": "36",
+          "outcome": "success",
+          "revisions": 1
+        },
+        {
+          "task": "53",
+          "outcome": "success",
+          "revisions": 1
+        },
+        {
+          "task": "100",
+          "outcome": "success",
+          "revisions": 1
+        },
+        {
+          "task": "111",
+          "outcome": "wrong_write",
+          "revisions": 1
+        }
+      ],
+      "duration_including_repair": {
+        "median": 44.812,
+        "p95_nearest_rank": 84.256
+      },
+      "mean_agent_calls_including_repair": 13.525
+    },
+    "S1c": {
+      "final_attempt_metrics": {
+        "actual_handoff_tasks": 3,
+        "successful_handoff_tasks": 3,
+        "tool_error_responses": 3,
+        "tasks_with_tool_errors": 3
+      },
+      "expert_tasks": [],
+      "revised_tasks": [],
+      "duration_including_repair": {
+        "median": 26.976,
+        "p95_nearest_rank": 48.358000000000004
+      },
+      "mean_agent_calls_including_repair": 12.325
+    },
+    "M1": {
+      "final_attempt_metrics": {
+        "actual_handoff_tasks": 7,
+        "successful_handoff_tasks": 4,
+        "tool_error_responses": 3,
+        "tasks_with_tool_errors": 3
+      },
+      "expert_tasks": [
+        {
+          "task": "36",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "38",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "42",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "49",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "51",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "62",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "77",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "97",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        }
+      ],
+      "revised_tasks": [
+        {
+          "task": "27",
+          "outcome": "handoff",
+          "revisions": 2
+        },
+        {
+          "task": "32",
+          "outcome": "wrong_write",
+          "revisions": 1
+        },
+        {
+          "task": "36",
+          "outcome": "success",
+          "revisions": 1
+        },
+        {
+          "task": "53",
+          "outcome": "success",
+          "revisions": 1
+        },
+        {
+          "task": "100",
+          "outcome": "success",
+          "revisions": 1
+        },
+        {
+          "task": "111",
+          "outcome": "success",
+          "revisions": 1
+        }
+      ],
+      "duration_including_repair": {
+        "median": 46.435,
+        "p95_nearest_rank": 93.283
+      },
+      "mean_agent_calls_including_repair": 14.1
+    },
+    "M2": {
+      "final_attempt_metrics": {
+        "actual_handoff_tasks": 5,
+        "successful_handoff_tasks": 3,
+        "tool_error_responses": 3,
+        "tasks_with_tool_errors": 3
+      },
+      "expert_tasks": [
+        {
+          "task": "36",
+          "outcome": "wrong_write",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "38",
+          "outcome": "wrong_write",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "42",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "49",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "51",
+          "outcome": "success",
+          "consults": 3,
+          "reads": 0
+        },
+        {
+          "task": "55",
+          "outcome": "success",
+          "consults": 3,
+          "reads": 0
+        },
+        {
+          "task": "56",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "62",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "64",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "65",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "74",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "77",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "94",
+          "outcome": "success",
+          "consults": 1,
+          "reads": 0
+        },
+        {
+          "task": "97",
+          "outcome": "wrong_write",
+          "consults": 1,
+          "reads": 0
+        }
+      ],
+      "revised_tasks": [
+        {
+          "task": "27",
+          "outcome": "wrong_write",
+          "revisions": 1
+        },
+        {
+          "task": "53",
+          "outcome": "success",
+          "revisions": 3
+        },
+        {
+          "task": "65",
+          "outcome": "success",
+          "revisions": 1
+        },
+        {
+          "task": "102",
+          "outcome": "success",
+          "revisions": 1
+        }
+      ],
+      "duration_including_repair": {
+        "median": 38.134,
+        "p95_nearest_rank": 68.236
+      },
+      "mean_agent_calls_including_repair": 15.4
+    }
+  }
+}
