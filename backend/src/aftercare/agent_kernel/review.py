@@ -12,8 +12,17 @@ For revise, provide an issue, a specific next step and evidence references.
 For handoff or refusal: independently list all customer requests and their current status in issue.
 Check whether any unfinished request can still be handled by cancel, modify address/payment/items,
 return, exchange or information tools. If so suggest a concrete next step, including asking the
-customer to choose between incompatible alternatives. Allow if all remaining requests are outside
-scope and available alternatives were explained. Do not override an explicit request for a human.
+customer to choose between incompatible alternatives.
+A handoff is premature unless the assistant has already told the customer plainly that the specific
+remaining request cannot be done here, and the customer has replied since and still wants it or a
+human. If the customer's latest message asks for something out of scope, or asks a question that has
+not been answered directly, revise: the next step is a reply that answers it plainly, says what can
+be done here instead, and asks what the customer would like; the customer may have another request.
+A request for a human that the customer raised on their own is honored. One that only accepts the
+assistant's own offer of a human is honored when nothing feasible is left; if feasible requests
+remain unfinished, revise to offer completing those first and let the customer decide.
+If the account is not yet identified, prefer continuing with a permitted identification method.
+Allow when the conditions above are met and no feasible request remains.
 For writes: default allow. Revise only for untraceable parameters, an item failing a customer-stated
 attribute, missing confirmation, or confirmation of different details. If alternatives satisfy the
 same stated requirements, ask the customer to choose. Do not invent unstated preferences.
@@ -41,8 +50,9 @@ def public_view(messages):
 
 
 class ProposalReviewer:
-    def __init__(self,model):
+    def __init__(self,model,instruction=REVIEW_INSTRUCTION):
         self.model=model
+        self.instruction=instruction
         self.trace=[]
 
     def review(self,architecture,proposal,messages,policy,guard_result,executor_context):
@@ -50,7 +60,7 @@ class ProposalReviewer:
         payload={'conversation':public,'policy':policy,
             'proposal':proposal.model_dump(mode='json',exclude={'private_context'}),
             'guard_confirmed_facts':guard_result.confirmed_facts}
-        inputs=[{'role':'system','content':REVIEW_INSTRUCTION}]
+        inputs=[{'role':'system','content':self.instruction}]
         role='reviewer'
         if architecture.review=='self':
             role='self_check'

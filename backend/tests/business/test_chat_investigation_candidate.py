@@ -59,7 +59,7 @@ def _claim(ident, ref, value):
     }
 
 
-@pytest.mark.parametrize("arm", ["strong_single", "single_staged", "multi"])
+@pytest.mark.parametrize("arm", ["strong_single", "single_staged", "multi", "kernel"])
 def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, arm, monkeypatch):
     # SQLite does not implement SELECT FOR UPDATE. Serialize only its audit
     # transactions here; independent LangGraph fan-out has its own barrier test.
@@ -109,9 +109,15 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
     role_tools = {}
     initial_statement_refs = set()
     rechecks = []
+    reviews = []
 
     def transport(_spec, messages, tools, _timeout, _output):
         assert not tracing_is_enabled()
+        if "独立审查者" in messages[0].content:
+            calls.append("reviewer")
+            reviews.append(json.loads(messages[1].content))
+            assert not tools
+            return _reply({"verdict": "allow"})
         role = messages[0].content.split("。", 1)[0].split()[-1]
         sent = json.loads(messages[1].content)
         user_view = sent["frozen_input"]
@@ -317,10 +323,24 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
     assert snapshot["candidate"]["options"][0]["lines"][0]["amount_cents"] == amount
     assert snapshot["candidate"]["options"][0]["evidence_ids"] == [line_id, policy_ref]
     assert len(rechecks) == (1 if arm == "multi" else 0)
-    assert len(calls) == {"strong_single": 2, "single_staged": 5, "multi": 7}[arm]
+    assert len(calls) == {"strong_single": 2, "single_staged": 5, "multi": 7, "kernel": 3}[arm]
+    if arm == "kernel":
+        # Executor, then one independent review of the checked refund proposal, then publish.
+        assert calls == ["strong_single", "strong_single", "reviewer"]
+        assert snapshot["candidate"]["route_version"] == "kernel"
+        assert completed["output"]["kernel"] == {
+            "version": "aftercare-kernel-v1",
+            "review": completed["output"]["kernel"]["review"],
+            "revised": False,
+        }
+        assert completed["output"]["kernel"]["review"]["verdict"] == "allow"
+        (review,) = reviews
+        assert review["proposal"]["calls"][0]["name"] == "propose_refund"
+        assert review["guard_confirmed_facts"]["business_rule_checks"] == "passed"
+        assert "executor_context" not in review and "claims" not in json.dumps(review)
     assert (
         role_tools["strong_single"]
-        if arm == "strong_single"
+        if arm in {"strong_single", "kernel"}
         else role_tools["fact"] | role_tools["policy"]
     ) == {
         "read_order_lines",

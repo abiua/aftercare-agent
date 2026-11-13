@@ -51,6 +51,10 @@ def load_official_source():
     return hashes, read_json(retail / "split_tasks.json")["test"]
 
 
+def train_task_ids():
+    return read_json(SOURCE / "data/tau2/domains/retail/split_tasks.json")["train"]
+
+
 def initialize_official():
     from loguru import logger
     from tau2.config import DEFAULT_LLM_NL_ASSERTIONS
@@ -88,13 +92,13 @@ def initialize_official():
     llm_utils.get_response_cost = lambda response: response._hidden_params["aftercare_cost_usd"]
 
 
-def run_row(item, task, limits, budget, client, directory):
+def run_row(item, task, limits, budget, client, directory, deepseek_client=None, split="test"):
     from tau2.data_model.simulation import TextRunConfig
     from tau2.runner import build_text_orchestrator, run_simulation
 
     key = row_key(item)
     row_path = directory / "rows" / f"{key}.json"
-    row_transport = RowTransport(key, limits, budget, client)
+    row_transport = RowTransport(key, limits, budget, client, deepseek_client)
     row = {
         **item, "status": "running", "official_reward": None, "official_components": {},
         "duration_seconds": None, **row_transport.metrics(),
@@ -105,7 +109,7 @@ def run_row(item, task, limits, budget, client, directory):
     orchestrator = None
     try:
         config = TextRunConfig(
-            domain="retail", task_split_name="test", agent=item["architecture"],
+            domain="retail", task_split_name=split, agent=item["architecture"],
             user="user_simulator", llm_agent=AGENT, llm_user=USER,
             llm_args_agent={"reasoning_effort": "low"}, llm_args_user={"reasoning_effort": "low"},
             timeout=limits["timeout_seconds_per_run"], max_steps=limits["max_steps"],
@@ -152,8 +156,22 @@ def new_campaign(args):
 
     if len(task_ids) != 40 or len(set(task_ids)) != 40:
         raise SystemExit("Unexpected official retail test population")
-    task_ids = task_ids[:1] if args.scope == "smoke" else task_ids
-    tasks = {task.id: task for task in get_tasks("retail", task_split_name="test", task_ids=task_ids)}
+    split = "test"
+    names = tuple(args.architectures.split(",")) if args.architectures else ARCHITECTURES
+    from aftercare.agent_kernel.contracts import architectures as kernel_architectures
+    if not set(names) <= {*ARCHITECTURES, *kernel_architectures()} or "S0" in names:
+        raise SystemExit("Unknown or historical-only architecture")
+    if args.scope == "wiring":
+        # Connection check only: training tasks, never scored against the test population.
+        split = "train"
+        task_ids = args.task_ids.split(",")
+        if not task_ids or not set(task_ids) <= set(train_task_ids()):
+            raise SystemExit("Wiring checks use training tasks only")
+    elif args.task_ids:
+        raise SystemExit("Task selection is only available for wiring checks")
+    else:
+        task_ids = task_ids[:1] if args.scope == "smoke" else task_ids
+    tasks = {task.id: task for task in get_tasks("retail", task_split_name=split, task_ids=task_ids)}
     raw_tasks = {
         task["id"]: task for task in
         read_json(SOURCE / "data/tau2/domains/retail/tasks.json") if task["id"] in tasks
@@ -170,12 +188,15 @@ def new_campaign(args):
         description = raw_tasks[task_id].get("description") or {}
         # Never publish the simulator's private user instructions.
         public_description = description.get("purpose")
-        for offset in range(len(ARCHITECTURES)):
-            architecture = ARCHITECTURES[(i + offset) % len(ARCHITECTURES)]
+        for offset in range(len(names)):
+            architecture = names[(i + offset) % len(names)]
             schedule.append({"task_id": task_id, "architecture": architecture, "seed": 42 + i,
                              "task_summary": public_description[:500] if public_description else None})
     manifest = {
-        "schema_version": 1, "benchmark": "tau2-bench", "domain": "retail", "split": "test",
+        "schema_version": 1, "benchmark": "tau2-bench", "domain": "retail", "split": split,
+        "architectures": list(names),
+        "kernel_sha256": {path.name: sha256(path.read_bytes()).hexdigest()
+                          for path in sorted((ROOT / "backend/src/aftercare/agent_kernel").glob("*.py"))},
         "scope": args.scope, "revision": REVISION, "task_ids": task_ids, "trials_per_task": 1,
         "agent_model": AGENT, "user_model": USER, "review_model": REVIEW,
         "tool_names": sorted(tool.name for tool in build_environment("retail").get_tools()),
@@ -210,18 +231,29 @@ def execute_campaign(directory, manifest, tasks, live, max_usd):
         (directory / name).mkdir(mode=0o700)
     write_json(directory / "manifest.json", manifest)
     budget = Budget(limits["max_calls"], max_usd, directory / "calls.jsonl")
+    deepseek = None
+    if {"S1c", "M2"} & {item["architecture"] for item in schedule}:
+        deepseek = OpenAI(
+            api_key=os.getenv("AFTERCARE_DEEPSEEK_KEY")
+            or read_json(ROOT / ".runtime/deepseek-secret.json")["api_key"],
+            base_url="https://api.deepseek.com", max_retries=0,
+            timeout=limits["timeout_seconds_per_request"],
+        )
     with OpenAI(
         api_key=api_key, base_url="https://api.openai.com/v1",
         max_retries=0, timeout=limits["timeout_seconds_per_request"],
     ) as client, ThreadPoolExecutor(max_workers=manifest["concurrency"]) as pool:
         futures = [
             pool.submit(run_row, item, tasks[item["task_id"]].model_copy(deep=True),
-                        limits, budget, client, directory)
+                        limits, budget, client, directory, deepseek, manifest["split"])
             for item in schedule
         ]
         for future in futures:
             future.result()
-    print_summary(directory, publish=False)
+    if deepseek is not None:
+        deepseek.close()
+    if set(manifest.get("architectures", ARCHITECTURES)) <= set(ARCHITECTURES):
+        print_summary(directory, publish=False)
 
 
 def select_repairs(source, manifest):
@@ -317,7 +349,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     actions = parser.add_subparsers(dest="action", required=True)
     run = actions.add_parser("run")
-    run.add_argument("--scope", choices=("smoke", "full"), required=True)
+    run.add_argument("--scope", choices=("smoke", "full", "wiring"), required=True)
+    run.add_argument("--architectures", help="comma-separated; default is the first-round three")
+    run.add_argument("--task-ids", help="comma-separated training task ids (wiring scope only)")
     run.add_argument("--directory", type=Path, required=True)
     run.add_argument("--max-usd", type=Decimal, required=True)
     run.add_argument("--max-calls", type=int, required=True)

@@ -1,0 +1,169 @@
+{
+  "version": "v2",
+  "frozen_on": "2026-11-13",
+  "git_head": "ea9aa8cbadedd33bb4f2b42c322b591b60435c8a",
+  "note": "Working tree has uncommitted changes; the file hashes below, not the commit, identify the frozen code.",
+  "sha256": {
+    "docs/REFACTOR_PREREGISTRATION_V2.md": "7b509ab95bd9bfda3ed3b55527d289a53e593e1728fa7f3e639d4874671fc862",
+    "backend/src/aftercare/agent_kernel/__init__.py": "8e178efe57c64b11019949e133317036628e4cae7be40a74858802a80163683e",
+    "backend/src/aftercare/agent_kernel/contracts.py": "2a4866108bacbd3775eabcfd60e6338b83531bd27efd1cf7a4930e0fcaa3709b",
+    "backend/src/aftercare/agent_kernel/engine.py": "26639a51df9502c3b5aeaaf4fcedffc43833abb3dcb9867992989a58fac2c09f",
+    "backend/src/aftercare/agent_kernel/experts.py": "2613f0273112f92ce7d31828604e0617f879c219cfb3e1a754d5adcc0587b9b3",
+    "backend/src/aftercare/agent_kernel/retail_guards.py": "3b2e34592143242fc821771d7f119ee1f16cec00f0d6c92ed02168c3e43a589c",
+    "backend/src/aftercare/agent_kernel/review.py": "5fc30f68508df80f9f050e5d60ad0717f00b18e84b7e3a4a0a75e4bf259a3225",
+    "scripts/tau_official_agents.py": "e42386ee4636d3392a7916b3abb5d241c1c04f2f8cd3d96b366876a3a0820b18",
+    "scripts/tau_official_agents_legacy.py": "cc1846a0e83ed2d0a0de4cded31470c41e5dbce0c00a215b1b7fe68a3742d393",
+    "scripts/tau_official_budget.py": "9967aa4acfeea753816ab131843a935a147fdbdb466a453626e4536c85f94a66",
+    "scripts/run_tau_official_campaign.py": "0b88c2d270fb770ed1e457e5679a2dc89873506c056ee07705053a9b96a9a7b2",
+    "scripts/analyze_kernel_campaign.py": "5206b2cbabccdebf6b88de45dddfd97a175306c7d826e2d802a7b69fd22c19d5",
+    "scripts/refactor_baseline.py": "965aa9db9866364cd5f89bb2e49f29449a1a12b35da1927211a859ef1bbc7bfd",
+    "scripts/tau_official_summary.py": "289c7dbaf4f330425d50706e6475d8afe7eeeedca6a044c854339df814f6d1a2"
+  },
+  "prompt_sha256": {
+    "review": "6af69a4fee3de95552d06c22ce1cabf213ef43f4df146165814bc84399e1da90",
+    "executor": "a8d1b2fe80bd93cddfe4ba90645b9e5a04050046d30b5e58e770a5b068714b8e",
+    "fact_expert": "a16d977071a28b5dbeff5968c0ecd0d42a3adf833416ebfa8cc3b294c1c7ac46",
+    "policy_expert": "bcad8bd4311f83f98e61b896d46deb341ef9f093d2ac8f1e8dfd769e6681f173"
+  },
+  "architectures": {
+    "S0": {
+      "name": "S0",
+      "guards": false,
+      "review": "none",
+      "experts": false,
+      "executor": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": true
+    },
+    "S1": {
+      "name": "S1",
+      "guards": true,
+      "review": "none",
+      "experts": false,
+      "executor": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "S2": {
+      "name": "S2",
+      "guards": true,
+      "review": "self",
+      "experts": false,
+      "executor": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "S1c": {
+      "name": "S1c",
+      "guards": true,
+      "review": "none",
+      "experts": false,
+      "executor": {
+        "model": "deepseek-flash",
+        "reasoning": "disabled"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "M1": {
+      "name": "M1",
+      "guards": true,
+      "review": "independent",
+      "experts": true,
+      "executor": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "M2": {
+      "name": "M2",
+      "guards": true,
+      "review": "independent",
+      "experts": true,
+      "executor": {
+        "model": "deepseek-flash",
+        "reasoning": "disabled"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    }
+  },
+  "run": {
+    "split": "test",
+    "tasks": 40,
+    "arms": [
+      "S1",
+      "S2",
+      "S1c",
+      "M1",
+      "M2"
+    ],
+    "trials": 1,
+    "max_usd": 40,
+    "concurrency": 6,
+    "agent_calls": 48,
+    "user_calls": 24,
+    "max_output_tokens": 1500,
+    "run_timeout": 900,
+    "request_timeout": 120
+  }
+}

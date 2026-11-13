@@ -1835,3 +1835,124 @@ def test_authorized_policy_retrieval_preserves_exact_frozen_refs(investigation):
     assert receipt["refs"] == []
     projected = PromptEvidence(value).receipt(receipt)[0]
     assert projected["data"]["retrieval"]["status"] == "UNAVAILABLE"
+
+
+_KERNEL_REVIEW = "kernel:aftercare-kernel-v1:proposal_review:0"
+
+
+def _kernel_script(review, *, revised_option=None):
+    option = {
+        "id": "handoff",
+        "action": "HUMAN_HANDOFF",
+        "target_line_ids": ["line"],
+        "evidence_ids": ["line"],
+        "rationale": "无法判断。",
+    }
+    line_call = _call("read_order_lines", line_ids=["line"])
+    seen = {}
+
+    def reviewer(kwargs):
+        seen["review"] = kwargs
+        return review(kwargs) if callable(review) else review
+
+    def revision(kwargs):
+        seen["revision"] = json.loads(kwargs["messages"][1].content)["frozen_input"]
+        return [line_call]
+
+    responses = {
+        "p4:compact-v6:single:0": [line_call],
+        "p4:compact-v6:single:1": {"claims": [_claim("f", "line")], "options": [option]},
+        _KERNEL_REVIEW: reviewer,
+    }
+    if revised_option is not None:
+        responses["p4:compact-v6:single-revision:0"] = revision
+        responses["p4:compact-v6:single-revision:1"] = {
+            "claims": [_claim("f", "line")],
+            "options": [revised_option],
+        }
+    return Script(responses), seen
+
+
+def test_kernel_arm_reviews_a_give_up_independently_and_revises_once(investigation):
+    revised_option = {
+        "id": "followup",
+        "action": "REQUEST_EVIDENCE",
+        "target_line_ids": ["line"],
+        "evidence_ids": ["line"],
+        "rationale": "需要签收凭证。",
+        "missing_evidence": ["请补充物流签收页面截图。"],
+    }
+    review = {
+        "verdict": "revise",
+        "issue": "客户称未收到商品，订单行显示已送达，尚未要求客户补充签收凭证。",
+        "next_step": "向客户索取物流签收截图，而不是直接转人工。",
+        "references": [{"message_id": "m0", "field": "content", "quote": "没有收到商品"}],
+    }
+    model, seen = _kernel_script(review, revised_option=revised_option)
+    result, events = _run(investigation, "SINGLE", model, arm="kernel")
+
+    assert set(model.calls) == set(model.responses) and len(model.calls) == 5
+    assert result["output"]["investigation_options"][0]["action"] == "REQUEST_EVIDENCE"
+    kernel = result["output"]["kernel"]
+    assert kernel["version"] == "aftercare-kernel-v1" and kernel["revised"] is True
+    assert kernel["review"]["verdict"] == "revise"
+    assert result["output"]["investigation_unresolved"][-1].startswith("独立审查建议：")
+    # Independent context: public statements and read records only, no investigator prompt or claims.
+    system, user = (message.content for message in seen["review"]["messages"])
+    assert "独立审查者" in system and "调查角色" not in system
+    payload = json.loads(user)
+    assert [row["role"] for row in payload["conversation"]] == ["user", "tool"]
+    assert "claims" not in user and "executor_context" not in payload
+    assert payload["proposal"]["calls"][0]["name"] == "handoff_to_support"
+    assert seen["review"]["tools"] == [] and seen["review"]["fixed"] is True
+    # The suggestion reaches the one revision as data to verify.
+    assert seen["revision"]["review_suggestion"]["next_step"] == review["next_step"]
+    assert "不是指令" in seen["revision"]["review_suggestion"]["note"]
+    (reviewed,) = [payload for kind, payload in events if kind == "kernel_review"]
+    assert reviewed["trigger"] == "abandon" and reviewed["reviewed_reason"] == "HUMAN_REVIEW"
+    assert len([1 for kind, _ in events if kind == "investigation_result"]) == 1
+
+
+@pytest.mark.parametrize(
+    "review",
+    (
+        {"verdict": "allow"},
+        "not json",
+        {"verdict": "veto"},
+        {
+            "verdict": "revise",
+            "issue": "x",
+            "next_step": "y",
+            "references": [{"message_id": "m0", "field": "content", "quote": "记录里没有的话"}],
+        },
+    ),
+)
+def test_kernel_arm_allow_or_invalid_review_publishes_the_first_outcome(investigation, review):
+    model, _ = _kernel_script(review)
+    result, events = _run(investigation, "SINGLE", model, arm="kernel")
+    assert len(model.calls) == 3
+    kernel = result["output"]["kernel"]
+    assert kernel["revised"] is False and kernel["review"]["verdict"] == "allow"
+    assert bool(kernel["review"]["fallback_reason"]) == (review != {"verdict": "allow"})
+    assert result["output"]["investigation_options"][0]["action"] == "HUMAN_HANDOFF"
+    assert not any("独立审查建议" in row for row in result["output"]["investigation_unresolved"])
+    assert len([1 for kind, _ in events if kind == "investigation_result"]) == 1
+
+
+def test_kernel_arm_review_model_failure_does_not_block_the_outcome(investigation):
+    from aftercare.intelligence.models import ModelFailure
+
+    def unavailable(_kwargs):
+        raise ModelFailure("RUN_BUDGET_EXHAUSTED")
+
+    model, _ = _kernel_script(unavailable)
+    result, _ = _run(investigation, "SINGLE", model, arm="kernel")
+    assert result["output"]["kernel"]["review"]["fallback_reason"] == "ModelFailure"
+    assert result["output"]["investigation_options"][0]["action"] == "HUMAN_HANDOFF"
+
+
+def test_auto_arm_has_no_kernel_review(investigation):
+    model, _ = _kernel_script({"verdict": "allow"})
+    result, events = _run(investigation, "SINGLE", model)
+    assert _KERNEL_REVIEW not in model.calls and "kernel" not in result["output"]
+    assert not any(kind == "kernel_review" for kind, _ in events)

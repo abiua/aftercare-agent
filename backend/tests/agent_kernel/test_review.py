@@ -4,6 +4,7 @@ import pytest
 from aftercare.agent_kernel.contracts import architectures, StepProposal, ToolCall, ToolDefinition, ToolKind, GuardResult
 from aftercare.agent_kernel.review import ProposalReviewer, trigger
 from aftercare.agent_kernel.engine import ExecutionKernel, GuardRejected
+from aftercare.agent_kernel.experts import ExpertService
 
 TOOLS=(ToolDefinition(name='write',kind=ToolKind.WRITE),ToolDefinition(name='read',kind=ToolKind.READ),ToolDefinition(name='handoff',kind=ToolKind.HANDOFF))
 MESSAGES=[{'role':'user','content':'Return the mug','raw_data':{'private_reasoning':'secret'}}]
@@ -47,7 +48,7 @@ def test_one_revision_no_recursive_review_feedback_not_persisted():
         return PROPOSAL
     port=SimpleNamespace(generate=generate)
     guard=SimpleNamespace(check=lambda *a:GuardResult(allowed=True))
-    kernel=ExecutionKernel(architectures()['M1'],port,guard=guard,reviewer=ProposalReviewer(port))
+    kernel=ExecutionKernel(architectures()['M1'],port,guard=guard,reviewer=ProposalReviewer(port),experts=ExpertService(port))
     result=kernel.step(MESSAGES,TOOLS,'policy')
     assert result.text=='Which order is the mug from?'
     assert [c['role'] for c in seen]==['executor','reviewer','executor']
@@ -62,7 +63,7 @@ def test_revised_invalid_write_cannot_bypass_guard():
         return PROPOSAL if kw['stage']=='executor_step' else StepProposal(calls=(ToolCall(id='b',name='write'),))
     guard=SimpleNamespace(check=lambda m,p,t:GuardResult(allowed=not(p.calls and p.calls[0].name=='write'),feedback='no approval'))
     port=SimpleNamespace(generate=generate)
-    kernel=ExecutionKernel(architectures()['M1'],port,guard=guard,reviewer=ProposalReviewer(port))
+    kernel=ExecutionKernel(architectures()['M1'],port,guard=guard,reviewer=ProposalReviewer(port),experts=ExpertService(port))
     with pytest.raises(GuardRejected):kernel.step(MESSAGES,TOOLS,'policy')
 
 
@@ -70,7 +71,7 @@ def test_reads_and_ordinary_replies_make_no_review_call():
     for p in (StepProposal(text='Hello'),StepProposal(calls=(ToolCall(id='c',name='read'),))):
         seen=[]
         port=SimpleNamespace(generate=lambda **kw:seen.append(kw) or p)
-        kernel=ExecutionKernel(architectures()['M1'],port,guard=SimpleNamespace(check=lambda *a:GuardResult(allowed=True)),reviewer=ProposalReviewer(port))
+        kernel=ExecutionKernel(architectures()['M1'],port,guard=SimpleNamespace(check=lambda *a:GuardResult(allowed=True)),reviewer=ProposalReviewer(port),experts=ExpertService(port))
         kernel.step(MESSAGES,TOOLS,'policy')
         assert len(seen)==1
     assert trigger(StepProposal(text='I cannot handle this; transfer to a human agent.'),TOOLS,MESSAGES)=='abandon'

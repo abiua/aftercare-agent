@@ -42,6 +42,14 @@ flowchart LR
 
 [图及只读工具](../backend/src/aftercare/intelligence/graph.py) · [运行与周期绑定](../backend/src/aftercare/intelligence/service.py) · [政策检索](../backend/src/aftercare/intelligence/policies.py) · [运行事件接口](../backend/src/aftercare/intelligence/api.py) · [页面运行面板](../frontend/src/RunPanel.tsx)
 
+## 共享内核与会话调查
+
+`backend/src/aftercare/agent_kernel/` 是评测适配器和产品共用的部分：边界契约、程序护栏（零售评测用）、独立审查和按需专家。它不导入业务服务，也不导入官方评测库。
+
+会话调查图的 `kernel` 路径（配置项 `chat_investigation_kernel_review`，默认关闭）在强单调查阶段之后增加一次独立审查：审查者只看到客户陈述和调查者读取过的记录，对“将发布的结论”给出放行或修改建议；修改最多一次，之后仍须通过原有的业务规则校验。审查结论记入运行输出和审计事件，不改变候选快照结构，也不改变客服审核、客户确认、审批和执行。复杂案继续走原有的事实/政策/核验路径。
+
+`intelligence/graph.py` 的协调/政策/核验三角色图是遗留路径，只服务旧工单工作台。细节见 [产品接入记录](REFACTOR_PRODUCT_INTEGRATION.md)。
+
 ## 业务状态与写入权限
 
 | 记录 | 状态和作用 |

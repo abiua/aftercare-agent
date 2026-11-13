@@ -45,6 +45,7 @@ from aftercare.investigation.catalogue import CATALOGUE_VERSION
 from aftercare.investigation.graph import (
     ARMS,
     CHAT_GRAPH_PROFILE,
+    KERNEL_ARM,
     NO_RECHECK_ARM,
     SEQUENTIAL_CLAIMS_ARM,
     SYNTHESIS_ONLY_ARM,
@@ -765,6 +766,13 @@ class AgentService:
             or counterexample_ablation is not False
         ):
             raise RunError("INVESTIGATION_PROFILE_UNAVAILABLE", "会话调查模式不可用。")
+        if (
+            graph_profile is not None
+            and investigation_arm == "auto"
+            and getattr(self.settings, "chat_investigation_kernel_review", False)
+        ):
+            # Recorded in the run binding, so a resumed run keeps the path it started on.
+            investigation_arm = KERNEL_ARM
         profile = (
             {
                 "graph_profile": graph_profile,

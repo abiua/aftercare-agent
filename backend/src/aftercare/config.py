@@ -34,6 +34,8 @@ class Settings(BaseModel):
     chat_analysis_enabled: bool = False
     chat_decisions_enabled: bool = False
     chat_investigation_enabled: bool = False
+    # Ordinary chat investigations get an independent review before their outcome is published.
+    chat_investigation_kernel_review: bool = False
     chat_tau_policy_enabled: bool = False
     chat_tau_policy_document: Path = ROOT / ".runtime/tau-p2-root-20261112/policy"
     chat_tau_authorized_policy_catalog: Path | None = None

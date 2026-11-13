@@ -12,9 +12,11 @@ from pydantic import TypeAdapter
 from aftercare.business.errors import BusinessError
 from aftercare.business.rules import digest
 from aftercare.decisions.contracts import CandidateOption, NonExecutingOption, Option
+from aftercare.agent_kernel.contracts import VERSION as KERNEL_VERSION
 from aftercare.intelligence.models import InvalidOutput, ModelFailure
 
 from .catalogue import exact_policy_refs_match
+from .kernel_adapter import KERNEL_ARM, REVISION_PHASE, review_outcome, suggestion
 from .orchestration import (
     RECHECK_REQUEST,
     InvestigationContext,
@@ -37,6 +39,7 @@ ARMS = {
     NO_RECHECK_ARM,
     SEQUENTIAL_CLAIMS_ARM,
     SYNTHESIS_ONLY_ARM,
+    KERNEL_ARM,
 }
 _OPTIONS = TypeAdapter(list[CandidateOption])
 _MATERIAL_INTENTS = {"damaged", "wrong_item", "return", "warranty"}
@@ -92,7 +95,9 @@ def _route(_state, runtime: Runtime[InvestigationContext]):
     context = runtime.context
     route = context.route
     selected = route.path
-    if selected != "PROGRAM" and context.arm != "auto":
+    # The kernel arm keeps the program route: ordinary cases get executor plus independent
+    # review, complex cases go to the existing fact/policy/verify deep investigation.
+    if selected != "PROGRAM" and context.arm not in {"auto", KERNEL_ARM}:
         selected = {
             "strong_single": "SINGLE",
             "single_staged": "STAGED",
@@ -194,7 +199,7 @@ def _strong(_state, runtime: Runtime[InvestigationContext]):
         return {"path": "DONE", **_handoff(context, error.code)}
     if (
         result.get("escalate")
-        and context.arm == "auto"
+        and context.arm in {"auto", KERNEL_ARM}
         and _conflict(result["claims"])
         and result["evidence_ids"]
         and result["tool_calls"] <= 2
@@ -208,10 +213,52 @@ def _strong(_state, runtime: Runtime[InvestigationContext]):
             },
         )
         return {"path": "MULTI", "single_result": result}
+    if context.arm == KERNEL_ARM:
+        return {"path": "REVIEW", "single_result": result}
+    return {"path": "DONE", **_single_outcome(context, result)}
+
+
+def _single_outcome(context, result, *, emit=True):
     unread = _unread_material(context, result["evidence_ids"])
     if unread and _asks_for_material(result):
-        return {"path": "DONE", **_material_handoff(context, unread)}
-    return {"path": "DONE", **_publish_options(context, result)}
+        return _material_handoff(context, unread, emit=emit)
+    return _publish_options(context, result, emit=emit)
+
+
+def _kernel_review(state, runtime: Runtime[InvestigationContext]):
+    """Independent review at commit and at give-up; one revision at most, then program checks."""
+    context = runtime.context
+    result = state["single_result"]
+    review = review_outcome(context, result, _single_outcome(context, result, emit=False))
+    revised = False
+    if review.verdict == "revise":
+        try:
+            result = _phase(
+                context,
+                "strong_single",
+                REVISION_PHASE,
+                max_rounds=8,
+                max_tools=8,
+                prompt={**_fact_prompt(context, "strong_single"), "review_suggestion": suggestion(review)},
+            )
+            revised = True
+        except ModelFailure as error:
+            # Keep the first, already checked outcome; record why the revision did not happen.
+            context.audit.event("kernel_revision_failed", {"reason": error.code})
+    final = _single_outcome(context, result)
+    output = final["output"]
+    output["kernel"] = {
+        "version": KERNEL_VERSION,
+        "review": review.model_dump(mode="json"),
+        "revised": revised,
+    }
+    if review.verdict == "revise" and final["reason"] != "ELIGIBLE":
+        # Support sees what the independent reviewer thought could still be done.
+        output["investigation_unresolved"] = [
+            *output["investigation_unresolved"],
+            ("独立审查建议：" + review.next_step)[:500],
+        ]
+    return {"path": "DONE", **final}
 
 
 def _role(role, *, staged=False, sequential_claims=False):
@@ -292,11 +339,12 @@ def _unread_material(context, evidence):
     }
 
 
-def _material_handoff(context, unread):
+def _material_handoff(context, unread, *, emit=True):
     reason = "INVESTIGATION_MATERIAL_NOT_READ"
-    context.audit.event(
-        "investigation_material_unread", {"evidence_ids": sorted(unread), "reason": reason}
-    )
+    if emit:
+        context.audit.event(
+            "investigation_material_unread", {"evidence_ids": sorted(unread), "reason": reason}
+        )
     return _output(context, reason=reason, unresolved=("已有冻结材料或审核未核对，交人工处理。",))
 
 
@@ -644,7 +692,9 @@ def _conflict(claims):
     return any(len(values) > 1 for values in seen.values())
 
 
-def _publish_options(context, result, *, claims=None, verified=False, evidence_scope=None):
+def _publish_options(
+    context, result, *, claims=None, verified=False, evidence_scope=None, emit=True
+):
     claims = result.get("claims", []) if claims is None else claims
     unresolved = result.get("unresolved", [])
     candidate = _OPTIONS.validate_python(result.get("options", []))
@@ -704,7 +754,7 @@ def _publish_options(context, result, *, claims=None, verified=False, evidence_s
         else:
             if not set(option.policy_ids) <= set(checked["policy_ids"]):
                 checks[option.id] = "INVESTIGATION_OPTION_POLICY_INVALID"
-    context.audit.event(
+    (context.audit.event if emit else lambda *_: None)(
         "investigation_result",
         {
             "claims": claims,
@@ -742,6 +792,8 @@ def build_investigation_graph(checkpointer):
     graph.add_node("staged_policy", _role("policy", staged=True))
     graph.add_node("verify", _verify)
     graph.add_node("recheck", _recheck)
+    graph.add_node("kernel_review", _kernel_review)
+    graph.add_edge("kernel_review", END)
     graph.add_edge(START, "route")
     graph.add_conditional_edges(
         "route",
@@ -753,7 +805,12 @@ def build_investigation_graph(checkpointer):
         }[state["path"]],
     )
     graph.add_conditional_edges(
-        "strong", lambda state: ["fact", "policy"] if state["path"] == "MULTI" else END
+        "strong",
+        lambda state: ["fact", "policy"]
+        if state["path"] == "MULTI"
+        else "kernel_review"
+        if state["path"] == "REVIEW"
+        else END,
     )
     graph.add_edge(["fact", "policy"], "verify")
     graph.add_edge("sequential_fact", "sequential_policy")

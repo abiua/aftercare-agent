@@ -1,4 +1,9 @@
-"""LangGraph roles. Business facts and final permission checks live outside the graph."""
+"""LangGraph roles. Business facts and final permission checks live outside the graph.
+
+Legacy path: this coordinator/policy/verifier graph serves the original case workbench only.
+Chat investigations use ``aftercare.investigation.graph``; its ``kernel`` arm adds the shared
+kernel's independent review. Keep this module working, but do not extend it.
+"""
 
 import json
 from collections.abc import Callable

@@ -8,6 +8,7 @@ from aftercare.agent_kernel.contracts import StepProposal, ToolCall, ToolDefinit
 from aftercare.agent_kernel.engine import ExecutionKernel
 from aftercare.agent_kernel.retail_guards import RetailGuards
 from aftercare.agent_kernel.review import ProposalReviewer
+from aftercare.agent_kernel.experts import ExpertService
 import tau_official_agents_legacy as legacy
 
 ARCHITECTURES=legacy.ARCHITECTURES
@@ -68,7 +69,9 @@ class KernelRetailAgent(LLMAgent):
     def __init__(self, *, architecture, **kwargs):
         super().__init__(**kwargs)
         self.port=OfficialModelPort(self.tools,self.llm_args)
-        self.kernel=ExecutionKernel(architectures()[architecture],self.port,guard=RetailGuards(),reviewer=ProposalReviewer(self.port))
+        # Specialists get no read port here: every tool call stays in the official trajectory.
+        self.kernel=ExecutionKernel(architectures()[architecture],self.port,guard=RetailGuards(),
+            reviewer=ProposalReviewer(self.port),experts=ExpertService(self.port))
         self.private_trace=[]
 
     def _generate_next_message(self, message, state):
