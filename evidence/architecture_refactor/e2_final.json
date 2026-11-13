@@ -1,0 +1,777 @@
+{
+  "directory": "kernel-e2-20261113",
+  "split": "test",
+  "tasks": 40,
+  "arms": {
+    "S1": {
+      "tasks": 40,
+      "outcomes": {
+        "success": 29,
+        "wrong_write": 2,
+        "handoff": 5,
+        "authentication_failed": 4,
+        "inaction": 0,
+        "unfinished": 0
+      },
+      "success": 29,
+      "success_rate": 0.725,
+      "success_ci95": [
+        0.5717,
+        0.8389
+      ],
+      "give_up_failures": 5,
+      "no_write_failures": 9,
+      "wrong_writes": 2,
+      "calls_by_actor": {
+        "executor": 485,
+        "judge": 11,
+        "user": 205
+      },
+      "cost_usd_by_actor": {
+        "executor": 5.154382,
+        "judge": 0.0290985,
+        "user": 0.240186
+      },
+      "known_agent_cost_usd": 5.154382,
+      "known_total_cost_usd": 5.4236665,
+      "agent_cost_usd": null,
+      "total_cost_usd": null,
+      "unsettled_calls": 2,
+      "cost_complete": false,
+      "agent_cost_per_success_usd": null,
+      "total_cost_per_success_usd": null,
+      "median_duration_seconds": 42.183499999999995,
+      "review": {},
+      "experts": {}
+    },
+    "S2": {
+      "tasks": 40,
+      "outcomes": {
+        "success": 32,
+        "wrong_write": 1,
+        "handoff": 1,
+        "authentication_failed": 6,
+        "inaction": 0,
+        "unfinished": 0
+      },
+      "success": 32,
+      "success_rate": 0.8,
+      "success_ci95": [
+        0.6524,
+        0.895
+      ],
+      "give_up_failures": 1,
+      "no_write_failures": 7,
+      "wrong_writes": 1,
+      "calls_by_actor": {
+        "executor": 479,
+        "judge": 11,
+        "self_check": 62,
+        "user": 201
+      },
+      "cost_usd_by_actor": {
+        "executor": 5.187856,
+        "judge": 0.02843175,
+        "self_check": 1.503866,
+        "user": 0.239803
+      },
+      "known_agent_cost_usd": 6.691722,
+      "known_total_cost_usd": 6.95995675,
+      "agent_cost_usd": null,
+      "total_cost_usd": null,
+      "unsettled_calls": 1,
+      "cost_complete": false,
+      "agent_cost_per_success_usd": null,
+      "total_cost_per_success_usd": null,
+      "median_duration_seconds": 44.812,
+      "review": {
+        "triggered": 62,
+        "allow": 54,
+        "fallback": 0,
+        "revise": 8
+      },
+      "experts": {}
+    },
+    "S1c": {
+      "tasks": 40,
+      "outcomes": {
+        "success": 32,
+        "wrong_write": 3,
+        "handoff": 0,
+        "authentication_failed": 4,
+        "inaction": 1,
+        "unfinished": 0
+      },
+      "success": 32,
+      "success_rate": 0.8,
+      "success_ci95": [
+        0.6524,
+        0.895
+      ],
+      "give_up_failures": 1,
+      "no_write_failures": 5,
+      "wrong_writes": 3,
+      "calls_by_actor": {
+        "executor": 493,
+        "judge": 11,
+        "user": 253
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.131021892,
+        "judge": 0.0324975,
+        "user": 0.351451
+      },
+      "known_agent_cost_usd": 0.131021892,
+      "known_total_cost_usd": 0.514970392,
+      "agent_cost_usd": 0.131021892,
+      "total_cost_usd": 0.514970392,
+      "unsettled_calls": 0,
+      "cost_complete": true,
+      "agent_cost_per_success_usd": 0.004094434125,
+      "total_cost_per_success_usd": 0.01609282475,
+      "median_duration_seconds": 26.976,
+      "review": {},
+      "experts": {}
+    },
+    "M1": {
+      "tasks": 40,
+      "outcomes": {
+        "success": 30,
+        "wrong_write": 2,
+        "handoff": 2,
+        "authentication_failed": 6,
+        "inaction": 0,
+        "unfinished": 0
+      },
+      "success": 30,
+      "success_rate": 0.75,
+      "success_ci95": [
+        0.5981,
+        0.8581
+      ],
+      "give_up_failures": 2,
+      "no_write_failures": 8,
+      "wrong_writes": 2,
+      "calls_by_actor": {
+        "executor": 492,
+        "fact_expert": 7,
+        "judge": 11,
+        "policy_expert": 1,
+        "reviewer": 64,
+        "user": 212
+      },
+      "cost_usd_by_actor": {
+        "executor": 5.42778,
+        "fact_expert": 0.092042,
+        "judge": 0.02896275,
+        "policy_expert": 0.014012,
+        "reviewer": 0.835974,
+        "user": 0.255824
+      },
+      "known_agent_cost_usd": 6.369808,
+      "known_total_cost_usd": 6.65459475,
+      "agent_cost_usd": null,
+      "total_cost_usd": null,
+      "unsettled_calls": 1,
+      "cost_complete": false,
+      "agent_cost_per_success_usd": null,
+      "total_cost_per_success_usd": null,
+      "median_duration_seconds": 46.435,
+      "review": {
+        "triggered": 64,
+        "allow": 57,
+        "fallback": 0,
+        "revise": 7
+      },
+      "experts": {
+        "consulted": 8,
+        "unavailable": 0
+      }
+    },
+    "M2": {
+      "tasks": 40,
+      "outcomes": {
+        "success": 30,
+        "wrong_write": 5,
+        "handoff": 0,
+        "authentication_failed": 5,
+        "inaction": 0,
+        "unfinished": 0
+      },
+      "success": 30,
+      "success_rate": 0.75,
+      "success_ci95": [
+        0.5981,
+        0.8581
+      ],
+      "give_up_failures": 0,
+      "no_write_failures": 5,
+      "wrong_writes": 5,
+      "calls_by_actor": {
+        "executor": 525,
+        "fact_expert": 12,
+        "judge": 11,
+        "policy_expert": 6,
+        "reviewer": 73,
+        "user": 269
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.156431736,
+        "fact_expert": 0.168904,
+        "judge": 0.030279,
+        "policy_expert": 0.110676,
+        "reviewer": 0.928638,
+        "user": 0.377019
+      },
+      "known_agent_cost_usd": 1.364649736,
+      "known_total_cost_usd": 1.771947736,
+      "agent_cost_usd": null,
+      "total_cost_usd": null,
+      "unsettled_calls": 2,
+      "cost_complete": false,
+      "agent_cost_per_success_usd": null,
+      "total_cost_per_success_usd": null,
+      "median_duration_seconds": 38.134,
+      "review": {
+        "triggered": 73,
+        "allow": 67,
+        "fallback": 1,
+        "revise": 6
+      },
+      "experts": {
+        "consulted": 18,
+        "unavailable": 0
+      }
+    },
+    "S0": {
+      "tasks": 40,
+      "outcomes": {
+        "success": 29,
+        "wrong_write": 0,
+        "handoff": 6,
+        "authentication_failed": 4,
+        "inaction": 1,
+        "unfinished": 0
+      },
+      "success": 29,
+      "success_rate": 0.725,
+      "success_ci95": [
+        0.5717,
+        0.8389
+      ],
+      "give_up_failures": 7,
+      "no_write_failures": 11,
+      "wrong_writes": 0,
+      "known_total_cost_usd": 5.49213225,
+      "unsettled_calls": 1,
+      "cost_complete": false,
+      "total_cost_usd": null,
+      "total_cost_per_success_usd": null,
+      "source": "first-round run, not rerun"
+    }
+  },
+  "pairs": {
+    "M1_vs_S1": {
+      "difference": 1,
+      "M1_only": [
+        "74",
+        "111"
+      ],
+      "S1_only": [
+        "56"
+      ],
+      "mcnemar_p": 1.0,
+      "same_run": true
+    },
+    "M1_vs_S2": {
+      "difference": -2,
+      "M1_only": [
+        "111"
+      ],
+      "S2_only": [
+        "18",
+        "27",
+        "60"
+      ],
+      "mcnemar_p": 0.625,
+      "same_run": true
+    },
+    "M2_vs_S1": {
+      "difference": 1,
+      "M2_only": [
+        "18",
+        "32",
+        "60",
+        "74",
+        "111"
+      ],
+      "S1_only": [
+        "36",
+        "38",
+        "97",
+        "108"
+      ],
+      "mcnemar_p": 1.0,
+      "same_run": true
+    },
+    "M2_vs_S1c": {
+      "difference": -2,
+      "M2_only": [
+        "56",
+        "60",
+        "100"
+      ],
+      "S1c_only": [
+        "27",
+        "36",
+        "45",
+        "97",
+        "108"
+      ],
+      "mcnemar_p": 0.7266,
+      "same_run": true
+    },
+    "S1_vs_S0": {
+      "difference": 0,
+      "S1_only": [
+        "56",
+        "64",
+        "77"
+      ],
+      "S0_only": [
+        "45",
+        "60",
+        "74"
+      ],
+      "mcnemar_p": 1.0,
+      "same_run": false
+    },
+    "M1_vs_S0": {
+      "difference": 1,
+      "M1_only": [
+        "64",
+        "77",
+        "111"
+      ],
+      "S0_only": [
+        "45",
+        "60"
+      ],
+      "mcnemar_p": 1.0,
+      "same_run": false
+    }
+  },
+  "hypotheses": {
+    "H1": {
+      "holds": true,
+      "M1_give_up": 2,
+      "S1_give_up": 5,
+      "M1_wrong_writes": 2,
+      "S1_wrong_writes": 2
+    },
+    "H2": {
+      "holds": true,
+      "difference": 1,
+      "mcnemar_p": 1.0,
+      "significant_at_0.05": false
+    },
+    "H3": {
+      "holds": null,
+      "status": "undetermined",
+      "cost_comparison_status": "undetermined",
+      "within_two_of_S1_and_cheaper_per_success": null,
+      "at_least_three_more_than_S1c": false,
+      "M2_success": 30,
+      "S1_success": 29,
+      "S1c_success": 32
+    },
+    "H5_end_to_end": {
+      "exploratory": true,
+      "difference": -2,
+      "mcnemar_p": 0.625
+    }
+  },
+  "s0_note": "S0 is a different run (first round, older prompt and adapter); comparisons with it are not same-run.",
+  "repair": {
+    "directory": "kernel-e2-20261113.repair",
+    "attempts": {
+      "12-M2": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "17-M2": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "27-S1c": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "27-S1": {
+        "original_status": "unknown",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "40-M2": {
+        "original_status": "unknown",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "42-M1": {
+        "original_status": "unknown",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "42-M2": {
+        "original_status": "unknown",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "42-S1": {
+        "original_status": "unknown",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "77-S2": {
+        "original_status": "unknown",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      }
+    }
+  },
+  "per_task": {
+    "5": {
+      "S1": "authentication_failed",
+      "S2": "authentication_failed",
+      "S1c": "authentication_failed",
+      "M1": "authentication_failed",
+      "M2": "authentication_failed",
+      "S0": "authentication_failed"
+    },
+    "9": {
+      "S1": "authentication_failed",
+      "S2": "authentication_failed",
+      "S1c": "authentication_failed",
+      "M1": "authentication_failed",
+      "M2": "authentication_failed",
+      "S0": "authentication_failed"
+    },
+    "12": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "17": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "18": {
+      "S1": "handoff",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "handoff",
+      "M2": "success",
+      "S0": "handoff"
+    },
+    "26": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "27": {
+      "S1": "handoff",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "handoff",
+      "M2": "wrong_write",
+      "S0": "handoff"
+    },
+    "32": {
+      "S1": "handoff",
+      "S2": "handoff",
+      "S1c": "success",
+      "M1": "wrong_write",
+      "M2": "success",
+      "S0": "handoff"
+    },
+    "33": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "36": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "wrong_write",
+      "S0": "success"
+    },
+    "38": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "wrong_write",
+      "M1": "success",
+      "M2": "wrong_write",
+      "S0": "success"
+    },
+    "39": {
+      "S1": "authentication_failed",
+      "S2": "authentication_failed",
+      "S1c": "authentication_failed",
+      "M1": "authentication_failed",
+      "M2": "authentication_failed",
+      "S0": "handoff"
+    },
+    "40": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "42": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "45": {
+      "S1": "authentication_failed",
+      "S2": "authentication_failed",
+      "S1c": "success",
+      "M1": "authentication_failed",
+      "M2": "authentication_failed",
+      "S0": "success"
+    },
+    "49": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "51": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "53": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "55": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "56": {
+      "S1": "success",
+      "S2": "authentication_failed",
+      "S1c": "wrong_write",
+      "M1": "authentication_failed",
+      "M2": "success",
+      "S0": "authentication_failed"
+    },
+    "60": {
+      "S1": "wrong_write",
+      "S2": "success",
+      "S1c": "wrong_write",
+      "M1": "wrong_write",
+      "M2": "success",
+      "S0": "success"
+    },
+    "61": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "62": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "64": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "inaction"
+    },
+    "65": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "68": {
+      "S1": "handoff",
+      "S2": "authentication_failed",
+      "S1c": "authentication_failed",
+      "M1": "authentication_failed",
+      "M2": "authentication_failed",
+      "S0": "authentication_failed"
+    },
+    "70": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "71": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "74": {
+      "S1": "wrong_write",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "77": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "handoff"
+    },
+    "79": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "86": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "90": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "94": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "97": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "wrong_write",
+      "S0": "success"
+    },
+    "100": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "inaction",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "101": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "102": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "success"
+    },
+    "108": {
+      "S1": "success",
+      "S2": "success",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "wrong_write",
+      "S0": "success"
+    },
+    "111": {
+      "S1": "handoff",
+      "S2": "wrong_write",
+      "S1c": "success",
+      "M1": "success",
+      "M2": "success",
+      "S0": "handoff"
+    }
+  },
+  "complete": false
+}
