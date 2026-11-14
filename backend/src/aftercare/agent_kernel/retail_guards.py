@@ -5,9 +5,20 @@ from collections import Counter
 from dataclasses import dataclass, field
 from decimal import Decimal
 from .contracts import GuardResult, ToolKind
+from .dependencies import effect
 
 AUTH={'find_user_id_by_email','find_user_id_by_name_zip'}
 SWAPS={'modify_pending_order_items','exchange_delivered_order_items'}
+USERNAME=re.compile(r'(?<![A-Za-z0-9_])([A-Za-z]+)_([A-Za-z]+)_\d+(?![A-Za-z0-9_])')
+ZIP=re.compile(r'(?<![\w#])\d{5}(?!\w)')
+
+
+def name_from_username(messages):
+    """Account usernames have the form first_last_digits; with a ZIP that is a permitted lookup."""
+    said=' '.join(m.get('content') or '' for m in messages if m.get('role')=='user')
+    username,zipcode=USERNAME.search(said),ZIP.search(said)
+    if username and zipcode:
+        return username.group(1).capitalize(),username.group(2).capitalize(),zipcode.group()
 
 
 def parse(value):
@@ -67,6 +78,11 @@ class RetailGuards:
                 if proposal.calls[0].name not in AUTH:
                     return reject('authentication','First authenticate by email OR first name, last name and ZIP code; do not transfer yet.')
             else:
+                known=None if 'find_user_id_by_name_zip' in state.attempted else name_from_username(messages)
+                if known:
+                    return reject('authentication_username','The customer gave an account username and a ZIP code. '
+                        'Do not ask again yet: call find_user_id_by_name_zip with first_name="%s", last_name="%s", '
+                        'zip="%s". If that finds no account, then ask for the name.'%known)
                 text=proposal.text.lower()
                 email=any(s in text for s in ('email','e-mail','邮箱','电子邮件'))
                 name=any(s in text for s in ('name','姓名','名字'))
@@ -98,7 +114,8 @@ class RetailGuards:
         if not replies or not any(m['role']=='user' for m in messages[replies[-1]+1:]):
             return reject('confirmation','Explain the proposed action and its details, then wait for a customer reply before writing.')
         return GuardResult(allowed=True,confirmed_facts={'authenticated_user':state.user_id,
-            'order_id':order_id,'order_status':order.get('status'),'structural_confirmation':True})
+            'order_id':order_id,'order_status':order.get('status'),'structural_confirmation':True,
+            'write_effect':effect(proposal)})
 
     def items(self,call,state,order):
         args=call.arguments

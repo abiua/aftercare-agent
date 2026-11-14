@@ -5,6 +5,7 @@ import json
 from time import monotonic
 from .contracts import Architecture, ModelPort, StepProposal, ToolDefinition, TraceEvent
 from .review import trigger
+from .dependencies import conflict, effect
 
 EXECUTOR_INSTRUCTION = '''Help the customer using only the supplied policy and tools.
 Track all outstanding customer requests. Look up missing facts rather than guessing.
@@ -72,24 +73,79 @@ class ExecutionKernel:
                     return proposal
                 self.last_review=self.reviewer.review(self.architecture,proposal,messages,policy,result,inputs)
                 self.trace.append(self.reviewer.trace[-1])
-                if self.last_review.verdict=='allow':return proposal
-                feedback={'role':'system','content':'One-use review suggestion, verify against evidence: '+self.last_review.model_dump_json()}
-                revised_inputs=[*inputs,feedback]
-                start=monotonic()
-                revised=self.model.generate(role='executor',assignment=self.architecture.executor,
-                    messages=revised_inputs,tools=tools,stage='executor_revision')
-                self.trace.append(TraceEvent(role='executor',stage='executor_revision',model=self.architecture.executor.model,
-                    input_sha256=sha256(json.dumps(revised_inputs,sort_keys=True).encode()).hexdigest(),
-                    output=revised.model_dump(mode='json',exclude={'private_context'}),elapsed_seconds=monotonic()-start))
-                if hasattr(self.guard,'normalize'):revised=self.guard.normalize(revised)
-                checked=self.guard.check(messages,revised,tools)
-                self.trace.append(TraceEvent(role='executor',stage='post_review_guard',
-                    input_sha256=self.trace[-1].input_sha256,output=checked.model_dump(mode='json')))
-                if not checked.allowed:raise GuardRejected(checked.feedback)
-                return revised
+                if self.last_review.verdict=='allow':
+                    self.reviewer.record_resolution('allowed')
+                    return proposal
+                return self.resolve_review(proposal, messages, tools, inputs)
+
             if attempt:
                 raise GuardRejected(result.feedback)
             inputs=[*inputs,{'role':'system','content':'Internal validation feedback for this retry only: '+result.feedback}]
+        raise AssertionError('Unreachable')
+
+    def resolve_review(self, original, messages, tools, inputs):
+        review = self.last_review
+        if review.fallback_reason == 'BudgetExhausted':
+            if conflict(original, review.requests) == 'order_dependency_conflict':
+                self.reviewer.record_resolution('blocked_dependency')
+                raise GuardRejected('Unresolved order dependency: order_dependency_conflict')
+            # No budget remains for regeneration; keep the already guard-checked action.
+            self.reviewer.record_resolution('review_unavailable')
+            self.trace.append(TraceEvent(role='executor', stage='review_resolution',
+                input_sha256=self.trace[-1].input_sha256,
+                output={'status':'review_unavailable','regeneration_skipped':'budget_exhausted',
+                    'write_effect':effect(original)}))
+            return original
+        original_kind = trigger(original, tools, messages)
+        original_calls = [(c.name, c.arguments) for c in original.calls]
+        revised_inputs = list(inputs)
+        feedback = ('One-use review suggestion, verify against evidence: ' + review.model_dump_json()
+            + '. Program write effects: ' + json.dumps(effect(original), ensure_ascii=False))
+        revision_limit = 1 if review.fallback_reason else 2
+        for attempt in range(revision_limit):
+            revised_inputs = [*revised_inputs, {'role':'system','content':feedback}]
+            start = monotonic()
+            revised = self.model.generate(role='executor', assignment=self.architecture.executor,
+                messages=revised_inputs, tools=tools, stage='executor_revision')
+            self.trace.append(TraceEvent(role='executor',stage='executor_revision',model=self.architecture.executor.model,
+                input_sha256=sha256(json.dumps(revised_inputs,sort_keys=True).encode()).hexdigest(),
+                output=revised.model_dump(mode='json',exclude={'private_context'}),elapsed_seconds=monotonic()-start))
+            if hasattr(self.guard,'normalize'):revised=self.guard.normalize(revised)
+            checked=self.guard.check(messages,revised,tools)
+            self.trace.append(TraceEvent(role='executor',stage='post_review_guard',
+                input_sha256=self.trace[-1].input_sha256,output=checked.model_dump(mode='json')))
+            if not checked.allowed:
+                self.reviewer.record_resolution('blocked_guard')
+                raise GuardRejected(checked.feedback)
+            dependency = conflict(revised, review.requests)
+            hard_conflict = dependency == 'order_dependency_conflict'
+            if review.fallback_reason and not hard_conflict:
+                self.trace.append(TraceEvent(role='executor', stage='review_resolution',
+                    input_sha256=self.trace[-1].input_sha256,
+                    output={'attempt':attempt+1,'status':'review_unavailable',
+                        'dependency':dependency,'write_effect':effect(revised)}))
+                self.reviewer.record_resolution('review_unavailable')
+                return revised
+            unchanged = (original_kind=='abandon' and trigger(revised,tools,messages)=='abandon') or (
+                original_kind=='submit' and bool(original_calls) and original_calls==[(c.name,c.arguments) for c in revised.calls])
+            unresolved = bool(hard_conflict or unchanged)
+            status = ('blocked_dependency' if hard_conflict else 'opinion_unresolved') if unresolved else 'proposal_changed_not_semantically_verified'
+            self.trace.append(TraceEvent(role='executor',stage='review_resolution',
+                input_sha256=self.trace[-1].input_sha256,
+                output={'attempt':attempt+1,'status':status,'dependency':dependency,
+                    'same_action':unchanged,'write_effect':effect(revised)}))
+            self.reviewer.record_resolution(status)
+            if not unresolved:
+                return revised
+            if attempt + 1 == revision_limit:
+                if hard_conflict:
+                    raise GuardRejected('Unresolved order dependency: '+dependency)
+                return revised  # Fallible model opinion is recorded, not an unconditional veto.
+            feedback = ('The previous revision did not resolve the issue. Previous proposed action: '
+                + revised.model_dump_json(exclude={'private_context'})
+                + '. Next step: '+review.next_step
+                + '. Dependency check: '+str(dependency)
+                + '. Do not execute a conflicting write. Ask a concrete clarification if needed.')
         raise AssertionError('Unreachable')
 
 

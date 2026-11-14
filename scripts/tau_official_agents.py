@@ -76,9 +76,12 @@ class KernelRetailAgent(LLMAgent):
 
     def _generate_next_message(self, message, state):
         state.messages.extend(message.tool_messages if isinstance(message,MultiToolMessage) else [message])
-        proposal=self.kernel.step(public_messages(state.messages),definitions(self.tools),self.domain_policy,
-            historical_prompt=self.system_prompt if self.kernel.architecture.name=='S0' else None)
-        self.private_trace=[event.model_dump(mode='json') for event in self.kernel.trace]
+        try:
+            proposal=self.kernel.step(public_messages(state.messages),definitions(self.tools),self.domain_policy,
+                historical_prompt=self.system_prompt if self.kernel.architecture.name=='S0' else None)
+        finally:
+            # Preserve the failed step and review resolution on guard/budget/provider errors.
+            self.private_trace=[event.model_dump(mode='json') for event in self.kernel.trace]
         # Preserve upstream timing/usage/raw data while applying kernel-selected action.
         reply=self.port.last_response.model_copy(deep=True)
         reply.content=proposal.text or None

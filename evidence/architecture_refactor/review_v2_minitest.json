@@ -1,0 +1,1275 @@
+{
+  "run": "run-v1",
+  "manifest": {
+    "sample_ids": [
+      "26-M1-m16",
+      "36-M1-m30",
+      "38-M1-m30",
+      "40-M1-m12",
+      "42-M1-m30",
+      "49-M1-m22",
+      "51-M1-m16",
+      "53-M1-m16",
+      "55-M1-m24",
+      "55-M1-m26",
+      "55-M1-m30",
+      "55-M1-m32",
+      "61-M1-m12",
+      "64-M1-m20",
+      "70-M1-m22",
+      "71-M1-m24",
+      "74-M1-m24",
+      "74-M1-m26",
+      "77-M1-m14",
+      "79-M1-m20",
+      "86-M1-m28",
+      "90-M1-m22",
+      "94-M1-m18",
+      "97-M1-m20",
+      "100-M1-m28",
+      "100-M1-m30",
+      "101-M1-m26",
+      "101-M1-m40",
+      "102-M1-m26",
+      "102-M1-m36",
+      "108-M1-m18",
+      "111-M1-m28",
+      "111-M1-m30",
+      "97-M2-m16"
+    ],
+    "sample_count": 34,
+    "group_counts": {
+      "false-block": 33,
+      "block": 1
+    },
+    "max_calls": 68,
+    "max_usd": "1.5",
+    "max_review_calls_per_sample": 2,
+    "limits": {
+      "max_agent_calls_per_run": 2,
+      "max_user_calls_per_run": 0,
+      "max_review_calls_per_run": 0,
+      "max_output_tokens_per_call": 4000
+    },
+    "sample_retries": 0,
+    "built_in_review_retries": 1,
+    "architecture": {
+      "name": "M1",
+      "guards": true,
+      "review": "independent",
+      "experts": true,
+      "executor": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "kernel_version": "aftercare-kernel-v2",
+    "prompt_sha256": "04593b311ee66facd5d193a3c3de9150fe5a18179aadaffc73e25af2f02cba96",
+    "policy_sha256": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467",
+    "dataset_sha256": "38148c87c8e9a24ae807bf06169410f0af8f489f0d8d653dee5c10862e20869e",
+    "source_sha256": {
+      ".runtime/kernel-e2-20261113/official/26-M1.json": "84b58a70067ccc9d89a7e89e9413dbf2afdc6cf31072c96954139c41f4d392da",
+      ".runtime/kernel-e2-20261113/official/36-M1.json": "2298a1fcebf6b9221766c23e8d29c0e8af66e93c13d4be43db2b197ad189641b",
+      ".runtime/kernel-e2-20261113/official/38-M1.json": "ebcde743504797ae53370860a42703a92e669f21570651f80fd934b0cb532e3f",
+      ".runtime/kernel-e2-20261113/official/40-M1.json": "c244595e498d735a401d3df4dfcffccf61e86922a799441054cd6cae63e86ec3",
+      ".runtime/kernel-e2-20261113.repair/official/42-M1.json": "4341adb0d814706ce2207b30324413c8ce78c73a589479f93d6e321bff43e777",
+      ".runtime/kernel-e2-20261113/official/49-M1.json": "f5905a0da4eb9a523d3c897ceda404e778aa8652a17fdf569c9d509fa02bb3db",
+      ".runtime/kernel-e2-20261113/official/51-M1.json": "9ef8ee019a15d4ee8a1ae720e91d0b4c7dbd40fd9ff6c335969e54bbd499ca6c",
+      ".runtime/kernel-e2-20261113/official/53-M1.json": "9f31c4b8bd69d96cfc5ded2968a85c205a63ad1865bd8e58bf2210482ef7595b",
+      ".runtime/kernel-e2-20261113/official/55-M1.json": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d",
+      ".runtime/kernel-e2-20261113/official/61-M1.json": "f8f940a16b939ab9ea58e9defad723990355837456f49e611208e3fb14a85b2c",
+      ".runtime/kernel-e2-20261113/official/64-M1.json": "a79411b1b2d79acc5d298a990229956747278c45169e08bad9fd9a9ed139c6f5",
+      ".runtime/kernel-e2-20261113/official/70-M1.json": "02e3e4fc7ad21f8b526e73e7f5f976f4b0985dc586574c3812e59330b818f145",
+      ".runtime/kernel-e2-20261113/official/71-M1.json": "f932c7128585886d692c383e9f7c77e8877ce2488b075226a3e47f8ea32a5cb5",
+      ".runtime/kernel-e2-20261113/official/74-M1.json": "a51380a80fef6e3f9f4db02243db8af1ea0ba46eea3704a8c081e024c33b9bf7",
+      ".runtime/kernel-e2-20261113/official/77-M1.json": "85bce81992d28af8a94ae1cf34048da367b2ced39d5d83a4314b06e71f589e18",
+      ".runtime/kernel-e2-20261113/official/79-M1.json": "07f1ad36666b7d6c43dadf38cbfe6e8b5bde062d5058049a7405de0ea4b4d50a",
+      ".runtime/kernel-e2-20261113/official/86-M1.json": "164da7e4d21ae05ab2707389ef6bf18198cd7e7cc6dc09f822813db4b71c06c0",
+      ".runtime/kernel-e2-20261113/official/90-M1.json": "6c17a11af93139ae16e83c4710cac7319fdf76abb125e673695f8ded8d242cba",
+      ".runtime/kernel-e2-20261113/official/94-M1.json": "41035489e1527bcc5b787fc36457380b2f66a92d87cc8e6ba95de0cec726ce28",
+      ".runtime/kernel-e2-20261113/official/97-M1.json": "4370bcebe6954becf573629877c40909e933b945c0807532074bc00a6f0178ce",
+      ".runtime/kernel-e2-20261113/official/100-M1.json": "37cc2301452153c1dd7225e102bd3905269e5d76c1b0cd0ce913dde0c9b3b8ad",
+      ".runtime/kernel-e2-20261113/official/101-M1.json": "a43600ac22ee36039e30a584edacf93e247f97b6c68ab5ccd956051069455bcf",
+      ".runtime/kernel-e2-20261113/official/102-M1.json": "c14d7b99c63e5df2216e100f0f6716be27cd551654322f1d0c14a2ffe7e4b3bc",
+      ".runtime/kernel-e2-20261113/official/108-M1.json": "acb4637a93cf8b1a1e0a84a0bb54afef96a7d166acf93111659ecf79f938b744",
+      ".runtime/kernel-e2-20261113/official/111-M1.json": "de3ad89becbbe419aef59e7689058836afbe20eb1eff242d3403ac0487309a73",
+      ".runtime/kernel-e2-20261113/official/97-M2.json": "afa9a703a78fad8b651394a6317cbc9e279ed3639d65447ac736803df05e1ece"
+    },
+    "schedule": [
+      {
+        "id": "26-M1-m16",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/26-M1.json",
+        "source_sha256": "84b58a70067ccc9d89a7e89e9413dbf2afdc6cf31072c96954139c41f4d392da",
+        "message_index": 16,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_csY6BN0fiiuYqVUh5C8QYkRN",
+              "name": "return_delivered_order_items",
+              "arguments": {
+                "order_id": "#W5565470",
+                "item_ids": [
+                  "7602931732",
+                  "9570044148"
+                ],
+                "payment_method_id": "paypal_3024827"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "36-M1-m30",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/36-M1.json",
+        "source_sha256": "2298a1fcebf6b9221766c23e8d29c0e8af66e93c13d4be43db2b197ad189641b",
+        "message_index": 30,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_5bPWAplsuHjM4HHtAbOGfnpr",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W9348897",
+                "item_ids": [
+                  "6117189161",
+                  "7453605304",
+                  "3799046073"
+                ],
+                "new_item_ids": [
+                  "6700049080",
+                  "5320792178",
+                  "3234800602"
+                ],
+                "payment_method_id": "credit_card_8853416"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "38-M1-m30",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/38-M1.json",
+        "source_sha256": "ebcde743504797ae53370860a42703a92e669f21570651f80fd934b0cb532e3f",
+        "message_index": 30,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_3CSdE4XUp2BN1FMaCLNx7mSx",
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W9348897",
+                "reason": "no longer needed"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "40-M1-m12",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/40-M1.json",
+        "source_sha256": "c244595e498d735a401d3df4dfcffccf61e86922a799441054cd6cae63e86ec3",
+        "message_index": 12,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_kVvkZwI7YLIV2Dg7WxtYhVHr",
+              "name": "modify_pending_order_payment",
+              "arguments": {
+                "order_id": "#W4923227",
+                "payment_method_id": "credit_card_8897086"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "42-M1-m30",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113.repair/official/42-M1.json",
+        "source_sha256": "4341adb0d814706ce2207b30324413c8ce78c73a589479f93d6e321bff43e777",
+        "message_index": 30,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_OGXfEFBUPxPEQdxr19SGSTah",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W4082615",
+                "item_ids": [
+                  "9779102705"
+                ],
+                "new_item_ids": [
+                  "1096508426"
+                ],
+                "payment_method_id": "paypal_4768213"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "49-M1-m22",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/49-M1.json",
+        "source_sha256": "f5905a0da4eb9a523d3c897ceda404e778aa8652a17fdf569c9d509fa02bb3db",
+        "message_index": 22,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_wSCi4OgyvsvMm1XMx3ohNkrq",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W3470184",
+                "item_ids": [
+                  "2757705742"
+                ],
+                "new_item_ids": [
+                  "1646531091"
+                ],
+                "payment_method_id": "gift_card_7245904"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "51-M1-m16",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/51-M1.json",
+        "source_sha256": "9ef8ee019a15d4ee8a1ae720e91d0b4c7dbd40fd9ff6c335969e54bbd499ca6c",
+        "message_index": 16,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_R1XNHdQeDOCgnRZXdb8PWfr3",
+              "name": "return_delivered_order_items",
+              "arguments": {
+                "order_id": "#W4689314",
+                "item_ids": [
+                  "5996159312"
+                ],
+                "payment_method_id": "credit_card_8105988"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "53-M1-m16",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/53-M1.json",
+        "source_sha256": "9f31c4b8bd69d96cfc5ded2968a85c205a63ad1865bd8e58bf2210482ef7595b",
+        "message_index": 16,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_HWNvyCjpndM258Bx3GGYiDNs",
+              "name": "return_delivered_order_items",
+              "arguments": {
+                "order_id": "#W3916020",
+                "item_ids": [
+                  "7758198585"
+                ],
+                "payment_method_id": "credit_card_8105988"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "55-M1-m24",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/55-M1.json",
+        "source_sha256": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d",
+        "message_index": 24,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_hNyIo40Vn6mW5InFm05636xV",
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W4836353",
+                "reason": "no longer needed"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "55-M1-m26",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/55-M1.json",
+        "source_sha256": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d",
+        "message_index": 26,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_8I4uz6CIY7GksV0gqDwEE575",
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W7342738",
+                "reason": "no longer needed"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "55-M1-m30",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/55-M1.json",
+        "source_sha256": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d",
+        "message_index": 30,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_W6W1OW3BLqExzQhCfD99OVdz",
+              "name": "return_delivered_order_items",
+              "arguments": {
+                "order_id": "#W4597054",
+                "item_ids": [
+                  "5669664287",
+                  "4900990404",
+                  "9862136885",
+                  "6777246137"
+                ],
+                "payment_method_id": "gift_card_3491931"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "55-M1-m32",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/55-M1.json",
+        "source_sha256": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d",
+        "message_index": 32,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_t6BvWuLViAr2JThAP1hXDyLy",
+              "name": "return_delivered_order_items",
+              "arguments": {
+                "order_id": "#W7773202",
+                "item_ids": [
+                  "8277474082"
+                ],
+                "payment_method_id": "gift_card_3491931"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "61-M1-m12",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/61-M1.json",
+        "source_sha256": "f8f940a16b939ab9ea58e9defad723990355837456f49e611208e3fb14a85b2c",
+        "message_index": 12,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_qZv5f6wRmhaWH59ZVJvu1QT2",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W5061109",
+                "item_ids": [
+                  "3694871183"
+                ],
+                "new_item_ids": [
+                  "8555936349"
+                ],
+                "payment_method_id": "paypal_3742148"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "64-M1-m20",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/64-M1.json",
+        "source_sha256": "a79411b1b2d79acc5d298a990229956747278c45169e08bad9fd9a9ed139c6f5",
+        "message_index": 20,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_BnMfZekYbvNABzAoZkNstEBe",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W7464385",
+                "item_ids": [
+                  "1810466394"
+                ],
+                "new_item_ids": [
+                  "6700049080"
+                ],
+                "payment_method_id": "paypal_1261484"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "70-M1-m22",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/70-M1.json",
+        "source_sha256": "02e3e4fc7ad21f8b526e73e7f5f976f4b0985dc586574c3812e59330b818f145",
+        "message_index": 22,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_qX3MjqhdTIaC3kweySWc2bW3",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W3947049",
+                "item_ids": [
+                  "3358616356"
+                ],
+                "new_item_ids": [
+                  "9013366374"
+                ],
+                "payment_method_id": "credit_card_7901829"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "71-M1-m24",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/71-M1.json",
+        "source_sha256": "f932c7128585886d692c383e9f7c77e8877ce2488b075226a3e47f8ea32a5cb5",
+        "message_index": 24,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_lqAL3d9soUcetUq5KMyUPAsB",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W5270061",
+                "item_ids": [
+                  "2492465580"
+                ],
+                "new_item_ids": [
+                  "5917587651"
+                ],
+                "payment_method_id": "paypal_7729105"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "74-M1-m24",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/74-M1.json",
+        "source_sha256": "a51380a80fef6e3f9f4db02243db8af1ea0ba46eea3704a8c081e024c33b9bf7",
+        "message_index": 24,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_bDcJOkLVYfO4m15iibj2ZxmQ",
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W3189752",
+                "reason": "no longer needed"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "74-M1-m26",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/74-M1.json",
+        "source_sha256": "a51380a80fef6e3f9f4db02243db8af1ea0ba46eea3704a8c081e024c33b9bf7",
+        "message_index": 26,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_o6OCbJhzjvIAkQnDbPCg9lvq",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W5166363",
+                "item_ids": [
+                  "3334537816"
+                ],
+                "new_item_ids": [
+                  "3265035808"
+                ],
+                "payment_method_id": "credit_card_4466831"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "77-M1-m14",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/77-M1.json",
+        "source_sha256": "85bce81992d28af8a94ae1cf34048da367b2ced39d5d83a4314b06e71f589e18",
+        "message_index": 14,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_TRd4REHCgv1kQiSaRohwDxmF",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W1671835",
+                "item_ids": [
+                  "5081446110"
+                ],
+                "new_item_ids": [
+                  "3399869890"
+                ],
+                "payment_method_id": "paypal_6918118"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "79-M1-m20",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/79-M1.json",
+        "source_sha256": "07f1ad36666b7d6c43dadf38cbfe6e8b5bde062d5058049a7405de0ea4b4d50a",
+        "message_index": 20,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_it7fSg2LGuoWV1H2kn8EQQBN",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W8661412",
+                "item_ids": [
+                  "3453331371"
+                ],
+                "new_item_ids": [
+                  "2439754078"
+                ],
+                "payment_method_id": "credit_card_7239357"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "86-M1-m28",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/86-M1.json",
+        "source_sha256": "164da7e4d21ae05ab2707389ef6bf18198cd7e7cc6dc09f822813db4b71c06c0",
+        "message_index": 28,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_vMspfUkVZY0zibKDVECb9gNW",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W2466703",
+                "item_ids": [
+                  "9385662952"
+                ],
+                "new_item_ids": [
+                  "8733974883"
+                ],
+                "payment_method_id": "paypal_7529813"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "90-M1-m22",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/90-M1.json",
+        "source_sha256": "6c17a11af93139ae16e83c4710cac7319fdf76abb125e673695f8ded8d242cba",
+        "message_index": 22,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_3j74l8dSEgKmDP71WkGQ7nWH",
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W9284598",
+                "reason": "ordered by mistake"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "94-M1-m18",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/94-M1.json",
+        "source_sha256": "41035489e1527bcc5b787fc36457380b2f66a92d87cc8e6ba95de0cec726ce28",
+        "message_index": 18,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_GSUS05IqyUNDafMEtkTRFgS5",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W2905754",
+                "item_ids": [
+                  "3478699712"
+                ],
+                "new_item_ids": [
+                  "9844888101"
+                ],
+                "payment_method_id": "credit_card_3677959"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "97-M1-m20",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/97-M1.json",
+        "source_sha256": "4370bcebe6954becf573629877c40909e933b945c0807532074bc00a6f0178ce",
+        "message_index": 20,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_txGISHZyOGZuiCyPuatucCSO",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W6750959",
+                "item_ids": [
+                  "3254583681"
+                ],
+                "new_item_ids": [
+                  "9440686670"
+                ],
+                "payment_method_id": "paypal_8080730"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "100-M1-m28",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/100-M1.json",
+        "source_sha256": "37cc2301452153c1dd7225e102bd3905269e5d76c1b0cd0ce913dde0c9b3b8ad",
+        "message_index": 28,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_b6CcYQ8BFnfmZ0qMRTzjBJ4m",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W3295833",
+                "item_ids": [
+                  "8926329222",
+                  "5312063289"
+                ],
+                "new_item_ids": [
+                  "7160999700",
+                  "6956751343"
+                ],
+                "payment_method_id": "credit_card_3261838"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "100-M1-m30",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/100-M1.json",
+        "source_sha256": "37cc2301452153c1dd7225e102bd3905269e5d76c1b0cd0ce913dde0c9b3b8ad",
+        "message_index": 30,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_aTf7VbIwM87FxzjMeaxwpdil",
+              "name": "return_delivered_order_items",
+              "arguments": {
+                "order_id": "#W8488728",
+                "item_ids": [
+                  "5676696062"
+                ],
+                "payment_method_id": "paypal_3650980"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "101-M1-m26",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/101-M1.json",
+        "source_sha256": "a43600ac22ee36039e30a584edacf93e247f97b6c68ab5ccd956051069455bcf",
+        "message_index": 26,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_S10HW9adqIDq53HBIn8DPlQz",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W4219264",
+                "item_ids": [
+                  "8886009523"
+                ],
+                "new_item_ids": [
+                  "2407258246"
+                ],
+                "payment_method_id": "credit_card_1620755"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "101-M1-m40",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/101-M1.json",
+        "source_sha256": "a43600ac22ee36039e30a584edacf93e247f97b6c68ab5ccd956051069455bcf",
+        "message_index": 40,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_POf7bU4zwlG093qQZ3vdzC3H",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W6729841",
+                "item_ids": [
+                  "3076708684"
+                ],
+                "new_item_ids": [
+                  "8302289002"
+                ],
+                "payment_method_id": "credit_card_1620755"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "102-M1-m26",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/102-M1.json",
+        "source_sha256": "c14d7b99c63e5df2216e100f0f6716be27cd551654322f1d0c14a2ffe7e4b3bc",
+        "message_index": 26,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_RWAnAmNeS0S4XY0cVcfxkrEx",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W4219264",
+                "item_ids": [
+                  "8886009523"
+                ],
+                "new_item_ids": [
+                  "2407258246"
+                ],
+                "payment_method_id": "credit_card_1620755"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "102-M1-m36",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/102-M1.json",
+        "source_sha256": "c14d7b99c63e5df2216e100f0f6716be27cd551654322f1d0c14a2ffe7e4b3bc",
+        "message_index": 36,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_IIkE2qII1JIqMPzMyO7ATLMx",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W3445693",
+                "item_ids": [
+                  "6341716129"
+                ],
+                "new_item_ids": [
+                  "8302289002"
+                ],
+                "payment_method_id": "credit_card_1620755"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "108-M1-m18",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/108-M1.json",
+        "source_sha256": "acb4637a93cf8b1a1e0a84a0bb54afef96a7d166acf93111659ecf79f938b744",
+        "message_index": 18,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_1BBcl6Obl61ycrVZpvlJrsf3",
+              "name": "return_delivered_order_items",
+              "arguments": {
+                "order_id": "#W1679211",
+                "item_ids": [
+                  "6268080249",
+                  "7127170374",
+                  "9612497925"
+                ],
+                "payment_method_id": "paypal_3022415"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "111-M1-m28",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/111-M1.json",
+        "source_sha256": "de3ad89becbbe419aef59e7689058836afbe20eb1eff242d3403ac0487309a73",
+        "message_index": 28,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_axyWXXjulsj6bIVYVSoQU86h",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W3730488",
+                "item_ids": [
+                  "2913673670"
+                ],
+                "new_item_ids": [
+                  "2216662955"
+                ],
+                "payment_method_id": "gift_card_7252880"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "111-M1-m30",
+        "group": "false-block",
+        "expectation": {
+          "blocking_reason": null
+        },
+        "source": ".runtime/kernel-e2-20261113/official/111-M1.json",
+        "source_sha256": "de3ad89becbbe419aef59e7689058836afbe20eb1eff242d3403ac0487309a73",
+        "message_index": 30,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_SEPrdUffKmlGxkBqosYKrIoN",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W9810810",
+                "item_ids": [
+                  "1355937109"
+                ],
+                "new_item_ids": [
+                  "9949163720"
+                ],
+                "payment_method_id": "gift_card_7252880"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      },
+      {
+        "id": "97-M2-m16",
+        "group": "block",
+        "expectation": {
+          "blocking_reason": "order_dependency_conflict"
+        },
+        "source": ".runtime/kernel-e2-20261113/official/97-M2.json",
+        "source_sha256": "afa9a703a78fad8b651394a6317cbc9e279ed3639d65447ac736803df05e1ece",
+        "message_index": 16,
+        "proposal": {
+          "text": "",
+          "calls": [
+            {
+              "id": "call_00_b2Wn3w5jPJx5dyymWJtu0054",
+              "name": "modify_pending_order_items",
+              "arguments": {
+                "order_id": "#W6750959",
+                "item_ids": [
+                  "3254583681"
+                ],
+                "new_item_ids": [
+                  "9440686670"
+                ],
+                "payment_method_id": "paypal_8080730"
+              },
+              "sources": {}
+            }
+          ],
+          "private_context": []
+        }
+      }
+    ]
+  },
+  "denominator_note": "Rates use all scheduled samples; skipped, failed and missing reviews remain visible. An incomplete run is not a completed false-conflict measurement.",
+  "sample_count": 34,
+  "reviewed_count": 34,
+  "complete": true,
+  "checklist_qualified_count": 32,
+  "checklist_qualified_ids": [
+    "26-M1-m16",
+    "36-M1-m30",
+    "38-M1-m30",
+    "40-M1-m12",
+    "42-M1-m30",
+    "49-M1-m22",
+    "51-M1-m16",
+    "53-M1-m16",
+    "55-M1-m24",
+    "55-M1-m26",
+    "55-M1-m30",
+    "55-M1-m32",
+    "61-M1-m12",
+    "64-M1-m20",
+    "70-M1-m22",
+    "71-M1-m24",
+    "74-M1-m24",
+    "74-M1-m26",
+    "77-M1-m14",
+    "79-M1-m20",
+    "86-M1-m28",
+    "90-M1-m22",
+    "94-M1-m18",
+    "97-M1-m20",
+    "100-M1-m28",
+    "100-M1-m30",
+    "101-M1-m40",
+    "102-M1-m36",
+    "108-M1-m18",
+    "111-M1-m28",
+    "111-M1-m30",
+    "97-M2-m16"
+  ],
+  "checklist_qualified_rate": 0.9411764705882353,
+  "false_conflict_count": 0,
+  "false_conflicts": [],
+  "false_conflict_denominator": 33,
+  "false_block_reviewed_count": 33,
+  "false_conflict_rate": 0.0,
+  "false_conflict_wilson_95": [
+    0,
+    0.1043
+  ],
+  "review_failure_count": 2,
+  "review_failures": [
+    {
+      "id": "101-M1-m26",
+      "fallback_reason": "ValueError",
+      "failures": [
+        {
+          "attempt": 1,
+          "phase": "request_inventory",
+          "type": "ValueError",
+          "detail": "Dependency-sensitive write lacks its supported corresponding request"
+        },
+        {
+          "attempt": 2,
+          "phase": "request_inventory",
+          "type": "ValueError",
+          "detail": "Dependency-sensitive write lacks its supported corresponding request"
+        }
+      ]
+    },
+    {
+      "id": "102-M1-m26",
+      "fallback_reason": "ValueError",
+      "failures": [
+        {
+          "attempt": 1,
+          "phase": "request_inventory",
+          "type": "ValueError",
+          "detail": "Dependency-sensitive write lacks its supported corresponding request"
+        },
+        {
+          "attempt": 2,
+          "phase": "request_inventory",
+          "type": "ValueError",
+          "detail": "Dependency-sensitive write lacks its supported corresponding request"
+        }
+      ]
+    }
+  ],
+  "review_failure_samples_by_stage": {
+    "request_inventory": 2
+  },
+  "review_failure_events_by_stage": {
+    "request_inventory": 4
+  },
+  "retry_count": 5,
+  "retry_ids": [
+    "42-M1-m30",
+    "77-M1-m14",
+    "101-M1-m26",
+    "102-M1-m26",
+    "102-M1-m36"
+  ],
+  "model_revise_count": 1,
+  "model_revisions": [
+    {
+      "id": "53-M1-m16",
+      "requests": [
+        {
+          "description": "Return the damaged bicycle for a refund to the original credit card.",
+          "order_id": "#W3916020",
+          "operation": "return_delivered_order_items",
+          "item_ids": [
+            "7758198585"
+          ],
+          "status": "pending",
+          "references": [
+            {
+              "message_id": "m1",
+              "field": "content",
+              "quote": "The bicycle I received was damaged during delivery. It was really expensive, and I need a refund as soon as possible, back to my original credit card."
+            },
+            {
+              "message_id": "m15",
+              "field": "content",
+              "quote": "Yes."
+            }
+          ],
+          "resolution_references": []
+        },
+        {
+          "description": "Explain how soon the return refund will reach the credit card.",
+          "order_id": "#W3916020",
+          "operation": "information",
+          "item_ids": [],
+          "status": "pending",
+          "references": [
+            {
+              "message_id": "m15",
+              "field": "content",
+              "quote": "How soon will the refund go back on my card?"
+            }
+          ],
+          "resolution_references": []
+        }
+      ],
+      "issue": "The customer's latest question about refund timing has not been answered. The supplied policy does not specify a posting timeline for return refunds."
+    }
+  ],
+  "block_group_97_hit": true,
+  "guard_not_allowed": [],
+  "missing_or_failed_samples": [],
+  "total_actual_usd": "0.705102",
+  "attempted_calls": 39,
+  "unsettled_calls": 0,
+  "journal_incomplete_tail": false
+}

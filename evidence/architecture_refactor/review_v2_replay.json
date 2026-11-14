@@ -1,0 +1,5024 @@
+{
+  "mode": "offline, recorded actions plus explicitly hand-annotated request fixture; no live model",
+  "counts": {
+    "S1": {
+      "tasks": 40,
+      "dependency_sensitive_tasks": 26,
+      "successful_dependency_sensitive_tasks": 24,
+      "inventory_required_successful_tasks": 0
+    },
+    "S2": {
+      "tasks": 40,
+      "dependency_sensitive_tasks": 28,
+      "successful_dependency_sensitive_tasks": 27,
+      "inventory_required_successful_tasks": 27
+    },
+    "S1c": {
+      "tasks": 40,
+      "dependency_sensitive_tasks": 30,
+      "successful_dependency_sensitive_tasks": 27,
+      "inventory_required_successful_tasks": 0
+    },
+    "M1": {
+      "tasks": 40,
+      "dependency_sensitive_tasks": 27,
+      "successful_dependency_sensitive_tasks": 25,
+      "inventory_required_successful_tasks": 25
+    },
+    "M2": {
+      "tasks": 40,
+      "dependency_sensitive_tasks": 30,
+      "successful_dependency_sensitive_tasks": 25,
+      "inventory_required_successful_tasks": 25
+    }
+  },
+  "focused_regressions": {
+    "97-M2": "pending address blocks item write even when reviewer says allow",
+    "27-M1": "ignored recorded handoff revision causes second generation"
+  },
+  "limitations": "No old full request inventories exist. Scan registers every sensitive success for annotation; it does not measure new model extraction or false-block rate. S1/S1c dependency metadata has no new veto.",
+  "rows": [
+    {
+      "task": "5",
+      "arm": "S1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/5-S1.json",
+      "source_sha256": "da989534602f7914f343e28cece5d7b6a28cd33e0c678c5923e0efe6cd8ed186",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "9",
+      "arm": "S1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/9-S1.json",
+      "source_sha256": "79b8007ffe6b56aabac23eaf22bb62b2674266296da201b50702aa55176cacdd",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "12",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/12-S1.json",
+      "source_sha256": "e5f93a7472af79063f6a1d93979f72b15467787f7f8655908bdbe465251371f3",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "17",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/17-S1.json",
+      "source_sha256": "b273bdd03fbb7d162ded77ec4a5b39b948701166f3bcb1cba078f6d6f1656546",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "18",
+      "arm": "S1",
+      "outcome": "handoff",
+      "source": ".runtime/kernel-e2-20261113/official/18-S1.json",
+      "source_sha256": "71fd881452e564be88682b52685f712a9fd91c676569faac0c5fb339ede71829",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "26",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/26-S1.json",
+      "source_sha256": "c3660e32ed62771a16c21ca9ab1d80353a64d7b7b243a21fe7bbf786315cec28",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W5565470",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "27",
+      "arm": "S1",
+      "outcome": "handoff",
+      "source": ".runtime/kernel-e2-20261113.repair/official/27-S1.json",
+      "source_sha256": "28ad2a9b6ea8322e8af1576797826a98b5bb487ba504293ecfc14363392b88d1",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "32",
+      "arm": "S1",
+      "outcome": "handoff",
+      "source": ".runtime/kernel-e2-20261113/official/32-S1.json",
+      "source_sha256": "2018fb2d05753e2403b065cff1f4394fed4f533f264600c4381e937cd566265a",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "33",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/33-S1.json",
+      "source_sha256": "d2179b50557dfa13b392eb6a9b470cb32e166b272b50031449e7870510ead6a0",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "36",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/36-S1.json",
+      "source_sha256": "968cdd1ac1714c277b3fd69e4234c28229caad01f6bb8719cb6f72ad0693b1ed",
+      "steps": [
+        {
+          "message_index": 32,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W9348897",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "38",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/38-S1.json",
+      "source_sha256": "262eb3b3cf7858f2ad2db377f369ecc398c82e2fed162b80dfd4897176609359",
+      "steps": [
+        {
+          "message_index": 32,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9348897",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "39",
+      "arm": "S1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/39-S1.json",
+      "source_sha256": "61734912c6441d3aef709f9d33c36b24170f567b16c841bb4a379c0af6b55673",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "40",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/40-S1.json",
+      "source_sha256": "d9c207ec896881f29ee68895c64dcf2447f379212fa5ed4d8aed9700d25e0a27",
+      "steps": [
+        {
+          "message_index": 12,
+          "tool": "modify_pending_order_payment",
+          "effect": {
+            "status": "pending",
+            "blocks": [
+              "modify_pending_order_payment"
+            ],
+            "basis": "tool payment-history precondition, not a status lock",
+            "order_id": "#W4923227",
+            "operation": "modify_pending_order_payment"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "42",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113.repair/official/42-S1.json",
+      "source_sha256": "f3a5c5563ba4b557280a12df60ea64baf1f70da7c4a9125d47bbd317b4d1f514",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4082615",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "45",
+      "arm": "S1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/45-S1.json",
+      "source_sha256": "8fb44166cdede240d118a739da616abf820a1efc5b7cab7b1c403a254a536b3c",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "49",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/49-S1.json",
+      "source_sha256": "30ef3e67653659c61605aa6a26efe2bf06b2a84b1f12320d94658bdcc4654081",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3470184",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "51",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/51-S1.json",
+      "source_sha256": "fa8d0cb5ecad75e4d307c642c8f42ecc387983905d337f3683f7fb88944e1466",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4689314",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "53",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/53-S1.json",
+      "source_sha256": "4775d6ed84614c04030a196b8644527a55d9aafdba2a8caa0b9f24f5302b3853",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W3916020",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "55",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/55-S1.json",
+      "source_sha256": "313c1fc5045fb39a29b6979062ec4e9db4d9261c7174dae52e4907cc08f81ac1",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W4836353",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 26,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W7342738",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 28,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4597054",
+            "operation": "return_delivered_order_items"
+          }
+        },
+        {
+          "message_index": 30,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W7773202",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "56",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/56-S1.json",
+      "source_sha256": "3d49a85f164051a666fab2884b12db21ab9c9e9885717c056b00074b40ed181f",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4284542",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "60",
+      "arm": "S1",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/60-S1.json",
+      "source_sha256": "c8342a5a48867be0242bbe630405a2af203262b32935f08ea5cd665b33487442",
+      "steps": [
+        {
+          "message_index": 12,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "61",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/61-S1.json",
+      "source_sha256": "409004890e390b5ed8d1f75849ab7220bb672f63c2bdd1eb5aa49011e8af2d04",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "62",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/62-S1.json",
+      "source_sha256": "e4f91c69f6fd69fc3a5b6b78b96a92df8a32ec02f9fb2a94e41fff8b8941f089",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "64",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/64-S1.json",
+      "source_sha256": "6c4fb97ab4a60be2c430b0e7a3844d31fb91e87da388f3d42e55b97d0ece4433",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W7464385",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "65",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/65-S1.json",
+      "source_sha256": "04eeb546183bd10e2401d767d782274d0ef7349c931cfc11c5ccff2e47f8ce7f",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "68",
+      "arm": "S1",
+      "outcome": "handoff",
+      "source": ".runtime/kernel-e2-20261113/official/68-S1.json",
+      "source_sha256": "85814524e3cb21e43726c40a0b6a2c12ccc0c9d214c47067504fde351abfd986",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "70",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/70-S1.json",
+      "source_sha256": "8247f720df41d21bb02364994b2faa6ce0a0ebda19159eeb9de8271722fabf72",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3947049",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "71",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/71-S1.json",
+      "source_sha256": "fc71fcf8550856353b1df6b8341320f048de0a71d9244d8003df7dc3f0be871d",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5270061",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "74",
+      "arm": "S1",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/74-S1.json",
+      "source_sha256": "154c8b4952771113fdf4b1517b6a056e4179b2a45c1394296815fbedf38f5021",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W3189752",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5166363",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "77",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/77-S1.json",
+      "source_sha256": "8166f17f9467f51ac3cea644564a16d28a06fc021fbe7b56979a8695c17ed14d",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W1671835",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "79",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/79-S1.json",
+      "source_sha256": "6da75d9b1054e3aab7c60c278e28727cf29de15ad5cb2ee8d485de61f6913b9e",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W8661412",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "86",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/86-S1.json",
+      "source_sha256": "ba23eafe2bb249a524db96330108d54df2cab7af6e6ee01968be705280847e2c",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W2466703",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "90",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/90-S1.json",
+      "source_sha256": "304551a355312bb0fb375cefec7ba2ef81033b83db3826094251d258bfcab335",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9284598",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "94",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/94-S1.json",
+      "source_sha256": "7060428aa09920ed4f673c7e35fdcdd7d473bb88ece47f22a189d8924f1bed57",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W2905754",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "97",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/97-S1.json",
+      "source_sha256": "a8a20e39b5ebfe4637cbf6e774f46c173a54dc3505f4c627e83517a4ce8c9933",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6750959",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "100",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/100-S1.json",
+      "source_sha256": "34c50701f204ed373a389a90d53355084341fa39e861542a39fbf09ffe78d164",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W8488728",
+            "operation": "return_delivered_order_items"
+          }
+        },
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W3295833",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "101",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/101-S1.json",
+      "source_sha256": "6f38ba20b59ebdaa84acfa8460e53224d5292ba28cae2007ea87d96597449c25",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6729841",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "102",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/102-S1.json",
+      "source_sha256": "dd7d67c3b85c21dd5bc101adaf1f33201c1634550df4906d1fe13481aff019a5",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 34,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3445693",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "108",
+      "arm": "S1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/108-S1.json",
+      "source_sha256": "d0069b9999f3b15704fab9cbe9c19110723fa20e7c90c74cc8ca4b03ec69aedc",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W1679211",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "111",
+      "arm": "S1",
+      "outcome": "handoff",
+      "source": ".runtime/kernel-e2-20261113/official/111-S1.json",
+      "source_sha256": "359d342d4a4f6f71ad9b0ed8b063a4d96a60aaa008336386512ad3b7ad57c768",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "5",
+      "arm": "S2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/5-S2.json",
+      "source_sha256": "2ec24b1a222b83edf49273b72121abbdd618c6a3dea8283d5c1b56e4fb844f0f",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "9",
+      "arm": "S2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/9-S2.json",
+      "source_sha256": "523ce15b0f83d22925ff58a789b90e63d6dcfc9cbd8484fe152136cedf0e3b79",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "12",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/12-S2.json",
+      "source_sha256": "8546cb5a49a6d2dab8c8c2bd56dd6c818a4ca9c0fd23d144c5e380e5db628e89",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "17",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/17-S2.json",
+      "source_sha256": "e231e7002d3de064a085690d1877ccdb3593996253006217c0bf698d149ae60d",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "18",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/18-S2.json",
+      "source_sha256": "00402a03d406c104cb0c5d6b20b5a7ab592f8f2f5f17fde30444b1710d1da253",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W2890441",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "26",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/26-S2.json",
+      "source_sha256": "a6284e14097f079eee2bbfef6b408e45d4d910a80fbe7845502492f3cdacf9e1",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W5565470",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "27",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/27-S2.json",
+      "source_sha256": "c92de130a4fc24cc92da025def2d3d6e03e73a0193587ca9b6016464ecd9acaf",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W7181492",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "32",
+      "arm": "S2",
+      "outcome": "handoff",
+      "source": ".runtime/kernel-e2-20261113/official/32-S2.json",
+      "source_sha256": "cc589ef6c4c04c448688dda192d59a95820a0d3a3699f1e5378927604d8f136f",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "33",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/33-S2.json",
+      "source_sha256": "1b11ce4d89fbfa066eb94b95874acd6e505a178a86e7cc273fca233e040d32a6",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "36",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/36-S2.json",
+      "source_sha256": "4d910fc4b4388b9a67b2e900f3c9aa2f820a4848d5bbb709850504bc13c1237b",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W9348897",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "38",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/38-S2.json",
+      "source_sha256": "bbbac73221ca63b25cd4c644b0f0bdb6349c072a235e822930a71e97e0779f4f",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9348897",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "39",
+      "arm": "S2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/39-S2.json",
+      "source_sha256": "efc68ec38f09e3cfad5d70d43ae12130d42632446748a833a7bc702026bb302f",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "40",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/40-S2.json",
+      "source_sha256": "b9b50c333356aaf78d2e50410d86b503eb976a25c77086d4d9956a2cf76adbef",
+      "steps": [
+        {
+          "message_index": 12,
+          "tool": "modify_pending_order_payment",
+          "effect": {
+            "status": "pending",
+            "blocks": [
+              "modify_pending_order_payment"
+            ],
+            "basis": "tool payment-history precondition, not a status lock",
+            "order_id": "#W4923227",
+            "operation": "modify_pending_order_payment"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "42",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/42-S2.json",
+      "source_sha256": "bd698c569bef8b39479c61ea659aa468c1d4cc0c3d57e27ff2180e3c04851c26",
+      "steps": [
+        {
+          "message_index": 32,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4082615",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "45",
+      "arm": "S2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/45-S2.json",
+      "source_sha256": "f9763e3607b1e2e6b8b716b96c678268c681b0465d8b675df59856a114506cad",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "49",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/49-S2.json",
+      "source_sha256": "0cea485d44657f6377aa5c76e6cf3e8030f28e999000dd918fceab943304a92d",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3470184",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "51",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/51-S2.json",
+      "source_sha256": "42babf161e595f5e91e6f7bb25eeebc27e8291cf75100c09949800e23abbdb47",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4689314",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "53",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/53-S2.json",
+      "source_sha256": "e8955efa56c96ebf6984f902cea262cdc11de8605092dad425d44b1f009345c4",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W3916020",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "55",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/55-S2.json",
+      "source_sha256": "d0542b5c9343555139b739b63e9670192674581558b73c9544bd21d22312c878",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W4836353",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 28,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W7342738",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 30,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4597054",
+            "operation": "return_delivered_order_items"
+          }
+        },
+        {
+          "message_index": 32,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W7773202",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "56",
+      "arm": "S2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/56-S2.json",
+      "source_sha256": "5588d5df88eee9616e36ca70701be7ef5fe4ae67364e2c44f91d649a7e122ed4",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "60",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/60-S2.json",
+      "source_sha256": "5b22f83efb771c5703ff02c07da872605ea220970f3dce7df2897d9b2a30729d",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "61",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/61-S2.json",
+      "source_sha256": "973a8e9151969ad29f87c56fb322e9868fa6163890e4aaf6c7456331e69e931b",
+      "steps": [
+        {
+          "message_index": 12,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "62",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/62-S2.json",
+      "source_sha256": "e88e237c05ff6de418287c8ca0f4fb297304aed879bd259bdf8fefdee40b64a2",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "64",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/64-S2.json",
+      "source_sha256": "0ebc89e09689b950ad9ec4fa91a2ee67c3343312fcb7405c6a5cac1b9c0a2f08",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W7464385",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "65",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/65-S2.json",
+      "source_sha256": "a26f27d251280657c30251aafa56c94f0a0808d2246ce91d842273dfd25bdeb1",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "68",
+      "arm": "S2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/68-S2.json",
+      "source_sha256": "d20d12e56807a3c32c94bfc3a8c380d6646f62ed3b8830c5aba46b69b80d1097",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "70",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/70-S2.json",
+      "source_sha256": "ea91ba416778562b37cb26b8e269d446dc4dbd7177f8c7903eefc478024069c7",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3947049",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "71",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/71-S2.json",
+      "source_sha256": "c1bcfb5a33dfe9891a8f9ed5d7fa56cc6e1b110814aba1dda0dd0e6e749dbe53",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5270061",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "74",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/74-S2.json",
+      "source_sha256": "8b9bf7d6d38eab179a9286d489d0db79f73bee9ab2afc9ac9eab3cfd1e7556f7",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W3189752",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5166363",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "77",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113.repair/official/77-S2.json",
+      "source_sha256": "fab756efc6a9717aa47faaefc3d0ef04083097987a6b6faf83c3df662a4975c4",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W1671835",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "79",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/79-S2.json",
+      "source_sha256": "0180807b0c8b78bea0b150c6af1cd8830091fa4b34da10f7c9353050739fbae4",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W8661412",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "86",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/86-S2.json",
+      "source_sha256": "3ffaf312e4dc5c869fb35c08fedcfeeac8aea69abbb4aa3175ef67f0ef81a158",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W2466703",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "90",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/90-S2.json",
+      "source_sha256": "5b55662df0d7d98219badb8a2b5844445883d0382ad8f1bca2f54b9c78381669",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9284598",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "94",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/94-S2.json",
+      "source_sha256": "2675cf033e6042f1fedd6fe929beedc1781bb6fba6aacc2d446284b6c044e5d7",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W2905754",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "97",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/97-S2.json",
+      "source_sha256": "8aab9f7457ed895f00fdf9b79fc062350d28dcdf2154c03724a903b2f20b2334",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6750959",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "100",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/100-S2.json",
+      "source_sha256": "0372701faedbad08d8bf11e5d7665c1420d1a093704c53cf35fcfbc79164935f",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W3295833",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 28,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W8488728",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "101",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/101-S2.json",
+      "source_sha256": "1e91b884911d95c698dba9a1949c45fe046c7b36e07fe1db22d65c3ac87ef0bd",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 34,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6729841",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "102",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/102-S2.json",
+      "source_sha256": "6cedb33e6ca6d67389a3cee445f1f5905436296845d4a2f87a0834db9d16b8b3",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 32,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3445693",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "108",
+      "arm": "S2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/108-S2.json",
+      "source_sha256": "d958fe94c19a096dc6da97641caac8e4e75509a3b45d7c72a7f72e761c4d9fe9",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W1679211",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "111",
+      "arm": "S2",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/111-S2.json",
+      "source_sha256": "1bff27407b594a0eb7e7c05ec69993cd9ce3a68ce887b4f2351d8c55ca4b2af1",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W9810810",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "5",
+      "arm": "S1c",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/5-S1c.json",
+      "source_sha256": "2a95304742517a90f67664684317af495e1d87bd599a8de2835a7fa6079f0319",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "9",
+      "arm": "S1c",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/9-S1c.json",
+      "source_sha256": "ecf57449c72b4b2f138498f0a45affa7dd5e9b1d53f5f82eb6280cca2c2042fd",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "12",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/12-S1c.json",
+      "source_sha256": "5a57eec9240b0d5d1ad5fccbf69090929239cb35fdaa6df9c201fbc7e5293f80",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "17",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/17-S1c.json",
+      "source_sha256": "c957abab3a215481a982bc02a05f2d69b1412093367a1186b9d6f1d8467f6a95",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "18",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/18-S1c.json",
+      "source_sha256": "87aac58140b0b2cf8c229ec60931b6e20e97c5d1502ed77c86414e794f1f1c34",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W2890441",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "26",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/26-S1c.json",
+      "source_sha256": "a02dacf2cb5a35ace00ec9119d40d674f229cd3ee49bd75332222ec49716d26e",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W5565470",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "27",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113.repair/official/27-S1c.json",
+      "source_sha256": "bb171ff0522e3edfb09e5694220981b9a90d7b84a7a3260f99085d6a4deb5895",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W7181492",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "32",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/32-S1c.json",
+      "source_sha256": "b0d0b6b7f99c24fd8ba71aca34719b571924e597537adb70cecd199bac56692c",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9373487",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 34,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W5481803",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 44,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W7449508",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "33",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/33-S1c.json",
+      "source_sha256": "4afb507554f2420b435a0c9a8ed547545904a6b96381b1222bf34989b7b1039e",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "36",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/36-S1c.json",
+      "source_sha256": "6d50ad11192b2d99c608267ebf9f0a6cdb98dee857dea1c14aabedf60006d3b2",
+      "steps": [
+        {
+          "message_index": 32,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W9348897",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "38",
+      "arm": "S1c",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/38-S1c.json",
+      "source_sha256": "9214ac86708758a886e7a71c2ac2b86bfc619f4f069f36054291b06c15472ddc",
+      "steps": [
+        {
+          "message_index": 32,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9348897",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "39",
+      "arm": "S1c",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/39-S1c.json",
+      "source_sha256": "f85426dbca2e793b30c904ac257903468253e6636d724d0490617eb6ff90cd44",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "40",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/40-S1c.json",
+      "source_sha256": "e64d53af8b7194c8df4e364e4431d4c945786e62e6bbb3b21ded7fbe98d565e8",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "modify_pending_order_payment",
+          "effect": {
+            "status": "pending",
+            "blocks": [
+              "modify_pending_order_payment"
+            ],
+            "basis": "tool payment-history precondition, not a status lock",
+            "order_id": "#W4923227",
+            "operation": "modify_pending_order_payment"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "42",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/42-S1c.json",
+      "source_sha256": "ef18fecb377fc5203633a347c8f13ded4590b0682db4145c5171cad9e508c7f2",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4082615",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "45",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/45-S1c.json",
+      "source_sha256": "c381f9657f7206c5c5050d41ef6e941b943ea8a7c2fb15cc92b7716d1646bd1b",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W9502127",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "49",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/49-S1c.json",
+      "source_sha256": "9eb63c87f2e4ba77e6f0db7188ddfe92e1b43514eaa8a6f03a7516a5d178a449",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3470184",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "51",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/51-S1c.json",
+      "source_sha256": "cfc47f992278c40c6ff8b2c3923ce2ec128b0fb9f6ed58f987ba638ec76f4716",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4689314",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "53",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/53-S1c.json",
+      "source_sha256": "2720572beb9074f8a94f95a8227c2e50e79b2604119864fc9144e45d3e5711a1",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W3916020",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "55",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/55-S1c.json",
+      "source_sha256": "b0e1e0e137d7e9b97edcf8c197d25f4382889ecf571faeeb5dd5ef459fb42c2f",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W4836353",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 28,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W7342738",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 32,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4597054",
+            "operation": "return_delivered_order_items"
+          }
+        },
+        {
+          "message_index": 34,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W7773202",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "56",
+      "arm": "S1c",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/56-S1c.json",
+      "source_sha256": "138330c8bce1c92a97816391dff87796d24b6e4ddb9d1dde2243944a61e5b01a",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4284542",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "60",
+      "arm": "S1c",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/60-S1c.json",
+      "source_sha256": "f532e58f2af44e42f50c6072fcaaabec7838b39519890705aa177206433b608a",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "61",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/61-S1c.json",
+      "source_sha256": "2a68bbb869c97324a24190f7ed17709cda492128986d04bf26080d0acec8c00e",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "62",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/62-S1c.json",
+      "source_sha256": "75b0ad901f68d088f1da1905248c5702691e3bb79a6e07ae777c3c39ea429793",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "64",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/64-S1c.json",
+      "source_sha256": "bb39d48e11ff3d66d2df3432f68889652724f0ae60d8f2e70cffa9e78ca9f397",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W7464385",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "65",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/65-S1c.json",
+      "source_sha256": "a34f658a95f82077e0fcabdf6c5683c99cb98e3edf40411e99ca93a509fda992",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "68",
+      "arm": "S1c",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/68-S1c.json",
+      "source_sha256": "b5b0f8c4cab63a496333c2f0d52b07492aaa8f433ed1d7a6119da00cbc6aacc3",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "70",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/70-S1c.json",
+      "source_sha256": "fb853da151b86b2de4005f07935e8c3bbb76e4b946ce3a1831772f4a336066e9",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3947049",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "71",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/71-S1c.json",
+      "source_sha256": "dc8345a8560fd0a4d404e0e24115f8aa21c3b0feda79352cbb6cc772b09677e8",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5270061",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "74",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/74-S1c.json",
+      "source_sha256": "97dbeefd2eee36ba1143820592f4cc0ff09d233d64a8923a74d2fa1404a3c8f7",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W3189752",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5166363",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "77",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/77-S1c.json",
+      "source_sha256": "af0cb0f631a89b72bee277d058bfed6ae83d50ec23c91374806b6dcf22dc5ed8",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W1671835",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "79",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/79-S1c.json",
+      "source_sha256": "996b3c8536a79ead4b60f6ca498fb3ef0f1201d9ad88e9427a2def3b26d30e11",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W8661412",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "86",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/86-S1c.json",
+      "source_sha256": "6c44fcc11652f71ac994826a293feb800009b3cc3dd63fa2f8a297f7628595ed",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W2466703",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "90",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/90-S1c.json",
+      "source_sha256": "88fb298c8aa7e9591fc5138f976c48d46ef812b3c3cb580fe670e8f7b3e0b15e",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9284598",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "94",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/94-S1c.json",
+      "source_sha256": "91fb7f807f607f527303c2e50b71a0874da3449cf9af93ff750df6e85764e268",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W2905754",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "97",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/97-S1c.json",
+      "source_sha256": "c97b92ee97609ccb5a9ae7e02d1f9234e7530b90fcc799e86cc5ef578caed65a",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6750959",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "100",
+      "arm": "S1c",
+      "outcome": "inaction",
+      "source": ".runtime/kernel-e2-20261113/official/100-S1c.json",
+      "source_sha256": "7b443e35324dc0b71d2740c4807aa9d0d260d1d9beb96eaa40bc8a1ecb82fab0",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "101",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/101-S1c.json",
+      "source_sha256": "9cf8b1451f12c153405655ee2c8916879a63247e5e9b28ee29fd2aa610420209",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 36,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6729841",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "102",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/102-S1c.json",
+      "source_sha256": "85598710d2d7d60c374ff0d36e7a00f9eaa6a7b344e191d8a6e4e6dd6c934cab",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 40,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3445693",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "108",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/108-S1c.json",
+      "source_sha256": "db527edb61d3512d1fd50d9c7153acbf6b7cf2be2a523f654a1c4f2f98699947",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W1679211",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "111",
+      "arm": "S1c",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/111-S1c.json",
+      "source_sha256": "9ed4e6ee035f56ac585738795b8410d00c2854d6bfda678dc30ac2414bd6847b",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W3730488",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W9810810",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "5",
+      "arm": "M1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/5-M1.json",
+      "source_sha256": "4aa2b052422f331080dad2fec54e5716f7faab99331b68692f17f34feae793cc",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "9",
+      "arm": "M1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/9-M1.json",
+      "source_sha256": "69777087419ed70cc01585b4c05d796c732b126be1c5d71746bf41e5248710ec",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "12",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/12-M1.json",
+      "source_sha256": "5ba39b0f572c5979357fcee8225271db2d23f649a3b41ae36084430a1c7a6665",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "17",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/17-M1.json",
+      "source_sha256": "08e47040340054245db34de0ef69628f6fc05ccfdffd3af5dcc1851a94a3237f",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "18",
+      "arm": "M1",
+      "outcome": "handoff",
+      "source": ".runtime/kernel-e2-20261113/official/18-M1.json",
+      "source_sha256": "386acb1a61464f150ca918e6c95e666077c9d50cc2a03392071f106249431d52",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "26",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/26-M1.json",
+      "source_sha256": "84b58a70067ccc9d89a7e89e9413dbf2afdc6cf31072c96954139c41f4d392da",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W5565470",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "27",
+      "arm": "M1",
+      "outcome": "handoff",
+      "source": ".runtime/kernel-e2-20261113/official/27-M1.json",
+      "source_sha256": "dc18e6f6746780fa50075eaee1f4fec658fcea43b99401b88e3e42d7e03d52d1",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "32",
+      "arm": "M1",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/32-M1.json",
+      "source_sha256": "f7624c9ec7fa07cee6b30d8f0e3200da140f535cfecc26e5c5e3e343b52a724e",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9373487",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 26,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W5481803",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "33",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/33-M1.json",
+      "source_sha256": "3722b1630d0671210c9cd82bf3a97626c083fdae0d43ffeea7aeeb1c8d7e0e7b",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "36",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/36-M1.json",
+      "source_sha256": "2298a1fcebf6b9221766c23e8d29c0e8af66e93c13d4be43db2b197ad189641b",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W9348897",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "38",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/38-M1.json",
+      "source_sha256": "ebcde743504797ae53370860a42703a92e669f21570651f80fd934b0cb532e3f",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9348897",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "39",
+      "arm": "M1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/39-M1.json",
+      "source_sha256": "4af243324815fdb89d168fde0afb7a1198b8978f868ea11fd314b8320b59dce8",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "40",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/40-M1.json",
+      "source_sha256": "c244595e498d735a401d3df4dfcffccf61e86922a799441054cd6cae63e86ec3",
+      "steps": [
+        {
+          "message_index": 12,
+          "tool": "modify_pending_order_payment",
+          "effect": {
+            "status": "pending",
+            "blocks": [
+              "modify_pending_order_payment"
+            ],
+            "basis": "tool payment-history precondition, not a status lock",
+            "order_id": "#W4923227",
+            "operation": "modify_pending_order_payment"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "42",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113.repair/official/42-M1.json",
+      "source_sha256": "4341adb0d814706ce2207b30324413c8ce78c73a589479f93d6e321bff43e777",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4082615",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "45",
+      "arm": "M1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/45-M1.json",
+      "source_sha256": "5aa28f7326151942f663f475d5fd04880ce502749a75dd975d06ba6494a90287",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "49",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/49-M1.json",
+      "source_sha256": "f5905a0da4eb9a523d3c897ceda404e778aa8652a17fdf569c9d509fa02bb3db",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3470184",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "51",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/51-M1.json",
+      "source_sha256": "9ef8ee019a15d4ee8a1ae720e91d0b4c7dbd40fd9ff6c335969e54bbd499ca6c",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4689314",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "53",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/53-M1.json",
+      "source_sha256": "9f31c4b8bd69d96cfc5ded2968a85c205a63ad1865bd8e58bf2210482ef7595b",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W3916020",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "55",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/55-M1.json",
+      "source_sha256": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W4836353",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 26,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W7342738",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 30,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4597054",
+            "operation": "return_delivered_order_items"
+          }
+        },
+        {
+          "message_index": 32,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W7773202",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "56",
+      "arm": "M1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/56-M1.json",
+      "source_sha256": "0439ca3dc5f6effb0c42e790c7affc26e284fbecd024ab3e7c6077b77f1e89d8",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "60",
+      "arm": "M1",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/60-M1.json",
+      "source_sha256": "ff7168ba78e4fa5878ba08bff22747e24f1630f7f09f9973efb81f88ead437d8",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "61",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/61-M1.json",
+      "source_sha256": "f8f940a16b939ab9ea58e9defad723990355837456f49e611208e3fb14a85b2c",
+      "steps": [
+        {
+          "message_index": 12,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "62",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/62-M1.json",
+      "source_sha256": "b50b62d01e5a7cbbab58619276c9e9dd1ef991ee86bb39f04ce1c50830a35b0d",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "64",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/64-M1.json",
+      "source_sha256": "a79411b1b2d79acc5d298a990229956747278c45169e08bad9fd9a9ed139c6f5",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W7464385",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "65",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/65-M1.json",
+      "source_sha256": "56505e213d236921ff0d3a516c6330fb20ca62411c31740aeb524f971701379a",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "68",
+      "arm": "M1",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/68-M1.json",
+      "source_sha256": "df1aafb4a55c71ad8b47a8783a58ebaf600c42959bdee009eb9d18fd6a10a939",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "70",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/70-M1.json",
+      "source_sha256": "02e3e4fc7ad21f8b526e73e7f5f976f4b0985dc586574c3812e59330b818f145",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3947049",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "71",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/71-M1.json",
+      "source_sha256": "f932c7128585886d692c383e9f7c77e8877ce2488b075226a3e47f8ea32a5cb5",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5270061",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "74",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/74-M1.json",
+      "source_sha256": "a51380a80fef6e3f9f4db02243db8af1ea0ba46eea3704a8c081e024c33b9bf7",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W3189752",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5166363",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "77",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/77-M1.json",
+      "source_sha256": "85bce81992d28af8a94ae1cf34048da367b2ced39d5d83a4314b06e71f589e18",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W1671835",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "79",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/79-M1.json",
+      "source_sha256": "07f1ad36666b7d6c43dadf38cbfe6e8b5bde062d5058049a7405de0ea4b4d50a",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W8661412",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "86",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/86-M1.json",
+      "source_sha256": "164da7e4d21ae05ab2707389ef6bf18198cd7e7cc6dc09f822813db4b71c06c0",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W2466703",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "90",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/90-M1.json",
+      "source_sha256": "6c17a11af93139ae16e83c4710cac7319fdf76abb125e673695f8ded8d242cba",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9284598",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "94",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/94-M1.json",
+      "source_sha256": "41035489e1527bcc5b787fc36457380b2f66a92d87cc8e6ba95de0cec726ce28",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W2905754",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "97",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/97-M1.json",
+      "source_sha256": "4370bcebe6954becf573629877c40909e933b945c0807532074bc00a6f0178ce",
+      "steps": [
+        {
+          "message_index": 20,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6750959",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "100",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/100-M1.json",
+      "source_sha256": "37cc2301452153c1dd7225e102bd3905269e5d76c1b0cd0ce913dde0c9b3b8ad",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W3295833",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 30,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W8488728",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "101",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/101-M1.json",
+      "source_sha256": "a43600ac22ee36039e30a584edacf93e247f97b6c68ab5ccd956051069455bcf",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 40,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6729841",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "102",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/102-M1.json",
+      "source_sha256": "c14d7b99c63e5df2216e100f0f6716be27cd551654322f1d0c14a2ffe7e4b3bc",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 36,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3445693",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "108",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/108-M1.json",
+      "source_sha256": "acb4637a93cf8b1a1e0a84a0bb54afef96a7d166acf93111659ecf79f938b744",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W1679211",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "111",
+      "arm": "M1",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/111-M1.json",
+      "source_sha256": "de3ad89becbbe419aef59e7689058836afbe20eb1eff242d3403ac0487309a73",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W3730488",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W9810810",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "5",
+      "arm": "M2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/5-M2.json",
+      "source_sha256": "1823c6d629d61e07a707d90f86a20a826bcb62db19d0523e48b4fe493fa12852",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "9",
+      "arm": "M2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/9-M2.json",
+      "source_sha256": "dc5902ce7c96ba5ef9877c199fcd621eb2e391448822beadf11e6d17df3fe83e",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "12",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113.repair/official/12-M2.json",
+      "source_sha256": "3e22d26b5290ea0a851771d398b6b77b6eea543b2294c6639fb053ba5e27f00e",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "17",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113.repair/official/17-M2.json",
+      "source_sha256": "2baf804c36de6a23fee549e6ed574e33c399b6d0f0e561cec0b1ee0dcdae465a",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "18",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/18-M2.json",
+      "source_sha256": "6acbeb58ceee612accc55d0242a7de641e37ed8c3ab296b23a02242fa21b3fc1",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W2890441",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "26",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/26-M2.json",
+      "source_sha256": "21e4068fc8b8838c2c82ce07e3ee9d5a9bfc63b71f98523506c2d0d72fe104ad",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W5565470",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "27",
+      "arm": "M2",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/27-M2.json",
+      "source_sha256": "c83538bdcb27edc83f46e87b7103878dc115c445fb29efe36c20329e1e909168",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W7181492",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "32",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/32-M2.json",
+      "source_sha256": "fb2bbc8ddd52d321f76d488401c02d32af6557e79bc00ebdff4b0121fcb5e87b",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9373487",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 34,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W5481803",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 42,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W7449508",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "33",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/33-M2.json",
+      "source_sha256": "11da4c6bcc2aea94c42d64430af71a657dae41d1a5093a94695a3fc4cb92b164",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "36",
+      "arm": "M2",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/36-M2.json",
+      "source_sha256": "0fac77d20ea21b3250740e1aba333bb6c6552d1446b643adfb15b48a3dc0686f",
+      "steps": [
+        {
+          "message_index": 36,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9348897",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "38",
+      "arm": "M2",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/38-M2.json",
+      "source_sha256": "9e6a5a1404eedb23745e06d3a47982a7ba3fd1c646af8eb463076774d62511be",
+      "steps": [
+        {
+          "message_index": 36,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9348897",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "39",
+      "arm": "M2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/39-M2.json",
+      "source_sha256": "c595697e148e532658d5c9744156b6733d8edb5535d6cb19e59ff3776293b32b",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "40",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113.repair/official/40-M2.json",
+      "source_sha256": "234b9cbff184cabb5e87200c68df0434866ad6621d2f4c0ae1247738812503e3",
+      "steps": [
+        {
+          "message_index": 12,
+          "tool": "modify_pending_order_payment",
+          "effect": {
+            "status": "pending",
+            "blocks": [
+              "modify_pending_order_payment"
+            ],
+            "basis": "tool payment-history precondition, not a status lock",
+            "order_id": "#W4923227",
+            "operation": "modify_pending_order_payment"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "42",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113.repair/official/42-M2.json",
+      "source_sha256": "cf2131d5f44053e94a312fc86a8549f55d6a8600880eb514d0285aa7c2ac9e88",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4082615",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "45",
+      "arm": "M2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/45-M2.json",
+      "source_sha256": "49017410fbf3e64edacfdaa7ec6d235a619427dc98558dfd538a24d282250b1f",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "49",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/49-M2.json",
+      "source_sha256": "c96e13372b91cd465bfa3b09369e1612d338be942cf67dab534a2527ea5ccf5f",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3470184",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "51",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/51-M2.json",
+      "source_sha256": "ddfcf459e63125a50c9dbd6d7a53b8c8f29ef5682084ca21f6ebe2088500cb47",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4689314",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "53",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/53-M2.json",
+      "source_sha256": "c0a1018b0ed89298420579ddd4a6d78c95759070047fee2a2cbca7b1e23b1fc8",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W3916020",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "55",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/55-M2.json",
+      "source_sha256": "1a2ff75725f3a6cbdca9e0da1a4ed4086e83d01f51f6b66b8e24682fc1fe4480",
+      "steps": [
+        {
+          "message_index": 26,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W4836353",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 28,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W7342738",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 34,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W4597054",
+            "operation": "return_delivered_order_items"
+          }
+        },
+        {
+          "message_index": 36,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W7773202",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "56",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/56-M2.json",
+      "source_sha256": "584686659e84b5356be80e1b7d816457964fc2ce19c373a8483054b339397ae0",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4284542",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "60",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/60-M2.json",
+      "source_sha256": "b26826a9a496b1affd7312c7926e880177d6b6d3f5e72437009f9c782b90645d",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "61",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/61-M2.json",
+      "source_sha256": "cc4ddddeb827279ea0893760513ae369770dfe99c0aa9413ee15000da63db3b7",
+      "steps": [
+        {
+          "message_index": 14,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5061109",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "62",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/62-M2.json",
+      "source_sha256": "6440e1f366bd6c1af9af798704cbbf81b6444bacbe83fdcec6b66503b7209baf",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "64",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/64-M2.json",
+      "source_sha256": "8b0a18cc3b0b01fc22baae2cadc30aace5ffdb16b19d6b1199e07b17eab67c91",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W7464385",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "65",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/65-M2.json",
+      "source_sha256": "717eda3e6a6533bfb60e74f97a18f0e66fa831907c5609ba188eeb82e3b9c2c4",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "68",
+      "arm": "M2",
+      "outcome": "authentication_failed",
+      "source": ".runtime/kernel-e2-20261113/official/68-M2.json",
+      "source_sha256": "67d5f0dd769fd9e050e89a3873d3d2c850b7d64c9f35ce38bab0a50ee20ae04c",
+      "steps": [],
+      "later_blocked_operations": [],
+      "disposition": "review_rule_not_applicable"
+    },
+    {
+      "task": "70",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/70-M2.json",
+      "source_sha256": "9e00073caa9bd4b84568937ca9609c9ef49f58c582bb3b89b865fb6f6c425a9e",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3947049",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "71",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/71-M2.json",
+      "source_sha256": "933684c341ac3b817d4833fff7242f542f5ed1def1a5f38e35dde1472c265626",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5270061",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "74",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/74-M2.json",
+      "source_sha256": "1ed7f4fcbbe08098ccfc1724bc9543f2df9cedf1cdd6711f22531bea5d441fa1",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W3189752",
+            "operation": "cancel_pending_order"
+          }
+        },
+        {
+          "message_index": 26,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W5166363",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "77",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/77-M2.json",
+      "source_sha256": "5e7c78f6ac49f5b2c2dd60e8b4aed5f971c65a450afb42e50a88d71a837521bf",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W1671835",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "79",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/79-M2.json",
+      "source_sha256": "318058ef0a9eede9ba0f0d7005b7c8b9075565a60da1ceda37fa025967d1e57c",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W8661412",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "86",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/86-M2.json",
+      "source_sha256": "9f8336a7eb8258d62c9d738231213102a7b97ac5a816a8b48945f5d9ddf855b9",
+      "steps": [
+        {
+          "message_index": 24,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W2466703",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "90",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/90-M2.json",
+      "source_sha256": "31f08282227494200281d04b70b21c9f3c6e49bf00b039010252bc6301599b82",
+      "steps": [
+        {
+          "message_index": 22,
+          "tool": "cancel_pending_order",
+          "effect": {
+            "status": "cancelled",
+            "blocks": [
+              "modify_pending_order_items",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "cancel_pending_order",
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "order write preconditions; reads remain available",
+            "order_id": "#W9284598",
+            "operation": "cancel_pending_order"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "94",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/94-M2.json",
+      "source_sha256": "35590530a1ee54b4db83db59842abec7ab631011b1fb74deb71ea75ed3a39421",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W2905754",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "97",
+      "arm": "M2",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/97-M2.json",
+      "source_sha256": "afa9a703a78fad8b651394a6317cbc9e279ed3639d65447ac736803df05e1ece",
+      "steps": [
+        {
+          "message_index": 16,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6750959",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "100",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/100-M2.json",
+      "source_sha256": "68402029275e3b115202bebdbfb0e9a76429ec15d48593bef7a58e700f8f26f6",
+      "steps": [
+        {
+          "message_index": 32,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W3295833",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 38,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W8488728",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "101",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/101-M2.json",
+      "source_sha256": "a75d0f4c06580d58fdf627bf7e70e111227aef0c182a091dd5b6b6a1d25d0f8d",
+      "steps": [
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 42,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W6729841",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "102",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/102-M2.json",
+      "source_sha256": "4ec65dead5e7301ecea6ec7f6dae3e8477f58265bfe78699c2e2e1f1a3249a0a",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W4219264",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 38,
+          "tool": "exchange_delivered_order_items",
+          "effect": {
+            "status": "exchange requested",
+            "blocks": [
+              "return_delivered_order_items",
+              "exchange_delivered_order_items"
+            ],
+            "basis": "policy and strict delivered tool precondition",
+            "order_id": "#W3445693",
+            "operation": "exchange_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "108",
+      "arm": "M2",
+      "outcome": "wrong_write",
+      "source": ".runtime/kernel-e2-20261113/official/108-M2.json",
+      "source_sha256": "b967a6e79b7699428f518de04f0c0b40d91af0963f3b3c8ad7681eb93d476db4",
+      "steps": [
+        {
+          "message_index": 18,
+          "tool": "return_delivered_order_items",
+          "effect": {
+            "status": "return requested",
+            "blocks": [
+              "exchange_delivered_order_items",
+              "return_delivered_order_items"
+            ],
+            "basis": "strict delivered tool precondition",
+            "order_id": "#W1679211",
+            "operation": "return_delivered_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    },
+    {
+      "task": "111",
+      "arm": "M2",
+      "outcome": "success",
+      "source": ".runtime/kernel-e2-20261113/official/111-M2.json",
+      "source_sha256": "53dc255460cde7a5e6297a23493131a5ecacb996a90fa964f2e6f77ab1163338",
+      "steps": [
+        {
+          "message_index": 28,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W3730488",
+            "operation": "modify_pending_order_items"
+          }
+        },
+        {
+          "message_index": 30,
+          "tool": "modify_pending_order_items",
+          "effect": {
+            "status": "pending (item modified)",
+            "blocks": [
+              "cancel_pending_order",
+              "modify_pending_order_address",
+              "modify_pending_order_payment",
+              "modify_pending_order_items"
+            ],
+            "basis": "policy: no further modifications/cancellation; address tool itself is more permissive",
+            "order_id": "#W9810810",
+            "operation": "modify_pending_order_items"
+          }
+        }
+      ],
+      "later_blocked_operations": [],
+      "disposition": "needs_annotated_request_inventory; not a measured false block"
+    }
+  ]
+}

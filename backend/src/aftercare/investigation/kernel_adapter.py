@@ -75,13 +75,16 @@ class ProductModelPort:
                 "strategy": context.strategy,
             },
         )
+        attempt = self.calls
+        self.calls += 1
         response = context.model.call(
             context.audit,
-            f"kernel:{VERSION}:{stage}:{self.calls}",
+            f"kernel:{VERSION}:{stage}:{attempt}",
             preferred=selection.preferred,
             messages=[
-                SystemMessage(content=messages[0]["content"]),
-                HumanMessage(content=messages[1]["content"]),
+                SystemMessage(content=message["content"]) if message["role"] == "system"
+                else HumanMessage(content=message["content"])
+                for message in messages
             ],
             tools=[],
             validate=validate,
@@ -89,7 +92,6 @@ class ProductModelPort:
             data_scope="customer_conversation",
             output_reserve=context.output_reserve,
         )
-        self.calls += 1
         return StepProposal(text=response["result"]["text"])
 
 
@@ -167,6 +169,8 @@ def review_outcome(context, result, published):
             "reviewed_reason": published["reason"],
             "input_sha256": reviewer.trace[-1].input_sha256,
             "review": review.model_dump(mode="json"),
+            "failures": reviewer.trace[-1].output.get("failures", []),
+            "dropped_requests": reviewer.trace[-1].output.get("dropped_requests", []),
         },
     )
     return review

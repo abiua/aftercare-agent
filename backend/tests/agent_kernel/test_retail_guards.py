@@ -77,3 +77,14 @@ def test_reason_and_structural_confirmation():
 def test_error_auth_is_never_identity():
  assert facts(result('find_user_id_by_email',{},'Error: not found','x')).user_id is None
  assert facts(result('find_user_id_by_email',{},'user1','x')).user_id=='user1'
+
+
+def test_username_and_zip_are_tried_before_asking_again():
+ ask=StepProposal(text='Please give your email, or first and last name plus ZIP code.')
+ said=[{'role':'user','content':'No email. My username is mei_kovacs_8020 and my ZIP code is 28236.'}]
+ r=G.check(said,ask,TOOLS)
+ assert r.rule_ids==('authentication_username',) and 'first_name="Mei", last_name="Kovacs", zip="28236"' in r.feedback
+ failed=said+result('find_user_id_by_name_zip',{'first_name':'Mei','last_name':'Kovacs','zip':'28236'},'Error: user not found','n')
+ assert G.check(failed,ask,TOOLS).allowed  # one attempt, then asking is right
+ assert G.check([{'role':'user','content':'My username is mei_kovacs_8020.'}],ask,TOOLS).allowed  # no ZIP
+ assert G.check([{'role':'user','content':'Order #W12345 please, I am Mei, ZIP 28236'}],ask,TOOLS).allowed  # no username

@@ -1837,7 +1837,7 @@ def test_authorized_policy_retrieval_preserves_exact_frozen_refs(investigation):
     assert projected["data"]["retrieval"]["status"] == "UNAVAILABLE"
 
 
-_KERNEL_REVIEW = "kernel:aftercare-kernel-v1:proposal_review:0"
+_KERNEL_REVIEW = "kernel:aftercare-kernel-v2:proposal_review:0"
 
 
 def _kernel_script(review, *, revised_option=None):
@@ -1894,7 +1894,7 @@ def test_kernel_arm_reviews_a_give_up_independently_and_revises_once(investigati
     assert set(model.calls) == set(model.responses) and len(model.calls) == 5
     assert result["output"]["investigation_options"][0]["action"] == "REQUEST_EVIDENCE"
     kernel = result["output"]["kernel"]
-    assert kernel["version"] == "aftercare-kernel-v1" and kernel["revised"] is True
+    assert kernel["version"] == "aftercare-kernel-v2" and kernel["revised"] is True
     assert kernel["review"]["verdict"] == "revise"
     assert result["output"]["investigation_unresolved"][-1].startswith("独立审查建议：")
     # Independent context: public statements and read records only, no investigator prompt or claims.
@@ -1929,8 +1929,10 @@ def test_kernel_arm_reviews_a_give_up_independently_and_revises_once(investigati
 )
 def test_kernel_arm_allow_or_invalid_review_publishes_the_first_outcome(investigation, review):
     model, _ = _kernel_script(review)
+    if review != {"verdict": "allow"}:
+        model.responses["kernel:aftercare-kernel-v2:proposal_review:1"] = model.responses[_KERNEL_REVIEW]
     result, events = _run(investigation, "SINGLE", model, arm="kernel")
-    assert len(model.calls) == 3
+    assert len(model.calls) == (3 if review == {"verdict": "allow"} else 4)
     kernel = result["output"]["kernel"]
     assert kernel["revised"] is False and kernel["review"]["verdict"] == "allow"
     assert bool(kernel["review"]["fallback_reason"]) == (review != {"verdict": "allow"})
@@ -1947,7 +1949,8 @@ def test_kernel_arm_review_model_failure_does_not_block_the_outcome(investigatio
 
     model, _ = _kernel_script(unavailable)
     result, _ = _run(investigation, "SINGLE", model, arm="kernel")
-    assert result["output"]["kernel"]["review"]["fallback_reason"] == "ModelFailure"
+    assert result["output"]["kernel"]["review"]["fallback_reason"] == "BudgetExhausted"
+    assert len(model.calls) == 3
     assert result["output"]["investigation_options"][0]["action"] == "HUMAN_HANDOFF"
 
 

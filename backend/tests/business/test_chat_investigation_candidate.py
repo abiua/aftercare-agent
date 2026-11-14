@@ -329,7 +329,7 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         assert calls == ["strong_single", "strong_single", "reviewer"]
         assert snapshot["candidate"]["route_version"] == "kernel"
         assert completed["output"]["kernel"] == {
-            "version": "aftercare-kernel-v1",
+            "version": "aftercare-kernel-v2",
             "review": completed["output"]["kernel"]["review"],
             "revised": False,
         }
