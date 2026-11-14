@@ -1,6 +1,28 @@
 # 电商售后多 Agent 工作台
 
-当前评测已切换为固定版本官方 τ²-bench Retail：40 个测试任务，强单 Agent、单 Agent 三阶段、多 Agent 各运行一次，使用官方评分器。旧自定义评测用例库及对应 P8/P9 对比已移除；官方主批次与一次技术补跑已结束，强单29/40、三阶段25/40、多 Agent25/40（含1条预算未完成）；最终结果见 [官方评测](docs/TAU_OFFICIAL_EVALUATION.md)。[测试中台](http://127.0.0.1:5225/?eval=campaigns) 可选择测试员直接进入；[环境安装](docs/TAU_OFFICIAL_SETUP.md)、[命令入口](docs/TAU_P6_P9_OPERATIONS.md)。P6 失败回退与会话找回、P7 问题目录、P9 路由能力继续保留。以下早期部署段落只作历史记录。
+## 当前状态（2026-11-14）
+
+首轮评测之后，Agent 执行层已按[架构重构计划](docs/AGENT_ARCHITECTURE_REFACTOR_PLAN.md)重写为共享内核（`backend/src/aftercare/agent_kernel/`）：执行者、程序护栏、独立审查、按需专家。同一内核同时用于官方评测和产品调查图。
+
+第二轮官方对照（E2，τ²-bench Retail 测试集 40 题，每组一次，预注册后运行）：
+
+| 组 | 成功/40 |
+|---|---:|
+| S1 强单＋护栏 | 29 |
+| S2 强单＋自检 | 32 |
+| S1c 低成本单 | 32 |
+| M1 全强多 Agent | 30 |
+| M2 低成本执行＋强审查 | 30 |
+
+**多 Agent 在成功率上没有优于带自检的单 Agent**，差异也不显著；只有“放弃失败更少”这一项成立。详见 [E2 结果](docs/REFACTOR_E2_RESULTS.md)和[失败复盘](docs/REFACTOR_E2_FAILURE_ANALYSIS.md)。
+
+复盘后已实现[审查 v2](docs/REFACTOR_REVIEW_V2.md)（操作先后依赖、修改意见落实、审查失效处理）和用户名认证护栏，并用真实模型做过单步小测。v2 尚未做整题评测，其结果不能与 E2 混比。专家层和金额核算的已知缺陷尚未修复。产品侧的内核审查已接入但默认关闭，未做真实验收。
+
+协作流程见 [CLAUDE.md](CLAUDE.md)。以下各段为此前阶段的历史记录。
+
+## 历史记录
+
+首轮评测已切换为固定版本官方 τ²-bench Retail：40 个测试任务，强单 Agent、单 Agent 三阶段、多 Agent 各运行一次，使用官方评分器。旧自定义评测用例库及对应 P8/P9 对比已移除；官方主批次与一次技术补跑已结束，强单29/40、三阶段25/40、多 Agent25/40（含1条预算未完成）；最终结果见 [官方评测](docs/TAU_OFFICIAL_EVALUATION.md)。[测试中台](http://127.0.0.1:5225/?eval=campaigns) 可选择测试员直接进入；[环境安装](docs/TAU_OFFICIAL_SETUP.md)、[命令入口](docs/TAU_P6_P9_OPERATIONS.md)。P6 失败回退与会话找回、P7 问题目录、P9 路由能力继续保留。以下早期部署段落只作历史记录。
 
 历史阶段记录：2026-11-12：τ-bench P0—P4 已完成阶段验收，P5 已修复本轮超时与参数问题，两条真实复杂案例形成待人工建议并通过浏览器回读，受控定向补查纠错通过；自然定向补查及完整政策覆盖仍未全部证实，退款候选未执行。P6 未开始。见 [P5续验收与保留项](docs/TAU_P5_CONTINUATION_ACCEPTANCE.md)。P4 已接入客户聊天政策检索，真实模型49元模拟退款闭环和更正后会话记忆通过实际接口、浏览器与重启验证。见 [P4验收](docs/TAU_P4_ACCEPTANCE.md)、[独立演示运行](infra/TAU_P4_RUNTIME.md)。P3 已实测 Milvus/pgvector、混合召回、语义重排、持久化与引用生成；18条开发查询上结构重排 Recall@5 为80.56%，仍保留缺证据坏例。见 [P3验收](docs/TAU_P3_ACCEPTANCE.md)、[完整计划](docs/TAU_IMPLEMENTATION_PLAN.md)、[OCR技术选型](docs/TECH_STACK_OCR.md)。以下历史演示与记录保留。
 
