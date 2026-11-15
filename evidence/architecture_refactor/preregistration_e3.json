@@ -1,0 +1,219 @@
+{
+  "version": "E3-draft",
+  "status": "frozen",
+  "git_head": "89e5faaf98d52a91ea784bee6696dcff62e96b2f",
+  "git_head_note": "源码提交哈希，冻结于 2026-11-15，早于任何 E3 真实运行。",
+  "kernel_version": "aftercare-kernel-v3.1",
+  "split": "train",
+  "task_ids": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "6",
+    "7",
+    "8",
+    "10",
+    "11",
+    "13",
+    "14",
+    "15",
+    "19",
+    "20",
+    "21",
+    "23",
+    "24",
+    "25",
+    "28",
+    "30",
+    "31",
+    "34",
+    "35",
+    "37",
+    "43",
+    "46",
+    "47",
+    "48",
+    "50",
+    "52",
+    "57",
+    "58",
+    "59",
+    "63",
+    "66",
+    "67",
+    "69",
+    "72",
+    "73",
+    "75",
+    "76",
+    "78",
+    "80",
+    "81",
+    "82",
+    "83",
+    "84",
+    "85",
+    "87",
+    "88",
+    "89",
+    "91",
+    "92",
+    "93",
+    "95",
+    "98",
+    "99",
+    "103",
+    "104",
+    "105",
+    "106",
+    "107",
+    "109",
+    "110",
+    "112",
+    "113"
+  ],
+  "excluded_development_task_ids": [
+    "16",
+    "22",
+    "29",
+    "41",
+    "44",
+    "54",
+    "96"
+  ],
+  "dataset_sha256": {
+    "db.json": "413a65160adbdb5fde0ffc0015c49b6d70250b10c18128de169b597af7766765",
+    "tasks.json": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+    "split_tasks.json": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20",
+    "policy.md": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467"
+  },
+  "architectures": {
+    "S1c": {
+      "name": "S1c",
+      "guards": true,
+      "review": "none",
+      "experts": false,
+      "executor": {
+        "model": "deepseek-flash",
+        "reasoning": "disabled"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "M2": {
+      "name": "M2",
+      "guards": true,
+      "review": "independent",
+      "experts": true,
+      "executor": {
+        "model": "deepseek-flash",
+        "reasoning": "disabled"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "S1": {
+      "name": "S1",
+      "guards": true,
+      "review": "none",
+      "experts": false,
+      "executor": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    }
+  },
+  "run": {
+    "max_usd": 20,
+    "max_calls": 44421,
+    "agent_calls": 160,
+    "user_calls": 60,
+    "max_output_tokens": 1500,
+    "concurrency": 6,
+    "run_timeout": 900,
+    "request_timeout": 120,
+    "tasks": 67,
+    "runs": 201,
+    "architectures": [
+      "S1c",
+      "M2",
+      "S1"
+    ],
+    "trials_per_task": 1,
+    "review_calls": 1,
+    "max_steps": 100,
+    "user_model": "gpt-6.1-terra",
+    "judge_model": "gpt-5.4-mini-2026-03-17",
+    "schedule": "题号数值升序；第 i 题顺序 ARMS[(i + offset) % 3]；seed=42+i；i 从 0 起。"
+  },
+  "rules": {
+    "H_lift": "M2 成功题数 > S1c 成功题数，且 McNemar 精确检验双侧 p < 0.05。",
+    "H_cost": "M2 成功题数 >= S1 成功题数 - 3，且 M2 每成功一题的总费用 < S1；三组中任一组有未结算调用或费用不完整时为 undetermined。零成功时每成功费用未定义，也为 undetermined。",
+    "conclusion": "两条均为 false 时为 no_advantage_shown；任一为 true 时报告该条成立；没有 true 且存在 undetermined 时结论为 undetermined。",
+    "denominator": "每组分母始终为 67；未运行、未完成、无得分、预算耗尽均保留，未获成功分数不计成功。",
+    "repair": "仅 error/unknown 且无官方得分可在同级 .repair 目录补跑一次；沿用原题、组和种子，不补跑已有 0 分、超时或预算耗尽项；合并所有尝试费用与事件，原始加补跑受原 $20 余额约束。"
+  },
+  "sha256": {
+    "backend/src/aftercare/agent_kernel/__init__.py": "8e178efe57c64b11019949e133317036628e4cae7be40a74858802a80163683e",
+    "backend/src/aftercare/agent_kernel/amount_arithmetic.py": "43376b183c9e059060d85b16d0a5cba9b34ce6e29d77147e0a5fc369c39cd297",
+    "backend/src/aftercare/agent_kernel/contracts.py": "9f00a674746faae42ad5b729e178575fa126c958a49fa0c7b2e3ff858b689a70",
+    "backend/src/aftercare/agent_kernel/dependencies.py": "c629b29373277f78f0036bb2a447fe063894f4850a9bef947d8b798f41990f26",
+    "backend/src/aftercare/agent_kernel/engine.py": "ea2c193b42a28e78d93d487dbd313e61246ea072666202b5187b2a08bd5b5d60",
+    "backend/src/aftercare/agent_kernel/experts.py": "1a2b18e00d4ddcaa5bb5814106d1c9c47303f0eee8628ef69792c1d435f4014f",
+    "backend/src/aftercare/agent_kernel/retail_guards.py": "c7827e561512b5c8303fc61e522fdb9284bdb5a168e04a93c1ab49b610b31414",
+    "backend/src/aftercare/agent_kernel/review.py": "6ab50dfe0d5f5a925dcbf94f8ba4209dba5abe9a66fce16adc8fbeaeee7e8ab5",
+    "scripts/tau_official_agents.py": "c43ac0749f7f21a3341a528495a54f714e339b6712979bdb1958b74ecc87fff6",
+    "scripts/tau_official_agents_legacy.py": "cc1846a0e83ed2d0a0de4cded31470c41e5dbce0c00a215b1b7fe68a3742d393",
+    "scripts/run_tau_official_campaign.py": "88e9d36b2de640ac3aa3a48460a73e2f31cfcc0020efbaacdcd576365d099ca2",
+    "scripts/tau_official_budget.py": "f0a812875406e6ff5c48c445db67f928f9d1d0a18827b3bf16315d999f670589",
+    "scripts/tau_official_summary.py": "289c7dbaf4f330425d50706e6475d8afe7eeeedca6a044c854339df814f6d1a2",
+    "scripts/analyze_kernel_campaign.py": "1653fd94134af9ca7e15aad71997cc952a1c28634bafe5ca5bf4beeb655332bb",
+    "scripts/refactor_baseline.py": "965aa9db9866364cd5f89bb2e49f29449a1a12b35da1927211a859ef1bbc7bfd",
+    "scripts/analyze_kernel_e3.py": "c4f5dd3a321c6bd31b0ed9173b68e960a08cdd2be53d5267e089081440db1975",
+    "scripts/kernel_e3_protocol.py": "ccaac0da44e47a7591718343e126b5febd32cd74ed8c2c6219c415721f8174de",
+    "scripts/freeze_kernel_e3.py": "a56cc88514c94537824e3786bd97e004ee6cd29361fdafe6a24f369069b3c7e2",
+    "scripts/tests/test_kernel_e3.py": "430cceec5cd46976f9faf7c79ed2463338644b5b8c0ab71960e885fdb15d02e9",
+    "docs/REFACTOR_PREREGISTRATION_E3.md": "e6b4ecc09c3e574ec4352cbdc4bd975fc2649ce6ce60ceb857e9e2f59f6c0010",
+    "evidence/architecture_refactor/kernel_v3_dev_tasks.json": "263915f38e7dd4842b2a24be66e16e22ea009b82ea75f8997bbf4090bcec9310"
+  },
+  "prompt_sha256": {
+    "review": "04593b311ee66facd5d193a3c3de9150fe5a18179aadaffc73e25af2f02cba96",
+    "executor": "a8d1b2fe80bd93cddfe4ba90645b9e5a04050046d30b5e58e770a5b068714b8e",
+    "fact_expert": "476fd798bda5da16e8e3fbd107787bc6d7fe0a11fc92115bd46e8ee6e5134355",
+    "policy_expert": "23b6e2cc1d14508bd7f5f5f79aeecf077a178298d1542ee7ac0df7bd63f6984d"
+  },
+  "prompt_note": "沿用 v2.2 对执行者、审查者、事实专家、政策专家的四段固定指令哈希；动态上下文不进入固定指令哈希。官方客户/裁判实现另存文件哈希，题目和政策由 dataset_sha256 固定。",
+  "official_role_source_sha256": {
+    "src/tau2/user/user_simulator.py": "01e27b999fa531950b889368958be5b61ab6a57b8d5eca3cc80f978904bbcbec",
+    "src/tau2/user/guidelines.py": "6545ae179b31cc0c58361175eaa150ba5a00d76b6b2170404e510ad7a995aeea",
+    "src/tau2/evaluator/evaluator_nl_assertions.py": "6b81675f7567cd132a47bd7ed863350238a65a9abfc2fb9546c619e95a6d1d97"
+  }
+}
