@@ -232,7 +232,7 @@ def execute_campaign(directory, manifest, tasks, live, max_usd):
     write_json(directory / "manifest.json", manifest)
     budget = Budget(limits["max_calls"], max_usd, directory / "calls.jsonl")
     deepseek = None
-    if {"S1c", "M2"} & {item["architecture"] for item in schedule}:
+    if {"S1c", "M2", "M2x", "M2r"} & {item["architecture"] for item in schedule}:
         deepseek = OpenAI(
             api_key=os.getenv("AFTERCARE_DEEPSEEK_KEY")
             or read_json(ROOT / ".runtime/deepseek-secret.json")["api_key"],

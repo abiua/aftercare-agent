@@ -95,7 +95,7 @@ def test_specialist_failure_never_blocks_the_executor(failure):
     assert [e.role for e in kernel.trace][:2]==['fact_expert','executor']
 
 
-def test_all_six_groups_run_offline_with_expected_roles_and_models():
+def test_all_groups_run_offline_with_expected_roles_and_models():
     for name,group in architectures().items():
         roles=[]
         def generate(**kw):
@@ -107,10 +107,10 @@ def test_all_six_groups_run_offline_with_expected_roles_and_models():
         kernel=ExecutionKernel(group,port,guard=SimpleNamespace(check=lambda *a:GuardResult(allowed=True)),
             reviewer=ProposalReviewer(port),experts=ExpertService(port))
         kernel.step(conversation('cheapest please'),tools,POLICY)
-        cheap='deepseek-flash' if name in {'S1c','M2'} else 'gpt-6.1-sol'
-        expected=[('fact_expert','gpt-6.1-sol')] if name in {'M1','M2'} else []
+        cheap='deepseek-flash' if name in {'S1c','M2','M2x','M2r'} else 'gpt-6.1-sol'
+        expected=[('fact_expert','gpt-6.1-sol')] if name in {'M1','M2','M1r','M2r'} else []
         expected.append(('executor',cheap))
-        if name in {'M1','M2'}:expected.append(('reviewer','gpt-6.1-sol'))
+        if name in {'M1','M2','M1x','M2x'}:expected.append(('reviewer','gpt-6.1-sol'))
         if name=='S2':expected.append(('self_check','gpt-6.1-sol'))
         assert roles==expected,name
         assert [e.role for e in kernel.trace if e.model]==[r for r,_ in expected]

@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Any, Literal, Protocol
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-VERSION = 'aftercare-kernel-v2'
+VERSION = 'aftercare-kernel-v3'
 Role = Literal['executor','reviewer','self_check','fact_expert','policy_expert','vision_expert','user','judge']
 
 
@@ -58,6 +58,7 @@ class StepProposal(Record):
 
 class GuardResult(Record):
     allowed: bool
+    soft: bool = False
     feedback: str = ''
     rule_ids: tuple[str, ...] = ()
     confirmed_facts: dict = Field(default_factory=dict)
@@ -130,7 +131,7 @@ class ModelAssignment(Record):
 
 
 class Architecture(Record):
-    name: Literal['S0','S1','S2','S1c','M1','M2']
+    name: Literal['S0','S1','S2','S1c','M1','M2','M1x','M1r','M2x','M2r']
     guards: bool = True
     review: Literal['none','self','independent'] = 'none'
     experts: bool = False
@@ -174,8 +175,12 @@ class ModelPort(Protocol):
 def architectures() -> dict[str, Architecture]:
     strong=ModelAssignment(model='gpt-6.1-sol')
     cheap=ModelAssignment(model='deepseek-flash',reasoning='disabled')
-    return {name:Architecture(name=name, guards=name!='S0',
+    groups = {name:Architecture(name=name, guards=name!='S0',
         review='self' if name=='S2' else 'independent' if name in {'M1','M2'} else 'none',
         experts=name in {'M1','M2'}, executor=cheap if name in {'S1c','M2'} else strong,
         reviewer=strong, expert=strong, historical_only=name=='S0')
         for name in ('S0','S1','S2','S1c','M1','M2')}
+    for base in ('M1', 'M2'):
+        groups[base+'x'] = groups[base].model_copy(update={'name':base+'x', 'experts':False})
+        groups[base+'r'] = groups[base].model_copy(update={'name':base+'r', 'review':'none'})
+    return groups

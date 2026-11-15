@@ -91,9 +91,9 @@ def official_inputs():
     return agent_domain_policy(environment), definitions(environment.get_tools())
 
 
-def manifest_for(schedule, policy):
+def manifest_for(schedule, policy, *, live=False):
     architecture = architectures()['M1']
-    if VERSION != 'aftercare-kernel-v2' or architecture.reviewer.model != 'gpt-6.1-sol':
+    if (live and VERSION != 'aftercare-kernel-v2') or architecture.reviewer.model != 'gpt-6.1-sol':
         raise ValueError('This minitest requires kernel v2 and the M1 gpt-6.1-sol reviewer')
     return {'sample_ids': [s['id'] for s in schedule], 'sample_count': len(schedule),
             'group_counts': dict(Counter(s['group'] for s in schedule)),
@@ -260,7 +260,7 @@ def main(argv=None):
         return
     schedule = samples()
     policy, tools = official_inputs()
-    manifest = manifest_for(schedule, policy)
+    manifest = manifest_for(schedule, policy, live=args.live)
     if not args.live:
         print(json.dumps(manifest, ensure_ascii=False, indent=2))
         return

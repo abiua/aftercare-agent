@@ -68,6 +68,8 @@ class ExecutionKernel:
             result=self.guard.check(messages,proposal,tools)
             self.trace.append(TraceEvent(role='executor',stage='guard',input_sha256=self.trace[-1].input_sha256,
                 output=result.model_dump(mode='json')))
+            if attempt == 1 and not result.allowed and result.soft:
+                result = self.accept_soft(result, messages, proposal, tools, 'guard')
             if result.allowed:
                 if self.architecture.review == 'none' or not trigger(proposal,tools,messages):
                     return proposal
@@ -82,6 +84,18 @@ class ExecutionKernel:
                 raise GuardRejected(result.feedback)
             inputs=[*inputs,{'role':'system','content':'Internal validation feedback for this retry only: '+result.feedback}]
         raise AssertionError('Unreachable')
+
+    def accept_soft(self, result, messages, proposal, tools, source_stage):
+        # Recheck remaining rules when supported; a soft finding cannot hide a hard rejection.
+        if hasattr(self.guard, 'check_without_soft'):
+            accepted = self.guard.check_without_soft(messages, proposal, tools)
+        else:
+            accepted = result.model_copy(update={'allowed':True, 'soft':False})
+        self.trace.append(TraceEvent(role='executor', stage='guard_soft_unresolved',
+            input_sha256=self.trace[-1].input_sha256,
+            output={'rule_ids':list(result.rule_ids), 'source_stage':source_stage,
+                    'feedback':result.feedback, 'guard_result':accepted.model_dump(mode='json')}))
+        return accepted
 
     def resolve_review(self, original, messages, tools, inputs):
         review = self.last_review
@@ -114,6 +128,8 @@ class ExecutionKernel:
             checked=self.guard.check(messages,revised,tools)
             self.trace.append(TraceEvent(role='executor',stage='post_review_guard',
                 input_sha256=self.trace[-1].input_sha256,output=checked.model_dump(mode='json')))
+            if not checked.allowed and checked.soft:
+                checked = self.accept_soft(checked, messages, revised, tools, 'post_review_guard')
             if not checked.allowed:
                 self.reviewer.record_resolution('blocked_guard')
                 raise GuardRejected(checked.feedback)

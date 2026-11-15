@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from .contracts import GuardResult, ToolKind
 from .dependencies import effect
+from .amount_arithmetic import amount_findings
 
 AUTH={'find_user_id_by_email','find_user_id_by_name_zip'}
 SWAPS={'modify_pending_order_items','exchange_delivered_order_items'}
@@ -60,7 +61,7 @@ def facts(messages):
     return state
 
 
-def reject(rule,feedback):return GuardResult(allowed=False,rule_ids=(rule,),feedback=feedback)
+def reject(rule,feedback,*,soft=False):return GuardResult(allowed=False,rule_ids=(rule,),feedback=feedback,soft=soft)
 
 
 class RetailGuards:
@@ -69,7 +70,10 @@ class RetailGuards:
         if proposal.calls:return proposal.model_copy(update={'calls':proposal.calls[:1],'text':''})
         return proposal
 
-    def check(self,messages,proposal,tools):
+    def check_without_soft(self, messages, proposal, tools):
+        return self.check(messages, proposal, tools, skip_soft=True)
+
+    def check(self,messages,proposal,tools,*,skip_soft=False):
         state=facts(messages);by_name={t.name:t for t in tools}
         if len(proposal.calls)>1 or proposal.calls and proposal.text:
             return reject('single_tool','Make one tool call without a customer reply.')
@@ -79,16 +83,25 @@ class RetailGuards:
                     return reject('authentication','First authenticate by email OR first name, last name and ZIP code; do not transfer yet.')
             else:
                 known=None if 'find_user_id_by_name_zip' in state.attempted else name_from_username(messages)
-                if known:
+                if known and not skip_soft:
                     return reject('authentication_username','The customer gave an account username and a ZIP code. '
                         'Do not ask again yet: call find_user_id_by_name_zip with first_name="%s", last_name="%s", '
-                        'zip="%s". If that finds no account, then ask for the name.'%known)
+                        'zip="%s". If that finds no account, then ask for the name.'%known,soft=True)
                 text=proposal.text.lower()
                 email=any(s in text for s in ('email','e-mail','邮箱','电子邮件'))
                 name=any(s in text for s in ('name','姓名','名字'))
                 zipcode=any(s in text for s in ('zip','postal','邮编'))
-                if not(email and name and zipcode):
+                if not known and not(email and name and zipcode):
                     return reject('authentication_reply','Offer BOTH authentication routes: account email OR first and last name plus ZIP code.')
+        if state.user_id and not proposal.calls and not skip_soft:
+            finding = amount_findings(messages, proposal.text, state.orders)
+            if finding:
+                return reject('amount_arithmetic',
+                    'Uncheckable dollar amount(s): ' + ', '.join(finding['uncheckable_amounts'])
+                    + '. Verifiable amounts listed in this reply (distinct): '
+                    + (', '.join(finding['verifiable_amounts']) or 'none')
+                    + '; their sum is ' + finding['verifiable_sum']
+                    + '. Use the calculate tool to recompute the amount(s), or correct the reply.', soft=True)
         if not proposal.calls:return GuardResult(allowed=True,confirmed_facts={'authenticated_user':state.user_id})
         call=proposal.calls[0];tool=by_name.get(call.name);args=call.arguments
         if not tool:return reject('known_tool','Use an available tool.')

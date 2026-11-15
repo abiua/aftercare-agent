@@ -56,6 +56,14 @@ def test_statistics():
     assert wilson(29, 40) == [0.5717, 0.8389]
 
 
+def test_ablation_names_keep_manifest_denominators_and_default_arms(tmp_path):
+    from analyze_kernel_campaign import NEW_ARMS
+    assert NEW_ARMS == ('S1','S2','S1c','M1','M2')
+    report = analyse(campaign(tmp_path, {a:{'1':(1.0, None)} for a in ('M1x','M1r','M2x','M2r')}))
+    assert set(report['arms']) == {'M1x','M1r','M2x','M2r'}
+    assert all(a['tasks'] == a['success'] == 1 for a in report['arms'].values())
+
+
 def test_authentication_failure_is_secondary_only(tmp_path):
     root = campaign(tmp_path, {'S1': {'1': (0.0, None)}})
     (root / 'official/1-S1.json').write_text(json.dumps({'messages': []}))
