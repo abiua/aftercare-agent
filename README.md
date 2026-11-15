@@ -4,7 +4,7 @@
 
 首轮评测之后，Agent 执行层已按[架构重构计划](docs/AGENT_ARCHITECTURE_REFACTOR_PLAN.md)重写为共享内核（`backend/src/aftercare/agent_kernel/`）：执行者、程序护栏、独立审查、按需专家。同一内核同时用于官方评测和产品调查图。
 
-第二轮官方对照（E2，τ²-bench Retail 测试集 40 题，每组一次，预注册后运行）：
+第二轮官方对照（E2，τ²-bench Retail 测试集 40 题，每组一次，预注册后运行；实际代码为官方 v2.0.0 之后的提交 da0835f，见[版本说明](docs/TAU_OFFICIAL_SETUP.md#版本说明)）：
 
 | 组 | 成功/40 |
 |---|---:|

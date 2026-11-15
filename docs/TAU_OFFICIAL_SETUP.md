@@ -30,3 +30,9 @@ LITELLM_LOCAL_MODEL_COST_MAP=True PYTHONPATH=.runtime/tau-official-source/src \
 ```
 
 运行参数可通过 `scripts/run_tau_official_campaign.py run --help` 查看。真实模型调用需要显式传入 `--live`、调用上限和费用上限。
+
+## 版本说明
+
+本项目文档沿用“τ²-bench Retail”指代 Sierra 官方仓库 `sierra-research/tau2-bench` 的 Retail 领域，仓库名不代表代码版本。固定提交 `da0835f6c67baef58bdda18f2a3b037dfb3a1754`（2026-10-29）的 `git describe` 为 `v2.0.0-110-gda0835f`，`pyproject.toml` 版本为 `2.0.0`；v1.0.0（τ³-bench）、v1.0.1 和 v2.0.0 均为其祖先提交。因此 Retail 任务已包含 τ³ 的 26 题修正，评分与提示词为 2.0 口径。
+
+比较范围：项目内 E1、E2（test 40 题）和 E3（train 划分）均使用同一提交，版本口径一致；能否互比仍取决于各自划分和预注册。官方说明 2.0 分数不能与 1.x 比较，也不应与 τ² 原版（0.x）发布的 Retail 分数直接比较。对外报告需写明“τ-bench 2.0.0 之后的提交 da0835f”。模拟用户模型以本项目运行配置为准，不默认等同官方 2.0 的默认值。
