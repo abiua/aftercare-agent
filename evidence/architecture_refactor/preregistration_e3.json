@@ -201,7 +201,7 @@
     "scripts/kernel_e3_protocol.py": "ccaac0da44e47a7591718343e126b5febd32cd74ed8c2c6219c415721f8174de",
     "scripts/freeze_kernel_e3.py": "a56cc88514c94537824e3786bd97e004ee6cd29361fdafe6a24f369069b3c7e2",
     "scripts/tests/test_kernel_e3.py": "430cceec5cd46976f9faf7c79ed2463338644b5b8c0ab71960e885fdb15d02e9",
-    "docs/REFACTOR_PREREGISTRATION_E3.md": "e6b4ecc09c3e574ec4352cbdc4bd975fc2649ce6ce60ceb857e9e2f59f6c0010",
+    "docs/REFACTOR_PREREGISTRATION_E3.md": "98b34421ef20cb507c624bc7eae300844e2e07f1f993532accb48fc24e0980e1",
     "evidence/architecture_refactor/kernel_v3_dev_tasks.json": "263915f38e7dd4842b2a24be66e16e22ea009b82ea75f8997bbf4090bcec9310"
   },
   "prompt_sha256": {
