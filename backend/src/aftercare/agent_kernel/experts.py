@@ -1,5 +1,6 @@
 """On-demand specialists: program signals decide when; specialists only read and report."""
 from hashlib import sha256
+from decimal import Decimal, InvalidOperation
 import json
 import re
 from time import monotonic
@@ -9,7 +10,8 @@ from .review import public_view
 
 FALLBACK_ERRORS = {'BudgetExhausted', 'ProviderResultUnknown', 'ModelFailure', 'APITimeoutError'}
 OUTPUT = ('Return only JSON: {"candidates":[{"id":"item or order id copied from a tool result",'
-          '"satisfies":["condition"],"fails":["condition"],"price":0,"price_difference":0}],'
+          '"satisfies":["condition"],"fails":["condition"],"price":0,"price_difference":0,'
+          '"replaces":"item id in the customer\'s order that this would replace, if any"}],'
           '"claims":[],"unresolved":["what the records do not settle"],"policy_quotes":["exact policy text"]}.')
 INSTRUCTIONS = {
     'fact_expert': '''You reconcile records for a customer-service colleague. Answer the question using only
@@ -82,28 +84,84 @@ def parse(raw):
                         unresolved=texts('unresolved'), policy_quotes=texts('policy_quotes'))
 
 
+def read_records(contents):
+    """Only complete product/order JSON objects contribute evidence versions."""
+    records = {}
+    for content in contents:
+        try:
+            value = json.loads(content)
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(value, dict):
+            continue
+        if value.get('product_id') and isinstance(value.get('variants'), dict):
+            records['product:' + str(value['product_id'])] = value
+        if value.get('order_id'):
+            records['order:' + str(value['order_id'])] = value
+    return records
+
+
+def evidence_seen(messages, extra=()):
+    state = facts(messages)
+    records = {'product:' + str(k): v for k, v in state.products.items()}
+    records.update({'order:' + str(k): v for k, v in state.orders.items()})
+    records.update(read_records(extra))
+    return {key: sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+            for key, value in records.items()}
+
+
+def changed_records(seen, current):
+    return sorted(key for key, digest in current.items() if seen.get(key) != digest)
+
+
 class ExpertService:
-    def __init__(self, model, read=None, max_consults=3):
+    def __init__(self, model, read=None, max_consults=5, read_tools=None):
         self.model = model
         self.read = read  # Callable[[ToolCall], str]; None means the specialist works on existing records only.
         self.max_consults = max_consults
+        self.read_tools = None if read_tools is None else frozenset(read_tools)
+        self.consults = 0
         self.cache = {}
+        self.cache_inputs = {}
+        self.stale_dropped = set()
         self.trace = []
         self.rejections = []
 
     def advise(self, architecture, messages, tools, policy):
-        """Returns findings for every signal seen so far; consults only for new ones."""
+        """Retain findings only while their evidence is current; refresh within the budget."""
         state = facts(messages)
-        for signal, role, key, question in signals(messages):
-            if key in self.cache or len(self.cache) >= self.max_consults:
+        current = evidence_seen(messages)
+        pending = {key: (entry['signal'], entry['role'], key, entry['question'])
+                   for key, entry in self.cache.items()}
+        pending.update({s[2]: s for s in signals(messages)})
+        for signal, role, key, question in pending.values():
+            previous = self.cache.get(key)
+            changed = changed_records(previous['seen'], current) if previous else []
+            if previous and not changed:
                 continue
-            reads = tuple(t.name for t in tools if t.kind == ToolKind.READ) if self.read else ()
+            if self.consults >= self.max_consults:
+                if previous and key not in self.stale_dropped:
+                    self.trace.append(TraceEvent(role=role, stage='expert_stale_dropped',
+                        input_sha256=self.cache_inputs[key], output={'signal': signal, 'changed': changed}))
+                    self.stale_dropped.add(key)
+                continue
+            reads = tuple(t.name for t in tools if t.kind == ToolKind.READ and
+                          (self.read_tools is None or t.name in self.read_tools)) if self.read else ()
             request = ExpertRequest(role=role, question=question, allowed_tools=reads, user_id=state.user_id,
-                                    order_ids=tuple(sorted(state.allowed_orders)), max_reads=3 if reads else 0)
+                                    order_ids=tuple(sorted(state.allowed_orders)), max_reads=5 if reads else 0)
+            self.consults += 1
             result = self.consult(architecture, request, messages, tools, policy)
+            event = self.trace[-1]
+            if previous:
+                event.output.update(refresh_of=self.cache_inputs[key], changed=changed)
+            extra = [row['result'] for row in event.output['read_log'] if row['status'] == 'executed']
             self.cache[key] = {'signal': signal, 'role': role, 'question': question,
+                               'seen': evidence_seen(messages, extra),
                                **result.model_dump(mode='json', exclude={'claims'})}
-        return list(self.cache.values())
+            self.cache_inputs[key] = event.input_sha256
+            self.stale_dropped.discard(key)
+        return [{k: v for k, v in entry.items() if k != 'seen'}
+                for key, entry in self.cache.items() if key not in self.stale_dropped]
 
     def in_scope(self, call, request, kinds):
         if call.name not in request.allowed_tools or kinds.get(call.name) != ToolKind.READ:
@@ -123,6 +181,7 @@ class ExpertService:
         kinds = {t.name: t.kind for t in tools}
         offered = tuple(t for t in tools if t.name in request.allowed_tools)
         used = 0
+        read_log = []
         extra = []  # Results of the specialist's own reads; valid grounding for its answer.
         started = monotonic()
         reason = None
@@ -134,18 +193,29 @@ class ExpertService:
                     break
                 if used >= request.max_reads:
                     raise ValueError('Specialist exceeded its read limit')
-                call = output.calls[0]
-                used += 1
-                if self.in_scope(call, request, kinds):
-                    content = self.read(call)
-                    extra.append(content)
-                else:
-                    content = 'Rejected: outside the authenticated customer and permitted read tools.'
-                    self.rejections.append(call.model_dump(mode='json'))
-                inputs = [*inputs, {'role': 'assistant', 'content': None, 'tool_calls': [
+                inputs = [*inputs, {'role': 'assistant', 'content': output.text or None, 'tool_calls': [
                     {'id': call.id, 'type': 'function',
-                     'function': {'name': call.name, 'arguments': json.dumps(call.arguments)}}]},
-                    {'role': 'tool', 'tool_call_id': call.id, 'content': content}]
+                     'function': {'name': call.name, 'arguments': json.dumps(call.arguments)}}
+                    for call in output.calls]}]
+                for call in output.calls:
+                    if used >= request.max_reads:
+                        status, content = 'limit', 'Rejected: read limit reached.'
+                    else:
+                        used += 1
+                        if not self.in_scope(call, request, kinds):
+                            status = 'rejected'
+                            content = 'Rejected: outside the authenticated customer and permitted read tools.'
+                            self.rejections.append(call.model_dump(mode='json'))
+                        else:
+                            try:
+                                content = self.read(call)
+                                status = 'executed'
+                                extra.append(content)
+                            except Exception as exc:
+                                status, content = 'error', 'Error: ' + str(exc)
+                    read_log.append({'tool': call.name, 'arguments': call.arguments,
+                                     'status': status, 'result': content})
+                    inputs.append({'role': 'tool', 'tool_call_id': call.id, 'content': content})
             result = parse(output.text)
             result, reason = self.grounded(result, public, extra, policy)
             if used >= request.max_reads > 0:
@@ -157,17 +227,76 @@ class ExpertService:
         self.trace.append(TraceEvent(
             role=request.role, stage='expert_' + request.role, model=architecture.expert.model,
             input_sha256=sha256(json.dumps(inputs, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
-            output={**result.model_dump(mode='json'), 'reads': used}, elapsed_seconds=monotonic() - started, reason=reason))
+            output={**result.model_dump(mode='json'), 'reads': len(extra), 'read_log': read_log},
+            elapsed_seconds=monotonic() - started, reason=reason))
         return result
 
     @staticmethod
     def grounded(result, public, extra, policy):
-        """Drop candidates and quotes the records do not contain; never repair them."""
-        records = ' '.join([m.get('content') or '' for m in public if m['role'] == 'tool'] + extra)
+        """Ground identities/quotes and derive candidate prices from loaded records."""
+        conversation = [m.get('content') or '' for m in public if m['role'] == 'tool']
+        records = ' '.join(conversation + extra)
         squeeze = lambda s: ' '.join(s.split())
         flat = squeeze(policy)
         candidates = tuple(c for c in result.candidates if str(c.get('id', '')) and str(c['id']) in records)
         quotes = tuple(q for q in result.policy_quotes if q.strip() and squeeze(q) in flat)
         dropped = len(result.candidates) - len(candidates) + len(result.policy_quotes) - len(quotes)
+        candidates, corrected = reprice(candidates, conversation, extra)
+        reasons = ([f'dropped_ungrounded:{dropped}'] if dropped else [])
+        if corrected:
+            reasons.append(f'price_corrected:{corrected}')
         return (result.model_copy(update={'candidates': candidates, 'policy_quotes': quotes, 'claims': ()}),
-                f'dropped_ungrounded:{dropped}' if dropped else None)
+                ';'.join(reasons) or None)
+
+
+def money(value):
+    try:
+        amount = Decimal(str(value))
+        return amount.quantize(Decimal('0.01')) if amount.is_finite() else None
+    except (InvalidOperation, ValueError):
+        return None
+
+
+def reprice(candidates, conversation, extra):
+    records = read_records([*conversation, *extra])
+    variants, items = {}, {}
+    for key, record in records.items():
+        if key.startswith('product:'):
+            variants.update({str(item): {**variant, 'product_id': record['product_id']}
+                             for item, variant in record['variants'].items() if isinstance(variant, dict)})
+        else:
+            items.update({str(item['item_id']): money(item.get('price')) for item in record.get('items') or []
+                          if isinstance(item, dict) and 'item_id' in item})
+    public_records = ' '.join(conversation)
+    checked, corrected = [], 0
+    for candidate in candidates:
+        candidate = dict(candidate)
+        ident = str(candidate['id'])
+        candidate['origin'] = 'conversation' if ident in public_records else 'specialist_read'
+        variant = variants.get(ident)
+        prices = {}
+        if variant:
+            price = money(variant.get('price'))
+            candidate['available'] = variant.get('available')
+            if price is not None:
+                prices['price'] = price
+                old = items.get(str(candidate.get('replaces', '')))
+                if old is not None:
+                    prices['price_difference'] = price - old
+        wrong = False
+        for field in ('price', 'price_difference'):
+            if field in prices:
+                try:
+                    supplied = Decimal(str(candidate[field])) if field in candidate else None
+                    wrong |= supplied is not None and (not supplied.is_finite() or
+                              abs(supplied - prices[field]) > Decimal('0.005'))
+                except InvalidOperation:
+                    wrong = True
+                candidate[field] = float(prices[field])
+            else:
+                candidate.pop(field, None)
+        if 'price_difference' not in prices:
+            candidate.pop('replaces', None)
+        corrected += bool(wrong)
+        checked.append(candidate)
+    return tuple(checked), corrected

@@ -96,7 +96,7 @@ class ExpertRequest(Record):
     allowed_tools: tuple[str, ...]
     user_id: str
     order_ids: tuple[str, ...]
-    max_reads: int = Field(default=3, ge=0, le=8)
+    max_reads: int = Field(default=5, ge=0, le=8)
 
 
 class ExpertClaim(Record):

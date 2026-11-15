@@ -1,0 +1,2735 @@
+{
+  "mode": "offline recorded-message replay; no network or model calls",
+  "kernel_version": "aftercare-kernel-v3",
+  "summary_sha256": "a174b610e2e4aa47b36c1a02e5209473405fb5279265653349fae7dfcc29892b",
+  "limits": {
+    "old_consults": 3,
+    "new_consults": 5
+  },
+  "limitations": "Scheduling is replayed before each recorded assistant turn. Historical private reads are verified to be zero; refreshed seen sets use only public records. No new specialist answers, private reads or changed executor actions are simulated. Frozen outcomes are unchanged; these counts do not measure v3 success rates.",
+  "counts": {
+    "M1": {
+      "tasks": 40,
+      "signal_tasks": 8,
+      "old_consults": 8,
+      "new_consults": 22,
+      "recorded_consults": 8,
+      "stale_dropped": 2,
+      "stale_tasks": [
+        {
+          "task": "36",
+          "changed": [
+            "order:#W9348897",
+            "product:2524789262",
+            "product:6817146515",
+            "product:9523456873",
+            "product:9743693396"
+          ]
+        },
+        {
+          "task": "38",
+          "changed": [
+            "order:#W9348897",
+            "product:2524789262",
+            "product:6817146515",
+            "product:9523456873",
+            "product:9743693396"
+          ]
+        },
+        {
+          "task": "42",
+          "changed": [
+            "order:#W4082615"
+          ]
+        },
+        {
+          "task": "49",
+          "changed": [
+            "order:#W3470184"
+          ]
+        },
+        {
+          "task": "51",
+          "changed": [
+            "order:#W4689314"
+          ]
+        },
+        {
+          "task": "77",
+          "changed": [
+            "order:#W1671835"
+          ]
+        },
+        {
+          "task": "97",
+          "changed": [
+            "order:#W6750959"
+          ]
+        }
+      ]
+    },
+    "M2": {
+      "tasks": 40,
+      "signal_tasks": 14,
+      "old_consults": 18,
+      "new_consults": 38,
+      "recorded_consults": 18,
+      "stale_dropped": 4,
+      "stale_tasks": [
+        {
+          "task": "36",
+          "changed": [
+            "order:#W9348897",
+            "product:2524789262",
+            "product:6817146515",
+            "product:9523456873",
+            "product:9743693396"
+          ]
+        },
+        {
+          "task": "38",
+          "changed": [
+            "order:#W9348897",
+            "product:2524789262",
+            "product:6817146515",
+            "product:9523456873",
+            "product:9743693396"
+          ]
+        },
+        {
+          "task": "42",
+          "changed": [
+            "order:#W4082615"
+          ]
+        },
+        {
+          "task": "49",
+          "changed": [
+            "order:#W3470184"
+          ]
+        },
+        {
+          "task": "51",
+          "changed": [
+            "order:#W4689314"
+          ]
+        },
+        {
+          "task": "55",
+          "changed": [
+            "order:#W4597054",
+            "order:#W4836353",
+            "order:#W7342738"
+          ]
+        },
+        {
+          "task": "56",
+          "changed": [
+            "order:#W4284542"
+          ]
+        },
+        {
+          "task": "64",
+          "changed": [
+            "order:#W7464385"
+          ]
+        },
+        {
+          "task": "65",
+          "changed": [
+            "product:3377618313"
+          ]
+        },
+        {
+          "task": "74",
+          "changed": [
+            "order:#W5166363"
+          ]
+        },
+        {
+          "task": "77",
+          "changed": [
+            "order:#W1671835"
+          ]
+        },
+        {
+          "task": "97",
+          "changed": [
+            "order:#W6750959"
+          ]
+        }
+      ]
+    }
+  },
+  "details_36_38_M2": [
+    {
+      "task": "36",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 5,
+      "stale_dropped": 1,
+      "changed": [
+        "order:#W9348897",
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 22,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 26,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 30,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 38,
+          "event": "expert_stale_dropped",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "order:#W9348897"
+          ]
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "1b727cfe919e4ced35773c6479d5ecae25f8a804d3cb3feddd3bf0db29b1dd41"
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 5,
+      "stale_dropped": 1,
+      "changed": [
+        "order:#W9348897",
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 26,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 38,
+          "event": "expert_stale_dropped",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "order:#W9348897"
+          ]
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "c88a69325b831b3cacfed922aef85aa1955a95922111a59818cc8a7eceed3f0b"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "task": "5",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "9",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "12",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "17",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "18",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "26",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "27",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "32",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "33",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "36",
+      "arm": "M1",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 5,
+      "stale_dropped": 1,
+      "changed": [
+        "order:#W9348897",
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 16,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 20,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 32,
+          "event": "expert_stale_dropped",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "order:#W9348897"
+          ]
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "d24652b011559a3859b6a2ac3e6156443e4dd8d8cff0732fc6d193f8140402e1"
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "M1",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 5,
+      "stale_dropped": 1,
+      "changed": [
+        "order:#W9348897",
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 16,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 20,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 32,
+          "event": "expert_stale_dropped",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "order:#W9348897"
+          ]
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "29ea23c12101513ea740d121bc27f30172e85efdfcb2f946ff4fe98508e49d3e"
+      ]
+    },
+    {
+      "task": "39",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "40",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "42",
+      "arm": "M1",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W4082615"
+      ],
+      "events": [
+        {
+          "message_index": 28,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            23
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 32,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            23
+          ],
+          "changed": [
+            "order:#W4082615"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "36454ec5cafda1838344a56912b8f1cfba0bc44e687352316ae2516ba5e231d7"
+      ]
+    },
+    {
+      "task": "45",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "49",
+      "arm": "M1",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W3470184"
+      ],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [
+            "order:#W3470184"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "9c768ac467dd22133593b1974141e63753df9633fc06407c8c220fb5a43e5a94"
+      ]
+    },
+    {
+      "task": "51",
+      "arm": "M1",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W4689314"
+      ],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "refresh",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "changed": [
+            "order:#W4689314"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "2a51e4a96b51472ac4f3f1966c88a3f48bea83e75cf77a88cf0a3eb35b5f33b2"
+      ]
+    },
+    {
+      "task": "53",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "55",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "56",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "60",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "61",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "62",
+      "arm": "M1",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 16,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            13
+          ],
+          "changed": [],
+          "consult_number": 1
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "7bc8580eb5407953f201c2094c41966474bb7a98348d6e1f2b39e69d1145ae3c"
+      ]
+    },
+    {
+      "task": "64",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "65",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "68",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "70",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "71",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "74",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "77",
+      "arm": "M1",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W1671835"
+      ],
+      "events": [
+        {
+          "message_index": 12,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            3
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 16,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            3
+          ],
+          "changed": [
+            "order:#W1671835"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "1c3445a406f2c2190132cae2addf6a30103e7df6ebf4ead4ded1e011c9e09aba"
+      ]
+    },
+    {
+      "task": "79",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "86",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "90",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "94",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "97",
+      "arm": "M1",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 3,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W6750959"
+      ],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 20,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [
+            "order:#W6750959"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [
+            "order:#W6750959"
+          ],
+          "consult_number": 3
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "74c90440c8963e5ac754bb3a7b7486ae9dc0bb854f77c4ec56d224f18f03989a"
+      ]
+    },
+    {
+      "task": "100",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "101",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "102",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "108",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "111",
+      "arm": "M1",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "5",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "9",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "12",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "17",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "18",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "26",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "27",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "32",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "33",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "36",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 5,
+      "stale_dropped": 1,
+      "changed": [
+        "order:#W9348897",
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 22,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 26,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 30,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 38,
+          "event": "expert_stale_dropped",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "order:#W9348897"
+          ]
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "1b727cfe919e4ced35773c6479d5ecae25f8a804d3cb3feddd3bf0db29b1dd41"
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 5,
+      "stale_dropped": 1,
+      "changed": [
+        "order:#W9348897",
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 26,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 38,
+          "event": "expert_stale_dropped",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "order:#W9348897"
+          ]
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "c88a69325b831b3cacfed922aef85aa1955a95922111a59818cc8a7eceed3f0b"
+      ]
+    },
+    {
+      "task": "39",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "40",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "42",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W4082615"
+      ],
+      "events": [
+        {
+          "message_index": 28,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            25
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 32,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            25
+          ],
+          "changed": [
+            "order:#W4082615"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "1627fc489d8fa4f29c8847b11b0ec14d29f6ff9a141befffc58df82f4f39ef05"
+      ]
+    },
+    {
+      "task": "45",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "49",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W3470184"
+      ],
+      "events": [
+        {
+          "message_index": 26,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [
+            "order:#W3470184"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "712c90920370f316bacd8d2f961a3da7d13564d5a95498f20ed4f4c1e9da995d"
+      ]
+    },
+    {
+      "task": "51",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 3,
+      "new_consults": 5,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W4689314"
+      ],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 16,
+          "event": "consult",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "changed": [],
+          "consult_number": 2
+        },
+        {
+          "message_index": 20,
+          "event": "refresh",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "changed": [
+            "order:#W4689314"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 20,
+          "event": "refresh",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "changed": [
+            "order:#W4689314"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4689314",
+            "return requested"
+          ],
+          "changed": [],
+          "consult_number": 5
+        }
+      ],
+      "recorded_consults": 3,
+      "recorded_input_sha256": [
+        "5cc18d33eac9d02b373b4bbe68580140450198bd3e03269d533535d137bc1ace",
+        "f39c771b1264244700f57d152da2c33fa72a0e452b33c69edef359faffe95905",
+        "48eba8a84c0fb8b600931ed471387908251bbc26047ad3919bd556aff1d21dec"
+      ]
+    },
+    {
+      "task": "53",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "55",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 3,
+      "new_consults": 5,
+      "stale_dropped": 2,
+      "changed": [
+        "order:#W4597054",
+        "order:#W4836353",
+        "order:#W7342738"
+      ],
+      "events": [
+        {
+          "message_index": 24,
+          "event": "consult",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "changed": [
+            "order:#W4836353"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 28,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4836353",
+            "cancelled"
+          ],
+          "changed": [],
+          "consult_number": 3
+        },
+        {
+          "message_index": 30,
+          "event": "refresh",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "changed": [
+            "order:#W7342738"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 30,
+          "event": "refresh",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4836353",
+            "cancelled"
+          ],
+          "changed": [
+            "order:#W7342738"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 36,
+          "event": "expert_stale_dropped",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "changed": [
+            "order:#W4597054"
+          ]
+        },
+        {
+          "message_index": 36,
+          "event": "expert_stale_dropped",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4836353",
+            "cancelled"
+          ],
+          "changed": [
+            "order:#W4597054"
+          ]
+        }
+      ],
+      "recorded_consults": 3,
+      "recorded_input_sha256": [
+        "4bde5f4e528fd3ba9f03590b012c5ab1cc538e93edb55114fb318f1806e207aa",
+        "1fb9e87e1c0579af322c15724453ac4c71a318b6eb0c4cd7a8412b2df2afbf56",
+        "a922444e027bc3139109ed026c7fcb46e870a76572ec60fce8381683e01be8ef"
+      ]
+    },
+    {
+      "task": "56",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W4284542"
+      ],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "order:#W4284542"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "09535e665747b582ddf399bc9607fcb9caa4ff64e60fab2b0b6f6a1322151c31"
+      ]
+    },
+    {
+      "task": "60",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "61",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "62",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 18,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            15
+          ],
+          "changed": [],
+          "consult_number": 1
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "4c87071c166cbcffc87641c1ef5e1e8f51f97e42c00aeba4a19548491afbeced"
+      ]
+    },
+    {
+      "task": "64",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W7464385"
+      ],
+      "events": [
+        {
+          "message_index": 12,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [
+            "order:#W7464385"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "04c20e201f23b7a59c370a23893b06f5779d7626a387cb06b9d55734480be7ea"
+      ]
+    },
+    {
+      "task": "65",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "product:3377618313"
+      ],
+      "events": [
+        {
+          "message_index": 22,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            21
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            21
+          ],
+          "changed": [
+            "product:3377618313"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "e0ff54f08549ef84a15c37847c8993dbd9a3a61e2123a598d286def875071712"
+      ]
+    },
+    {
+      "task": "68",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "70",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "71",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "74",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W5166363"
+      ],
+      "events": [
+        {
+          "message_index": 24,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W3189752",
+            "cancelled"
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W3189752",
+            "cancelled"
+          ],
+          "changed": [
+            "order:#W5166363"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "42f85ede227f888b27e5bde3500bb11c0dced92eeb5301ee56b8f776c67106c9"
+      ]
+    },
+    {
+      "task": "77",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W1671835"
+      ],
+      "events": [
+        {
+          "message_index": 12,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [
+            "order:#W1671835"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "36f532cb5e5a4ed66d5b24834b906391aade5e0debedf3f0ee308f86ef945790"
+      ]
+    },
+    {
+      "task": "79",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "86",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "90",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "94",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W2905754",
+            "exchange requested"
+          ],
+          "changed": [],
+          "consult_number": 1
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "ebae63d167acca1786c5de7f710401b2be8e085382a472c9a939bd89bc2dd7be"
+      ]
+    },
+    {
+      "task": "97",
+      "arm": "M2",
+      "has_signal": true,
+      "old_consults": 1,
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [
+        "order:#W6750959"
+      ],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [
+            "order:#W6750959"
+          ],
+          "consult_number": 2
+        }
+      ],
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "e9ad0751c7b1db592541d53cf541f3d4d0c8c3ed95c80065ccaa3b976479ff59"
+      ]
+    },
+    {
+      "task": "100",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "101",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "102",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "108",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "111",
+      "arm": "M2",
+      "has_signal": false,
+      "old_consults": 0,
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    }
+  ],
+  "sources": [
+    {
+      "task": "5",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/5-M1.json",
+      "sha256": "4aa2b052422f331080dad2fec54e5716f7faab99331b68692f17f34feae793cc"
+    },
+    {
+      "task": "9",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/9-M1.json",
+      "sha256": "69777087419ed70cc01585b4c05d796c732b126be1c5d71746bf41e5248710ec"
+    },
+    {
+      "task": "12",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/12-M1.json",
+      "sha256": "5ba39b0f572c5979357fcee8225271db2d23f649a3b41ae36084430a1c7a6665"
+    },
+    {
+      "task": "17",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/17-M1.json",
+      "sha256": "08e47040340054245db34de0ef69628f6fc05ccfdffd3af5dcc1851a94a3237f"
+    },
+    {
+      "task": "18",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/18-M1.json",
+      "sha256": "386acb1a61464f150ca918e6c95e666077c9d50cc2a03392071f106249431d52"
+    },
+    {
+      "task": "26",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/26-M1.json",
+      "sha256": "84b58a70067ccc9d89a7e89e9413dbf2afdc6cf31072c96954139c41f4d392da"
+    },
+    {
+      "task": "27",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/27-M1.json",
+      "sha256": "dc18e6f6746780fa50075eaee1f4fec658fcea43b99401b88e3e42d7e03d52d1"
+    },
+    {
+      "task": "32",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/32-M1.json",
+      "sha256": "f7624c9ec7fa07cee6b30d8f0e3200da140f535cfecc26e5c5e3e343b52a724e"
+    },
+    {
+      "task": "33",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/33-M1.json",
+      "sha256": "3722b1630d0671210c9cd82bf3a97626c083fdae0d43ffeea7aeeb1c8d7e0e7b"
+    },
+    {
+      "task": "36",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/36-M1.json",
+      "sha256": "2298a1fcebf6b9221766c23e8d29c0e8af66e93c13d4be43db2b197ad189641b"
+    },
+    {
+      "task": "38",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/38-M1.json",
+      "sha256": "ebcde743504797ae53370860a42703a92e669f21570651f80fd934b0cb532e3f"
+    },
+    {
+      "task": "39",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/39-M1.json",
+      "sha256": "4af243324815fdb89d168fde0afb7a1198b8978f868ea11fd314b8320b59dce8"
+    },
+    {
+      "task": "40",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/40-M1.json",
+      "sha256": "c244595e498d735a401d3df4dfcffccf61e86922a799441054cd6cae63e86ec3"
+    },
+    {
+      "task": "42",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113.repair/official/42-M1.json",
+      "sha256": "4341adb0d814706ce2207b30324413c8ce78c73a589479f93d6e321bff43e777"
+    },
+    {
+      "task": "45",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/45-M1.json",
+      "sha256": "5aa28f7326151942f663f475d5fd04880ce502749a75dd975d06ba6494a90287"
+    },
+    {
+      "task": "49",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/49-M1.json",
+      "sha256": "f5905a0da4eb9a523d3c897ceda404e778aa8652a17fdf569c9d509fa02bb3db"
+    },
+    {
+      "task": "51",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/51-M1.json",
+      "sha256": "9ef8ee019a15d4ee8a1ae720e91d0b4c7dbd40fd9ff6c335969e54bbd499ca6c"
+    },
+    {
+      "task": "53",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/53-M1.json",
+      "sha256": "9f31c4b8bd69d96cfc5ded2968a85c205a63ad1865bd8e58bf2210482ef7595b"
+    },
+    {
+      "task": "55",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/55-M1.json",
+      "sha256": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d"
+    },
+    {
+      "task": "56",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/56-M1.json",
+      "sha256": "0439ca3dc5f6effb0c42e790c7affc26e284fbecd024ab3e7c6077b77f1e89d8"
+    },
+    {
+      "task": "60",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/60-M1.json",
+      "sha256": "ff7168ba78e4fa5878ba08bff22747e24f1630f7f09f9973efb81f88ead437d8"
+    },
+    {
+      "task": "61",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/61-M1.json",
+      "sha256": "f8f940a16b939ab9ea58e9defad723990355837456f49e611208e3fb14a85b2c"
+    },
+    {
+      "task": "62",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/62-M1.json",
+      "sha256": "b50b62d01e5a7cbbab58619276c9e9dd1ef991ee86bb39f04ce1c50830a35b0d"
+    },
+    {
+      "task": "64",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/64-M1.json",
+      "sha256": "a79411b1b2d79acc5d298a990229956747278c45169e08bad9fd9a9ed139c6f5"
+    },
+    {
+      "task": "65",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/65-M1.json",
+      "sha256": "56505e213d236921ff0d3a516c6330fb20ca62411c31740aeb524f971701379a"
+    },
+    {
+      "task": "68",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/68-M1.json",
+      "sha256": "df1aafb4a55c71ad8b47a8783a58ebaf600c42959bdee009eb9d18fd6a10a939"
+    },
+    {
+      "task": "70",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/70-M1.json",
+      "sha256": "02e3e4fc7ad21f8b526e73e7f5f976f4b0985dc586574c3812e59330b818f145"
+    },
+    {
+      "task": "71",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/71-M1.json",
+      "sha256": "f932c7128585886d692c383e9f7c77e8877ce2488b075226a3e47f8ea32a5cb5"
+    },
+    {
+      "task": "74",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/74-M1.json",
+      "sha256": "a51380a80fef6e3f9f4db02243db8af1ea0ba46eea3704a8c081e024c33b9bf7"
+    },
+    {
+      "task": "77",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/77-M1.json",
+      "sha256": "85bce81992d28af8a94ae1cf34048da367b2ced39d5d83a4314b06e71f589e18"
+    },
+    {
+      "task": "79",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/79-M1.json",
+      "sha256": "07f1ad36666b7d6c43dadf38cbfe6e8b5bde062d5058049a7405de0ea4b4d50a"
+    },
+    {
+      "task": "86",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/86-M1.json",
+      "sha256": "164da7e4d21ae05ab2707389ef6bf18198cd7e7cc6dc09f822813db4b71c06c0"
+    },
+    {
+      "task": "90",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/90-M1.json",
+      "sha256": "6c17a11af93139ae16e83c4710cac7319fdf76abb125e673695f8ded8d242cba"
+    },
+    {
+      "task": "94",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/94-M1.json",
+      "sha256": "41035489e1527bcc5b787fc36457380b2f66a92d87cc8e6ba95de0cec726ce28"
+    },
+    {
+      "task": "97",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/97-M1.json",
+      "sha256": "4370bcebe6954becf573629877c40909e933b945c0807532074bc00a6f0178ce"
+    },
+    {
+      "task": "100",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/100-M1.json",
+      "sha256": "37cc2301452153c1dd7225e102bd3905269e5d76c1b0cd0ce913dde0c9b3b8ad"
+    },
+    {
+      "task": "101",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/101-M1.json",
+      "sha256": "a43600ac22ee36039e30a584edacf93e247f97b6c68ab5ccd956051069455bcf"
+    },
+    {
+      "task": "102",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/102-M1.json",
+      "sha256": "c14d7b99c63e5df2216e100f0f6716be27cd551654322f1d0c14a2ffe7e4b3bc"
+    },
+    {
+      "task": "108",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/108-M1.json",
+      "sha256": "acb4637a93cf8b1a1e0a84a0bb54afef96a7d166acf93111659ecf79f938b744"
+    },
+    {
+      "task": "111",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/111-M1.json",
+      "sha256": "de3ad89becbbe419aef59e7689058836afbe20eb1eff242d3403ac0487309a73"
+    },
+    {
+      "task": "5",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/5-M2.json",
+      "sha256": "1823c6d629d61e07a707d90f86a20a826bcb62db19d0523e48b4fe493fa12852"
+    },
+    {
+      "task": "9",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/9-M2.json",
+      "sha256": "dc5902ce7c96ba5ef9877c199fcd621eb2e391448822beadf11e6d17df3fe83e"
+    },
+    {
+      "task": "12",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/12-M2.json",
+      "sha256": "3e22d26b5290ea0a851771d398b6b77b6eea543b2294c6639fb053ba5e27f00e"
+    },
+    {
+      "task": "17",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/17-M2.json",
+      "sha256": "2baf804c36de6a23fee549e6ed574e33c399b6d0f0e561cec0b1ee0dcdae465a"
+    },
+    {
+      "task": "18",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/18-M2.json",
+      "sha256": "6acbeb58ceee612accc55d0242a7de641e37ed8c3ab296b23a02242fa21b3fc1"
+    },
+    {
+      "task": "26",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/26-M2.json",
+      "sha256": "21e4068fc8b8838c2c82ce07e3ee9d5a9bfc63b71f98523506c2d0d72fe104ad"
+    },
+    {
+      "task": "27",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/27-M2.json",
+      "sha256": "c83538bdcb27edc83f46e87b7103878dc115c445fb29efe36c20329e1e909168"
+    },
+    {
+      "task": "32",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/32-M2.json",
+      "sha256": "fb2bbc8ddd52d321f76d488401c02d32af6557e79bc00ebdff4b0121fcb5e87b"
+    },
+    {
+      "task": "33",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/33-M2.json",
+      "sha256": "11da4c6bcc2aea94c42d64430af71a657dae41d1a5093a94695a3fc4cb92b164"
+    },
+    {
+      "task": "36",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/36-M2.json",
+      "sha256": "0fac77d20ea21b3250740e1aba333bb6c6552d1446b643adfb15b48a3dc0686f"
+    },
+    {
+      "task": "38",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/38-M2.json",
+      "sha256": "9e6a5a1404eedb23745e06d3a47982a7ba3fd1c646af8eb463076774d62511be"
+    },
+    {
+      "task": "39",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/39-M2.json",
+      "sha256": "c595697e148e532658d5c9744156b6733d8edb5535d6cb19e59ff3776293b32b"
+    },
+    {
+      "task": "40",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/40-M2.json",
+      "sha256": "234b9cbff184cabb5e87200c68df0434866ad6621d2f4c0ae1247738812503e3"
+    },
+    {
+      "task": "42",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/42-M2.json",
+      "sha256": "cf2131d5f44053e94a312fc86a8549f55d6a8600880eb514d0285aa7c2ac9e88"
+    },
+    {
+      "task": "45",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/45-M2.json",
+      "sha256": "49017410fbf3e64edacfdaa7ec6d235a619427dc98558dfd538a24d282250b1f"
+    },
+    {
+      "task": "49",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/49-M2.json",
+      "sha256": "c96e13372b91cd465bfa3b09369e1612d338be942cf67dab534a2527ea5ccf5f"
+    },
+    {
+      "task": "51",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/51-M2.json",
+      "sha256": "ddfcf459e63125a50c9dbd6d7a53b8c8f29ef5682084ca21f6ebe2088500cb47"
+    },
+    {
+      "task": "53",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/53-M2.json",
+      "sha256": "c0a1018b0ed89298420579ddd4a6d78c95759070047fee2a2cbca7b1e23b1fc8"
+    },
+    {
+      "task": "55",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/55-M2.json",
+      "sha256": "1a2ff75725f3a6cbdca9e0da1a4ed4086e83d01f51f6b66b8e24682fc1fe4480"
+    },
+    {
+      "task": "56",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/56-M2.json",
+      "sha256": "584686659e84b5356be80e1b7d816457964fc2ce19c373a8483054b339397ae0"
+    },
+    {
+      "task": "60",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/60-M2.json",
+      "sha256": "b26826a9a496b1affd7312c7926e880177d6b6d3f5e72437009f9c782b90645d"
+    },
+    {
+      "task": "61",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/61-M2.json",
+      "sha256": "cc4ddddeb827279ea0893760513ae369770dfe99c0aa9413ee15000da63db3b7"
+    },
+    {
+      "task": "62",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/62-M2.json",
+      "sha256": "6440e1f366bd6c1af9af798704cbbf81b6444bacbe83fdcec6b66503b7209baf"
+    },
+    {
+      "task": "64",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/64-M2.json",
+      "sha256": "8b0a18cc3b0b01fc22baae2cadc30aace5ffdb16b19d6b1199e07b17eab67c91"
+    },
+    {
+      "task": "65",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/65-M2.json",
+      "sha256": "717eda3e6a6533bfb60e74f97a18f0e66fa831907c5609ba188eeb82e3b9c2c4"
+    },
+    {
+      "task": "68",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/68-M2.json",
+      "sha256": "67d5f0dd769fd9e050e89a3873d3d2c850b7d64c9f35ce38bab0a50ee20ae04c"
+    },
+    {
+      "task": "70",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/70-M2.json",
+      "sha256": "9e00073caa9bd4b84568937ca9609c9ef49f58c582bb3b89b865fb6f6c425a9e"
+    },
+    {
+      "task": "71",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/71-M2.json",
+      "sha256": "933684c341ac3b817d4833fff7242f542f5ed1def1a5f38e35dde1472c265626"
+    },
+    {
+      "task": "74",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/74-M2.json",
+      "sha256": "1ed7f4fcbbe08098ccfc1724bc9543f2df9cedf1cdd6711f22531bea5d441fa1"
+    },
+    {
+      "task": "77",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/77-M2.json",
+      "sha256": "5e7c78f6ac49f5b2c2dd60e8b4aed5f971c65a450afb42e50a88d71a837521bf"
+    },
+    {
+      "task": "79",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/79-M2.json",
+      "sha256": "318058ef0a9eede9ba0f0d7005b7c8b9075565a60da1ceda37fa025967d1e57c"
+    },
+    {
+      "task": "86",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/86-M2.json",
+      "sha256": "9f8336a7eb8258d62c9d738231213102a7b97ac5a816a8b48945f5d9ddf855b9"
+    },
+    {
+      "task": "90",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/90-M2.json",
+      "sha256": "31f08282227494200281d04b70b21c9f3c6e49bf00b039010252bc6301599b82"
+    },
+    {
+      "task": "94",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/94-M2.json",
+      "sha256": "35590530a1ee54b4db83db59842abec7ab631011b1fb74deb71ea75ed3a39421"
+    },
+    {
+      "task": "97",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/97-M2.json",
+      "sha256": "afa9a703a78fad8b651394a6317cbc9e279ed3639d65447ac736803df05e1ece"
+    },
+    {
+      "task": "100",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/100-M2.json",
+      "sha256": "68402029275e3b115202bebdbfb0e9a76429ec15d48593bef7a58e700f8f26f6"
+    },
+    {
+      "task": "101",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/101-M2.json",
+      "sha256": "a75d0f4c06580d58fdf627bf7e70e111227aef0c182a091dd5b6b6a1d25d0f8d"
+    },
+    {
+      "task": "102",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/102-M2.json",
+      "sha256": "4ec65dead5e7301ecea6ec7f6dae3e8477f58265bfe78699c2e2e1f1a3249a0a"
+    },
+    {
+      "task": "108",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/108-M2.json",
+      "sha256": "b967a6e79b7699428f518de04f0c0b40d91af0963f3b3c8ad7681eb93d476db4"
+    },
+    {
+      "task": "111",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/111-M2.json",
+      "sha256": "53dc255460cde7a5e6297a23493131a5ecacb996a90fa964f2e6f77ab1163338"
+    }
+  ]
+}

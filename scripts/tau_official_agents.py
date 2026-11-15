@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from tau2.agent.llm_agent import LLMAgent
 from tau2.data_model.message import AssistantMessage, MultiToolMessage, ToolCall as OfficialCall
+from tau2.environment.environment import Environment
 from tau2.utils.llm_utils import generate
 from aftercare.agent_kernel.contracts import StepProposal, ToolCall, ToolDefinition, ToolKind, architectures
 from aftercare.agent_kernel.engine import ExecutionKernel
@@ -69,10 +70,17 @@ class KernelRetailAgent(LLMAgent):
     def __init__(self, *, architecture, **kwargs):
         super().__init__(**kwargs)
         self.port=OfficialModelPort(self.tools,self.llm_args)
-        # Specialists get no read port here: every tool call stays in the official trajectory.
+        # Specialist reads stay outside the official trajectory, in private_trace read_log entries.
         self.kernel=ExecutionKernel(architectures()[architecture],self.port,guard=RetailGuards(),
-            reviewer=ProposalReviewer(self.port),experts=ExpertService(self.port))
+            reviewer=ProposalReviewer(self.port),experts=ExpertService(
+                self.port,read=self.private_read,read_tools=PRIVATE_READ_TOOLS))
         self.private_trace=[]
+
+    def private_read(self, call):
+        self_tools = {tool.name: tool for tool in self.tools}
+        if call.name not in PRIVATE_READ_TOOLS or call.name not in self_tools:
+            raise ValueError('Tool unavailable on the private read path: ' + call.name)
+        return Environment.to_json_str(self_tools[call.name](**call.arguments))
 
     def _generate_next_message(self, message, state):
         state.messages.extend(message.tool_messages if isinstance(message,MultiToolMessage) else [message])
