@@ -192,7 +192,10 @@ class RowTransport:
             for key, value in counts.items():
                 self.usage[role][key] += value
         if response.status != "completed":
-            raise IncompleteResponse(f"Responses status: {response.status}")
+            error = IncompleteResponse(f"Responses status: {response.status}")
+            # Settled failures still need a call-level receipt for offline counts.
+            self.budget.record_failure(call_id, error)
+            raise error
         function_calls = [
             {"id": part.call_id, "type": "function",
              "function": {"name": part.name, "arguments": part.arguments}}

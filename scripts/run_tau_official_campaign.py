@@ -149,10 +149,10 @@ def run_row(item, task, limits, budget, client, directory, deepseek_client=None,
 
 
 def new_campaign(args):
+    if args.scope == "confirm":
+        from kernel_e3_protocol import validate_options
+        validate_options(args)
     hashes, task_ids = load_official_source()
-    initialize_official()
-
-    from tau2.runner import build_environment, get_tasks
 
     if len(task_ids) != 40 or len(set(task_ids)) != 40:
         raise SystemExit("Unexpected official retail test population")
@@ -161,7 +161,14 @@ def new_campaign(args):
     from aftercare.agent_kernel.contracts import architectures as kernel_architectures
     if not set(names) <= {*ARCHITECTURES, *kernel_architectures()} or "S0" in names:
         raise SystemExit("Unknown or historical-only architecture")
-    if args.scope == "wiring":
+    if args.scope == "confirm":
+        from kernel_e3_protocol import KERNEL_VERSION, population
+        from aftercare.agent_kernel.contracts import VERSION
+        if VERSION != KERNEL_VERSION:
+            raise SystemExit("confirm requires aftercare-kernel-v3.1")
+        split = "train"
+        task_ids, excluded = population(SOURCE)
+    elif args.scope == "wiring":
         # Connection check only: training tasks, never scored against the test population.
         split = "train"
         task_ids = args.task_ids.split(",")
@@ -171,6 +178,9 @@ def new_campaign(args):
         raise SystemExit("Task selection is only available for wiring checks")
     else:
         task_ids = task_ids[:1] if args.scope == "smoke" else task_ids
+    initialize_official()
+    from tau2.runner import build_environment, get_tasks
+
     tasks = {task.id: task for task in get_tasks("retail", task_split_name=split, task_ids=task_ids)}
     raw_tasks = {
         task["id"]: task for task in
@@ -211,9 +221,11 @@ def new_campaign(args):
         "seed_scope": "official orchestrator; Responses does not expose a provider seed",
         "concurrency": args.concurrency,
     }
-    if args.scope == "wiring":
+    if args.scope in {"wiring", "confirm"}:
         from aftercare.agent_kernel.contracts import VERSION
         manifest["kernel_version"] = VERSION
+    if args.scope == "confirm":
+        manifest["excluded_development_task_ids"] = excluded
     execute_campaign(args.directory, manifest, tasks, args.live, args.max_usd)
 
 
@@ -309,8 +321,14 @@ def repair_campaign(args):
     if not schedule:
         raise SystemExit("No unscored technical failures are eligible for repair")
     hashes, official_ids = load_official_source()
+    split = "test"
+    if original.get("scope") == "confirm":
+        from kernel_e3_protocol import population, validate_manifest
+        official_ids, excluded = population(SOURCE)
+        validate_manifest(original, official_ids, excluded)
+        split = "train"
     checks = {
-        "benchmark": "tau2-bench", "domain": "retail", "split": "test", "revision": REVISION,
+        "benchmark": "tau2-bench", "domain": "retail", "split": split, "revision": REVISION,
         "dataset_sha256": hashes, "agent_model": AGENT, "user_model": USER, "review_model": REVIEW,
         "evaluation_type": "ALL", "reasoning_effort": "low",
         "agent_adapter_sha256": sha256((ROOT / "scripts/tau_official_agents.py").read_bytes()).hexdigest(),
@@ -335,6 +353,11 @@ def repair_campaign(args):
     limits = dict(original["budget"])
     limits["max_calls"] = len(schedule) * sum(limits[f"max_{role}_calls_per_run"]
                                                for role in ("agent", "user", "review"))
+    if original.get("scope") == "confirm":
+        reservations, _ = call_receipts(source / "calls.jsonl")
+        limits["max_calls"] = min(limits["max_calls"], original["budget"]["max_calls"] - len(reservations))
+        if limits["max_calls"] <= 0:
+            raise SystemExit("Original campaign call ceiling exhausted")
     limits["max_usd"] = float(args.max_usd)
     manifest = {
         **original, "scope": "repair", "task_ids": task_ids, "schedule": schedule,
@@ -348,7 +371,7 @@ def repair_campaign(args):
     initialize_official()
     from tau2.runner import get_tasks
 
-    tasks = {task.id: task for task in get_tasks("retail", task_split_name="test", task_ids=task_ids)}
+    tasks = {task.id: task for task in get_tasks("retail", task_split_name=split, task_ids=task_ids)}
     execute_campaign(directory, manifest, tasks, args.live, args.max_usd)
     if args.live and set(original.get("architectures", ARCHITECTURES)) <= set(ARCHITECTURES):
         write_repair_comparison(source, directory)
@@ -378,7 +401,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     actions = parser.add_subparsers(dest="action", required=True)
     run = actions.add_parser("run")
-    run.add_argument("--scope", choices=("smoke", "full", "wiring"), required=True)
+    run.add_argument("--scope", choices=("smoke", "full", "wiring", "confirm"), required=True)
     run.add_argument("--architectures", help="comma-separated; default is the first-round three")
     run.add_argument("--task-ids", help="comma-separated training task ids (wiring scope only)")
     run.add_argument("--directory", type=Path, required=True)
