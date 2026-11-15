@@ -1,0 +1,6587 @@
+{
+  "mode": "offline recorded-message replay; no network or model calls",
+  "kernel_version": "aftercare-kernel-v3.1",
+  "summary_sha256": "a174b610e2e4aa47b36c1a02e5209473405fb5279265653349fae7dfcc29892b",
+  "limits": {
+    "new_consults": 5
+  },
+  "hit_scope": "First hit per signal cache key; group signal counts count distinct questions, not hits. Indices are zero-based; snippets retain at most 60 characters on either side of each match.",
+  "limitations": "Triggers are inspected before each recorded assistant turn in all five groups; single-agent behavior is unchanged. Consultation scheduling is simulated only for M1/M2. Historical private reads are verified to be zero; refreshed seen sets use only public records. No new specialist answers, private reads or changed executor actions are simulated. recorded_consults is the historical baseline, not a replay with the expanded signals. Frozen outcomes are unchanged; these counts do not measure v3 success rates.",
+  "counts": {
+    "S1": {
+      "tasks": 40,
+      "signal_tasks": 11,
+      "signal_counts": {
+        "constrained_choice": 11,
+        "multi_order": 0,
+        "status_conflict": 0
+      }
+    },
+    "S2": {
+      "tasks": 40,
+      "signal_tasks": 12,
+      "signal_counts": {
+        "constrained_choice": 11,
+        "multi_order": 0,
+        "status_conflict": 1
+      }
+    },
+    "S1c": {
+      "tasks": 40,
+      "signal_tasks": 16,
+      "signal_counts": {
+        "constrained_choice": 13,
+        "multi_order": 1,
+        "status_conflict": 3
+      }
+    },
+    "M1": {
+      "tasks": 40,
+      "signal_tasks": 10,
+      "signal_counts": {
+        "constrained_choice": 9,
+        "multi_order": 0,
+        "status_conflict": 1
+      },
+      "new_consults": 18,
+      "recorded_consults": 8,
+      "stale_dropped": 0,
+      "self_write_rebases": 10,
+      "stale_task_count": 2,
+      "stale_tasks": [
+        {
+          "task": "36",
+          "changed": [
+            "product:2524789262",
+            "product:6817146515",
+            "product:9523456873",
+            "product:9743693396"
+          ]
+        },
+        {
+          "task": "38",
+          "changed": [
+            "product:2524789262",
+            "product:6817146515",
+            "product:9523456873",
+            "product:9743693396"
+          ]
+        }
+      ],
+      "v3_consults": 25
+    },
+    "M2": {
+      "tasks": 40,
+      "signal_tasks": 16,
+      "signal_counts": {
+        "constrained_choice": 12,
+        "multi_order": 2,
+        "status_conflict": 4
+      },
+      "new_consults": 33,
+      "recorded_consults": 18,
+      "stale_dropped": 0,
+      "self_write_rebases": 23,
+      "stale_task_count": 3,
+      "stale_tasks": [
+        {
+          "task": "36",
+          "changed": [
+            "product:2524789262",
+            "product:6817146515",
+            "product:9523456873",
+            "product:9743693396"
+          ]
+        },
+        {
+          "task": "38",
+          "changed": [
+            "product:2524789262",
+            "product:6817146515",
+            "product:9523456873",
+            "product:9743693396"
+          ]
+        },
+        {
+          "task": "65",
+          "changed": [
+            "product:2985987096",
+            "product:3377618313"
+          ]
+        }
+      ],
+      "v3_consults": 45
+    }
+  },
+  "details_36_38_M2": [
+    {
+      "task": "36",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "36",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "first_hit_message_index": 22,
+          "customer_utterance_snippet": "Can you switch all the items to their cheapest options? If that brings the total to $1,131 or less, please",
+          "customer_matches": [
+            {
+              "customer_message_index": 19,
+              "match": "cheapest",
+              "match_start": 38,
+              "match_end": 46,
+              "utterance_snippet": "Can you switch all the items to their cheapest options? If that brings the total to $1,131 or less, please"
+            }
+          ]
+        }
+      ],
+      "new_consults": 5,
+      "stale_dropped": 0,
+      "changed": [
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 22,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 26,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 30,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 38,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "records": [
+            "order:#W9348897"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 5,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "1b727cfe919e4ced35773c6479d5ecae25f8a804d3cb3feddd3bf0db29b1dd41"
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "38",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Okay, can you switch all the items to their cheapest options? Would that bring the total down to $950 or less?",
+          "customer_matches": [
+            {
+              "customer_message_index": 17,
+              "match": "cheapest",
+              "match_start": 44,
+              "match_end": 52,
+              "utterance_snippet": "Okay, can you switch all the items to their cheapest options? Would that bring the total down to $950 or less?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 5,
+      "stale_dropped": 0,
+      "changed": [
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 26,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 38,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "records": [
+            "order:#W9348897"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 5,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "c88a69325b831b3cacfed922aef85aa1955a95922111a59818cc8a7eceed3f0b"
+      ]
+    }
+  ],
+  "details_60_97_27": [
+    {
+      "task": "27",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "60",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "s earbuds in order W5061109 to blue. Please verify that the price is the same or lower, and get this resolved as soon as possible. I don’",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price is the same",
+              "match_start": 139,
+              "match_end": 156,
+              "utterance_snippet": "s earbuds in order W5061109 to blue. Please verify that the price is the same or lower, and get this resolved as soon as possible. I don’"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "97",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order to my NYC address. Th",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order to my NYC address. Th"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "27",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "60",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "my email address.\n\nPlease verify that the blue ones are the same price or lower, and get this resolved as soon as possible. If the",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same price",
+              "match_start": 194,
+              "match_end": 204,
+              "utterance_snippet": "my email address.\n\nPlease verify that the blue ones are the same price or lower, and get this resolved as soon as possible. If the"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "97",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order to my NYC address. Th",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order to my NYC address. Th"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "27",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "60",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": " W5061109 to blue. Please verify that the price will be the same or lower and get this resolved as soon as possible. I don’t remember",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same or lower",
+              "match_start": 157,
+              "match_end": 170,
+              "utterance_snippet": " W5061109 to blue. Please verify that the price will be the same or lower and get this resolved as soon as possible. I don’t remember"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "97",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s delivery address to",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s delivery address to"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "27",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "60",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "n order W5061109 to blue. Please verify explicitly that the price is the same or lower, and get this resolved as soon as possible. I don’",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price is the same",
+              "match_start": 150,
+              "match_end": 167,
+              "utterance_snippet": "n order W5061109 to blue. Please verify explicitly that the price is the same or lower, and get this resolved as soon as possible. I don’"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 10,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 16,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W5061109"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "97",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker on my LA order for the cheapest green one. I also want to change that order’s delivery addr",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker on my LA order for the cheapest green one. I also want to change that order’s delivery addr"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 20,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W6750959"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 22,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W6750959"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 2,
+      "v3_consults": 3,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "74c90440c8963e5ac754bb3a7b7486ae9dc0bb854f77c4ec56d224f18f03989a"
+      ]
+    },
+    {
+      "task": "27",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "60",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "as soon as possible, and verify that the blue ones cost the same or less.",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same or less",
+              "match_start": 228,
+              "match_end": 240,
+              "utterance_snippet": "as soon as possible, and verify that the blue ones cost the same or less."
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 10,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 16,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W5061109"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "97",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s shipping address to",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s shipping address to"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W6750959"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "e9ad0751c7b1db592541d53cf541f3d4d0c8c3ed95c80065ccaa3b976479ff59"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "task": "5",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "9",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "12",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "17",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "18",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "26",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "27",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "32",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "33",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "36",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "36",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Yes, please check the cheapest options for all the items. Can that bring the total down to",
+          "customer_matches": [
+            {
+              "customer_message_index": 17,
+              "match": "cheapest",
+              "match_start": 22,
+              "match_end": 30,
+              "utterance_snippet": "Yes, please check the cheapest options for all the items. Can that bring the total down to"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "38",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            15
+          ],
+          "first_hit_message_index": 18,
+          "customer_utterance_snippet": "Can you switch the items to their cheapest options and get the total down to $950?",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "cheapest",
+              "match_start": 34,
+              "match_end": 42,
+              "utterance_snippet": "Can you switch the items to their cheapest options and get the total down to $950?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "39",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "40",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "42",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "42",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            23
+          ],
+          "first_hit_message_index": 28,
+          "customer_utterance_snippet": "ordered? If it hasn’t shipped, I’d like to change it to the easiest one with the fewest pieces. It’s for my kid.",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "easiest",
+              "match_start": 95,
+              "match_end": 102,
+              "utterance_snippet": "ordered? If it hasn’t shipped, I’d like to change it to the easiest one with the fewest pieces. It’s for my kid."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "45",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "49",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "49",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "ess earbud by mistake and would like to exchange it for the cheapest earbud from the rest of my order. It has IPX7 water resista",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 87,
+              "match_end": 95,
+              "utterance_snippet": "ess earbud by mistake and would like to exchange it for the cheapest earbud from the rest of my order. It has IPX7 water resista"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "51",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "53",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "55",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "56",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "56",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            15
+          ],
+          "first_hit_message_index": 18,
+          "customer_utterance_snippet": "eep the other items. Can you change the air purifier to the cheapest one available and refund the difference to my gift card? It",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "cheapest",
+              "match_start": 72,
+              "match_end": 80,
+              "utterance_snippet": "eep the other items. Can you change the air purifier to the cheapest one available and refund the difference to my gift card? It"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "60",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "s earbuds in order W5061109 to blue. Please verify that the price is the same or lower, and get this resolved as soon as possible. I don’",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price is the same",
+              "match_start": 139,
+              "match_end": 156,
+              "utterance_snippet": "s earbuds in order W5061109 to blue. Please verify that the price is the same or lower, and get this resolved as soon as possible. I don’"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "61",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "61",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": " wireless earbuds in order W5061109 to blue, as long as the price is the same or lower. Could you help get that sorted as soon as possibl",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price is the same",
+              "match_start": 134,
+              "match_end": 151,
+              "utterance_snippet": " wireless earbuds in order W5061109 to blue, as long as the price is the same or lower. Could you help get that sorted as soon as possibl"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "62",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "62",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "n I thought. Are there any Bluetooth speakers available for under $100? If so, I’d like to remove this one and add the cheapest",
+          "customer_matches": [
+            {
+              "customer_message_index": 17,
+              "match": "under $",
+              "match_start": 79,
+              "match_end": 86,
+              "utterance_snippet": "n I thought. Are there any Bluetooth speakers available for under $100? If so, I’d like to remove this one and add the cheapest"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "64",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "64",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": " the highest-resolution waterproof camera I can get for the same price. Can you help me with that?",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same price",
+              "match_start": 112,
+              "match_end": 122,
+              "utterance_snippet": " the highest-resolution waterproof camera I can get for the same price. Can you help me with that?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "65",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "68",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "70",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "71",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "74",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "77",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "77",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            3
+          ],
+          "first_hit_message_index": 12,
+          "customer_utterance_snippet": "ace a new order, could I exchange my current bottle for the largest size available?",
+          "customer_matches": [
+            {
+              "customer_message_index": 3,
+              "match": "largest",
+              "match_start": 170,
+              "match_end": 177,
+              "utterance_snippet": "ace a new order, could I exchange my current bottle for the largest size available?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "79",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "86",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "90",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "94",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "97",
+      "arm": "S1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "S1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order to my NYC address. Th",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order to my NYC address. Th"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "100",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "101",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "102",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "108",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "111",
+      "arm": "S1",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "5",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "9",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "12",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "17",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "18",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "26",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "27",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "32",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "33",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "36",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "36",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "ez, ZIP 46236. Can you check if switching everything to the cheapest options would bring it down to $1,131?",
+          "customer_matches": [
+            {
+              "customer_message_index": 7,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ez, ZIP 46236. Can you check if switching everything to the cheapest options would bring it down to $1,131?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "38",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "It’s Daiki Sanchez, ZIP 46236. Can you check the most expensive item and its price? Also, could I switch the items to their",
+          "customer_matches": [
+            {
+              "customer_message_index": 7,
+              "match": "most expensive",
+              "match_start": 49,
+              "match_end": 63,
+              "utterance_snippet": "It’s Daiki Sanchez, ZIP 46236. Can you check the most expensive item and its price? Also, could I switch the items to their"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "39",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "40",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "42",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "42",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            23
+          ],
+          "first_hit_message_index": 28,
+          "customer_utterance_snippet": "ordered? If it hasn’t shipped, I’d like to change it to the easiest one with the fewest pieces. It’s for my kid, and they’re to",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "easiest",
+              "match_start": 95,
+              "match_end": 102,
+              "utterance_snippet": "ordered? If it hasn’t shipped, I’d like to change it to the easiest one with the fewest pieces. It’s for my kid, and they’re to"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "45",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "49",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "49",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "ater resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of my order. Can you help me with that",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 109,
+              "match_end": 117,
+              "utterance_snippet": "ater resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of my order. Can you help me with that"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "51",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "51",
+          "arm": "S2",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "u double-check that this is my camera before submitting the return?",
+          "customer_matches": [
+            {
+              "customer_message_index": 11,
+              "match": "return",
+              "match_start": 131,
+              "match_end": 137,
+              "utterance_snippet": "u double-check that this is my camera before submitting the return?"
+            }
+          ],
+          "order_id": "#W8855135"
+        }
+      ]
+    },
+    {
+      "task": "53",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "55",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "56",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "60",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "my email address.\n\nPlease verify that the blue ones are the same price or lower, and get this resolved as soon as possible. If the",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same price",
+              "match_start": 194,
+              "match_end": 204,
+              "utterance_snippet": "my email address.\n\nPlease verify that the blue ones are the same price or lower, and get this resolved as soon as possible. If the"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "61",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "61",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": " wireless earbuds in order W5061109 to blue, as long as the price is the same or lower. I don’t remember the email address I used. Could ",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price is the same",
+              "match_start": 133,
+              "match_end": 150,
+              "utterance_snippet": " wireless earbuds in order W5061109 to blue, as long as the price is the same or lower. I don’t remember the email address I used. Could "
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "62",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "62",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            15
+          ],
+          "first_hit_message_index": 18,
+          "customer_utterance_snippet": "n I thought. Are there any Bluetooth speakers available for less than $100? If so, I’d like to remove this one and add the cheapest",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "less than $",
+              "match_start": 79,
+              "match_end": 90,
+              "utterance_snippet": "n I thought. Are there any Bluetooth speakers available for less than $100? If so, I’d like to remove this one and add the cheapest"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "64",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "64",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 12,
+          "customer_utterance_snippet": " the highest-resolution waterproof camera I can get for the same price. Can you help me with that?",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same price",
+              "match_start": 112,
+              "match_end": 122,
+              "utterance_snippet": " the highest-resolution waterproof camera I can get for the same price. Can you help me with that?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "65",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "68",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "70",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "71",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "74",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "77",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "77",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            3
+          ],
+          "first_hit_message_index": 12,
+          "customer_utterance_snippet": "Okay, could I exchange my current bottle for the largest size instead? My name is Ivan Johnson, and my ZIP code is 9",
+          "customer_matches": [
+            {
+              "customer_message_index": 3,
+              "match": "largest",
+              "match_start": 49,
+              "match_end": 56,
+              "utterance_snippet": "Okay, could I exchange my current bottle for the largest size instead? My name is Ivan Johnson, and my ZIP code is 9"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "79",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "86",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "90",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "90",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Hmm, that’s over my budget, so I’d rather cancel the order. Please use “ordered by mis",
+          "customer_matches": [
+            {
+              "customer_message_index": 19,
+              "match": "budget",
+              "match_start": 20,
+              "match_end": 26,
+              "utterance_snippet": "Hmm, that’s over my budget, so I’d rather cancel the order. Please use “ordered by mis"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "94",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "97",
+      "arm": "S2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "S2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order to my NYC address. Th",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order to my NYC address. Th"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "100",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "101",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "102",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "108",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "111",
+      "arm": "S2",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "5",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "9",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "12",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "17",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "18",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "26",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "27",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "32",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "32",
+          "arm": "S1c",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W9373487",
+            "cancelled"
+          ],
+          "first_hit_message_index": 26,
+          "customer_utterance_snippet": "Cancel order #W9373487. No longer needed.",
+          "customer_matches": [
+            {
+              "customer_message_index": 21,
+              "match": "Cancel",
+              "match_start": 0,
+              "match_end": 6,
+              "utterance_snippet": "Cancel order #W9373487. No longer needed."
+            }
+          ],
+          "order_id": "#W9373487"
+        }
+      ]
+    },
+    {
+      "task": "33",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "36",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "36",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Okay, can you switch every item to its cheapest options? Would that bring the total down to $1,131 or less?",
+          "customer_matches": [
+            {
+              "customer_message_index": 17,
+              "match": "cheapest",
+              "match_start": 39,
+              "match_end": 47,
+              "utterance_snippet": "Okay, can you switch every item to its cheapest options? Would that bring the total down to $1,131 or less?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "38",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Can you switch all the items to their cheapest options and get the total down to $950?",
+          "customer_matches": [
+            {
+              "customer_message_index": 17,
+              "match": "cheapest",
+              "match_start": 38,
+              "match_end": 46,
+              "utterance_snippet": "Can you switch all the items to their cheapest options and get the total down to $950?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "39",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "40",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "42",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "42",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            23
+          ],
+          "first_hit_message_index": 26,
+          "customer_utterance_snippet": "g for it. Since it hasn't shipped, can you change it to the easiest one you have, with the fewest pieces?",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "easiest",
+              "match_start": 95,
+              "match_end": 102,
+              "utterance_snippet": "g for it. Since it hasn't shipped, can you change it to the easiest one you have, with the fewest pieces?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "45",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "49",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "49",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "ater resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of that order, with the same water res",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 109,
+              "match_end": 117,
+              "utterance_snippet": "ater resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of that order, with the same water res"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "51",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "51",
+          "arm": "S1c",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "Yes, return the digital camera from #W4689314 and refund it to the original payment method. Please procee",
+          "customer_matches": [
+            {
+              "customer_message_index": 9,
+              "match": "#W8855135",
+              "match_start": 19,
+              "match_end": 28,
+              "utterance_snippet": "I think it's order #W8855135, but I'm not 100% sure. Can you check?"
+            },
+            {
+              "customer_message_index": 15,
+              "match": "#W4689314",
+              "match_start": 36,
+              "match_end": 45,
+              "utterance_snippet": "Yes, return the digital camera from #W4689314 and refund it to the original payment method. Please procee"
+            }
+          ]
+        },
+        {
+          "task": "51",
+          "arm": "S1c",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4689314",
+            "return requested"
+          ],
+          "first_hit_message_index": 18,
+          "customer_utterance_snippet": "Yes, return the digital camera from #W4689314 and refund it to the orig",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "return",
+              "match_start": 5,
+              "match_end": 11,
+              "utterance_snippet": "Yes, return the digital camera from #W4689314 and refund it to the orig"
+            }
+          ],
+          "order_id": "#W4689314"
+        }
+      ]
+    },
+    {
+      "task": "53",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "55",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "56",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "56",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            15
+          ],
+          "first_hit_message_index": 18,
+          "customer_utterance_snippet": "Please change the air purifier to the cheapest available option and refund the difference to my gift card.",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "cheapest",
+              "match_start": 38,
+              "match_end": 46,
+              "utterance_snippet": "Please change the air purifier to the cheapest available option and refund the difference to my gift card."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "60",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": " W5061109 to blue. Please verify that the price will be the same or lower and get this resolved as soon as possible. I don’t remember",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same or lower",
+              "match_start": 157,
+              "match_end": 170,
+              "utterance_snippet": " W5061109 to blue. Please verify that the price will be the same or lower and get this resolved as soon as possible. I don’t remember"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "61",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "61",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": " wireless earbuds in order W5061109 to blue, as long as the price stays the same or is lower. I don’t remember my email address. Could you h",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price stays the same",
+              "match_start": 134,
+              "match_end": 154,
+              "utterance_snippet": " wireless earbuds in order W5061109 to blue, as long as the price stays the same or is lower. I don’t remember my email address. Could you h"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "62",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "62",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            15
+          ],
+          "first_hit_message_index": 18,
+          "customer_utterance_snippet": "Oh, I thought it was cheaper than that. Are there any Bluetooth speakers available for l",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "cheaper",
+              "match_start": 21,
+              "match_end": 28,
+              "utterance_snippet": "Oh, I thought it was cheaper than that. Are there any Bluetooth speakers available for l"
+            }
+          ]
+        },
+        {
+          "task": "62",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Yeah, let’s forget about changing it since none are under $100. Please keep the whole order as is. Can you confirm the ",
+          "customer_matches": [
+            {
+              "customer_message_index": 19,
+              "match": "under $",
+              "match_start": 52,
+              "match_end": 59,
+              "utterance_snippet": "Yeah, let’s forget about changing it since none are under $100. Please keep the whole order as is. Can you confirm the "
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "64",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "64",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": " the highest-resolution waterproof camera available for the same price?",
+          "customer_matches": [
+            {
+              "customer_message_index": 17,
+              "match": "same price",
+              "match_start": 134,
+              "match_end": 144,
+              "utterance_snippet": " the highest-resolution waterproof camera available for the same price?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "65",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "65",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "era. I’m looking for the closest-priced camera that doesn’t cost more than the bookshelf.",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cost more",
+              "match_start": 140,
+              "match_end": 149,
+              "utterance_snippet": "era. I’m looking for the closest-priced camera that doesn’t cost more than the bookshelf."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "68",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "70",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "71",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "74",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "74",
+          "arm": "S1c",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W3189752",
+            "pending"
+          ],
+          "first_hit_message_index": 24,
+          "customer_utterance_snippet": "he laptop is the only item I want to modify. Please put the refund on my credit card.\n\nAnd yes, please cancel #W3189752 becaus",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "refund",
+              "match_start": 72,
+              "match_end": 78,
+              "utterance_snippet": "he laptop is the only item I want to modify. Please put the refund on my credit card.\n\nAnd yes, please cancel #W3189752 becaus"
+            }
+          ],
+          "order_id": "#W3189752"
+        },
+        {
+          "task": "74",
+          "arm": "S1c",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W3189752",
+            "cancelled"
+          ],
+          "first_hit_message_index": 28,
+          "customer_utterance_snippet": "he laptop is the only item I want to modify. Please put the refund on my credit card.\n\nAnd yes, please cancel #W3189752 becaus",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "refund",
+              "match_start": 72,
+              "match_end": 78,
+              "utterance_snippet": "he laptop is the only item I want to modify. Please put the refund on my credit card.\n\nAnd yes, please cancel #W3189752 becaus"
+            }
+          ],
+          "order_id": "#W3189752"
+        }
+      ]
+    },
+    {
+      "task": "77",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "77",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 12,
+          "customer_utterance_snippet": "ied a little bit. I really like it, and I’d like to get the largest size available. Can you help me with that?",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "largest",
+              "match_start": 101,
+              "match_end": 108,
+              "utterance_snippet": "ied a little bit. I really like it, and I’d like to get the largest size available. Can you help me with that?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "79",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "86",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "90",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "90",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Hmm, since the 10x camera costs more than $3,000, I’d rather cancel the order. The reason is tha",
+          "customer_matches": [
+            {
+              "customer_message_index": 19,
+              "match": "costs more",
+              "match_start": 26,
+              "match_end": 36,
+              "utterance_snippet": "Hmm, since the 10x camera costs more than $3,000, I’d rather cancel the order. The reason is tha"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "94",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "97",
+      "arm": "S1c",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "S1c",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s delivery address to",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s delivery address to"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "100",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "101",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "102",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "108",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "111",
+      "arm": "S1c",
+      "has_signal": false,
+      "hits": []
+    },
+    {
+      "task": "5",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "9",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "12",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "17",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "18",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "26",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "27",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "32",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "33",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "36",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "36",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "i Sanchez, ZIP 46236. Can you switch all the items to their cheapest options to get the total down to $1,131?",
+          "customer_matches": [
+            {
+              "customer_message_index": 7,
+              "match": "cheapest",
+              "match_start": 69,
+              "match_end": 77,
+              "utterance_snippet": "i Sanchez, ZIP 46236. Can you switch all the items to their cheapest options to get the total down to $1,131?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 5,
+      "stale_dropped": 0,
+      "changed": [
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 16,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 20,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 32,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "records": [
+            "order:#W9348897"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 5,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "d24652b011559a3859b6a2ac3e6156443e4dd8d8cff0732fc6d193f8140402e1"
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "38",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "s Daiki Sanchez, ZIP 46236. Can I switch the items to their cheapest options to get the total down to $950?",
+          "customer_matches": [
+            {
+              "customer_message_index": 7,
+              "match": "cheapest",
+              "match_start": 63,
+              "match_end": 71,
+              "utterance_snippet": "s Daiki Sanchez, ZIP 46236. Can I switch the items to their cheapest options to get the total down to $950?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 5,
+      "stale_dropped": 0,
+      "changed": [
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 16,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 20,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 32,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            7
+          ],
+          "records": [
+            "order:#W9348897"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 5,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "29ea23c12101513ea740d121bc27f30172e85efdfcb2f946ff4fe98508e49d3e"
+      ]
+    },
+    {
+      "task": "39",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "40",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "42",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "42",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            23
+          ],
+          "first_hit_message_index": 28,
+          "customer_utterance_snippet": "ordered? If it hasn’t shipped, I’d like to change it to the easiest one with the fewest pieces. My kid’s too young for the one ",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "easiest",
+              "match_start": 95,
+              "match_end": 102,
+              "utterance_snippet": "ordered? If it hasn’t shipped, I’d like to change it to the easiest one with the fewest pieces. My kid’s too young for the one "
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 28,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            23
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 32,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            23
+          ],
+          "records": [
+            "order:#W4082615"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "36454ec5cafda1838344a56912b8f1cfba0bc44e687352316ae2516ba5e231d7"
+      ]
+    },
+    {
+      "task": "45",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "49",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "49",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "ater resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of my order. Can you help with that?",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 109,
+              "match_end": 117,
+              "utterance_snippet": "ater resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of my order. Can you help with that?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W3470184"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "9c768ac467dd22133593b1974141e63753df9633fc06407c8c220fb5a43e5a94"
+      ]
+    },
+    {
+      "task": "51",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "51",
+          "arm": "M1",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": " but I’m not sure. Can you check that before submitting the return? I do want the refund to my original payment method.",
+          "customer_matches": [
+            {
+              "customer_message_index": 11,
+              "match": "return",
+              "match_start": 101,
+              "match_end": 107,
+              "utterance_snippet": " but I’m not sure. Can you check that before submitting the return? I do want the refund to my original payment method."
+            }
+          ],
+          "order_id": "#W8855135"
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "expert_self_write_rebased",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "records": [
+            "order:#W4689314"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 1,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "2a51e4a96b51472ac4f3f1966c88a3f48bea83e75cf77a88cf0a3eb35b5f33b2"
+      ]
+    },
+    {
+      "task": "53",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "55",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "56",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "60",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "n order W5061109 to blue. Please verify explicitly that the price is the same or lower, and get this resolved as soon as possible. I don’",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price is the same",
+              "match_start": 150,
+              "match_end": 167,
+              "utterance_snippet": "n order W5061109 to blue. Please verify explicitly that the price is the same or lower, and get this resolved as soon as possible. I don’"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 10,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 16,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W5061109"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "61",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "61",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "ss earbuds in order W5061109 to a blue pair, as long as the price is the same or lower. Could you please help resolve this as soon as pos",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price is the same",
+              "match_start": 140,
+              "match_end": 157,
+              "utterance_snippet": "ss earbuds in order W5061109 to a blue pair, as long as the price is the same or lower. Could you please help resolve this as soon as pos"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 10,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 14,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W5061109"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "62",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "62",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            13
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "Oh, I thought it was cheaper than that. Are there any Bluetooth speakers available for l",
+          "customer_matches": [
+            {
+              "customer_message_index": 13,
+              "match": "cheaper",
+              "match_start": 21,
+              "match_end": 28,
+              "utterance_snippet": "Oh, I thought it was cheaper than that. Are there any Bluetooth speakers available for l"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 16,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            13
+          ],
+          "changed": [],
+          "consult_number": 1
+        }
+      ],
+      "self_write_rebases": 0,
+      "v3_consults": 1,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "7bc8580eb5407953f201c2094c41966474bb7a98348d6e1f2b39e69d1145ae3c"
+      ]
+    },
+    {
+      "task": "64",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "65",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "68",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "70",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "71",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "74",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "77",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "77",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            3
+          ],
+          "first_hit_message_index": 12,
+          "customer_utterance_snippet": "ace a new order, could I exchange my current bottle for the largest size instead?",
+          "customer_matches": [
+            {
+              "customer_message_index": 3,
+              "match": "largest",
+              "match_start": 170,
+              "match_end": 177,
+              "utterance_snippet": "ace a new order, could I exchange my current bottle for the largest size instead?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 12,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            3
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 16,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            3
+          ],
+          "records": [
+            "order:#W1671835"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "1c3445a406f2c2190132cae2addf6a30103e7df6ebf4ead4ded1e011c9e09aba"
+      ]
+    },
+    {
+      "task": "79",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "86",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "90",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "94",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "97",
+      "arm": "M1",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "M1",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker on my LA order for the cheapest green one. I also want to change that order’s delivery addr",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker on my LA order for the cheapest green one. I also want to change that order’s delivery addr"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 20,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W6750959"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 22,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W6750959"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 2,
+      "v3_consults": 3,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "74c90440c8963e5ac754bb3a7b7486ae9dc0bb854f77c4ec56d224f18f03989a"
+      ]
+    },
+    {
+      "task": "100",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "101",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "102",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "108",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "111",
+      "arm": "M1",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "5",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "9",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "12",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "17",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "18",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "26",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "27",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "32",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "33",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "36",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "36",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "first_hit_message_index": 22,
+          "customer_utterance_snippet": "Can you switch all the items to their cheapest options? If that brings the total to $1,131 or less, please",
+          "customer_matches": [
+            {
+              "customer_message_index": 19,
+              "match": "cheapest",
+              "match_start": 38,
+              "match_end": 46,
+              "utterance_snippet": "Can you switch all the items to their cheapest options? If that brings the total to $1,131 or less, please"
+            }
+          ]
+        }
+      ],
+      "new_consults": 5,
+      "stale_dropped": 0,
+      "changed": [
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 22,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 26,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 30,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 38,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            19
+          ],
+          "records": [
+            "order:#W9348897"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 5,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "1b727cfe919e4ced35773c6479d5ecae25f8a804d3cb3feddd3bf0db29b1dd41"
+      ]
+    },
+    {
+      "task": "38",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "38",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Okay, can you switch all the items to their cheapest options? Would that bring the total down to $950 or less?",
+          "customer_matches": [
+            {
+              "customer_message_index": 17,
+              "match": "cheapest",
+              "match_start": 44,
+              "match_end": 52,
+              "utterance_snippet": "Okay, can you switch all the items to their cheapest options? Would that bring the total down to $950 or less?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 5,
+      "stale_dropped": 0,
+      "changed": [
+        "product:2524789262",
+        "product:6817146515",
+        "product:9523456873",
+        "product:9743693396"
+      ],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 22,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:9743693396"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:6817146515"
+          ],
+          "consult_number": 3
+        },
+        {
+          "message_index": 26,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:9523456873"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 28,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [
+            "product:2524789262"
+          ],
+          "consult_number": 5
+        },
+        {
+          "message_index": 38,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "records": [
+            "order:#W9348897"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 5,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "c88a69325b831b3cacfed922aef85aa1955a95922111a59818cc8a7eceed3f0b"
+      ]
+    },
+    {
+      "task": "39",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "40",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "42",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "42",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            25
+          ],
+          "first_hit_message_index": 28,
+          "customer_utterance_snippet": "r it, so if it hasn’t shipped, I’d like to change it to the easiest one with the fewest pieces.",
+          "customer_matches": [
+            {
+              "customer_message_index": 25,
+              "match": "easiest",
+              "match_start": 132,
+              "match_end": 139,
+              "utterance_snippet": "r it, so if it hasn’t shipped, I’d like to change it to the easiest one with the fewest pieces."
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 28,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            25
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 32,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            25
+          ],
+          "records": [
+            "order:#W4082615"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "1627fc489d8fa4f29c8847b11b0ec14d29f6ff9a141befffc58df82f4f39ef05"
+      ]
+    },
+    {
+      "task": "45",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "49",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "49",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 26,
+          "customer_utterance_snippet": "ater resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of my order. Can you help with that?",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 109,
+              "match_end": 117,
+              "utterance_snippet": "ater resistance by mistake. I’d like to exchange it for the cheapest earbud from the rest of my order. Can you help with that?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 26,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 28,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W3470184"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "712c90920370f316bacd8d2f961a3da7d13564d5a95498f20ed4f4c1e9da995d"
+      ]
+    },
+    {
+      "task": "51",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "51",
+          "arm": "M2",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "you double-check that this is my camera order? I do want to return the camera and get the refund to the original payment metho",
+          "customer_matches": [
+            {
+              "customer_message_index": 11,
+              "match": "return",
+              "match_start": 124,
+              "match_end": 130,
+              "utterance_snippet": "you double-check that this is my camera order? I do want to return the camera and get the refund to the original payment metho"
+            }
+          ],
+          "order_id": "#W8855135"
+        },
+        {
+          "task": "51",
+          "arm": "M2",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "first_hit_message_index": 16,
+          "customer_utterance_snippet": "Yes, I want to return the camera from order #W4689314 and get the refund to the Mastercard ending 8484. Leave the",
+          "customer_matches": [
+            {
+              "customer_message_index": 11,
+              "match": "#W8855135",
+              "match_start": 31,
+              "match_end": 40,
+              "utterance_snippet": "I thought the order number was #W8855135, but I'm not sure. Can you double-check that this is my cam"
+            },
+            {
+              "customer_message_index": 15,
+              "match": "#W4689314",
+              "match_start": 44,
+              "match_end": 53,
+              "utterance_snippet": "Yes, I want to return the camera from order #W4689314 and get the refund to the Mastercard ending 8484. Leave the"
+            }
+          ]
+        },
+        {
+          "task": "51",
+          "arm": "M2",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4689314",
+            "return requested"
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "Yes, I want to return the camera from order #W4689314 and get the refund to the M",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "return",
+              "match_start": 15,
+              "match_end": 21,
+              "utterance_snippet": "Yes, I want to return the camera from order #W4689314 and get the refund to the M"
+            }
+          ],
+          "order_id": "#W4689314"
+        }
+      ],
+      "new_consults": 3,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 16,
+          "event": "consult",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "changed": [],
+          "consult_number": 2
+        },
+        {
+          "message_index": 20,
+          "event": "expert_self_write_rebased",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W8855135",
+            "pending"
+          ],
+          "records": [
+            "order:#W4689314"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 20,
+          "event": "expert_self_write_rebased",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "records": [
+            "order:#W4689314"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4689314",
+            "return requested"
+          ],
+          "changed": [],
+          "consult_number": 3
+        }
+      ],
+      "self_write_rebases": 2,
+      "v3_consults": 4,
+      "recorded_consults": 3,
+      "recorded_input_sha256": [
+        "5cc18d33eac9d02b373b4bbe68580140450198bd3e03269d533535d137bc1ace",
+        "f39c771b1264244700f57d152da2c33fa72a0e452b33c69edef359faffe95905",
+        "48eba8a84c0fb8b600931ed471387908251bbc26047ad3919bd556aff1d21dec"
+      ]
+    },
+    {
+      "task": "53",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "55",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "55",
+          "arm": "M2",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "first_hit_message_index": 24,
+          "customer_utterance_snippet": "Yeah, please cancel both #W4836353 and #W7342738. “No longer needed” works for both. It’s real",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "#W4836353",
+              "match_start": 25,
+              "match_end": 34,
+              "utterance_snippet": "Yeah, please cancel both #W4836353 and #W7342738. “No longer needed” works for both. It’s real"
+            },
+            {
+              "customer_message_index": 23,
+              "match": "#W7342738",
+              "match_start": 39,
+              "match_end": 48,
+              "utterance_snippet": "Yeah, please cancel both #W4836353 and #W7342738. “No longer needed” works for both. It’s really just becaus"
+            }
+          ]
+        },
+        {
+          "task": "55",
+          "arm": "M2",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4836353",
+            "cancelled"
+          ],
+          "first_hit_message_index": 28,
+          "customer_utterance_snippet": "Yeah, please cancel both #W4836353 and #W7342738. “No longer needed” works for ",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "cancel",
+              "match_start": 13,
+              "match_end": 19,
+              "utterance_snippet": "Yeah, please cancel both #W4836353 and #W7342738. “No longer needed” works for "
+            }
+          ],
+          "order_id": "#W4836353"
+        },
+        {
+          "task": "55",
+          "arm": "M2",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W7342738",
+            "cancelled"
+          ],
+          "first_hit_message_index": 30,
+          "customer_utterance_snippet": "Yeah, please cancel both #W4836353 and #W7342738. “No longer needed” works for ",
+          "customer_matches": [
+            {
+              "customer_message_index": 23,
+              "match": "cancel",
+              "match_start": 13,
+              "match_end": 19,
+              "utterance_snippet": "Yeah, please cancel both #W4836353 and #W7342738. “No longer needed” works for "
+            }
+          ],
+          "order_id": "#W7342738"
+        }
+      ],
+      "new_consults": 3,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 24,
+          "event": "consult",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 28,
+          "event": "expert_self_write_rebased",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "records": [
+            "order:#W4836353"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 28,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4836353",
+            "cancelled"
+          ],
+          "changed": [],
+          "consult_number": 2
+        },
+        {
+          "message_index": 30,
+          "event": "expert_self_write_rebased",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "records": [
+            "order:#W7342738"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 30,
+          "event": "expert_self_write_rebased",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4836353",
+            "cancelled"
+          ],
+          "records": [
+            "order:#W7342738"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 30,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W7342738",
+            "cancelled"
+          ],
+          "changed": [],
+          "consult_number": 3
+        },
+        {
+          "message_index": 36,
+          "event": "expert_self_write_rebased",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "records": [
+            "order:#W4597054"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 36,
+          "event": "expert_self_write_rebased",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4836353",
+            "cancelled"
+          ],
+          "records": [
+            "order:#W4597054"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 36,
+          "event": "expert_self_write_rebased",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W7342738",
+            "cancelled"
+          ],
+          "records": [
+            "order:#W4597054"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 38,
+          "event": "expert_self_write_rebased",
+          "signal": "multi_order",
+          "key": [
+            "multi_order"
+          ],
+          "records": [
+            "order:#W7773202"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 38,
+          "event": "expert_self_write_rebased",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W4836353",
+            "cancelled"
+          ],
+          "records": [
+            "order:#W7773202"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 38,
+          "event": "expert_self_write_rebased",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W7342738",
+            "cancelled"
+          ],
+          "records": [
+            "order:#W7773202"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 9,
+      "v3_consults": 5,
+      "recorded_consults": 3,
+      "recorded_input_sha256": [
+        "4bde5f4e528fd3ba9f03590b012c5ab1cc538e93edb55114fb318f1806e207aa",
+        "1fb9e87e1c0579af322c15724453ac4c71a318b6eb0c4cd7a8412b2df2afbf56",
+        "a922444e027bc3139109ed026c7fcb46e870a76572ec60fce8381683e01be8ef"
+      ]
+    },
+    {
+      "task": "56",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "56",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "e rest of the order. Can you change the air purifier to the cheapest available option and refund the difference to my gift card?",
+          "customer_matches": [
+            {
+              "customer_message_index": 17,
+              "match": "cheapest",
+              "match_start": 78,
+              "match_end": 86,
+              "utterance_snippet": "e rest of the order. Can you change the air purifier to the cheapest available option and refund the difference to my gift card?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 24,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            17
+          ],
+          "records": [
+            "order:#W4284542"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "09535e665747b582ddf399bc9607fcb9caa4ff64e60fab2b0b6f6a1322151c31"
+      ]
+    },
+    {
+      "task": "60",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "60",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "as soon as possible, and verify that the blue ones cost the same or less.",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same or less",
+              "match_start": 228,
+              "match_end": 240,
+              "utterance_snippet": "as soon as possible, and verify that the blue ones cost the same or less."
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 10,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 16,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W5061109"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "61",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "61",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 10,
+          "customer_utterance_snippet": "ss earbuds in order W5061109 to a blue pair, as long as the price is the same or lower. I don’t remember my email address. Could you help",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "price is the same",
+              "match_start": 141,
+              "match_end": 158,
+              "utterance_snippet": "ss earbuds in order W5061109 to a blue pair, as long as the price is the same or lower. I don’t remember my email address. Could you help"
+            }
+          ]
+        },
+        {
+          "task": "61",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            11
+          ],
+          "first_hit_message_index": 12,
+          "customer_utterance_snippet": "It has the same battery life and water resistance, and it’s cheaper. That’s the only change I need.",
+          "customer_matches": [
+            {
+              "customer_message_index": 11,
+              "match": "cheaper",
+              "match_start": 93,
+              "match_end": 100,
+              "utterance_snippet": "It has the same battery life and water resistance, and it’s cheaper. That’s the only change I need."
+            }
+          ]
+        }
+      ],
+      "new_consults": 2,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 10,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 12,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            11
+          ],
+          "changed": [],
+          "consult_number": 2
+        },
+        {
+          "message_index": 16,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W5061109"
+          ],
+          "changed": []
+        },
+        {
+          "message_index": 16,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            11
+          ],
+          "records": [
+            "order:#W5061109"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 2,
+      "v3_consults": 4,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "62",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "62",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            15
+          ],
+          "first_hit_message_index": 18,
+          "customer_utterance_snippet": "Oh, I thought it was cheaper than that. Are there any Bluetooth speakers available for u",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "cheaper",
+              "match_start": 21,
+              "match_end": 28,
+              "utterance_snippet": "Oh, I thought it was cheaper than that. Are there any Bluetooth speakers available for u"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 18,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            15
+          ],
+          "changed": [],
+          "consult_number": 1
+        }
+      ],
+      "self_write_rebases": 0,
+      "v3_consults": 1,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "4c87071c166cbcffc87641c1ef5e1e8f51f97e42c00aeba4a19548491afbeced"
+      ]
+    },
+    {
+      "task": "64",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "64",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 12,
+          "customer_utterance_snippet": "aterproof one with the highest resolution I can get for the same price. Can you help me with that?",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "same price",
+              "match_start": 116,
+              "match_end": 126,
+              "utterance_snippet": "aterproof one with the highest resolution I can get for the same price. Can you help me with that?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 12,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W7464385"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "04c20e201f23b7a59c370a23893b06f5779d7626a387cb06b9d55734480be7ea"
+      ]
+    },
+    {
+      "task": "65",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "65",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            13
+          ],
+          "first_hit_message_index": 18,
+          "customer_utterance_snippet": "Yeah, please look up the closest-priced camera that doesn’t cost more than the bookshelf. I can look into returning the bookshelf",
+          "customer_matches": [
+            {
+              "customer_message_index": 13,
+              "match": "cost more",
+              "match_start": 60,
+              "match_end": 69,
+              "utterance_snippet": "Yeah, please look up the closest-priced camera that doesn’t cost more than the bookshelf. I can look into returning the bookshelf"
+            }
+          ]
+        },
+        {
+          "task": "65",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            21
+          ],
+          "first_hit_message_index": 22,
+          "customer_utterance_snippet": " Is the $320.55 one definitely the closest available camera under $537.01?",
+          "customer_matches": [
+            {
+              "customer_message_index": 21,
+              "match": "under $",
+              "match_start": 121,
+              "match_end": 128,
+              "utterance_snippet": " Is the $320.55 one definitely the closest available camera under $537.01?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 5,
+      "stale_dropped": 0,
+      "changed": [
+        "product:2985987096",
+        "product:3377618313"
+      ],
+      "events": [
+        {
+          "message_index": 18,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            13
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 20,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            13
+          ],
+          "changed": [
+            "product:2985987096"
+          ],
+          "consult_number": 2
+        },
+        {
+          "message_index": 22,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            21
+          ],
+          "changed": [],
+          "consult_number": 3
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            13
+          ],
+          "changed": [
+            "product:3377618313"
+          ],
+          "consult_number": 4
+        },
+        {
+          "message_index": 24,
+          "event": "refresh",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            21
+          ],
+          "changed": [
+            "product:3377618313"
+          ],
+          "consult_number": 5
+        }
+      ],
+      "self_write_rebases": 0,
+      "v3_consults": 5,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "e0ff54f08549ef84a15c37847c8993dbd9a3a61e2123a598d286def875071712"
+      ]
+    },
+    {
+      "task": "68",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "70",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "71",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "74",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "74",
+          "arm": "M2",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W3189752",
+            "cancelled"
+          ],
+          "first_hit_message_index": 24,
+          "customer_utterance_snippet": "Yes, please cancel #W3189752.\n\nFor the laptop, I’d like the 17-inch i9 with 25",
+          "customer_matches": [
+            {
+              "customer_message_index": 21,
+              "match": "cancel",
+              "match_start": 12,
+              "match_end": 18,
+              "utterance_snippet": "Yes, please cancel #W3189752.\n\nFor the laptop, I’d like the 17-inch i9 with 25"
+            }
+          ],
+          "order_id": "#W3189752"
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 24,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W3189752",
+            "cancelled"
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 28,
+          "event": "expert_self_write_rebased",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W3189752",
+            "cancelled"
+          ],
+          "records": [
+            "order:#W5166363"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 1,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "42f85ede227f888b27e5bde3500bb11c0dced92eeb5301ee56b8f776c67106c9"
+      ]
+    },
+    {
+      "task": "77",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "77",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 12,
+          "customer_utterance_snippet": "d a little bit. I really like it, and I’d like to order the largest size available. Can you help me with that?",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "largest",
+              "match_start": 107,
+              "match_end": 114,
+              "utterance_snippet": "d a little bit. I really like it, and I’d like to order the largest size available. Can you help me with that?"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 12,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W1671835"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "36f532cb5e5a4ed66d5b24834b906391aade5e0debedf3f0ee308f86ef945790"
+      ]
+    },
+    {
+      "task": "79",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "86",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "90",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "94",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "94",
+          "arm": "M2",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W2905754",
+            "exchange requested"
+          ],
+          "first_hit_message_index": 20,
+          "customer_utterance_snippet": "D. The laptop in order #W2905754 is the only item I want to exchange.\n\nYes, use the Mastercard ending in 1531 for the $167.87 di",
+          "customer_matches": [
+            {
+              "customer_message_index": 15,
+              "match": "exchange",
+              "match_start": 128,
+              "match_end": 136,
+              "utterance_snippet": "D. The laptop in order #W2905754 is the only item I want to exchange.\n\nYes, use the Mastercard ending in 1531 for the $167.87 di"
+            }
+          ],
+          "order_id": "#W2905754"
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 20,
+          "event": "consult",
+          "signal": "status_conflict",
+          "key": [
+            "status_conflict",
+            "#W2905754",
+            "exchange requested"
+          ],
+          "changed": [],
+          "consult_number": 1
+        }
+      ],
+      "self_write_rebases": 0,
+      "v3_consults": 1,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "ebae63d167acca1786c5de7f710401b2be8e085382a472c9a939bd89bc2dd7be"
+      ]
+    },
+    {
+      "task": "97",
+      "arm": "M2",
+      "has_signal": true,
+      "hits": [
+        {
+          "task": "97",
+          "arm": "M2",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "first_hit_message_index": 14,
+          "customer_utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s shipping address to",
+          "customer_matches": [
+            {
+              "customer_message_index": 1,
+              "match": "cheapest",
+              "match_start": 76,
+              "match_end": 84,
+              "utterance_snippet": "ke to exchange the Bluetooth speaker in my LA order for the cheapest green one, and also change that order’s shipping address to"
+            }
+          ]
+        }
+      ],
+      "new_consults": 1,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [
+        {
+          "message_index": 14,
+          "event": "consult",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "changed": [],
+          "consult_number": 1
+        },
+        {
+          "message_index": 18,
+          "event": "expert_self_write_rebased",
+          "signal": "constrained_choice",
+          "key": [
+            "constrained_choice",
+            1
+          ],
+          "records": [
+            "order:#W6750959"
+          ],
+          "changed": []
+        }
+      ],
+      "self_write_rebases": 1,
+      "v3_consults": 2,
+      "recorded_consults": 1,
+      "recorded_input_sha256": [
+        "e9ad0751c7b1db592541d53cf541f3d4d0c8c3ed95c80065ccaa3b976479ff59"
+      ]
+    },
+    {
+      "task": "100",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "101",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "102",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "108",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    },
+    {
+      "task": "111",
+      "arm": "M2",
+      "has_signal": false,
+      "hits": [],
+      "new_consults": 0,
+      "stale_dropped": 0,
+      "changed": [],
+      "events": [],
+      "self_write_rebases": 0,
+      "v3_consults": 0,
+      "recorded_consults": 0,
+      "recorded_input_sha256": []
+    }
+  ],
+  "sources": [
+    {
+      "task": "5",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/5-S1.json",
+      "sha256": "da989534602f7914f343e28cece5d7b6a28cd33e0c678c5923e0efe6cd8ed186"
+    },
+    {
+      "task": "9",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/9-S1.json",
+      "sha256": "79b8007ffe6b56aabac23eaf22bb62b2674266296da201b50702aa55176cacdd"
+    },
+    {
+      "task": "12",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/12-S1.json",
+      "sha256": "e5f93a7472af79063f6a1d93979f72b15467787f7f8655908bdbe465251371f3"
+    },
+    {
+      "task": "17",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/17-S1.json",
+      "sha256": "b273bdd03fbb7d162ded77ec4a5b39b948701166f3bcb1cba078f6d6f1656546"
+    },
+    {
+      "task": "18",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/18-S1.json",
+      "sha256": "71fd881452e564be88682b52685f712a9fd91c676569faac0c5fb339ede71829"
+    },
+    {
+      "task": "26",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/26-S1.json",
+      "sha256": "c3660e32ed62771a16c21ca9ab1d80353a64d7b7b243a21fe7bbf786315cec28"
+    },
+    {
+      "task": "27",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113.repair/official/27-S1.json",
+      "sha256": "28ad2a9b6ea8322e8af1576797826a98b5bb487ba504293ecfc14363392b88d1"
+    },
+    {
+      "task": "32",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/32-S1.json",
+      "sha256": "2018fb2d05753e2403b065cff1f4394fed4f533f264600c4381e937cd566265a"
+    },
+    {
+      "task": "33",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/33-S1.json",
+      "sha256": "d2179b50557dfa13b392eb6a9b470cb32e166b272b50031449e7870510ead6a0"
+    },
+    {
+      "task": "36",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/36-S1.json",
+      "sha256": "968cdd1ac1714c277b3fd69e4234c28229caad01f6bb8719cb6f72ad0693b1ed"
+    },
+    {
+      "task": "38",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/38-S1.json",
+      "sha256": "262eb3b3cf7858f2ad2db377f369ecc398c82e2fed162b80dfd4897176609359"
+    },
+    {
+      "task": "39",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/39-S1.json",
+      "sha256": "61734912c6441d3aef709f9d33c36b24170f567b16c841bb4a379c0af6b55673"
+    },
+    {
+      "task": "40",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/40-S1.json",
+      "sha256": "d9c207ec896881f29ee68895c64dcf2447f379212fa5ed4d8aed9700d25e0a27"
+    },
+    {
+      "task": "42",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113.repair/official/42-S1.json",
+      "sha256": "f3a5c5563ba4b557280a12df60ea64baf1f70da7c4a9125d47bbd317b4d1f514"
+    },
+    {
+      "task": "45",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/45-S1.json",
+      "sha256": "8fb44166cdede240d118a739da616abf820a1efc5b7cab7b1c403a254a536b3c"
+    },
+    {
+      "task": "49",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/49-S1.json",
+      "sha256": "30ef3e67653659c61605aa6a26efe2bf06b2a84b1f12320d94658bdcc4654081"
+    },
+    {
+      "task": "51",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/51-S1.json",
+      "sha256": "fa8d0cb5ecad75e4d307c642c8f42ecc387983905d337f3683f7fb88944e1466"
+    },
+    {
+      "task": "53",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/53-S1.json",
+      "sha256": "4775d6ed84614c04030a196b8644527a55d9aafdba2a8caa0b9f24f5302b3853"
+    },
+    {
+      "task": "55",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/55-S1.json",
+      "sha256": "313c1fc5045fb39a29b6979062ec4e9db4d9261c7174dae52e4907cc08f81ac1"
+    },
+    {
+      "task": "56",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/56-S1.json",
+      "sha256": "3d49a85f164051a666fab2884b12db21ab9c9e9885717c056b00074b40ed181f"
+    },
+    {
+      "task": "60",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/60-S1.json",
+      "sha256": "c8342a5a48867be0242bbe630405a2af203262b32935f08ea5cd665b33487442"
+    },
+    {
+      "task": "61",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/61-S1.json",
+      "sha256": "409004890e390b5ed8d1f75849ab7220bb672f63c2bdd1eb5aa49011e8af2d04"
+    },
+    {
+      "task": "62",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/62-S1.json",
+      "sha256": "e4f91c69f6fd69fc3a5b6b78b96a92df8a32ec02f9fb2a94e41fff8b8941f089"
+    },
+    {
+      "task": "64",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/64-S1.json",
+      "sha256": "6c4fb97ab4a60be2c430b0e7a3844d31fb91e87da388f3d42e55b97d0ece4433"
+    },
+    {
+      "task": "65",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/65-S1.json",
+      "sha256": "04eeb546183bd10e2401d767d782274d0ef7349c931cfc11c5ccff2e47f8ce7f"
+    },
+    {
+      "task": "68",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/68-S1.json",
+      "sha256": "85814524e3cb21e43726c40a0b6a2c12ccc0c9d214c47067504fde351abfd986"
+    },
+    {
+      "task": "70",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/70-S1.json",
+      "sha256": "8247f720df41d21bb02364994b2faa6ce0a0ebda19159eeb9de8271722fabf72"
+    },
+    {
+      "task": "71",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/71-S1.json",
+      "sha256": "fc71fcf8550856353b1df6b8341320f048de0a71d9244d8003df7dc3f0be871d"
+    },
+    {
+      "task": "74",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/74-S1.json",
+      "sha256": "154c8b4952771113fdf4b1517b6a056e4179b2a45c1394296815fbedf38f5021"
+    },
+    {
+      "task": "77",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/77-S1.json",
+      "sha256": "8166f17f9467f51ac3cea644564a16d28a06fc021fbe7b56979a8695c17ed14d"
+    },
+    {
+      "task": "79",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/79-S1.json",
+      "sha256": "6da75d9b1054e3aab7c60c278e28727cf29de15ad5cb2ee8d485de61f6913b9e"
+    },
+    {
+      "task": "86",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/86-S1.json",
+      "sha256": "ba23eafe2bb249a524db96330108d54df2cab7af6e6ee01968be705280847e2c"
+    },
+    {
+      "task": "90",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/90-S1.json",
+      "sha256": "304551a355312bb0fb375cefec7ba2ef81033b83db3826094251d258bfcab335"
+    },
+    {
+      "task": "94",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/94-S1.json",
+      "sha256": "7060428aa09920ed4f673c7e35fdcdd7d473bb88ece47f22a189d8924f1bed57"
+    },
+    {
+      "task": "97",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/97-S1.json",
+      "sha256": "a8a20e39b5ebfe4637cbf6e774f46c173a54dc3505f4c627e83517a4ce8c9933"
+    },
+    {
+      "task": "100",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/100-S1.json",
+      "sha256": "34c50701f204ed373a389a90d53355084341fa39e861542a39fbf09ffe78d164"
+    },
+    {
+      "task": "101",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/101-S1.json",
+      "sha256": "6f38ba20b59ebdaa84acfa8460e53224d5292ba28cae2007ea87d96597449c25"
+    },
+    {
+      "task": "102",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/102-S1.json",
+      "sha256": "dd7d67c3b85c21dd5bc101adaf1f33201c1634550df4906d1fe13481aff019a5"
+    },
+    {
+      "task": "108",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/108-S1.json",
+      "sha256": "d0069b9999f3b15704fab9cbe9c19110723fa20e7c90c74cc8ca4b03ec69aedc"
+    },
+    {
+      "task": "111",
+      "arm": "S1",
+      "path": ".runtime/kernel-e2-20261113/official/111-S1.json",
+      "sha256": "359d342d4a4f6f71ad9b0ed8b063a4d96a60aaa008336386512ad3b7ad57c768"
+    },
+    {
+      "task": "5",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/5-S2.json",
+      "sha256": "2ec24b1a222b83edf49273b72121abbdd618c6a3dea8283d5c1b56e4fb844f0f"
+    },
+    {
+      "task": "9",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/9-S2.json",
+      "sha256": "523ce15b0f83d22925ff58a789b90e63d6dcfc9cbd8484fe152136cedf0e3b79"
+    },
+    {
+      "task": "12",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/12-S2.json",
+      "sha256": "8546cb5a49a6d2dab8c8c2bd56dd6c818a4ca9c0fd23d144c5e380e5db628e89"
+    },
+    {
+      "task": "17",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/17-S2.json",
+      "sha256": "e231e7002d3de064a085690d1877ccdb3593996253006217c0bf698d149ae60d"
+    },
+    {
+      "task": "18",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/18-S2.json",
+      "sha256": "00402a03d406c104cb0c5d6b20b5a7ab592f8f2f5f17fde30444b1710d1da253"
+    },
+    {
+      "task": "26",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/26-S2.json",
+      "sha256": "a6284e14097f079eee2bbfef6b408e45d4d910a80fbe7845502492f3cdacf9e1"
+    },
+    {
+      "task": "27",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/27-S2.json",
+      "sha256": "c92de130a4fc24cc92da025def2d3d6e03e73a0193587ca9b6016464ecd9acaf"
+    },
+    {
+      "task": "32",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/32-S2.json",
+      "sha256": "cc589ef6c4c04c448688dda192d59a95820a0d3a3699f1e5378927604d8f136f"
+    },
+    {
+      "task": "33",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/33-S2.json",
+      "sha256": "1b11ce4d89fbfa066eb94b95874acd6e505a178a86e7cc273fca233e040d32a6"
+    },
+    {
+      "task": "36",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/36-S2.json",
+      "sha256": "4d910fc4b4388b9a67b2e900f3c9aa2f820a4848d5bbb709850504bc13c1237b"
+    },
+    {
+      "task": "38",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/38-S2.json",
+      "sha256": "bbbac73221ca63b25cd4c644b0f0bdb6349c072a235e822930a71e97e0779f4f"
+    },
+    {
+      "task": "39",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/39-S2.json",
+      "sha256": "efc68ec38f09e3cfad5d70d43ae12130d42632446748a833a7bc702026bb302f"
+    },
+    {
+      "task": "40",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/40-S2.json",
+      "sha256": "b9b50c333356aaf78d2e50410d86b503eb976a25c77086d4d9956a2cf76adbef"
+    },
+    {
+      "task": "42",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/42-S2.json",
+      "sha256": "bd698c569bef8b39479c61ea659aa468c1d4cc0c3d57e27ff2180e3c04851c26"
+    },
+    {
+      "task": "45",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/45-S2.json",
+      "sha256": "f9763e3607b1e2e6b8b716b96c678268c681b0465d8b675df59856a114506cad"
+    },
+    {
+      "task": "49",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/49-S2.json",
+      "sha256": "0cea485d44657f6377aa5c76e6cf3e8030f28e999000dd918fceab943304a92d"
+    },
+    {
+      "task": "51",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/51-S2.json",
+      "sha256": "42babf161e595f5e91e6f7bb25eeebc27e8291cf75100c09949800e23abbdb47"
+    },
+    {
+      "task": "53",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/53-S2.json",
+      "sha256": "e8955efa56c96ebf6984f902cea262cdc11de8605092dad425d44b1f009345c4"
+    },
+    {
+      "task": "55",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/55-S2.json",
+      "sha256": "d0542b5c9343555139b739b63e9670192674581558b73c9544bd21d22312c878"
+    },
+    {
+      "task": "56",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/56-S2.json",
+      "sha256": "5588d5df88eee9616e36ca70701be7ef5fe4ae67364e2c44f91d649a7e122ed4"
+    },
+    {
+      "task": "60",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/60-S2.json",
+      "sha256": "5b22f83efb771c5703ff02c07da872605ea220970f3dce7df2897d9b2a30729d"
+    },
+    {
+      "task": "61",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/61-S2.json",
+      "sha256": "973a8e9151969ad29f87c56fb322e9868fa6163890e4aaf6c7456331e69e931b"
+    },
+    {
+      "task": "62",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/62-S2.json",
+      "sha256": "e88e237c05ff6de418287c8ca0f4fb297304aed879bd259bdf8fefdee40b64a2"
+    },
+    {
+      "task": "64",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/64-S2.json",
+      "sha256": "0ebc89e09689b950ad9ec4fa91a2ee67c3343312fcb7405c6a5cac1b9c0a2f08"
+    },
+    {
+      "task": "65",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/65-S2.json",
+      "sha256": "a26f27d251280657c30251aafa56c94f0a0808d2246ce91d842273dfd25bdeb1"
+    },
+    {
+      "task": "68",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/68-S2.json",
+      "sha256": "d20d12e56807a3c32c94bfc3a8c380d6646f62ed3b8830c5aba46b69b80d1097"
+    },
+    {
+      "task": "70",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/70-S2.json",
+      "sha256": "ea91ba416778562b37cb26b8e269d446dc4dbd7177f8c7903eefc478024069c7"
+    },
+    {
+      "task": "71",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/71-S2.json",
+      "sha256": "c1bcfb5a33dfe9891a8f9ed5d7fa56cc6e1b110814aba1dda0dd0e6e749dbe53"
+    },
+    {
+      "task": "74",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/74-S2.json",
+      "sha256": "8b9bf7d6d38eab179a9286d489d0db79f73bee9ab2afc9ac9eab3cfd1e7556f7"
+    },
+    {
+      "task": "77",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/77-S2.json",
+      "sha256": "fab756efc6a9717aa47faaefc3d0ef04083097987a6b6faf83c3df662a4975c4"
+    },
+    {
+      "task": "79",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/79-S2.json",
+      "sha256": "0180807b0c8b78bea0b150c6af1cd8830091fa4b34da10f7c9353050739fbae4"
+    },
+    {
+      "task": "86",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/86-S2.json",
+      "sha256": "3ffaf312e4dc5c869fb35c08fedcfeeac8aea69abbb4aa3175ef67f0ef81a158"
+    },
+    {
+      "task": "90",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/90-S2.json",
+      "sha256": "5b55662df0d7d98219badb8a2b5844445883d0382ad8f1bca2f54b9c78381669"
+    },
+    {
+      "task": "94",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/94-S2.json",
+      "sha256": "2675cf033e6042f1fedd6fe929beedc1781bb6fba6aacc2d446284b6c044e5d7"
+    },
+    {
+      "task": "97",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/97-S2.json",
+      "sha256": "8aab9f7457ed895f00fdf9b79fc062350d28dcdf2154c03724a903b2f20b2334"
+    },
+    {
+      "task": "100",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/100-S2.json",
+      "sha256": "0372701faedbad08d8bf11e5d7665c1420d1a093704c53cf35fcfbc79164935f"
+    },
+    {
+      "task": "101",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/101-S2.json",
+      "sha256": "1e91b884911d95c698dba9a1949c45fe046c7b36e07fe1db22d65c3ac87ef0bd"
+    },
+    {
+      "task": "102",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/102-S2.json",
+      "sha256": "6cedb33e6ca6d67389a3cee445f1f5905436296845d4a2f87a0834db9d16b8b3"
+    },
+    {
+      "task": "108",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/108-S2.json",
+      "sha256": "d958fe94c19a096dc6da97641caac8e4e75509a3b45d7c72a7f72e761c4d9fe9"
+    },
+    {
+      "task": "111",
+      "arm": "S2",
+      "path": ".runtime/kernel-e2-20261113/official/111-S2.json",
+      "sha256": "1bff27407b594a0eb7e7c05ec69993cd9ce3a68ce887b4f2351d8c55ca4b2af1"
+    },
+    {
+      "task": "5",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/5-S1c.json",
+      "sha256": "2a95304742517a90f67664684317af495e1d87bd599a8de2835a7fa6079f0319"
+    },
+    {
+      "task": "9",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/9-S1c.json",
+      "sha256": "ecf57449c72b4b2f138498f0a45affa7dd5e9b1d53f5f82eb6280cca2c2042fd"
+    },
+    {
+      "task": "12",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/12-S1c.json",
+      "sha256": "5a57eec9240b0d5d1ad5fccbf69090929239cb35fdaa6df9c201fbc7e5293f80"
+    },
+    {
+      "task": "17",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/17-S1c.json",
+      "sha256": "c957abab3a215481a982bc02a05f2d69b1412093367a1186b9d6f1d8467f6a95"
+    },
+    {
+      "task": "18",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/18-S1c.json",
+      "sha256": "87aac58140b0b2cf8c229ec60931b6e20e97c5d1502ed77c86414e794f1f1c34"
+    },
+    {
+      "task": "26",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/26-S1c.json",
+      "sha256": "a02dacf2cb5a35ace00ec9119d40d674f229cd3ee49bd75332222ec49716d26e"
+    },
+    {
+      "task": "27",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113.repair/official/27-S1c.json",
+      "sha256": "bb171ff0522e3edfb09e5694220981b9a90d7b84a7a3260f99085d6a4deb5895"
+    },
+    {
+      "task": "32",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/32-S1c.json",
+      "sha256": "b0d0b6b7f99c24fd8ba71aca34719b571924e597537adb70cecd199bac56692c"
+    },
+    {
+      "task": "33",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/33-S1c.json",
+      "sha256": "4afb507554f2420b435a0c9a8ed547545904a6b96381b1222bf34989b7b1039e"
+    },
+    {
+      "task": "36",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/36-S1c.json",
+      "sha256": "6d50ad11192b2d99c608267ebf9f0a6cdb98dee857dea1c14aabedf60006d3b2"
+    },
+    {
+      "task": "38",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/38-S1c.json",
+      "sha256": "9214ac86708758a886e7a71c2ac2b86bfc619f4f069f36054291b06c15472ddc"
+    },
+    {
+      "task": "39",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/39-S1c.json",
+      "sha256": "f85426dbca2e793b30c904ac257903468253e6636d724d0490617eb6ff90cd44"
+    },
+    {
+      "task": "40",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/40-S1c.json",
+      "sha256": "e64d53af8b7194c8df4e364e4431d4c945786e62e6bbb3b21ded7fbe98d565e8"
+    },
+    {
+      "task": "42",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/42-S1c.json",
+      "sha256": "ef18fecb377fc5203633a347c8f13ded4590b0682db4145c5171cad9e508c7f2"
+    },
+    {
+      "task": "45",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/45-S1c.json",
+      "sha256": "c381f9657f7206c5c5050d41ef6e941b943ea8a7c2fb15cc92b7716d1646bd1b"
+    },
+    {
+      "task": "49",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/49-S1c.json",
+      "sha256": "9eb63c87f2e4ba77e6f0db7188ddfe92e1b43514eaa8a6f03a7516a5d178a449"
+    },
+    {
+      "task": "51",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/51-S1c.json",
+      "sha256": "cfc47f992278c40c6ff8b2c3923ce2ec128b0fb9f6ed58f987ba638ec76f4716"
+    },
+    {
+      "task": "53",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/53-S1c.json",
+      "sha256": "2720572beb9074f8a94f95a8227c2e50e79b2604119864fc9144e45d3e5711a1"
+    },
+    {
+      "task": "55",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/55-S1c.json",
+      "sha256": "b0e1e0e137d7e9b97edcf8c197d25f4382889ecf571faeeb5dd5ef459fb42c2f"
+    },
+    {
+      "task": "56",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/56-S1c.json",
+      "sha256": "138330c8bce1c92a97816391dff87796d24b6e4ddb9d1dde2243944a61e5b01a"
+    },
+    {
+      "task": "60",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/60-S1c.json",
+      "sha256": "f532e58f2af44e42f50c6072fcaaabec7838b39519890705aa177206433b608a"
+    },
+    {
+      "task": "61",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/61-S1c.json",
+      "sha256": "2a68bbb869c97324a24190f7ed17709cda492128986d04bf26080d0acec8c00e"
+    },
+    {
+      "task": "62",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/62-S1c.json",
+      "sha256": "75b0ad901f68d088f1da1905248c5702691e3bb79a6e07ae777c3c39ea429793"
+    },
+    {
+      "task": "64",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/64-S1c.json",
+      "sha256": "bb39d48e11ff3d66d2df3432f68889652724f0ae60d8f2e70cffa9e78ca9f397"
+    },
+    {
+      "task": "65",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/65-S1c.json",
+      "sha256": "a34f658a95f82077e0fcabdf6c5683c99cb98e3edf40411e99ca93a509fda992"
+    },
+    {
+      "task": "68",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/68-S1c.json",
+      "sha256": "b5b0f8c4cab63a496333c2f0d52b07492aaa8f433ed1d7a6119da00cbc6aacc3"
+    },
+    {
+      "task": "70",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/70-S1c.json",
+      "sha256": "fb853da151b86b2de4005f07935e8c3bbb76e4b946ce3a1831772f4a336066e9"
+    },
+    {
+      "task": "71",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/71-S1c.json",
+      "sha256": "dc8345a8560fd0a4d404e0e24115f8aa21c3b0feda79352cbb6cc772b09677e8"
+    },
+    {
+      "task": "74",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/74-S1c.json",
+      "sha256": "97dbeefd2eee36ba1143820592f4cc0ff09d233d64a8923a74d2fa1404a3c8f7"
+    },
+    {
+      "task": "77",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/77-S1c.json",
+      "sha256": "af0cb0f631a89b72bee277d058bfed6ae83d50ec23c91374806b6dcf22dc5ed8"
+    },
+    {
+      "task": "79",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/79-S1c.json",
+      "sha256": "996b3c8536a79ead4b60f6ca498fb3ef0f1201d9ad88e9427a2def3b26d30e11"
+    },
+    {
+      "task": "86",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/86-S1c.json",
+      "sha256": "6c44fcc11652f71ac994826a293feb800009b3cc3dd63fa2f8a297f7628595ed"
+    },
+    {
+      "task": "90",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/90-S1c.json",
+      "sha256": "88fb298c8aa7e9591fc5138f976c48d46ef812b3c3cb580fe670e8f7b3e0b15e"
+    },
+    {
+      "task": "94",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/94-S1c.json",
+      "sha256": "91fb7f807f607f527303c2e50b71a0874da3449cf9af93ff750df6e85764e268"
+    },
+    {
+      "task": "97",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/97-S1c.json",
+      "sha256": "c97b92ee97609ccb5a9ae7e02d1f9234e7530b90fcc799e86cc5ef578caed65a"
+    },
+    {
+      "task": "100",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/100-S1c.json",
+      "sha256": "7b443e35324dc0b71d2740c4807aa9d0d260d1d9beb96eaa40bc8a1ecb82fab0"
+    },
+    {
+      "task": "101",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/101-S1c.json",
+      "sha256": "9cf8b1451f12c153405655ee2c8916879a63247e5e9b28ee29fd2aa610420209"
+    },
+    {
+      "task": "102",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/102-S1c.json",
+      "sha256": "85598710d2d7d60c374ff0d36e7a00f9eaa6a7b344e191d8a6e4e6dd6c934cab"
+    },
+    {
+      "task": "108",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/108-S1c.json",
+      "sha256": "db527edb61d3512d1fd50d9c7153acbf6b7cf2be2a523f654a1c4f2f98699947"
+    },
+    {
+      "task": "111",
+      "arm": "S1c",
+      "path": ".runtime/kernel-e2-20261113/official/111-S1c.json",
+      "sha256": "9ed4e6ee035f56ac585738795b8410d00c2854d6bfda678dc30ac2414bd6847b"
+    },
+    {
+      "task": "5",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/5-M1.json",
+      "sha256": "4aa2b052422f331080dad2fec54e5716f7faab99331b68692f17f34feae793cc"
+    },
+    {
+      "task": "9",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/9-M1.json",
+      "sha256": "69777087419ed70cc01585b4c05d796c732b126be1c5d71746bf41e5248710ec"
+    },
+    {
+      "task": "12",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/12-M1.json",
+      "sha256": "5ba39b0f572c5979357fcee8225271db2d23f649a3b41ae36084430a1c7a6665"
+    },
+    {
+      "task": "17",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/17-M1.json",
+      "sha256": "08e47040340054245db34de0ef69628f6fc05ccfdffd3af5dcc1851a94a3237f"
+    },
+    {
+      "task": "18",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/18-M1.json",
+      "sha256": "386acb1a61464f150ca918e6c95e666077c9d50cc2a03392071f106249431d52"
+    },
+    {
+      "task": "26",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/26-M1.json",
+      "sha256": "84b58a70067ccc9d89a7e89e9413dbf2afdc6cf31072c96954139c41f4d392da"
+    },
+    {
+      "task": "27",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/27-M1.json",
+      "sha256": "dc18e6f6746780fa50075eaee1f4fec658fcea43b99401b88e3e42d7e03d52d1"
+    },
+    {
+      "task": "32",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/32-M1.json",
+      "sha256": "f7624c9ec7fa07cee6b30d8f0e3200da140f535cfecc26e5c5e3e343b52a724e"
+    },
+    {
+      "task": "33",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/33-M1.json",
+      "sha256": "3722b1630d0671210c9cd82bf3a97626c083fdae0d43ffeea7aeeb1c8d7e0e7b"
+    },
+    {
+      "task": "36",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/36-M1.json",
+      "sha256": "2298a1fcebf6b9221766c23e8d29c0e8af66e93c13d4be43db2b197ad189641b"
+    },
+    {
+      "task": "38",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/38-M1.json",
+      "sha256": "ebcde743504797ae53370860a42703a92e669f21570651f80fd934b0cb532e3f"
+    },
+    {
+      "task": "39",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/39-M1.json",
+      "sha256": "4af243324815fdb89d168fde0afb7a1198b8978f868ea11fd314b8320b59dce8"
+    },
+    {
+      "task": "40",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/40-M1.json",
+      "sha256": "c244595e498d735a401d3df4dfcffccf61e86922a799441054cd6cae63e86ec3"
+    },
+    {
+      "task": "42",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113.repair/official/42-M1.json",
+      "sha256": "4341adb0d814706ce2207b30324413c8ce78c73a589479f93d6e321bff43e777"
+    },
+    {
+      "task": "45",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/45-M1.json",
+      "sha256": "5aa28f7326151942f663f475d5fd04880ce502749a75dd975d06ba6494a90287"
+    },
+    {
+      "task": "49",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/49-M1.json",
+      "sha256": "f5905a0da4eb9a523d3c897ceda404e778aa8652a17fdf569c9d509fa02bb3db"
+    },
+    {
+      "task": "51",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/51-M1.json",
+      "sha256": "9ef8ee019a15d4ee8a1ae720e91d0b4c7dbd40fd9ff6c335969e54bbd499ca6c"
+    },
+    {
+      "task": "53",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/53-M1.json",
+      "sha256": "9f31c4b8bd69d96cfc5ded2968a85c205a63ad1865bd8e58bf2210482ef7595b"
+    },
+    {
+      "task": "55",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/55-M1.json",
+      "sha256": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d"
+    },
+    {
+      "task": "56",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/56-M1.json",
+      "sha256": "0439ca3dc5f6effb0c42e790c7affc26e284fbecd024ab3e7c6077b77f1e89d8"
+    },
+    {
+      "task": "60",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/60-M1.json",
+      "sha256": "ff7168ba78e4fa5878ba08bff22747e24f1630f7f09f9973efb81f88ead437d8"
+    },
+    {
+      "task": "61",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/61-M1.json",
+      "sha256": "f8f940a16b939ab9ea58e9defad723990355837456f49e611208e3fb14a85b2c"
+    },
+    {
+      "task": "62",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/62-M1.json",
+      "sha256": "b50b62d01e5a7cbbab58619276c9e9dd1ef991ee86bb39f04ce1c50830a35b0d"
+    },
+    {
+      "task": "64",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/64-M1.json",
+      "sha256": "a79411b1b2d79acc5d298a990229956747278c45169e08bad9fd9a9ed139c6f5"
+    },
+    {
+      "task": "65",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/65-M1.json",
+      "sha256": "56505e213d236921ff0d3a516c6330fb20ca62411c31740aeb524f971701379a"
+    },
+    {
+      "task": "68",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/68-M1.json",
+      "sha256": "df1aafb4a55c71ad8b47a8783a58ebaf600c42959bdee009eb9d18fd6a10a939"
+    },
+    {
+      "task": "70",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/70-M1.json",
+      "sha256": "02e3e4fc7ad21f8b526e73e7f5f976f4b0985dc586574c3812e59330b818f145"
+    },
+    {
+      "task": "71",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/71-M1.json",
+      "sha256": "f932c7128585886d692c383e9f7c77e8877ce2488b075226a3e47f8ea32a5cb5"
+    },
+    {
+      "task": "74",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/74-M1.json",
+      "sha256": "a51380a80fef6e3f9f4db02243db8af1ea0ba46eea3704a8c081e024c33b9bf7"
+    },
+    {
+      "task": "77",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/77-M1.json",
+      "sha256": "85bce81992d28af8a94ae1cf34048da367b2ced39d5d83a4314b06e71f589e18"
+    },
+    {
+      "task": "79",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/79-M1.json",
+      "sha256": "07f1ad36666b7d6c43dadf38cbfe6e8b5bde062d5058049a7405de0ea4b4d50a"
+    },
+    {
+      "task": "86",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/86-M1.json",
+      "sha256": "164da7e4d21ae05ab2707389ef6bf18198cd7e7cc6dc09f822813db4b71c06c0"
+    },
+    {
+      "task": "90",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/90-M1.json",
+      "sha256": "6c17a11af93139ae16e83c4710cac7319fdf76abb125e673695f8ded8d242cba"
+    },
+    {
+      "task": "94",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/94-M1.json",
+      "sha256": "41035489e1527bcc5b787fc36457380b2f66a92d87cc8e6ba95de0cec726ce28"
+    },
+    {
+      "task": "97",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/97-M1.json",
+      "sha256": "4370bcebe6954becf573629877c40909e933b945c0807532074bc00a6f0178ce"
+    },
+    {
+      "task": "100",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/100-M1.json",
+      "sha256": "37cc2301452153c1dd7225e102bd3905269e5d76c1b0cd0ce913dde0c9b3b8ad"
+    },
+    {
+      "task": "101",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/101-M1.json",
+      "sha256": "a43600ac22ee36039e30a584edacf93e247f97b6c68ab5ccd956051069455bcf"
+    },
+    {
+      "task": "102",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/102-M1.json",
+      "sha256": "c14d7b99c63e5df2216e100f0f6716be27cd551654322f1d0c14a2ffe7e4b3bc"
+    },
+    {
+      "task": "108",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/108-M1.json",
+      "sha256": "acb4637a93cf8b1a1e0a84a0bb54afef96a7d166acf93111659ecf79f938b744"
+    },
+    {
+      "task": "111",
+      "arm": "M1",
+      "path": ".runtime/kernel-e2-20261113/official/111-M1.json",
+      "sha256": "de3ad89becbbe419aef59e7689058836afbe20eb1eff242d3403ac0487309a73"
+    },
+    {
+      "task": "5",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/5-M2.json",
+      "sha256": "1823c6d629d61e07a707d90f86a20a826bcb62db19d0523e48b4fe493fa12852"
+    },
+    {
+      "task": "9",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/9-M2.json",
+      "sha256": "dc5902ce7c96ba5ef9877c199fcd621eb2e391448822beadf11e6d17df3fe83e"
+    },
+    {
+      "task": "12",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/12-M2.json",
+      "sha256": "3e22d26b5290ea0a851771d398b6b77b6eea543b2294c6639fb053ba5e27f00e"
+    },
+    {
+      "task": "17",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/17-M2.json",
+      "sha256": "2baf804c36de6a23fee549e6ed574e33c399b6d0f0e561cec0b1ee0dcdae465a"
+    },
+    {
+      "task": "18",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/18-M2.json",
+      "sha256": "6acbeb58ceee612accc55d0242a7de641e37ed8c3ab296b23a02242fa21b3fc1"
+    },
+    {
+      "task": "26",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/26-M2.json",
+      "sha256": "21e4068fc8b8838c2c82ce07e3ee9d5a9bfc63b71f98523506c2d0d72fe104ad"
+    },
+    {
+      "task": "27",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/27-M2.json",
+      "sha256": "c83538bdcb27edc83f46e87b7103878dc115c445fb29efe36c20329e1e909168"
+    },
+    {
+      "task": "32",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/32-M2.json",
+      "sha256": "fb2bbc8ddd52d321f76d488401c02d32af6557e79bc00ebdff4b0121fcb5e87b"
+    },
+    {
+      "task": "33",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/33-M2.json",
+      "sha256": "11da4c6bcc2aea94c42d64430af71a657dae41d1a5093a94695a3fc4cb92b164"
+    },
+    {
+      "task": "36",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/36-M2.json",
+      "sha256": "0fac77d20ea21b3250740e1aba333bb6c6552d1446b643adfb15b48a3dc0686f"
+    },
+    {
+      "task": "38",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/38-M2.json",
+      "sha256": "9e6a5a1404eedb23745e06d3a47982a7ba3fd1c646af8eb463076774d62511be"
+    },
+    {
+      "task": "39",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/39-M2.json",
+      "sha256": "c595697e148e532658d5c9744156b6733d8edb5535d6cb19e59ff3776293b32b"
+    },
+    {
+      "task": "40",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/40-M2.json",
+      "sha256": "234b9cbff184cabb5e87200c68df0434866ad6621d2f4c0ae1247738812503e3"
+    },
+    {
+      "task": "42",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113.repair/official/42-M2.json",
+      "sha256": "cf2131d5f44053e94a312fc86a8549f55d6a8600880eb514d0285aa7c2ac9e88"
+    },
+    {
+      "task": "45",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/45-M2.json",
+      "sha256": "49017410fbf3e64edacfdaa7ec6d235a619427dc98558dfd538a24d282250b1f"
+    },
+    {
+      "task": "49",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/49-M2.json",
+      "sha256": "c96e13372b91cd465bfa3b09369e1612d338be942cf67dab534a2527ea5ccf5f"
+    },
+    {
+      "task": "51",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/51-M2.json",
+      "sha256": "ddfcf459e63125a50c9dbd6d7a53b8c8f29ef5682084ca21f6ebe2088500cb47"
+    },
+    {
+      "task": "53",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/53-M2.json",
+      "sha256": "c0a1018b0ed89298420579ddd4a6d78c95759070047fee2a2cbca7b1e23b1fc8"
+    },
+    {
+      "task": "55",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/55-M2.json",
+      "sha256": "1a2ff75725f3a6cbdca9e0da1a4ed4086e83d01f51f6b66b8e24682fc1fe4480"
+    },
+    {
+      "task": "56",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/56-M2.json",
+      "sha256": "584686659e84b5356be80e1b7d816457964fc2ce19c373a8483054b339397ae0"
+    },
+    {
+      "task": "60",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/60-M2.json",
+      "sha256": "b26826a9a496b1affd7312c7926e880177d6b6d3f5e72437009f9c782b90645d"
+    },
+    {
+      "task": "61",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/61-M2.json",
+      "sha256": "cc4ddddeb827279ea0893760513ae369770dfe99c0aa9413ee15000da63db3b7"
+    },
+    {
+      "task": "62",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/62-M2.json",
+      "sha256": "6440e1f366bd6c1af9af798704cbbf81b6444bacbe83fdcec6b66503b7209baf"
+    },
+    {
+      "task": "64",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/64-M2.json",
+      "sha256": "8b0a18cc3b0b01fc22baae2cadc30aace5ffdb16b19d6b1199e07b17eab67c91"
+    },
+    {
+      "task": "65",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/65-M2.json",
+      "sha256": "717eda3e6a6533bfb60e74f97a18f0e66fa831907c5609ba188eeb82e3b9c2c4"
+    },
+    {
+      "task": "68",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/68-M2.json",
+      "sha256": "67d5f0dd769fd9e050e89a3873d3d2c850b7d64c9f35ce38bab0a50ee20ae04c"
+    },
+    {
+      "task": "70",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/70-M2.json",
+      "sha256": "9e00073caa9bd4b84568937ca9609c9ef49f58c582bb3b89b865fb6f6c425a9e"
+    },
+    {
+      "task": "71",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/71-M2.json",
+      "sha256": "933684c341ac3b817d4833fff7242f542f5ed1def1a5f38e35dde1472c265626"
+    },
+    {
+      "task": "74",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/74-M2.json",
+      "sha256": "1ed7f4fcbbe08098ccfc1724bc9543f2df9cedf1cdd6711f22531bea5d441fa1"
+    },
+    {
+      "task": "77",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/77-M2.json",
+      "sha256": "5e7c78f6ac49f5b2c2dd60e8b4aed5f971c65a450afb42e50a88d71a837521bf"
+    },
+    {
+      "task": "79",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/79-M2.json",
+      "sha256": "318058ef0a9eede9ba0f0d7005b7c8b9075565a60da1ceda37fa025967d1e57c"
+    },
+    {
+      "task": "86",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/86-M2.json",
+      "sha256": "9f8336a7eb8258d62c9d738231213102a7b97ac5a816a8b48945f5d9ddf855b9"
+    },
+    {
+      "task": "90",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/90-M2.json",
+      "sha256": "31f08282227494200281d04b70b21c9f3c6e49bf00b039010252bc6301599b82"
+    },
+    {
+      "task": "94",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/94-M2.json",
+      "sha256": "35590530a1ee54b4db83db59842abec7ab631011b1fb74deb71ea75ed3a39421"
+    },
+    {
+      "task": "97",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/97-M2.json",
+      "sha256": "afa9a703a78fad8b651394a6317cbc9e279ed3639d65447ac736803df05e1ece"
+    },
+    {
+      "task": "100",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/100-M2.json",
+      "sha256": "68402029275e3b115202bebdbfb0e9a76429ec15d48593bef7a58e700f8f26f6"
+    },
+    {
+      "task": "101",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/101-M2.json",
+      "sha256": "a75d0f4c06580d58fdf627bf7e70e111227aef0c182a091dd5b6b6a1d25d0f8d"
+    },
+    {
+      "task": "102",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/102-M2.json",
+      "sha256": "4ec65dead5e7301ecea6ec7f6dae3e8477f58265bfe78699c2e2e1f1a3249a0a"
+    },
+    {
+      "task": "108",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/108-M2.json",
+      "sha256": "b967a6e79b7699428f518de04f0c0b40d91af0963f3b3c8ad7681eb93d476db4"
+    },
+    {
+      "task": "111",
+      "arm": "M2",
+      "path": ".runtime/kernel-e2-20261113/official/111-M2.json",
+      "sha256": "53dc255460cde7a5e6297a23493131a5ecacb996a90fa964f2e6f77ab1163338"
+    }
+  ]
+}

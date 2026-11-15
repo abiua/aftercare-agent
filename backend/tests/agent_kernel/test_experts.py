@@ -312,3 +312,75 @@ def test_staleness_tracks_only_signal_relevant_records(signal, user_request, sta
     service.advise(architectures()['M1'], messages, TOOLS, POLICY)
     assert service.consults == expected + 1
     assert service.trace[-1].output['changed'] == ['order:#W1']
+
+
+def test_incomplete_expert_continues_and_executor_still_raises():
+    from tau_official_budget import IncompleteResponse
+    def generate(**kw):
+        if kw['role'] == 'executor':
+            return StepProposal(text='Which option would you like?')
+        raise IncompleteResponse('Responses status: incomplete')
+    port = SimpleNamespace(generate=generate)
+    kernel = ExecutionKernel(architectures()['M1'], port,
+        guard=SimpleNamespace(check=lambda *a: GuardResult(allowed=True)),
+        reviewer=ProposalReviewer(port), experts=ExpertService(port))
+    assert kernel.step(conversation('cheapest'), TOOLS, POLICY).text
+    event = kernel.experts.trace[0]
+    assert event.output['stop_reason'] == 'unavailable'
+    assert event.reason == 'IncompleteResponse: Responses status: incomplete'
+    port.generate = lambda **kw: (_ for _ in ()).throw(IncompleteResponse('Responses status: incomplete'))
+    with pytest.raises(IncompleteResponse):
+        kernel.step(conversation('cheapest'), TOOLS, POLICY)
+
+
+def test_candidate_cap_after_grounding_and_repricing():
+    product = {'product_id': 'p2', 'variants': {f'option{i}': {'price': i, 'available': True} for i in range(8)}}
+    service = ExpertService(SimpleNamespace(generate=lambda **kw: answer(
+        candidates=[{'id': 'invented'}, *[{'id': f'option{i}', 'price': 99} for i in range(8)]])))
+    findings = service.advise(architectures()['M1'], conversation('cheapest') + product_messages(product), TOOLS, POLICY)
+    assert [c['id'] for c in findings[0]['candidates']] == [f'option{i}' for i in range(6)]
+    assert [c['price'] for c in findings[0]['candidates']] == list(range(6))
+    assert service.trace[-1].reason == 'dropped_ungrounded:1;price_corrected:8;candidates_truncated:2'
+
+
+@pytest.mark.parametrize('write', ['modify_pending_order_address', 'modify_pending_order_items'])
+def test_self_write_rebases_once_without_spending_budget_then_different_read_refreshes(write):
+    tools = (*TOOLS, ToolDefinition(name=write, kind=ToolKind.WRITE))
+    service = ExpertService(SimpleNamespace(generate=lambda **kw: answer()), max_consults=2)
+    messages = conversation('cheapest')
+    original = service.advise(architectures()['M1'], messages, tools, POLICY)
+    updated = {'order_id': '#W1', 'user_id': 'ann_1', 'status': 'pending', 'items': [], 'address': 'new'}
+    messages += call('write', write, {'order_id': '#W1'}, updated)
+    for _ in range(3):
+        assert service.advise(architectures()['M1'], messages, tools, POLICY) == original
+    assert service.consults == 1 and len(service.trace) == 2
+    assert service.trace[-1].stage == 'expert_self_write_rebased'
+    assert service.trace[-1].output == {'signal': 'constrained_choice', 'records': ['order:#W1']}
+    messages += call('read_same', 'get_order_details', {'order_id': '#W1'}, updated)
+    service.advise(architectures()['M1'], messages, tools, POLICY)
+    assert service.consults == 1
+    messages += call('read_changed', 'get_order_details', {'order_id': '#W1'}, {**updated, 'address': 'changed again'})
+    service.advise(architectures()['M1'], messages, tools, POLICY)
+    assert service.consults == 2 and service.trace[-1].output['changed'] == ['order:#W1']
+
+
+@pytest.mark.parametrize('failure', ['flag', 'text', 'foreign_user', 'wrong_order'])
+def test_failed_or_unaccepted_write_cannot_rebase(failure):
+    from aftercare.agent_kernel.retail_guards import facts
+    write = 'modify_pending_order_address'
+    tools = (*TOOLS, ToolDefinition(name=write, kind=ToolKind.WRITE))
+    service = ExpertService(SimpleNamespace(generate=lambda **kw: answer()))
+    messages = conversation('cheapest')
+    service.advise(architectures()['M1'], messages, tools, POLICY)
+    updated = {'order_id': '#W1', 'user_id': 'ann_1', 'status': 'pending', 'items': []}
+    if failure == 'foreign_user': updated['user_id'] = 'other'
+    if failure == 'wrong_order': updated['order_id'] = '#W9'
+    attempt = call('write', write, {'order_id': '#W1'}, 'Error: failed' if failure == 'text' else updated)
+    if failure == 'flag': attempt[-1]['error'] = True
+    messages += attempt
+    service.advise(architectures()['M1'], messages, tools, POLICY)
+    assert service.consults == 1 and len(service.trace) == 1
+    assert facts(messages).order_sources['#W1'] == 'get_order_details'
+    messages += call('read', 'get_order_details', {'order_id': '#W1'}, {**updated, 'order_id': '#W1', 'user_id': 'ann_1'})
+    service.advise(architectures()['M1'], messages, tools, POLICY)
+    assert service.consults == 2

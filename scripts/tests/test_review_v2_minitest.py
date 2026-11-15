@@ -67,14 +67,14 @@ def test_default_only_prints_manifest(tmp_path, monkeypatch, capsys, official):
     assert manifest['sample_count'] == 34
     assert manifest['max_calls'] == 68
     assert manifest['max_usd'] == '1.5'
-    assert manifest['kernel_version'] == 'aftercare-kernel-v3'
+    assert manifest['kernel_version'] == 'aftercare-kernel-v3.1'
     assert manifest['policy_sha256'] == sha256(official[0].encode()).hexdigest()
     assert manifest['prompt_sha256'] == sha256(mini.REVIEW_INSTRUCTION.encode()).hexdigest()
     assert len(manifest['sample_ids']) == 34
     assert not (tmp_path / '.runtime').exists()
 
 
-@pytest.mark.parametrize('version', ['aftercare-kernel-v2', 'aftercare-kernel-v3', 'future-version'])
+@pytest.mark.parametrize('version', ['aftercare-kernel-v2', 'aftercare-kernel-v3.1', 'future-version'])
 def test_only_live_manifest_requires_frozen_v2(version, monkeypatch, official):
     monkeypatch.setattr(mini, 'VERSION', version)
     schedule = mini.samples()

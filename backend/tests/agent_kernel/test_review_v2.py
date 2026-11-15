@@ -235,3 +235,64 @@ def test_dropped_entry_does_not_erase_valid_pending_conflict():
     reviewer,r=reviewer_result(port)
     assert r.blocking_reason=='order_dependency_conflict'
     assert len(reviewer.trace[-1].output['dropped_requests'])==1
+
+
+@pytest.mark.parametrize('order_field', [{}, {'order_id': None}])
+def test_account_request_survives_and_matches_only_account_call(order_field):
+    from aftercare.agent_kernel.review import validate_requests, public_view
+    raw = req('modify_user_address')
+    raw.pop('order_id')
+    raw.update(order_field)
+    sources = {m['id']: m for m in public_view(MESSAGES)}
+    checked, dropped = validate_requests([raw], sources)
+    assert not dropped and checked[0].order_id is None
+    account = ToolCall(id='a', name='modify_user_address', arguments={'user_id': 'ann_1'})
+    assert fulfills(checked[0], account)
+    assert not fulfills(checked[0], account.model_copy(update={'arguments': {'order_id': '#W1'}}))
+    assert not fulfills(checked[0].model_copy(update={'order_id': '#W1'}), account)
+    assert conflict(proposal(item_ids=['A']), [CustomerRequest(**req()), checked[0]]) is None
+    assert conflict(StepProposal(calls=(account,)), checked) is None
+    # A null-order entry cannot conflict with an actual order, even for an order operation.
+    assert conflict(proposal(item_ids=['A']), [CustomerRequest(**req()), CustomerRequest(**req(ADDRESS, order_id=None))]) is None
+    with pytest.raises(ValueError):
+        CustomerRequest(**{**raw, 'order_id': ''})
+
+
+def test_completed_account_request_requires_matching_successful_account_result():
+    from aftercare.agent_kernel.review import validate_requests, public_view
+    messages = [*MESSAGES, {'role': 'assistant', 'tool_calls': [
+        {'id': 'account', 'function': {'name': 'modify_user_address', 'arguments': '{"user_id":"ann_1"}'}}]},
+        {'role': 'tool', 'tool_call_id': 'account', 'content': '{"user_id":"ann_1","address":"new"}'}]
+    raw = req('modify_user_address', order_id=None, status='completed', resolution_references=[
+        {'message_id': 'm4', 'field': 'content', 'quote': '"address":"new"'}])
+    sources = lambda: {m['id']: m for m in public_view(messages)}
+    checked, dropped = validate_requests([raw], sources())
+    assert len(checked) == 1 and not dropped
+    assert validate_requests([{**raw, 'order_id': '#W1'}], sources())[1]
+    messages[-1]['error'] = True
+    assert validate_requests([raw], sources())[1]
+
+
+@pytest.mark.parametrize('recover', [True, False])
+def test_incomplete_review_retries_and_uses_existing_unavailable_path(recover):
+    from tau_official_budget import IncompleteResponse
+    attempts = []
+    def generate(**kw):
+        if kw['role'] == 'executor': return proposal(item_ids=['A'])
+        attempts.append(kw)
+        if recover and len(attempts) == 2:
+            return StepProposal(text=json.dumps({'verdict': 'allow', 'requests': [req()]}))
+        raise IncompleteResponse('Responses status: incomplete')
+    port = SimpleNamespace(generate=generate)
+    reviewer = ProposalReviewer(port)
+    kernel = ExecutionKernel(architectures()['M1'], port,
+        guard=SimpleNamespace(check=lambda *a: GuardResult(allowed=True)), reviewer=reviewer,
+        experts=SimpleNamespace(trace=[], advise=lambda *a: []))
+    assert kernel.step(MESSAGES, TOOLS, 'policy').calls
+    assert len(attempts) == 2
+    failures = reviewer.trace[-1].output['failures']
+    assert len(failures) == (1 if recover else 2)
+    assert all(f['type'] == 'IncompleteResponse' and f['detail'] == 'Responses status: incomplete' for f in failures)
+    assert reviewer.trace[-1].output['fallback_reason'] == (None if recover else 'IncompleteResponse')
+    if not recover:
+        assert any(e.stage == 'review_resolution' and e.output['status'] == 'review_unavailable' for e in kernel.trace)

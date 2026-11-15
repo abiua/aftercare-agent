@@ -19,6 +19,10 @@ PRICES = {
 }
 
 
+class IncompleteResponse(RuntimeError):
+    """Provider returned a settled but incomplete response."""
+
+
 class BudgetExhausted(RuntimeError):
     pass
 
@@ -188,7 +192,7 @@ class RowTransport:
             for key, value in counts.items():
                 self.usage[role][key] += value
         if response.status != "completed":
-            raise RuntimeError(f"Responses status: {response.status}")
+            raise IncompleteResponse(f"Responses status: {response.status}")
         function_calls = [
             {"id": part.call_id, "type": "function",
              "function": {"name": part.name, "arguments": part.arguments}}

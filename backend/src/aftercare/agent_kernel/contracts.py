@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Any, Literal, Protocol
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-VERSION = 'aftercare-kernel-v3'
+VERSION = 'aftercare-kernel-v3.1'
 Role = Literal['executor','reviewer','self_check','fact_expert','policy_expert','vision_expert','user','judge']
 
 
@@ -66,7 +66,7 @@ class GuardResult(Record):
 
 class CustomerRequest(Record):
     description: str = Field(min_length=1)
-    order_id: str = Field(min_length=1)
+    order_id: str | None = Field(default=None, min_length=1)
     operation: str = Field(min_length=1)
     item_ids: tuple[str, ...] = ()
     status: Literal['pending', 'completed', 'unavailable', 'withdrawn', 'deferred']

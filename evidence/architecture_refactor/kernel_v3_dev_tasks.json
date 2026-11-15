@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "task_ids": [
+    "29",
+    "41",
+    "54",
+    "96",
+    "16",
+    "22"
+  ],
+  "selected": [
+    {
+      "task_id": "29",
+      "group": "A",
+      "write_actions": [
+        "exchange_delivered_order_items",
+        "exchange_delivered_order_items"
+      ],
+      "matched_conditions": [
+        "most expensive"
+      ]
+    },
+    {
+      "task_id": "41",
+      "group": "A",
+      "write_actions": [
+        "modify_pending_order_address",
+        "modify_pending_order_address",
+        "modify_user_address",
+        "modify_pending_order_items"
+      ],
+      "matched_conditions": [
+        "easiest"
+      ]
+    },
+    {
+      "task_id": "54",
+      "group": "A",
+      "write_actions": [
+        "cancel_pending_order",
+        "cancel_pending_order",
+        "return_delivered_order_items"
+      ],
+      "matched_conditions": [
+        "maximum",
+        "cheaper",
+        "cheaper"
+      ]
+    },
+    {
+      "task_id": "96",
+      "group": "A",
+      "write_actions": [
+        "modify_pending_order_address",
+        "modify_pending_order_items"
+      ],
+      "matched_conditions": [
+        "cheapest"
+      ]
+    },
+    {
+      "task_id": "16",
+      "group": "B",
+      "write_actions": [
+        "cancel_pending_order",
+        "cancel_pending_order",
+        "return_delivered_order_items"
+      ],
+      "matched_conditions": []
+    },
+    {
+      "task_id": "22",
+      "group": "B",
+      "write_actions": [
+        "modify_user_address",
+        "modify_pending_order_address",
+        "modify_user_address"
+      ],
+      "matched_conditions": []
+    }
+  ],
+  "rules": {
+    "candidates": "split.train excluding task 44; numeric ascending task ID order",
+    "condition": "CONSTRAINT.finditer(json.dumps(user_scenario, ensure_ascii=False))",
+    "A": "price condition matched and >=2 write actions (duplicates count); first 4",
+    "B": "no price condition matched and >=2 distinct write action names; first 2",
+    "write_names": [
+      "cancel_pending_order",
+      "exchange_delivered_order_items",
+      "modify_pending_order_address",
+      "modify_pending_order_items",
+      "modify_pending_order_payment",
+      "modify_user_address",
+      "return_delivered_order_items"
+    ]
+  },
+  "constraint_pattern": "cheapest|least expensive|most expensive|lowest price|same price|under \\$|within .{0,12}budget|budget|largest|smallest|biggest|easiest|maximum|minimum|最便宜|最贵|同价|预算|最大|最小|cheaper|same or lower|same or less|lower price|lower-priced|higher price|price (is|stays|remains) the same|no more than|at most \\$|less than \\$|below \\$|not exceed|costs? (less|more)|priciest|highest price|便宜|不超过|不高于|更低",
+  "dataset_sha256": {
+    "tasks.json": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+    "split_tasks.json": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20"
+  },
+  "candidate_count": 73,
+  "group_candidate_counts": {
+    "A": 6,
+    "B": 15
+  },
+  "development_task_ids": [
+    "16",
+    "22",
+    "29",
+    "41",
+    "44",
+    "54",
+    "96"
+  ],
+  "confirmation_exclusion": "These six tasks and task 44 are development-only and must never enter confirmation experiments.",
+  "remaining_available_train_tasks": 67,
+  "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754"
+}

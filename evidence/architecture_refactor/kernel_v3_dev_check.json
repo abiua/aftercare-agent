@@ -1,0 +1,807 @@
+{
+  "schema_version": 1,
+  "directory": "/Users/mbw/Documents/aftercare-agent/.runtime/kernel-v3-dev/run-v1",
+  "per_task": [
+    {
+      "task_id": "29",
+      "architecture": "M2",
+      "identity_valid": true,
+      "outcome": {
+        "category": "normal",
+        "normally_finished": true,
+        "status": "completed",
+        "termination_reason": "user_stop",
+        "error_type": null,
+        "official_reward": 1.0,
+        "duration_seconds": 43.604,
+        "guard_rejected": false
+      },
+      "authentication_completed": true,
+      "transfer_tool_calls": 0,
+      "experts": {
+        "consults": 0,
+        "refreshes": 0,
+        "stale_dropped": 0,
+        "unavailable": 0,
+        "price_corrected": 0,
+        "dropped_ungrounded": 0,
+        "read_statuses": {
+          "executed": 0,
+          "rejected": 0,
+          "error": 0,
+          "limit": 0
+        },
+        "consultations": []
+      },
+      "amount_rule": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "auth_reminder": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "program_blocks": {
+        "status": "needs_manual_review",
+        "events": [],
+        "count": 0
+      },
+      "guard_rejections_by_rule": {},
+      "review": {
+        "count": 2,
+        "verdicts": {
+          "allow": 2,
+          "revise": 0
+        },
+        "fallback_reason_count": 0,
+        "fallback_count": 0,
+        "failures": 0,
+        "dropped_requests": 0,
+        "order_dependency_conflict": 0,
+        "resolutions": {},
+        "executor_revision": 0
+      },
+      "billing": {
+        "calls": 24,
+        "calls_by_actor": {
+          "executor": 15,
+          "reviewer": 2,
+          "self_check": 0,
+          "fact_expert": 0,
+          "policy_expert": 0,
+          "vision_expert": 0,
+          "user": 6,
+          "judge": 1
+        },
+        "cost_usd_by_actor": {
+          "executor": 0.004706172,
+          "reviewer": 0.041542,
+          "self_check": 0.0,
+          "fact_expert": 0.0,
+          "policy_expert": 0.0,
+          "vision_expert": 0.0,
+          "user": 0.008932,
+          "judge": 0.004746
+        },
+        "known_total_cost_usd": 0.059926172,
+        "total_cost_usd": 0.059926172,
+        "unsettled_calls": 0
+      },
+      "unknown_fields": []
+    },
+    {
+      "task_id": "41",
+      "architecture": "M2",
+      "identity_valid": true,
+      "outcome": {
+        "category": "normal",
+        "normally_finished": true,
+        "status": "completed",
+        "termination_reason": "user_stop",
+        "error_type": null,
+        "official_reward": 0.0,
+        "duration_seconds": 95.836,
+        "guard_rejected": false
+      },
+      "authentication_completed": true,
+      "transfer_tool_calls": 0,
+      "experts": {
+        "consults": 4,
+        "refreshes": 3,
+        "stale_dropped": 0,
+        "unavailable": 0,
+        "price_corrected": 0,
+        "dropped_ungrounded": 0,
+        "read_statuses": {
+          "executed": 0,
+          "rejected": 0,
+          "error": 0,
+          "limit": 0
+        },
+        "consultations": [
+          {
+            "task_id": "41",
+            "event_index": 15,
+            "step": 7,
+            "stage": "expert_fact_expert",
+            "refresh": false,
+            "signal": "unknown",
+            "read_log_count": 0,
+            "read_statuses": {
+              "executed": 0,
+              "rejected": 0,
+              "error": 0,
+              "limit": 0
+            },
+            "stop_reason": "complete",
+            "reason": null
+          },
+          {
+            "task_id": "41",
+            "event_index": 27,
+            "step": 11,
+            "stage": "expert_fact_expert",
+            "refresh": true,
+            "signal": "unknown",
+            "read_log_count": 0,
+            "read_statuses": {
+              "executed": 0,
+              "rejected": 0,
+              "error": 0,
+              "limit": 0
+            },
+            "stop_reason": "complete",
+            "reason": null
+          },
+          {
+            "task_id": "41",
+            "event_index": 32,
+            "step": 12,
+            "stage": "expert_fact_expert",
+            "refresh": true,
+            "signal": "unknown",
+            "read_log_count": 0,
+            "read_statuses": {
+              "executed": 0,
+              "rejected": 0,
+              "error": 0,
+              "limit": 0
+            },
+            "stop_reason": "complete",
+            "reason": null
+          },
+          {
+            "task_id": "41",
+            "event_index": 37,
+            "step": 13,
+            "stage": "expert_fact_expert",
+            "refresh": true,
+            "signal": "unknown",
+            "read_log_count": 0,
+            "read_statuses": {
+              "executed": 0,
+              "rejected": 0,
+              "error": 0,
+              "limit": 0
+            },
+            "stop_reason": "complete",
+            "reason": null
+          }
+        ]
+      },
+      "amount_rule": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "auth_reminder": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "program_blocks": {
+        "status": "needs_manual_review",
+        "events": [],
+        "count": 0
+      },
+      "guard_rejections_by_rule": {},
+      "review": {
+        "count": 4,
+        "verdicts": {
+          "allow": 4,
+          "revise": 0
+        },
+        "fallback_reason_count": 0,
+        "fallback_count": 0,
+        "failures": 0,
+        "dropped_requests": 3,
+        "order_dependency_conflict": 0,
+        "resolutions": {},
+        "executor_revision": 0
+      },
+      "billing": {
+        "calls": 28,
+        "calls_by_actor": {
+          "executor": 14,
+          "reviewer": 4,
+          "self_check": 0,
+          "fact_expert": 4,
+          "policy_expert": 0,
+          "vision_expert": 0,
+          "user": 6,
+          "judge": 0
+        },
+        "cost_usd_by_actor": {
+          "executor": 0.00741876,
+          "reviewer": 0.081376,
+          "self_check": 0.0,
+          "fact_expert": 0.083046,
+          "policy_expert": 0.0,
+          "vision_expert": 0.0,
+          "user": 0.009237,
+          "judge": 0.0
+        },
+        "known_total_cost_usd": 0.18107776,
+        "total_cost_usd": 0.18107776,
+        "unsettled_calls": 0
+      },
+      "unknown_fields": []
+    },
+    {
+      "task_id": "54",
+      "architecture": "M2",
+      "identity_valid": true,
+      "outcome": {
+        "category": "other_exception_or_limit",
+        "normally_finished": false,
+        "status": "error",
+        "termination_reason": "unknown",
+        "error_type": "RuntimeError",
+        "official_reward": null,
+        "duration_seconds": 38.671,
+        "guard_rejected": false
+      },
+      "authentication_completed": true,
+      "transfer_tool_calls": 0,
+      "experts": {
+        "consults": 0,
+        "refreshes": 0,
+        "stale_dropped": 0,
+        "unavailable": 0,
+        "price_corrected": 0,
+        "dropped_ungrounded": 0,
+        "read_statuses": {
+          "executed": 0,
+          "rejected": 0,
+          "error": 0,
+          "limit": 0
+        },
+        "consultations": []
+      },
+      "amount_rule": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "auth_reminder": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "program_blocks": {
+        "status": "needs_manual_review",
+        "events": [],
+        "count": 0
+      },
+      "guard_rejections_by_rule": {},
+      "review": {
+        "count": 0,
+        "verdicts": {
+          "allow": 0,
+          "revise": 0
+        },
+        "fallback_reason_count": 0,
+        "fallback_count": 0,
+        "failures": 0,
+        "dropped_requests": 0,
+        "order_dependency_conflict": 0,
+        "resolutions": {},
+        "executor_revision": 0
+      },
+      "billing": {
+        "calls": 18,
+        "calls_by_actor": {
+          "executor": 13,
+          "reviewer": 0,
+          "self_check": 0,
+          "fact_expert": 1,
+          "policy_expert": 0,
+          "vision_expert": 0,
+          "user": 4,
+          "judge": 0
+        },
+        "cost_usd_by_actor": {
+          "executor": 0.003092028,
+          "reviewer": 0.0,
+          "self_check": 0.0,
+          "fact_expert": 0.027348,
+          "policy_expert": 0.0,
+          "vision_expert": 0.0,
+          "user": 0.004662,
+          "judge": 0.0
+        },
+        "known_total_cost_usd": 0.035102028,
+        "total_cost_usd": 0.035102028,
+        "unsettled_calls": 0
+      },
+      "unknown_fields": []
+    },
+    {
+      "task_id": "96",
+      "architecture": "M2",
+      "identity_valid": true,
+      "outcome": {
+        "category": "normal",
+        "normally_finished": true,
+        "status": "completed",
+        "termination_reason": "user_stop",
+        "error_type": null,
+        "official_reward": 1.0,
+        "duration_seconds": 60.207,
+        "guard_rejected": false
+      },
+      "authentication_completed": true,
+      "transfer_tool_calls": 0,
+      "experts": {
+        "consults": 3,
+        "refreshes": 2,
+        "stale_dropped": 0,
+        "unavailable": 0,
+        "price_corrected": 0,
+        "dropped_ungrounded": 0,
+        "read_statuses": {
+          "executed": 0,
+          "rejected": 0,
+          "error": 0,
+          "limit": 0
+        },
+        "consultations": [
+          {
+            "task_id": "96",
+            "event_index": 15,
+            "step": 7,
+            "stage": "expert_fact_expert",
+            "refresh": false,
+            "signal": "unknown",
+            "read_log_count": 0,
+            "read_statuses": {
+              "executed": 0,
+              "rejected": 0,
+              "error": 0,
+              "limit": 0
+            },
+            "stop_reason": "complete",
+            "reason": null
+          },
+          {
+            "task_id": "96",
+            "event_index": 24,
+            "step": 10,
+            "stage": "expert_fact_expert",
+            "refresh": true,
+            "signal": "unknown",
+            "read_log_count": 0,
+            "read_statuses": {
+              "executed": 0,
+              "rejected": 0,
+              "error": 0,
+              "limit": 0
+            },
+            "stop_reason": "complete",
+            "reason": null
+          },
+          {
+            "task_id": "96",
+            "event_index": 29,
+            "step": 11,
+            "stage": "expert_fact_expert",
+            "refresh": true,
+            "signal": "unknown",
+            "read_log_count": 0,
+            "read_statuses": {
+              "executed": 0,
+              "rejected": 0,
+              "error": 0,
+              "limit": 0
+            },
+            "stop_reason": "complete",
+            "reason": null
+          }
+        ]
+      },
+      "amount_rule": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "auth_reminder": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "program_blocks": {
+        "status": "needs_manual_review",
+        "events": [],
+        "count": 0
+      },
+      "guard_rejections_by_rule": {},
+      "review": {
+        "count": 2,
+        "verdicts": {
+          "allow": 2,
+          "revise": 0
+        },
+        "fallback_reason_count": 0,
+        "fallback_count": 0,
+        "failures": 0,
+        "dropped_requests": 0,
+        "order_dependency_conflict": 0,
+        "resolutions": {},
+        "executor_revision": 0
+      },
+      "billing": {
+        "calls": 21,
+        "calls_by_actor": {
+          "executor": 11,
+          "reviewer": 2,
+          "self_check": 0,
+          "fact_expert": 3,
+          "policy_expert": 0,
+          "vision_expert": 0,
+          "user": 5,
+          "judge": 0
+        },
+        "cost_usd_by_actor": {
+          "executor": 0.004476684,
+          "reviewer": 0.033112,
+          "self_check": 0.0,
+          "fact_expert": 0.041644,
+          "policy_expert": 0.0,
+          "vision_expert": 0.0,
+          "user": 0.006733,
+          "judge": 0.0
+        },
+        "known_total_cost_usd": 0.085965684,
+        "total_cost_usd": 0.085965684,
+        "unsettled_calls": 0
+      },
+      "unknown_fields": []
+    },
+    {
+      "task_id": "16",
+      "architecture": "M2",
+      "identity_valid": true,
+      "outcome": {
+        "category": "normal",
+        "normally_finished": true,
+        "status": "completed",
+        "termination_reason": "user_stop",
+        "error_type": null,
+        "official_reward": 1.0,
+        "duration_seconds": 46.656,
+        "guard_rejected": false
+      },
+      "authentication_completed": true,
+      "transfer_tool_calls": 0,
+      "experts": {
+        "consults": 0,
+        "refreshes": 0,
+        "stale_dropped": 0,
+        "unavailable": 0,
+        "price_corrected": 0,
+        "dropped_ungrounded": 0,
+        "read_statuses": {
+          "executed": 0,
+          "rejected": 0,
+          "error": 0,
+          "limit": 0
+        },
+        "consultations": []
+      },
+      "amount_rule": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "auth_reminder": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "program_blocks": {
+        "status": "needs_manual_review",
+        "events": [],
+        "count": 0
+      },
+      "guard_rejections_by_rule": {},
+      "review": {
+        "count": 3,
+        "verdicts": {
+          "allow": 3,
+          "revise": 0
+        },
+        "fallback_reason_count": 0,
+        "fallback_count": 0,
+        "failures": 0,
+        "dropped_requests": 3,
+        "order_dependency_conflict": 0,
+        "resolutions": {},
+        "executor_revision": 0
+      },
+      "billing": {
+        "calls": 21,
+        "calls_by_actor": {
+          "executor": 12,
+          "reviewer": 3,
+          "self_check": 0,
+          "fact_expert": 0,
+          "policy_expert": 0,
+          "vision_expert": 0,
+          "user": 5,
+          "judge": 1
+        },
+        "cost_usd_by_actor": {
+          "executor": 0.003596376,
+          "reviewer": 0.055144,
+          "self_check": 0.0,
+          "fact_expert": 0.0,
+          "policy_expert": 0.0,
+          "vision_expert": 0.0,
+          "user": 0.005924,
+          "judge": 0.003555
+        },
+        "known_total_cost_usd": 0.068219376,
+        "total_cost_usd": 0.068219376,
+        "unsettled_calls": 0
+      },
+      "unknown_fields": []
+    },
+    {
+      "task_id": "22",
+      "architecture": "M2",
+      "identity_valid": true,
+      "outcome": {
+        "category": "normal",
+        "normally_finished": true,
+        "status": "completed",
+        "termination_reason": "user_stop",
+        "error_type": null,
+        "official_reward": 1.0,
+        "duration_seconds": 38.672,
+        "guard_rejected": false
+      },
+      "authentication_completed": true,
+      "transfer_tool_calls": 0,
+      "experts": {
+        "consults": 0,
+        "refreshes": 0,
+        "stale_dropped": 0,
+        "unavailable": 0,
+        "price_corrected": 0,
+        "dropped_ungrounded": 0,
+        "read_statuses": {
+          "executed": 0,
+          "rejected": 0,
+          "error": 0,
+          "limit": 0
+        },
+        "consultations": []
+      },
+      "amount_rule": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "auth_reminder": {
+        "triggered": 0,
+        "corrected": 0,
+        "soft_unresolved": 0,
+        "other_or_unknown": 0,
+        "events": []
+      },
+      "program_blocks": {
+        "status": "needs_manual_review",
+        "events": [],
+        "count": 0
+      },
+      "guard_rejections_by_rule": {},
+      "review": {
+        "count": 3,
+        "verdicts": {
+          "allow": 3,
+          "revise": 0
+        },
+        "fallback_reason_count": 0,
+        "fallback_count": 0,
+        "failures": 0,
+        "dropped_requests": 0,
+        "order_dependency_conflict": 0,
+        "resolutions": {},
+        "executor_revision": 0
+      },
+      "billing": {
+        "calls": 24,
+        "calls_by_actor": {
+          "executor": 14,
+          "reviewer": 3,
+          "self_check": 0,
+          "fact_expert": 0,
+          "policy_expert": 0,
+          "vision_expert": 0,
+          "user": 7,
+          "judge": 0
+        },
+        "cost_usd_by_actor": {
+          "executor": 0.003540084,
+          "reviewer": 0.039718,
+          "self_check": 0.0,
+          "fact_expert": 0.0,
+          "policy_expert": 0.0,
+          "vision_expert": 0.0,
+          "user": 0.009189,
+          "judge": 0.0
+        },
+        "known_total_cost_usd": 0.052447084,
+        "total_cost_usd": 0.052447084,
+        "unsettled_calls": 0
+      },
+      "unknown_fields": []
+    }
+  ],
+  "totals": {
+    "experts": {
+      "consults": 7,
+      "refreshes": 5,
+      "stale_dropped": 0,
+      "unavailable": 0,
+      "price_corrected": 0,
+      "dropped_ungrounded": 0,
+      "read_statuses": {
+        "executed": 0,
+        "rejected": 0,
+        "error": 0,
+        "limit": 0
+      },
+      "mean_consults_among_consulted_tasks": 3.5
+    },
+    "amount_rule": {
+      "triggered": 0,
+      "corrected": 0,
+      "soft_unresolved": 0,
+      "other_or_unknown": 0
+    },
+    "auth_reminder": {
+      "triggered": 0,
+      "corrected": 0,
+      "soft_unresolved": 0,
+      "other_or_unknown": 0
+    },
+    "review": {
+      "count": 14,
+      "fallback_reason_count": 0,
+      "fallback_count": 0,
+      "failures": 0,
+      "dropped_requests": 6,
+      "order_dependency_conflict": 0,
+      "executor_revision": 0,
+      "verdicts": {
+        "allow": 14
+      },
+      "resolutions": {}
+    },
+    "guard_rejections_by_rule": {},
+    "program_blocks": {
+      "status": "needs_manual_review",
+      "count": 0,
+      "events": []
+    },
+    "billing": {
+      "calls": 136,
+      "known_total_cost_usd": 0.482738104,
+      "total_cost_usd": 0.482738104,
+      "unsettled_calls": 0,
+      "calls_by_actor": {
+        "executor": 79,
+        "fact_expert": 8,
+        "judge": 2,
+        "policy_expert": 0,
+        "reviewer": 14,
+        "self_check": 0,
+        "user": 33,
+        "vision_expert": 0
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.026830104,
+        "fact_expert": 0.152038,
+        "judge": 0.008301,
+        "policy_expert": 0.0,
+        "reviewer": 0.250892,
+        "self_check": 0.0,
+        "user": 0.044677,
+        "vision_expert": 0.0
+      }
+    },
+    "duration_seconds_sum": 323.646,
+    "completion_categories": {
+      "normal": 5,
+      "other_exception_or_limit": 1
+    }
+  },
+  "checks": {
+    "all_finished": {
+      "passed": false,
+      "definition": "Exactly six normal terminations, with zero unsettled calls."
+    },
+    "expert_reads_used": {
+      "passed": false,
+      "definition": "At least one task has an executed specialist read."
+    },
+    "expert_consults_bounded": {
+      "passed": false,
+      "mean": 3.5
+    },
+    "amount_rule": {
+      "passed": true,
+      "definition": "No amount_arithmetic trigger, or at least one immediately retried guard allowed."
+    },
+    "program_blocks": {
+      "passed": null,
+      "status": "needs_manual_review",
+      "count": 0
+    },
+    "review_fallback": {
+      "passed": true,
+      "count": 0
+    },
+    "auth_reminder": {
+      "passed": true,
+      "definition": "Every task with authentication_username eventually authenticates, or no trigger."
+    }
+  },
+  "unknown_fields": [],
+  "interpretation": {
+    "scope": "Development diagnostics only; official rewards are recorded without success-rate comparison.",
+    "steps": "step is the inferred kernel step; event_index is the exact zero-based private_trace index, not an official turn number.",
+    "guard_rejected": "Current KernelRetailAgent preserves private_trace and propagates GuardRejected. run_row records error_type=GuardRejected. It does not automatically transfer to a human. transfer_tool_calls is separate and does not establish causality.",
+    "fallback": "Count distinct proposal reviews with nonempty fallback_reason OR associated review_resolution=review_unavailable; do not double-count the same review.",
+    "failures": "Length of proposal_review.output.failures; includes the final failed attempt, not only attempts followed by a retry.",
+    "signals": "Current consultation events do not record signal names; report unknown rather than infer from role.",
+    "program_blocks": "Each hard guard rejection, proposal_review blocking_reason=order_dependency_conflict and blocked_dependency resolution is listed separately, even within one step.",
+    "amounts": "reply_amounts are currency-marked amounts parsed with the kernel helper; uncheckable_amounts come from guard feedback.",
+    "missing": "Absent or malformed evidence is unknown. A missing population manifest is fatal. Zero denotes an observed absence of events."
+  }
+}

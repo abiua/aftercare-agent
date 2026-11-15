@@ -211,6 +211,9 @@ def new_campaign(args):
         "seed_scope": "official orchestrator; Responses does not expose a provider seed",
         "concurrency": args.concurrency,
     }
+    if args.scope == "wiring":
+        from aftercare.agent_kernel.contracts import VERSION
+        manifest["kernel_version"] = VERSION
     execute_campaign(args.directory, manifest, tasks, args.live, args.max_usd)
 
 

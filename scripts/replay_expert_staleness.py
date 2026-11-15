@@ -8,10 +8,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'backend/src'))
 
-from aftercare.agent_kernel.contracts import VERSION
+from aftercare.agent_kernel.contracts import VERSION, ToolDefinition, ToolKind
+from aftercare.agent_kernel.dependencies import ORDER_WRITES
 from aftercare.agent_kernel.experts import (
     CONSTRAINT, NEEDS, ORDER_ID, changed_records,
-    evidence_seen, signals, text,
+    evidence_seen, signals, text, rebase_self_writes,
 )
 from aftercare.agent_kernel.retail_guards import facts
 from replay_amount_guard import public
@@ -19,6 +20,8 @@ from replay_amount_guard import public
 ARMS = ('S1', 'S2', 'S1c', 'M1', 'M2')
 EXPERT_ARMS = ('M1', 'M2')
 SIGNAL_NAMES = ('constrained_choice', 'multi_order', 'status_conflict')
+# These order writes match tau_official_agents.WRITE_TOOLS; account writes return no order.
+ORDER_TOOLS = tuple(ToolDefinition(name=name, kind=ToolKind.WRITE) for name in ORDER_WRITES)
 
 
 def match_excerpt(index, utterance, match):
@@ -62,7 +65,7 @@ def hit_record(context, signal, key, message_index, task, arm):
             'customer_matches': matches, **details}
 
 
-def statistics(messages, *, task=None, arm=None, simulate_consults=True):
+def statistics(messages, *, task=None, arm=None, simulate_consults=True, rebase_writes=True):
     """Inspect each recorded assistant turn's public prefix, before its action.
 
     Refreshes have no hypothetical private reads: their seen set is the current
@@ -82,11 +85,17 @@ def statistics(messages, *, task=None, arm=None, simulate_consults=True):
                     hits.append(hit_record(context, signal, key, index, task, arm))
             if simulate_consults:
                 current = evidence_seen(context)
+                state = facts(context)
                 pending = {key: (entry['signal'], entry['role'], key, entry['question'])
                            for key, entry in cache.items()}
                 pending.update({s[2]: s for s in active})
                 for signal, role, key, question in pending.values():
                     previous = cache.get(key)
+                    if previous and rebase_writes:
+                        rebased = rebase_self_writes(previous['seen'], current, state, ORDER_TOOLS)
+                        if rebased:
+                            events.append({'message_index': index, 'event': 'expert_self_write_rebased',
+                                           'signal': signal, 'key': list(key), 'records': rebased, 'changed': []})
                     changed = changed_records(previous['seen'], current, key) if previous else []
                     if previous and not changed:
                         continue
@@ -101,13 +110,14 @@ def statistics(messages, *, task=None, arm=None, simulate_consults=True):
                     events.append({'message_index': index, 'event': 'refresh' if previous else 'consult',
                                    'signal': signal, 'key': list(key), 'changed': changed,
                                    'consult_number': new_consults})
-                    cache[key] = {'signal': signal, 'role': role, 'question': question, 'seen': current}
+                    cache[key] = {'signal': signal, 'role': role, 'question': question, 'seen': dict(current)}
                     dropped.discard(key)
         context.append(public(message))
     result = {'has_signal': bool(hits), 'hits': hits}
     if simulate_consults:
         changed = sorted({key for event in events for key in event['changed']})
-        result.update(new_consults=new_consults, stale_dropped=dropped_count, changed=changed, events=events)
+        result.update(new_consults=new_consults, stale_dropped=dropped_count, changed=changed, events=events,
+                      self_write_rebases=sum(e['event'] == 'expert_self_write_rebased' for e in events))
     return result
 
 
@@ -117,7 +127,7 @@ def group_counts(rows, *, simulate_consults):
                                 for name in SIGNAL_NAMES}}
     if simulate_consults:
         counts.update({field: sum(row[field] for row in rows)
-                       for field in ('new_consults', 'recorded_consults', 'stale_dropped')})
+                       for field in ('new_consults', 'recorded_consults', 'stale_dropped', 'self_write_rebases')})
         counts['stale_task_count'] = sum(bool(row['changed']) for row in rows)
         counts['stale_tasks'] = [{'task': row['task'], 'changed': row['changed']} for row in rows if row['changed']]
     return counts
@@ -145,11 +155,14 @@ def replay(root=ROOT):
                 experts = [event for event in trajectory['private_trace']
                            if event['stage'] in ('expert_fact_expert', 'expert_policy_expert')]
                 assert all(event['output']['reads'] == 0 for event in experts), 'Replay assumes no historical private reads'
-                row.update(recorded_consults=len(experts),
+                row.update(v3_consults=statistics(trajectory['messages'], rebase_writes=False)['new_consults'],
+                           recorded_consults=len(experts),
                            recorded_input_sha256=[event['input_sha256'] for event in experts])
             rows.append(row)
             arm_rows.append(row)
         counts[arm] = group_counts(arm_rows, simulate_consults=arm in EXPERT_ARMS)
+        if arm in EXPERT_ARMS:
+            counts[arm]['v3_consults'] = sum(row['v3_consults'] for row in arm_rows)
     return {'mode': 'offline recorded-message replay; no network or model calls', 'kernel_version': VERSION,
             'summary_sha256': sha256(summary_raw).hexdigest(),
             'limits': {'new_consults': 5},
@@ -168,7 +181,7 @@ def replay(root=ROOT):
 
 def main():
     report = replay()
-    target = ROOT / 'evidence/architecture_refactor/expert_v3_replay.json'
+    target = ROOT / 'evidence/architecture_refactor/expert_v3_1_replay.json'
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     print(json.dumps(report['counts'], ensure_ascii=False, indent=2))
 

@@ -196,7 +196,7 @@ class ProposalReviewer:
                 budget_exhausted = kind == 'BudgetExhausted' or (
                     'BUDGET' in str(getattr(exc, 'code', '')) and any(
                         word in str(getattr(exc, 'code', '')) for word in ('EXHAUSTED', 'EXCEEDED')))
-                if not isinstance(exc,(ValueError,TimeoutError)) and kind not in {'BudgetExhausted','ProviderResultUnknown','ModelFailure','APITimeoutError'}:
+                if not isinstance(exc,(ValueError,TimeoutError)) and kind not in {'BudgetExhausted','ProviderResultUnknown','ModelFailure','APITimeoutError','IncompleteResponse'}:
                     raise
                 failures.append({'attempt':attempt+1,'phase':phase,'type':kind,'detail':str(exc)[:300]})
                 if attempt == 0 and not budget_exhausted:

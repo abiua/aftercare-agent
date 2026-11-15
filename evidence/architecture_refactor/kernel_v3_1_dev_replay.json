@@ -1,0 +1,1166 @@
+{
+  "mode": "offline; no model, network or tool execution",
+  "kernel_version": "aftercare-kernel-v3.1",
+  "development": [
+    {
+      "task": "29",
+      "recorded_consults": 0,
+      "v3_replay_consults": 0,
+      "v3_1_replay_consults": 0,
+      "interrupted_consult_boundary_appended": false,
+      "replay": {
+        "has_signal": false,
+        "hits": [],
+        "new_consults": 0,
+        "stale_dropped": 0,
+        "changed": [],
+        "events": [],
+        "self_write_rebases": 0
+      },
+      "reviews": [
+        {
+          "private_trace_index": 28,
+          "message_index": 24,
+          "saved_entries": 2,
+          "revalidated_entries": 2,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [],
+          "full_inventory_dropped_after": 0,
+          "missing_raw_entries": 0,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 31,
+          "message_index": 26,
+          "saved_entries": 2,
+          "revalidated_entries": 2,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [],
+          "full_inventory_dropped_after": 0,
+          "missing_raw_entries": 0,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        }
+      ],
+      "historical_dropped_entries": 0,
+      "saved_entries_dropped_after": 0,
+      "full_inventory_dropped_after": 0
+    },
+    {
+      "task": "41",
+      "recorded_consults": 4,
+      "v3_replay_consults": 4,
+      "v3_1_replay_consults": 1,
+      "interrupted_consult_boundary_appended": false,
+      "replay": {
+        "has_signal": true,
+        "hits": [
+          {
+            "task": "41",
+            "arm": "M2",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "first_hit_message_index": 14,
+            "customer_utterance_snippet": "might be too hard for my little kid. Can I change it to the easiest one with the fewest pieces? Also, I might have typed my add",
+            "customer_matches": [
+              {
+                "customer_message_index": 1,
+                "match": "easiest",
+                "match_start": 144,
+                "match_end": 151,
+                "utterance_snippet": "might be too hard for my little kid. Can I change it to the easiest one with the fewest pieces? Also, I might have typed my add"
+              }
+            ]
+          }
+        ],
+        "new_consults": 1,
+        "stale_dropped": 0,
+        "changed": [],
+        "events": [
+          {
+            "message_index": 14,
+            "event": "consult",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "changed": [],
+            "consult_number": 1
+          },
+          {
+            "message_index": 22,
+            "event": "expert_self_write_rebased",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "records": [
+              "order:#W4082615"
+            ],
+            "changed": []
+          },
+          {
+            "message_index": 24,
+            "event": "expert_self_write_rebased",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "records": [
+              "order:#W9583042"
+            ],
+            "changed": []
+          },
+          {
+            "message_index": 26,
+            "event": "expert_self_write_rebased",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "records": [
+              "order:#W4082615"
+            ],
+            "changed": []
+          }
+        ],
+        "self_write_rebases": 3
+      },
+      "reviews": [
+        {
+          "private_trace_index": 23,
+          "message_index": 18,
+          "saved_entries": 0,
+          "revalidated_entries": 0,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [],
+          "full_inventory_dropped_after": 0,
+          "missing_raw_entries": 0,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 26,
+          "message_index": 20,
+          "saved_entries": 3,
+          "revalidated_entries": 3,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [
+            {
+              "attempt": 1,
+              "index": 0,
+              "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+            }
+          ],
+          "full_inventory_dropped_after": null,
+          "missing_raw_entries": 1,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 31,
+          "message_index": 22,
+          "saved_entries": 3,
+          "revalidated_entries": 3,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [
+            {
+              "attempt": 1,
+              "index": 0,
+              "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+            }
+          ],
+          "full_inventory_dropped_after": null,
+          "missing_raw_entries": 1,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 36,
+          "message_index": 24,
+          "saved_entries": 3,
+          "revalidated_entries": 3,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [
+            {
+              "attempt": 1,
+              "index": 0,
+              "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+            }
+          ],
+          "full_inventory_dropped_after": null,
+          "missing_raw_entries": 1,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        }
+      ],
+      "historical_dropped_entries": 3,
+      "saved_entries_dropped_after": 0,
+      "full_inventory_dropped_after": null
+    },
+    {
+      "task": "54",
+      "recorded_consults": 1,
+      "v3_replay_consults": 1,
+      "v3_1_replay_consults": 1,
+      "interrupted_consult_boundary_appended": true,
+      "replay": {
+        "has_signal": true,
+        "hits": [
+          {
+            "task": "54",
+            "arm": "M2",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              25
+            ],
+            "first_hit_message_index": 28,
+            "customer_utterance_snippet": "her delivered items. But I really love the boots. Are there cheaper boots in the exact same size and material? I’d exchange the",
+            "customer_matches": [
+              {
+                "customer_message_index": 25,
+                "match": "cheaper",
+                "match_start": 111,
+                "match_end": 118,
+                "utterance_snippet": "her delivered items. But I really love the boots. Are there cheaper boots in the exact same size and material? I’d exchange the"
+              }
+            ]
+          }
+        ],
+        "new_consults": 1,
+        "stale_dropped": 0,
+        "changed": [],
+        "events": [
+          {
+            "message_index": 28,
+            "event": "consult",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              25
+            ],
+            "changed": [],
+            "consult_number": 1
+          }
+        ],
+        "self_write_rebases": 0
+      },
+      "reviews": [],
+      "historical_dropped_entries": 0,
+      "saved_entries_dropped_after": 0,
+      "full_inventory_dropped_after": 0
+    },
+    {
+      "task": "96",
+      "recorded_consults": 3,
+      "v3_replay_consults": 3,
+      "v3_1_replay_consults": 1,
+      "interrupted_consult_boundary_appended": false,
+      "replay": {
+        "has_signal": true,
+        "hits": [
+          {
+            "task": "96",
+            "arm": "M2",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "first_hit_message_index": 14,
+            "customer_utterance_snippet": "er. I’d also like to exchange the Bluetooth speaker for the cheapest green one available. Can you help with that?",
+            "customer_matches": [
+              {
+                "customer_message_index": 1,
+                "match": "cheapest",
+                "match_start": 159,
+                "match_end": 167,
+                "utterance_snippet": "er. I’d also like to exchange the Bluetooth speaker for the cheapest green one available. Can you help with that?"
+              }
+            ]
+          }
+        ],
+        "new_consults": 1,
+        "stale_dropped": 0,
+        "changed": [],
+        "events": [
+          {
+            "message_index": 14,
+            "event": "consult",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "changed": [],
+            "consult_number": 1
+          },
+          {
+            "message_index": 20,
+            "event": "expert_self_write_rebased",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "records": [
+              "order:#W6750959"
+            ],
+            "changed": []
+          },
+          {
+            "message_index": 22,
+            "event": "expert_self_write_rebased",
+            "signal": "constrained_choice",
+            "key": [
+              "constrained_choice",
+              1
+            ],
+            "records": [
+              "order:#W6750959"
+            ],
+            "changed": []
+          }
+        ],
+        "self_write_rebases": 2
+      },
+      "reviews": [
+        {
+          "private_trace_index": 23,
+          "message_index": 18,
+          "saved_entries": 2,
+          "revalidated_entries": 2,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [],
+          "full_inventory_dropped_after": 0,
+          "missing_raw_entries": 0,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 28,
+          "message_index": 20,
+          "saved_entries": 2,
+          "revalidated_entries": 2,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [],
+          "full_inventory_dropped_after": 0,
+          "missing_raw_entries": 0,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        }
+      ],
+      "historical_dropped_entries": 0,
+      "saved_entries_dropped_after": 0,
+      "full_inventory_dropped_after": 0
+    },
+    {
+      "task": "16",
+      "recorded_consults": 0,
+      "v3_replay_consults": 0,
+      "v3_1_replay_consults": 0,
+      "interrupted_consult_boundary_appended": false,
+      "replay": {
+        "has_signal": false,
+        "hits": [],
+        "new_consults": 0,
+        "stale_dropped": 0,
+        "changed": [],
+        "events": [],
+        "self_write_rebases": 0
+      },
+      "reviews": [
+        {
+          "private_trace_index": 20,
+          "message_index": 18,
+          "saved_entries": 3,
+          "revalidated_entries": 3,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [
+            {
+              "attempt": 1,
+              "index": 3,
+              "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+            }
+          ],
+          "full_inventory_dropped_after": null,
+          "missing_raw_entries": 1,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 24,
+          "message_index": 20,
+          "saved_entries": 3,
+          "revalidated_entries": 3,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [
+            {
+              "attempt": 1,
+              "index": 3,
+              "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+            }
+          ],
+          "full_inventory_dropped_after": null,
+          "missing_raw_entries": 1,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 27,
+          "message_index": 22,
+          "saved_entries": 3,
+          "revalidated_entries": 3,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [
+            {
+              "attempt": 1,
+              "index": 3,
+              "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+            }
+          ],
+          "full_inventory_dropped_after": null,
+          "missing_raw_entries": 1,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        }
+      ],
+      "historical_dropped_entries": 3,
+      "saved_entries_dropped_after": 0,
+      "full_inventory_dropped_after": null
+    },
+    {
+      "task": "22",
+      "recorded_consults": 0,
+      "v3_replay_consults": 0,
+      "v3_1_replay_consults": 0,
+      "interrupted_consult_boundary_appended": false,
+      "replay": {
+        "has_signal": false,
+        "hits": [],
+        "new_consults": 0,
+        "stale_dropped": 0,
+        "changed": [],
+        "events": [],
+        "self_write_rebases": 0
+      },
+      "reviews": [
+        {
+          "private_trace_index": 19,
+          "message_index": 18,
+          "saved_entries": 0,
+          "revalidated_entries": 0,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [],
+          "full_inventory_dropped_after": 0,
+          "missing_raw_entries": 0,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 22,
+          "message_index": 20,
+          "saved_entries": 0,
+          "revalidated_entries": 0,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [],
+          "full_inventory_dropped_after": 0,
+          "missing_raw_entries": 0,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        },
+        {
+          "private_trace_index": 29,
+          "message_index": 26,
+          "saved_entries": 0,
+          "revalidated_entries": 0,
+          "saved_entries_dropped": [],
+          "historical_dropped_entries": [],
+          "full_inventory_dropped_after": 0,
+          "missing_raw_entries": 0,
+          "dependency_before": null,
+          "dependency_after_on_saved_entries": null
+        }
+      ],
+      "historical_dropped_entries": 0,
+      "saved_entries_dropped_after": 0,
+      "full_inventory_dropped_after": 0
+    }
+  ],
+  "review_minitest": {
+    "samples": 34,
+    "success_path_samples": 33,
+    "success_path_conflicts_before": 0,
+    "success_path_conflicts_after_on_saved_entries": 0,
+    "task_97_control_blocked_before": true,
+    "task_97_control_blocked_after_on_saved_entries": true,
+    "missing_raw_entries": 29,
+    "saved_entries_dropped_after": 0,
+    "rows": [
+      {
+        "id": "26-M1-m16",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 0,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "36-M1-m30",
+        "group": "false-block",
+        "saved_entries": 3,
+        "revalidated_entries": 3,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "38-M1-m30",
+        "group": "false-block",
+        "saved_entries": 4,
+        "revalidated_entries": 4,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "40-M1-m12",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 0,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          },
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 2,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "42-M1-m30",
+        "group": "false-block",
+        "saved_entries": 3,
+        "revalidated_entries": 3,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 0,
+            "reason": "Completed request lacks matching successful tool evidence"
+          },
+          {
+            "attempt": 1,
+            "index": 3,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          },
+          {
+            "attempt": 1,
+            "index": 4,
+            "reason": "Completed request lacks matching successful tool evidence"
+          },
+          {
+            "attempt": 2,
+            "index": 0,
+            "reason": "Completed request lacks matching successful tool evidence"
+          },
+          {
+            "attempt": 2,
+            "index": 3,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          },
+          {
+            "attempt": 2,
+            "index": 4,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 6,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "49-M1-m22",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "51-M1-m16",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "53-M1-m16",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "55-M1-m24",
+        "group": "false-block",
+        "saved_entries": 4,
+        "revalidated_entries": 4,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 4,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "55-M1-m26",
+        "group": "false-block",
+        "saved_entries": 4,
+        "revalidated_entries": 4,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 2,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "55-M1-m30",
+        "group": "false-block",
+        "saved_entries": 4,
+        "revalidated_entries": 4,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 2,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "55-M1-m32",
+        "group": "false-block",
+        "saved_entries": 4,
+        "revalidated_entries": 4,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 2,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "61-M1-m12",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "64-M1-m20",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "70-M1-m22",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "71-M1-m24",
+        "group": "false-block",
+        "saved_entries": 3,
+        "revalidated_entries": 3,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "74-M1-m24",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "74-M1-m26",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "77-M1-m14",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 0,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          },
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          },
+          {
+            "attempt": 2,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 3,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "79-M1-m20",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "86-M1-m28",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "90-M1-m22",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 0,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "94-M1-m18",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "97-M1-m20",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 2,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "100-M1-m28",
+        "group": "false-block",
+        "saved_entries": 3,
+        "revalidated_entries": 3,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "100-M1-m30",
+        "group": "false-block",
+        "saved_entries": 4,
+        "revalidated_entries": 4,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "101-M1-m26",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          },
+          {
+            "attempt": 2,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 2,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "101-M1-m40",
+        "group": "false-block",
+        "saved_entries": 3,
+        "revalidated_entries": 3,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "102-M1-m26",
+        "group": "false-block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "102-M1-m36",
+        "group": "false-block",
+        "saved_entries": 3,
+        "revalidated_entries": 3,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "108-M1-m18",
+        "group": "false-block",
+        "saved_entries": 1,
+        "revalidated_entries": 1,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 1,
+            "reason": "Completed request lacks matching successful tool evidence"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "111-M1-m28",
+        "group": "false-block",
+        "saved_entries": 3,
+        "revalidated_entries": 3,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 3,
+            "reason": "Completed request lacks matching successful tool evidence"
+          },
+          {
+            "attempt": 1,
+            "index": 4,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 2,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "111-M1-m30",
+        "group": "false-block",
+        "saved_entries": 4,
+        "revalidated_entries": 4,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [
+          {
+            "attempt": 1,
+            "index": 4,
+            "reason": "1 validation error for CustomerRequest\norder_id\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+          }
+        ],
+        "full_inventory_dropped_after": null,
+        "missing_raw_entries": 1,
+        "dependency_before": null,
+        "dependency_after_on_saved_entries": null
+      },
+      {
+        "id": "97-M2-m16",
+        "group": "block",
+        "saved_entries": 2,
+        "revalidated_entries": 2,
+        "saved_entries_dropped": [],
+        "historical_dropped_entries": [],
+        "full_inventory_dropped_after": 0,
+        "missing_raw_entries": 0,
+        "dependency_before": "order_dependency_conflict",
+        "dependency_after_on_saved_entries": "order_dependency_conflict"
+      }
+    ]
+  },
+  "sources": {
+    ".runtime/kernel-v3-dev/run-v1/manifest.json": "2c1337b5739fbc0eae5353ea70e1b96432b27edbf25794e92da3eeea45ad74a3",
+    ".runtime/kernel-v3-dev/run-v1/official/29-M2.json": "8fda257c8b41f03fca283e17ce332d37e353945e74d350d5f0e0126cc665ae05",
+    ".runtime/kernel-v3-dev/run-v1/rows/29-M2.json": "f765cedd0cb1392f870d37d1f6094781cb3f18bd9d5971455947300e44918303",
+    ".runtime/kernel-v3-dev/run-v1/official/41-M2.json": "ff8099b66b371ee40690e2c40033a25f87acdd307558293d2aeba5b67059356b",
+    ".runtime/kernel-v3-dev/run-v1/rows/41-M2.json": "8aa78cfea060341c095d94b30ef02483dd983f02f7d97939f84f85ff7a9f1f2e",
+    ".runtime/kernel-v3-dev/run-v1/official/54-M2.json": "35d1f2bbf4023def623c3d879beab983f027747780b894b68e2321619fb40b81",
+    ".runtime/kernel-v3-dev/run-v1/rows/54-M2.json": "dc74bf2aa25c4e0da751da36be495b97c6b49e9ce84a197ed163ad04ca40e042",
+    ".runtime/kernel-v3-dev/run-v1/official/96-M2.json": "8312071dcabbb025135ead3caf2a0afade63f46807cd93bffa3ce0b1eaa58fc7",
+    ".runtime/kernel-v3-dev/run-v1/rows/96-M2.json": "bed9fd39945d7179fa0222f28fa4952c774ad542f558e4d076dfc4ae298cd62a",
+    ".runtime/kernel-v3-dev/run-v1/official/16-M2.json": "0976418a4b36436aa79d9c0555b2c786561f0cb17594531eaa68c6e3b1f5dc26",
+    ".runtime/kernel-v3-dev/run-v1/rows/16-M2.json": "45d97845b30d45c3592ee249a286c1086f3c97571e149343fc55adcce223433a",
+    ".runtime/kernel-v3-dev/run-v1/official/22-M2.json": "f14d0aaf01c7c8253eea465c6917676ed37afbb93761264d0e92059d4d979fb6",
+    ".runtime/kernel-v3-dev/run-v1/rows/22-M2.json": "71b1070fe7d9a1b654c16b9bc7cfc7a319cd27565fe81972cd569c0049721174",
+    ".runtime/review-v2-minitest/run-v1/manifest.json": "8f4c0cd9b221c6c300c6b2532d803cce4060e0d92c8360ac3e9d270954566835",
+    ".runtime/kernel-e2-20261113/official/26-M1.json": "84b58a70067ccc9d89a7e89e9413dbf2afdc6cf31072c96954139c41f4d392da",
+    ".runtime/review-v2-minitest/run-v1/26-M1-m16.json": "e39c1b1f3612c3d67f4f21499b678dd6d5cf157fc66644bc08a73516849a0138",
+    ".runtime/kernel-e2-20261113/official/36-M1.json": "2298a1fcebf6b9221766c23e8d29c0e8af66e93c13d4be43db2b197ad189641b",
+    ".runtime/review-v2-minitest/run-v1/36-M1-m30.json": "fa649391fd92ef21ef34d141b8c686a3ce680d156a84c7c09ac67bac7ed01e84",
+    ".runtime/kernel-e2-20261113/official/38-M1.json": "ebcde743504797ae53370860a42703a92e669f21570651f80fd934b0cb532e3f",
+    ".runtime/review-v2-minitest/run-v1/38-M1-m30.json": "71d561e522dddefa73dfbdbc261127b7c82d33a534b2e9bf65ef9f8310a09348",
+    ".runtime/kernel-e2-20261113/official/40-M1.json": "c244595e498d735a401d3df4dfcffccf61e86922a799441054cd6cae63e86ec3",
+    ".runtime/review-v2-minitest/run-v1/40-M1-m12.json": "e44f65028c21840a65b5b7a3f78dfc0e3850013c25419fec781a2998b1feb72a",
+    ".runtime/kernel-e2-20261113.repair/official/42-M1.json": "4341adb0d814706ce2207b30324413c8ce78c73a589479f93d6e321bff43e777",
+    ".runtime/review-v2-minitest/run-v1/42-M1-m30.json": "5460f8c636fdb6ed0cd1d71af83603a669a66c811e44bb5d9255a3deeaa60cf1",
+    ".runtime/kernel-e2-20261113/official/49-M1.json": "f5905a0da4eb9a523d3c897ceda404e778aa8652a17fdf569c9d509fa02bb3db",
+    ".runtime/review-v2-minitest/run-v1/49-M1-m22.json": "fd2de28deaa7aa71905835a85b014919e5bdbf30baeb7dca134e01e0baa16398",
+    ".runtime/kernel-e2-20261113/official/51-M1.json": "9ef8ee019a15d4ee8a1ae720e91d0b4c7dbd40fd9ff6c335969e54bbd499ca6c",
+    ".runtime/review-v2-minitest/run-v1/51-M1-m16.json": "d097d1fc6f9236a49dbb75aa14f921482d9d48f341668e23a0df536fb016af9c",
+    ".runtime/kernel-e2-20261113/official/53-M1.json": "9f31c4b8bd69d96cfc5ded2968a85c205a63ad1865bd8e58bf2210482ef7595b",
+    ".runtime/review-v2-minitest/run-v1/53-M1-m16.json": "4311df9ad97e50dfc0f0f7c90a47001bb14c212482780da8b540d5f38ff16618",
+    ".runtime/kernel-e2-20261113/official/55-M1.json": "2202640af13ad6ef1941fa5d86c5f07da82ccbda5053bed3331fef135d31f80d",
+    ".runtime/review-v2-minitest/run-v1/55-M1-m24.json": "7891b9b3e020f8f5058fa3e8158278ed1bf971a6de5ddbfc08578f1f3d5b9c3c",
+    ".runtime/review-v2-minitest/run-v1/55-M1-m26.json": "9a5a8098328050239bcdb5bffcc0eb117db210d9cc3f17c71c7ee8757affdb45",
+    ".runtime/review-v2-minitest/run-v1/55-M1-m30.json": "5abc7725c039eca23cbef45a3333d3d20e65f30b4ec099d8c10bd4f8f5053f95",
+    ".runtime/review-v2-minitest/run-v1/55-M1-m32.json": "08cfcbca382dd50aa74fa50f9fa9671f6b0793a26626fbfe35a59caba8beb227",
+    ".runtime/kernel-e2-20261113/official/61-M1.json": "f8f940a16b939ab9ea58e9defad723990355837456f49e611208e3fb14a85b2c",
+    ".runtime/review-v2-minitest/run-v1/61-M1-m12.json": "e1d29d5ff38d0e2ab751897d0af7193dd6fb1c64e239f9684c3a0fc238ac43af",
+    ".runtime/kernel-e2-20261113/official/64-M1.json": "a79411b1b2d79acc5d298a990229956747278c45169e08bad9fd9a9ed139c6f5",
+    ".runtime/review-v2-minitest/run-v1/64-M1-m20.json": "45b4e313e1b975154e0fdfa0e5ed56ac78a006e3cc8a4090dcc109a3b7b9d3b8",
+    ".runtime/kernel-e2-20261113/official/70-M1.json": "02e3e4fc7ad21f8b526e73e7f5f976f4b0985dc586574c3812e59330b818f145",
+    ".runtime/review-v2-minitest/run-v1/70-M1-m22.json": "575489ca7a19c24a7a554bbe3a4da3b13d3e8086c3fcbba9384bb59b7e40a53c",
+    ".runtime/kernel-e2-20261113/official/71-M1.json": "f932c7128585886d692c383e9f7c77e8877ce2488b075226a3e47f8ea32a5cb5",
+    ".runtime/review-v2-minitest/run-v1/71-M1-m24.json": "cbcb2407964c08e90ba50e586456a3e3a62ef1224213be7822fa1169b0888eed",
+    ".runtime/kernel-e2-20261113/official/74-M1.json": "a51380a80fef6e3f9f4db02243db8af1ea0ba46eea3704a8c081e024c33b9bf7",
+    ".runtime/review-v2-minitest/run-v1/74-M1-m24.json": "cb660c8d1f9b821dcda1cdf0e29dc62a7e25525109dbf0a048a6cb6544125680",
+    ".runtime/review-v2-minitest/run-v1/74-M1-m26.json": "dc21c49060ee14fad2bafe18b7f3cf7fb941a6812b48ae3bd7b918ce54dd257c",
+    ".runtime/kernel-e2-20261113/official/77-M1.json": "85bce81992d28af8a94ae1cf34048da367b2ced39d5d83a4314b06e71f589e18",
+    ".runtime/review-v2-minitest/run-v1/77-M1-m14.json": "1419b7c1ec966ecfdcd708da1693417697dcf07f07b4697044a5cd2c5e36e433",
+    ".runtime/kernel-e2-20261113/official/79-M1.json": "07f1ad36666b7d6c43dadf38cbfe6e8b5bde062d5058049a7405de0ea4b4d50a",
+    ".runtime/review-v2-minitest/run-v1/79-M1-m20.json": "0a307fef6a279b3eb2bdfce6733fbf746b34fd6018e1233756d9511119c00201",
+    ".runtime/kernel-e2-20261113/official/86-M1.json": "164da7e4d21ae05ab2707389ef6bf18198cd7e7cc6dc09f822813db4b71c06c0",
+    ".runtime/review-v2-minitest/run-v1/86-M1-m28.json": "995a0f2c128ed3f2f7a928233a7a9e7ebb068e3a37f4e77f7f07f5d56eb1ff39",
+    ".runtime/kernel-e2-20261113/official/90-M1.json": "6c17a11af93139ae16e83c4710cac7319fdf76abb125e673695f8ded8d242cba",
+    ".runtime/review-v2-minitest/run-v1/90-M1-m22.json": "f00a967e834a9175ebe0f8e216a7f547aa2e6941bfa1bcfcd1e4d7680aa078eb",
+    ".runtime/kernel-e2-20261113/official/94-M1.json": "41035489e1527bcc5b787fc36457380b2f66a92d87cc8e6ba95de0cec726ce28",
+    ".runtime/review-v2-minitest/run-v1/94-M1-m18.json": "7c38f873d9a3deee3f01f0793837c501f6de6ce67c43c530929e47634ad6c74f",
+    ".runtime/kernel-e2-20261113/official/97-M1.json": "4370bcebe6954becf573629877c40909e933b945c0807532074bc00a6f0178ce",
+    ".runtime/review-v2-minitest/run-v1/97-M1-m20.json": "c0d890c4b82758a7b04b02d507cb455a7e2aac1cb642f90eaebcc73449616351",
+    ".runtime/kernel-e2-20261113/official/100-M1.json": "37cc2301452153c1dd7225e102bd3905269e5d76c1b0cd0ce913dde0c9b3b8ad",
+    ".runtime/review-v2-minitest/run-v1/100-M1-m28.json": "eef02293d775f052f46e2f0ef83b5e0fe8fd278658a952de6a012d81e4a7b683",
+    ".runtime/review-v2-minitest/run-v1/100-M1-m30.json": "db51d913752b4c643942a04acc6e0786cd08204dda2bb4899f06ec0a072a22e7",
+    ".runtime/kernel-e2-20261113/official/101-M1.json": "a43600ac22ee36039e30a584edacf93e247f97b6c68ab5ccd956051069455bcf",
+    ".runtime/review-v2-minitest/run-v1/101-M1-m26.json": "cef0f54ab4c5c6ddfd374bc51938b68e06e870417753370e9ba67dce0ea421a3",
+    ".runtime/review-v2-minitest/run-v1/101-M1-m40.json": "333588e3e1e436b6d3d4f30c5ba2e67768f893f3a3319a6aa19e7f805431c76f",
+    ".runtime/kernel-e2-20261113/official/102-M1.json": "c14d7b99c63e5df2216e100f0f6716be27cd551654322f1d0c14a2ffe7e4b3bc",
+    ".runtime/review-v2-minitest/run-v1/102-M1-m26.json": "cc1edc864f7b7d6bc799a4d0dde44d9e074a7e1343591f5fd11aaf4ba35b9f76",
+    ".runtime/review-v2-minitest/run-v1/102-M1-m36.json": "a4243ae68c346a3e613b6a38a6894f6f1e6d0edc72a961d4e0544b2e55a71b1f",
+    ".runtime/kernel-e2-20261113/official/108-M1.json": "acb4637a93cf8b1a1e0a84a0bb54afef96a7d166acf93111659ecf79f938b744",
+    ".runtime/review-v2-minitest/run-v1/108-M1-m18.json": "a2d2dbe25275297c9101d0ed106f2a8f76ab9a90ccf3dd80f6a20d7f839d7bb2",
+    ".runtime/kernel-e2-20261113/official/111-M1.json": "de3ad89becbbe419aef59e7689058836afbe20eb1eff242d3403ac0487309a73",
+    ".runtime/review-v2-minitest/run-v1/111-M1-m28.json": "190bc24cf289db6976b9e5543ec77599d3d2b23f31b63b9f75fa464391f6fb8e",
+    ".runtime/review-v2-minitest/run-v1/111-M1-m30.json": "2dc0f7e4cd3c8f87b26f2638983c435b3737ad1f4c1177d3c18c41c0bcc1459e",
+    ".runtime/kernel-e2-20261113/official/97-M2.json": "afa9a703a78fad8b651394a6317cbc9e279ed3639d65447ac736803df05e1ece",
+    ".runtime/review-v2-minitest/run-v1/97-M2-m16.json": "5a1a27162a2c737858bbb473c18430664e4bc3f745b93561780c0644de48054c"
+  },
+  "limitations": [
+    "Only recorded messages are replayed. No new answers, reads, actions or rewards are predicted.",
+    "Task 54 includes the interrupted consultation boundary; no continuation is invented.",
+    "Frozen files contain validated review outputs and drop diagnostics, not raw model reviews. Dropped entry bodies are absent. Only retained entries can be revalidated; full_inventory_dropped_after is null where originals are missing. Do not interpret zero retained-entry drops as zero drops on the original complete inventory.",
+    "The 34-review conflict regression applies to saved surviving inventories; 29 historically dropped entries cannot be restored from these files.",
+    "The six-candidate instruction and specialist reads remain unverified in live operation."
+  ]
+}

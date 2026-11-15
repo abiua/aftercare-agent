@@ -33,6 +33,7 @@ class Facts:
     attempted: set = field(default_factory=set)
     user: dict = field(default_factory=dict)
     orders: dict = field(default_factory=dict)
+    order_sources: dict = field(default_factory=dict)
     products: dict = field(default_factory=dict)
     allowed_orders: set = field(default_factory=set)
 
@@ -58,6 +59,7 @@ def facts(messages):
         # Write responses update status too; old pending evidence cannot authorize another write.
         if value.get('order_id') and value.get('user_id')==state.user_id and value.get('order_id')==args.get('order_id'):
             state.orders[value['order_id']]=value;state.allowed_orders.add(value['order_id'])
+            state.order_sources[value['order_id']]=name
     return state
 
 

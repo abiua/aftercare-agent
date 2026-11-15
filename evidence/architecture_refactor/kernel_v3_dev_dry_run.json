@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "benchmark": "tau2-bench",
+  "domain": "retail",
+  "split": "train",
+  "architectures": [
+    "M2"
+  ],
+  "kernel_sha256": {
+    "__init__.py": "8e178efe57c64b11019949e133317036628e4cae7be40a74858802a80163683e",
+    "amount_arithmetic.py": "43376b183c9e059060d85b16d0a5cba9b34ce6e29d77147e0a5fc369c39cd297",
+    "contracts.py": "fe26b8aa90f3079d7b710b0a31aff67c839f41f91167286354f833271e3c608b",
+    "dependencies.py": "c629b29373277f78f0036bb2a447fe063894f4850a9bef947d8b798f41990f26",
+    "engine.py": "ea2c193b42a28e78d93d487dbd313e61246ea072666202b5187b2a08bd5b5d60",
+    "experts.py": "85f52c489b8dae85b687f1e45c6a3d5b071e1b6f24e470beaae0b14da2c30bd1",
+    "retail_guards.py": "57fddae34a734d69864cc983f476c15fd4f45318092500f192c5c23c0255a617",
+    "review.py": "3adb47dc8a29b029ab607ba5bcf9cf30c0d518776713e1d788aefcf96f26e8d5"
+  },
+  "scope": "wiring",
+  "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754",
+  "task_ids": [
+    "29",
+    "41",
+    "54",
+    "96",
+    "16",
+    "22"
+  ],
+  "trials_per_task": 1,
+  "agent_model": "gpt-6.1-sol",
+  "user_model": "gpt-6.1-terra",
+  "review_model": "gpt-5.4-mini-2026-03-17",
+  "tool_names": [
+    "calculate",
+    "cancel_pending_order",
+    "exchange_delivered_order_items",
+    "find_user_id_by_email",
+    "find_user_id_by_name_zip",
+    "get_item_details",
+    "get_order_details",
+    "get_product_details",
+    "get_user_details",
+    "list_all_product_types",
+    "modify_pending_order_address",
+    "modify_pending_order_items",
+    "modify_pending_order_payment",
+    "modify_user_address",
+    "return_delivered_order_items",
+    "transfer_to_human_agents"
+  ],
+  "budget": {
+    "max_agent_calls_per_run": 640,
+    "max_user_calls_per_run": 110,
+    "max_review_calls_per_run": 1,
+    "max_output_tokens_per_call": 1500,
+    "max_steps": 100,
+    "timeout_seconds_per_run": 900,
+    "timeout_seconds_per_request": 120,
+    "max_calls": 4506,
+    "max_usd": 2.0
+  },
+  "dataset_sha256": {
+    "db.json": "413a65160adbdb5fde0ffc0015c49b6d70250b10c18128de169b597af7766765",
+    "tasks.json": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+    "split_tasks.json": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20",
+    "policy.md": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467"
+  },
+  "schedule": [
+    {
+      "task_id": "29",
+      "architecture": "M2",
+      "seed": 42,
+      "task_summary": null
+    },
+    {
+      "task_id": "41",
+      "architecture": "M2",
+      "seed": 43,
+      "task_summary": null
+    },
+    {
+      "task_id": "54",
+      "architecture": "M2",
+      "seed": 44,
+      "task_summary": null
+    },
+    {
+      "task_id": "96",
+      "architecture": "M2",
+      "seed": 45,
+      "task_summary": null
+    },
+    {
+      "task_id": "16",
+      "architecture": "M2",
+      "seed": 46,
+      "task_summary": null
+    },
+    {
+      "task_id": "22",
+      "architecture": "M2",
+      "seed": 47,
+      "task_summary": null
+    }
+  ],
+  "evaluation_type": "ALL",
+  "reasoning_effort": "low",
+  "agent_adapter_sha256": "c43ac0749f7f21a3341a528495a54f714e339b6712979bdb1958b74ecc87fff6",
+  "pricing_usd_per_million": {
+    "gpt-6.1-sol": [
+      "2",
+      "10",
+      "0.10"
+    ],
+    "deepseek-flash": [
+      "0.30",
+      "1.20",
+      "0.006"
+    ],
+    "gpt-6.1-terra": [
+      "1",
+      "5",
+      "0.05"
+    ],
+    "gpt-5.4-mini-2026-03-17": [
+      "0.75",
+      "4.50",
+      "0.075"
+    ]
+  },
+  "pricing_sources": [
+    "https://developers.openai.com/api/docs/pricing",
+    "https://developers.openai.com/api/docs/models/gpt-5.4-mini"
+  ],
+  "price_order": [
+    "input",
+    "output",
+    "cached_input"
+  ],
+  "cache_mode": "explicit with no breakpoints for gpt-6.1 models",
+  "seed_scope": "official orchestrator; Responses does not expose a provider seed",
+  "concurrency": 6,
+  "kernel_version": "aftercare-kernel-v3"
+}

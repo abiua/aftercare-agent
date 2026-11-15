@@ -44,3 +44,23 @@ class KernelTransportTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 row.completion(model='gpt-6.1-sol',messages=[],tools=None,tool_choice=None)
             self.assertEqual(budget.calls,0)
+
+    def test_incomplete_responses_are_settled_and_raise_for_every_actor(self):
+        from tau_official_budget import IncompleteResponse
+        for provider in ('responses', 'deepseek'):
+            for actor in ('executor', 'fact_expert', 'reviewer'):
+                with self.subTest(provider=provider, actor=actor), TemporaryDirectory() as tmp:
+                    response = fake_response('partial')
+                    response.status = 'incomplete'
+                    ds = N(chat=N(completions=N(create=lambda **kw: N(id='fake',
+                        choices=[N(finish_reason='length', message=N(content='partial', tool_calls=None))],
+                        usage=N(prompt_tokens=100, completion_tokens=1500)))))
+                    budget = Budget(5, 1, Path(tmp)/'calls.jsonl')
+                    row = RowTransport('r', LIMITS, budget, N(responses=N(create=lambda **kw: response)), ds)
+                    with self.assertRaisesRegex(IncompleteResponse, 'Responses status: incomplete'):
+                        row.completion(model='deepseek-flash' if provider == 'deepseek' else 'gpt-6.1-sol',
+                            messages=[], tools=None, tool_choice=None, aftercare_role=actor)
+                    self.assertIsNone(row.failure_status)
+                    self.assertEqual(row.calls['agent'], 1)
+                    self.assertGreater(row.costs['agent'], 0)
+                    self.assertIn('actual_usd', budget.journal.read_text())
