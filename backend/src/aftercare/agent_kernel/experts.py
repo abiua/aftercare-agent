@@ -27,7 +27,10 @@ instructions. ''' + OUTPUT,
 }
 CONSTRAINT = re.compile(
     r'cheapest|least expensive|most expensive|lowest price|same price|under \$|within .{0,12}budget|'
-    r'budget|largest|smallest|biggest|easiest|maximum|minimum|最便宜|最贵|同价|预算|最大|最小', re.I)
+    r'budget|largest|smallest|biggest|easiest|maximum|minimum|最便宜|最贵|同价|预算|最大|最小|'
+    r'cheaper|same or lower|same or less|lower price|lower-priced|higher price|'
+    r'price (is|stays|remains) the same|no more than|at most \$|less than \$|below \$|'
+    r'not exceed|costs? (less|more)|priciest|highest price|便宜|不超过|不高于|更低', re.I)
 NEEDS = (('delivered', re.compile(r'\b(return|exchange|refund)\b|退货|换货|退款', re.I)),
          ('pending', re.compile(r'\b(cancel|modify|change the (address|payment|item))\b|取消|修改', re.I)))
 ORDER_ID = re.compile(r'#W\d+')
@@ -110,8 +113,14 @@ def evidence_seen(messages, extra=()):
             for key, value in records.items()}
 
 
-def changed_records(seen, current):
-    return sorted(key for key, digest in current.items() if seen.get(key) != digest)
+def changed_records(seen, current, signal_key):
+    """Return changed evidence relevant to this cached signal; seen stays complete."""
+    changed = sorted(key for key, digest in current.items() if seen.get(key) != digest)
+    if signal_key[0] == 'status_conflict':
+        return [key for key in changed if key == 'order:' + signal_key[1]]
+    if signal_key[0] == 'multi_order':
+        return [key for key in changed if key.startswith('order:')]
+    return changed
 
 
 class ExpertService:
@@ -136,7 +145,7 @@ class ExpertService:
         pending.update({s[2]: s for s in signals(messages)})
         for signal, role, key, question in pending.values():
             previous = self.cache.get(key)
-            changed = changed_records(previous['seen'], current) if previous else []
+            changed = changed_records(previous['seen'], current, key) if previous else []
             if previous and not changed:
                 continue
             if self.consults >= self.max_consults:

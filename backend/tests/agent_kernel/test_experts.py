@@ -266,3 +266,49 @@ def test_price_correction_threshold_counts_candidates_once(price, reason):
     findings = service.advise(architectures()['M1'], conversation('cheapest'), TOOLS, POLICY)
     assert findings[0]['candidates'][0]['price'] == 7.0
     assert service.trace[-1].reason == reason
+
+
+@pytest.mark.parametrize('phrase', [
+    'cheaper', 'same or lower', 'same or less', 'lower price', 'lower-priced', 'higher price',
+    'price is the same', 'price stays the same', 'price remains the same', 'no more than',
+    'at most $50', 'less than $50', 'below $50', 'not exceed', 'cost less', 'costs less',
+    'cost more', 'costs more', 'priciest', 'highest price', '便宜', '不超过', '不高于', '更低',
+    'price is the same or lower', 'PRICE IS THE SAME OR LOWER',
+])
+def test_extended_constraint_phrases(phrase):
+    assert any(s[0] == 'constrained_choice' for s in signals(conversation(phrase)))
+
+
+@pytest.mark.parametrize('user_request', ['Please change the colour of my mug.', 'Show me the product.',
+                                    'Please update my address.', 'Please cancel my order.'])
+def test_plain_unconditional_requests_do_not_trigger(user_request):
+    assert signals(conversation(user_request)) == []
+
+
+@pytest.mark.parametrize('signal,user_request,status,orders', [
+    ('status_conflict', 'cancel #W1', 'delivered', ('#W1',)),
+    ('multi_order', 'Help with #W1 and #W2', 'pending', ('#W1', '#W2')),
+    ('constrained_choice', 'cheapest', 'pending', ('#W1',)),
+])
+def test_staleness_tracks_only_signal_relevant_records(signal, user_request, status, orders):
+    service = ExpertService(SimpleNamespace(generate=lambda **kw: answer()))
+    messages = conversation(user_request, status=status, orders=orders)
+    service.advise(architectures()['M1'], messages, TOOLS, POLICY)
+    assert service.consults == 1 and next(iter(service.cache.values()))['signal'] == signal
+    seen = next(iter(service.cache.values()))['seen']
+    assert 'product:p1' in seen and 'order:#W1' in seen  # no filtering of stored evidence
+    messages += product_messages()
+    service.advise(architectures()['M1'], messages, TOOLS, POLICY)
+    expected = 2 if signal == 'constrained_choice' else 1
+    assert service.consults == expected
+    messages += call('other', 'get_order_details', {'order_id': '#W3'},
+                     {'order_id': '#W3', 'user_id': 'ann_1', 'status': status, 'items': []})
+    service.advise(architectures()['M1'], messages, TOOLS, POLICY)
+    expected += int(signal in {'multi_order', 'constrained_choice'})
+    assert service.consults == expected
+    messages += call('updated', 'get_order_details', {'order_id': '#W1'},
+                     {'order_id': '#W1', 'user_id': 'ann_1', 'status': status,
+                      'items': [{'item_id': 'i1', 'product_id': 'p1', 'price': 11}]})
+    service.advise(architectures()['M1'], messages, TOOLS, POLICY)
+    assert service.consults == expected + 1
+    assert service.trace[-1].output['changed'] == ['order:#W1']

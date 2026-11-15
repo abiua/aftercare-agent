@@ -7,7 +7,7 @@ import pytest
 from tau2.domains.retail.environment import get_environment
 
 from aftercare.agent_kernel.contracts import ToolCall
-from replay_expert_staleness import statistics
+from replay_expert_staleness import group_counts, statistics
 from tau_official_agents import PRIVATE_READ_TOOLS, create_agent
 
 
@@ -97,10 +97,61 @@ def test_replay_statistics_count_refreshes_and_drop_once():
     messages += [{'role': 'assistant', 'content': 'Which one?'},
                  {'role': 'user', 'content': 'cheapest again'}, {'role': 'assistant', 'content': 'Done'}]
     result = statistics(messages)
-    assert result['has_signal'] and result['old_consults'] == 2 and result['new_consults'] == 5
+    assert result['has_signal'] and len(result['hits']) == 2 and result['new_consults'] == 5
+    assert 'old_consults' not in result
     assert result['stale_dropped'] == 1
     assert result['changed'] == [f'product:{n}' for n in range(1, 6)]
     assert [e['event'] for e in result['events']] == ['consult', *(['refresh'] * 4), 'expert_stale_dropped']
     assert result['events'][-1]['changed'] == ['product:5']
     assert statistics(messages) == result
     assert statistics([{'role': 'user', 'content': 'Hello'}, {'role': 'assistant', 'content': 'Hi'}])['new_consults'] == 0
+
+
+def replay_conversation(request, status='pending'):
+    return [{'role': 'user', 'content': request},
+            *tool_messages('auth', 'find_user_id_by_email', {'email': 'a'}, 'ann_1'),
+            *tool_messages('user', 'get_user_details', {'user_id': 'ann_1'},
+                           {'user_id': 'ann_1', 'orders': ['#W1', '#W2']}),
+            *tool_messages('order', 'get_order_details', {'order_id': '#W1'},
+                           {'order_id': '#W1', 'user_id': 'ann_1', 'status': status, 'items': []})]
+
+
+def test_replay_scopes_staleness_to_relevant_order_and_preserves_historical_baseline_field():
+    messages = replay_conversation('cancel #W1', status='delivered')
+    messages += tool_messages('product', 'get_product_details', {'product_id': 'p1'},
+                              {'product_id': 'p1', 'variants': {}})
+    messages += tool_messages('unrelated', 'get_order_details', {'order_id': '#W2'},
+                              {'order_id': '#W2', 'user_id': 'ann_1', 'status': 'delivered', 'items': []})
+    messages += tool_messages('changed', 'get_order_details', {'order_id': '#W1'},
+                              {'order_id': '#W1', 'user_id': 'ann_1', 'status': 'delivered',
+                               'items': [{'item_id': 'i1', 'price': 10}]})
+    messages += [{'role': 'assistant', 'content': 'Checking'}]
+    result = statistics(messages, task='sample', arm='M1')
+    assert result['new_consults'] == 2 and result['changed'] == ['order:#W1']
+    assert result['events'][1]['message_index'] == len(messages) - 1
+    counts = group_counts([{'task': 'sample', **result, 'recorded_consults': 1}], simulate_consults=True)
+    assert counts['new_consults'] == 2 and counts['recorded_consults'] == 1
+    assert counts['stale_task_count'] == 1 and counts['stale_dropped'] == 0
+    assert 'old_consults' not in counts
+
+
+def test_trigger_only_replay_counts_questions_and_clips_customer_match_context():
+    request = 'x' * 80 + 'price is the same or lower' + 'y' * 80
+    messages = replay_conversation(request)
+    messages += tool_messages('product', 'get_product_details', {'product_id': 'p1'},
+                              {'product_id': 'p1', 'variants': {}})
+    messages += [{'role': 'assistant', 'content': 'Checking'},
+                 {'role': 'user', 'content': 'cheaper please'}, {'role': 'assistant', 'content': 'Checking again'}]
+    result = statistics(messages, task='60', arm='S1', simulate_consults=False)
+    assert len(result['hits']) == 2
+    first = result['hits'][0]
+    assert (first['task'], first['arm'], first['signal']) == ('60', 'S1', 'constrained_choice')
+    assert first['first_hit_message_index'] == 9
+    evidence = first['customer_matches'][0]
+    assert evidence['customer_message_index'] == 0
+    assert evidence['match'] == 'price is the same'
+    assert first['customer_utterance_snippet'] == request[20:80 + len(evidence['match']) + 60]
+    assert 'new_consults' not in result and 'events' not in result
+    counts = group_counts([result], simulate_consults=False)
+    assert counts == {'tasks': 1, 'signal_tasks': 1, 'signal_counts': {
+        'constrained_choice': 1, 'multi_order': 0, 'status_conflict': 0}}
