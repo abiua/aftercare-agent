@@ -1,0 +1,1471 @@
+{
+  "experiment": "E3",
+  "directory": "/Users/mbw/Documents/aftercare-agent/.runtime/kernel-e3/run-v1",
+  "split": "train",
+  "tasks": 67,
+  "task_ids": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "6",
+    "7",
+    "8",
+    "10",
+    "11",
+    "13",
+    "14",
+    "15",
+    "19",
+    "20",
+    "21",
+    "23",
+    "24",
+    "25",
+    "28",
+    "30",
+    "31",
+    "34",
+    "35",
+    "37",
+    "43",
+    "46",
+    "47",
+    "48",
+    "50",
+    "52",
+    "57",
+    "58",
+    "59",
+    "63",
+    "66",
+    "67",
+    "69",
+    "72",
+    "73",
+    "75",
+    "76",
+    "78",
+    "80",
+    "81",
+    "82",
+    "83",
+    "84",
+    "85",
+    "87",
+    "88",
+    "89",
+    "91",
+    "92",
+    "93",
+    "95",
+    "98",
+    "99",
+    "103",
+    "104",
+    "105",
+    "106",
+    "107",
+    "109",
+    "110",
+    "112",
+    "113"
+  ],
+  "excluded_development_task_ids": [
+    "16",
+    "22",
+    "29",
+    "41",
+    "44",
+    "54",
+    "96"
+  ],
+  "rules": {
+    "H_lift": "M2 成功题数 > S1c 成功题数，且 McNemar 精确检验双侧 p < 0.05。",
+    "H_cost": "M2 成功题数 >= S1 成功题数 - 3，且 M2 每成功一题的总费用 < S1；三组中任一组有未结算调用或费用不完整时为 undetermined。零成功时每成功费用未定义，也为 undetermined。",
+    "conclusion": "两条均为 false 时为 no_advantage_shown；任一为 true 时报告该条成立；没有 true 且存在 undetermined 时结论为 undetermined。",
+    "denominator": "每组分母始终为 67；未运行、未完成、无得分、预算耗尽均保留，未获成功分数不计成功。",
+    "repair": "仅 error/unknown 且无官方得分可在同级 .repair 目录补跑一次；沿用原题、组和种子，不补跑已有 0 分、超时或预算耗尽项；合并所有尝试费用与事件，原始加补跑受原 $20 余额约束。"
+  },
+  "arms": {
+    "S1c": {
+      "tasks": 67,
+      "outcomes": {
+        "success": 54,
+        "wrong_write": 5,
+        "handoff": 5,
+        "authentication_failed": 1,
+        "inaction": 1,
+        "unfinished": 1
+      },
+      "success": 54,
+      "success_rate": 0.806,
+      "success_ci95": [
+        0.6958,
+        0.8829
+      ],
+      "give_up_failures": 6,
+      "no_write_failures": 7,
+      "wrong_writes": 5,
+      "calls_by_actor": {
+        "executor": 943,
+        "judge": 25,
+        "user": 458
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.255618918,
+        "judge": 0.09027375,
+        "user": 0.650748
+      },
+      "known_agent_cost_usd": 0.255618918,
+      "known_total_cost_usd": 0.996640668,
+      "agent_cost_usd": 0.255618918,
+      "total_cost_usd": 0.996640668,
+      "unsettled_calls": 0,
+      "cost_complete": true,
+      "agent_cost_per_success_usd": 0.004733683666666667,
+      "total_cost_per_success_usd": 0.018456308666666667,
+      "median_duration_seconds": 28.067,
+      "review": {},
+      "experts": {
+        "consulted": 0,
+        "unavailable": 0
+      },
+      "billing_issues": [],
+      "known_cost_per_task_usd": 0.014875233850746268,
+      "cost_per_task_usd": 0.014875233850746268
+    },
+    "M2": {
+      "tasks": 67,
+      "outcomes": {
+        "success": 58,
+        "wrong_write": 3,
+        "handoff": 2,
+        "authentication_failed": 1,
+        "inaction": 1,
+        "unfinished": 2
+      },
+      "success": 58,
+      "success_rate": 0.8657,
+      "success_ci95": [
+        0.764,
+        0.9277
+      ],
+      "give_up_failures": 3,
+      "no_write_failures": 4,
+      "wrong_writes": 3,
+      "calls_by_actor": {
+        "executor": 988,
+        "fact_expert": 26,
+        "judge": 24,
+        "policy_expert": 16,
+        "reviewer": 136,
+        "user": 464
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.309802938,
+        "fact_expert": 0.359924,
+        "judge": 0.086835,
+        "policy_expert": 0.276982,
+        "reviewer": 2.354652,
+        "user": 0.667699
+      },
+      "known_agent_cost_usd": 3.301360938,
+      "known_total_cost_usd": 4.055894938,
+      "agent_cost_usd": 3.301360938,
+      "total_cost_usd": 4.055894938,
+      "unsettled_calls": 0,
+      "cost_complete": true,
+      "agent_cost_per_success_usd": 0.056920016172413795,
+      "total_cost_per_success_usd": 0.06992922306896551,
+      "median_duration_seconds": 40.015,
+      "review": {
+        "triggered": 136,
+        "allow": 122,
+        "fallback": 0,
+        "revise": 14
+      },
+      "experts": {
+        "consulted": 34,
+        "unavailable": 0
+      },
+      "billing_issues": [],
+      "known_cost_per_task_usd": 0.06053574534328358,
+      "cost_per_task_usd": 0.06053574534328358
+    },
+    "S1": {
+      "tasks": 67,
+      "outcomes": {
+        "success": 54,
+        "wrong_write": 4,
+        "handoff": 5,
+        "authentication_failed": 1,
+        "inaction": 3,
+        "unfinished": 0
+      },
+      "success": 54,
+      "success_rate": 0.806,
+      "success_ci95": [
+        0.6958,
+        0.8829
+      ],
+      "give_up_failures": 8,
+      "no_write_failures": 9,
+      "wrong_writes": 4,
+      "calls_by_actor": {
+        "executor": 906,
+        "judge": 25,
+        "user": 363
+      },
+      "cost_usd_by_actor": {
+        "executor": 9.911822,
+        "judge": 0.08157375,
+        "user": 0.431376
+      },
+      "known_agent_cost_usd": 9.911822,
+      "known_total_cost_usd": 10.42477175,
+      "agent_cost_usd": 9.911822,
+      "total_cost_usd": 10.42477175,
+      "unsettled_calls": 0,
+      "cost_complete": true,
+      "agent_cost_per_success_usd": 0.18355225925925925,
+      "total_cost_per_success_usd": 0.1930513287037037,
+      "median_duration_seconds": 44.656,
+      "review": {},
+      "experts": {
+        "consulted": 0,
+        "unavailable": 0
+      },
+      "billing_issues": [],
+      "known_cost_per_task_usd": 0.1555936082089552,
+      "cost_per_task_usd": 0.1555936082089552
+    }
+  },
+  "pairs": {
+    "M2_vs_S1c": {
+      "M2_only": [
+        "0",
+        "1",
+        "20",
+        "69",
+        "80",
+        "107"
+      ],
+      "S1c_only": [
+        "21",
+        "112"
+      ],
+      "mcnemar_p": 0.2891
+    }
+  },
+  "hypotheses": {
+    "H_lift": {
+      "holds": false,
+      "status": "determined",
+      "difference": 4,
+      "mcnemar_p": 0.2891
+    },
+    "H_cost": {
+      "holds": true,
+      "status": "determined",
+      "within_three_of_S1": true,
+      "cheaper_per_success": true
+    }
+  },
+  "conclusion": "cost_advantage_shown",
+  "M2_descriptive": {
+    "expert_consultations": 34,
+    "expert_reads": 8,
+    "self_write_updates": 41,
+    "amount_rule_triggers": 10,
+    "review_revise": 14,
+    "review_fallback": 0,
+    "incomplete_response": 0
+  },
+  "descriptive_note": "事件计数为已记录事件；缺失轨迹不视作已验证的零事件。IncompleteResponse 按账本 call_id 去重，补跑按独立尝试累加。",
+  "missing_trace_rows": [],
+  "repair": {
+    "directory": "run-v1.repair",
+    "attempts": {
+      "21-S1c": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "21-M2": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "error",
+        "score_source": "unscored"
+      },
+      "23-S1c": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "46-M2": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "80-S1c": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "error",
+        "score_source": "unscored"
+      },
+      "112-M2": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "error",
+        "score_source": "unscored"
+      }
+    }
+  },
+  "per_task": {
+    "0": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.011809928,
+        "total_cost_usd": 0.011809928
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.032973016,
+        "total_cost_usd": 0.032973016
+      },
+      "S1": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.207553,
+        "total_cost_usd": 0.207553
+      }
+    },
+    "1": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.011252296,
+        "total_cost_usd": 0.011252296
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.031825492,
+        "total_cost_usd": 0.031825492
+      },
+      "S1": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.132955,
+        "total_cost_usd": 0.132955
+      }
+    },
+    "2": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014450174,
+        "total_cost_usd": 0.014450174
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.032946666,
+        "total_cost_usd": 0.032946666
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.1798935,
+        "total_cost_usd": 0.1798935
+      }
+    },
+    "3": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.011331548,
+        "total_cost_usd": 0.011331548
+      },
+      "M2": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.036337548,
+        "total_cost_usd": 0.036337548
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.1655365,
+        "total_cost_usd": 0.1655365
+      }
+    },
+    "4": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014917276,
+        "total_cost_usd": 0.014917276
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.056871736,
+        "total_cost_usd": 0.056871736
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.1600845,
+        "total_cost_usd": 0.1600845
+      }
+    },
+    "6": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.013070424,
+        "total_cost_usd": 0.013070424
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.026516304,
+        "total_cost_usd": 0.026516304
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.129599,
+        "total_cost_usd": 0.129599
+      }
+    },
+    "7": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.011828802,
+        "total_cost_usd": 0.011828802
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.029110784,
+        "total_cost_usd": 0.029110784
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.129635,
+        "total_cost_usd": 0.129635
+      }
+    },
+    "8": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009790612,
+        "total_cost_usd": 0.009790612
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02809726,
+        "total_cost_usd": 0.02809726
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.142472,
+        "total_cost_usd": 0.142472
+      }
+    },
+    "10": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00567708,
+        "total_cost_usd": 0.00567708
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.016742708,
+        "total_cost_usd": 0.016742708
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.086993,
+        "total_cost_usd": 0.086993
+      }
+    },
+    "11": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010997504,
+        "total_cost_usd": 0.010997504
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.037439024,
+        "total_cost_usd": 0.037439024
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.109832,
+        "total_cost_usd": 0.109832
+      }
+    },
+    "13": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009142104,
+        "total_cost_usd": 0.009142104
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.037743176,
+        "total_cost_usd": 0.037743176
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.097175,
+        "total_cost_usd": 0.097175
+      }
+    },
+    "14": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.012448832,
+        "total_cost_usd": 0.012448832
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.035764752,
+        "total_cost_usd": 0.035764752
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.09822,
+        "total_cost_usd": 0.09822
+      }
+    },
+    "15": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00900778,
+        "total_cost_usd": 0.00900778
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02417042,
+        "total_cost_usd": 0.02417042
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.120023,
+        "total_cost_usd": 0.120023
+      }
+    },
+    "19": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018603528,
+        "total_cost_usd": 0.018603528
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.070567652,
+        "total_cost_usd": 0.070567652
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.12445425,
+        "total_cost_usd": 0.12445425
+      }
+    },
+    "20": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.014304724,
+        "total_cost_usd": 0.014304724
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.232936604,
+        "total_cost_usd": 0.232936604
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.345612,
+        "total_cost_usd": 0.345612
+      }
+    },
+    "21": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.031362252,
+        "total_cost_usd": 0.031362252
+      },
+      "M2": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.025048424,
+        "total_cost_usd": 0.025048424
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.24097725,
+        "total_cost_usd": 0.24097725
+      }
+    },
+    "23": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02469736,
+        "total_cost_usd": 0.02469736
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.089183764,
+        "total_cost_usd": 0.089183764
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.241861,
+        "total_cost_usd": 0.241861
+      }
+    },
+    "24": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.011446964,
+        "total_cost_usd": 0.011446964
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010010294,
+        "total_cost_usd": 0.010010294
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.0979965,
+        "total_cost_usd": 0.0979965
+      }
+    },
+    "25": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007693344,
+        "total_cost_usd": 0.007693344
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.019533344,
+        "total_cost_usd": 0.019533344
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.109483,
+        "total_cost_usd": 0.109483
+      }
+    },
+    "28": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.030947592,
+        "total_cost_usd": 0.030947592
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.08231343,
+        "total_cost_usd": 0.08231343
+      },
+      "S1": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.2286405,
+        "total_cost_usd": 0.2286405
+      }
+    },
+    "30": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.022121292,
+        "total_cost_usd": 0.022121292
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.077279972,
+        "total_cost_usd": 0.077279972
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.255118,
+        "total_cost_usd": 0.255118
+      }
+    },
+    "31": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.020816796,
+        "total_cost_usd": 0.020816796
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.15959368,
+        "total_cost_usd": 0.15959368
+      },
+      "S1": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.083271,
+        "total_cost_usd": 0.083271
+      }
+    },
+    "34": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00913354,
+        "total_cost_usd": 0.00913354
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.020231204,
+        "total_cost_usd": 0.020231204
+      },
+      "S1": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.054683,
+        "total_cost_usd": 0.054683
+      }
+    },
+    "35": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01906994,
+        "total_cost_usd": 0.01906994
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.069433052,
+        "total_cost_usd": 0.069433052
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.166672,
+        "total_cost_usd": 0.166672
+      }
+    },
+    "37": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02315372,
+        "total_cost_usd": 0.02315372
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.213524594,
+        "total_cost_usd": 0.213524594
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.23847275,
+        "total_cost_usd": 0.23847275
+      }
+    },
+    "43": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014246902,
+        "total_cost_usd": 0.014246902
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.040032996,
+        "total_cost_usd": 0.040032996
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.11561875,
+        "total_cost_usd": 0.11561875
+      }
+    },
+    "46": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.017778864,
+        "total_cost_usd": 0.017778864
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.068454158,
+        "total_cost_usd": 0.068454158
+      },
+      "S1": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.1383305,
+        "total_cost_usd": 0.1383305
+      }
+    },
+    "47": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.019501472,
+        "total_cost_usd": 0.019501472
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.042990388,
+        "total_cost_usd": 0.042990388
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.17448475,
+        "total_cost_usd": 0.17448475
+      }
+    },
+    "48": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015046592,
+        "total_cost_usd": 0.015046592
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.0400011,
+        "total_cost_usd": 0.0400011
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.133669,
+        "total_cost_usd": 0.133669
+      }
+    },
+    "50": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.005946864,
+        "total_cost_usd": 0.005946864
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.068249576,
+        "total_cost_usd": 0.068249576
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.064316,
+        "total_cost_usd": 0.064316
+      }
+    },
+    "52": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.011448724,
+        "total_cost_usd": 0.011448724
+      },
+      "M2": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.07098206,
+        "total_cost_usd": 0.07098206
+      },
+      "S1": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.090153,
+        "total_cost_usd": 0.090153
+      }
+    },
+    "57": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01023598,
+        "total_cost_usd": 0.01023598
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.028406496,
+        "total_cost_usd": 0.028406496
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.102983,
+        "total_cost_usd": 0.102983
+      }
+    },
+    "58": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01530122,
+        "total_cost_usd": 0.01530122
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.05341886,
+        "total_cost_usd": 0.05341886
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.148986,
+        "total_cost_usd": 0.148986
+      }
+    },
+    "59": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.015037282,
+        "total_cost_usd": 0.015037282
+      },
+      "M2": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.098322662,
+        "total_cost_usd": 0.098322662
+      },
+      "S1": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.0960825,
+        "total_cost_usd": 0.0960825
+      }
+    },
+    "63": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.017056662,
+        "total_cost_usd": 0.017056662
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.065289178,
+        "total_cost_usd": 0.065289178
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.144845,
+        "total_cost_usd": 0.144845
+      }
+    },
+    "66": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00851998,
+        "total_cost_usd": 0.00851998
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.020455328,
+        "total_cost_usd": 0.020455328
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.097279,
+        "total_cost_usd": 0.097279
+      }
+    },
+    "67": {
+      "S1c": {
+        "outcome": "authentication_failed",
+        "known_total_cost_usd": 0.005814448,
+        "total_cost_usd": 0.005814448
+      },
+      "M2": {
+        "outcome": "authentication_failed",
+        "known_total_cost_usd": 0.005922266,
+        "total_cost_usd": 0.005922266
+      },
+      "S1": {
+        "outcome": "authentication_failed",
+        "known_total_cost_usd": 0.11759075,
+        "total_cost_usd": 0.11759075
+      }
+    },
+    "69": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.00738,
+        "total_cost_usd": 0.00738
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.039033012,
+        "total_cost_usd": 0.039033012
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.119974,
+        "total_cost_usd": 0.119974
+      }
+    },
+    "72": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02107416,
+        "total_cost_usd": 0.02107416
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.056211312,
+        "total_cost_usd": 0.056211312
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.198317,
+        "total_cost_usd": 0.198317
+      }
+    },
+    "73": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007491224,
+        "total_cost_usd": 0.007491224
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018073056,
+        "total_cost_usd": 0.018073056
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.084079,
+        "total_cost_usd": 0.084079
+      }
+    },
+    "75": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009955148,
+        "total_cost_usd": 0.009955148
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.04090448,
+        "total_cost_usd": 0.04090448
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.141267,
+        "total_cost_usd": 0.141267
+      }
+    },
+    "76": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014772628,
+        "total_cost_usd": 0.014772628
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.092790336,
+        "total_cost_usd": 0.092790336
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.21751925,
+        "total_cost_usd": 0.21751925
+      }
+    },
+    "78": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.016158492,
+        "total_cost_usd": 0.016158492
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.169429516,
+        "total_cost_usd": 0.169429516
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.224034,
+        "total_cost_usd": 0.224034
+      }
+    },
+    "80": {
+      "S1c": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.007104768,
+        "total_cost_usd": 0.007104768
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.043046628,
+        "total_cost_usd": 0.043046628
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.110171,
+        "total_cost_usd": 0.110171
+      }
+    },
+    "81": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007220348,
+        "total_cost_usd": 0.007220348
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.059575208,
+        "total_cost_usd": 0.059575208
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.126435,
+        "total_cost_usd": 0.126435
+      }
+    },
+    "82": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00899476,
+        "total_cost_usd": 0.00899476
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.043568476,
+        "total_cost_usd": 0.043568476
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.140972,
+        "total_cost_usd": 0.140972
+      }
+    },
+    "83": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.008254176,
+        "total_cost_usd": 0.008254176
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.023533044,
+        "total_cost_usd": 0.023533044
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.111995,
+        "total_cost_usd": 0.111995
+      }
+    },
+    "84": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.008501676,
+        "total_cost_usd": 0.008501676
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.023696144,
+        "total_cost_usd": 0.023696144
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.125468,
+        "total_cost_usd": 0.125468
+      }
+    },
+    "85": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009689816,
+        "total_cost_usd": 0.009689816
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.026310836,
+        "total_cost_usd": 0.026310836
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.10966,
+        "total_cost_usd": 0.10966
+      }
+    },
+    "87": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007417656,
+        "total_cost_usd": 0.007417656
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.081060192,
+        "total_cost_usd": 0.081060192
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.164077,
+        "total_cost_usd": 0.164077
+      }
+    },
+    "88": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010740916,
+        "total_cost_usd": 0.010740916
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.021736524,
+        "total_cost_usd": 0.021736524
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.11287,
+        "total_cost_usd": 0.11287
+      }
+    },
+    "89": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015552964,
+        "total_cost_usd": 0.015552964
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.049635096,
+        "total_cost_usd": 0.049635096
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.137389,
+        "total_cost_usd": 0.137389
+      }
+    },
+    "91": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.019860432,
+        "total_cost_usd": 0.019860432
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.060505056,
+        "total_cost_usd": 0.060505056
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.195499,
+        "total_cost_usd": 0.195499
+      }
+    },
+    "92": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015168436,
+        "total_cost_usd": 0.015168436
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.039119406,
+        "total_cost_usd": 0.039119406
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.148844,
+        "total_cost_usd": 0.148844
+      }
+    },
+    "93": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010530364,
+        "total_cost_usd": 0.010530364
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.034927308,
+        "total_cost_usd": 0.034927308
+      },
+      "S1": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.150966,
+        "total_cost_usd": 0.150966
+      }
+    },
+    "95": {
+      "S1c": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.013196886,
+        "total_cost_usd": 0.013196886
+      },
+      "M2": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.017282012,
+        "total_cost_usd": 0.017282012
+      },
+      "S1": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.16947475,
+        "total_cost_usd": 0.16947475
+      }
+    },
+    "98": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.017359352,
+        "total_cost_usd": 0.017359352
+      },
+      "M2": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.228414596,
+        "total_cost_usd": 0.228414596
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.238333,
+        "total_cost_usd": 0.238333
+      }
+    },
+    "99": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01744714,
+        "total_cost_usd": 0.01744714
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.066022472,
+        "total_cost_usd": 0.066022472
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.204469,
+        "total_cost_usd": 0.204469
+      }
+    },
+    "103": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.04365869,
+        "total_cost_usd": 0.04365869
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.117521924,
+        "total_cost_usd": 0.117521924
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.32130875,
+        "total_cost_usd": 0.32130875
+      }
+    },
+    "104": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.041532624,
+        "total_cost_usd": 0.041532624
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.17811178,
+        "total_cost_usd": 0.17811178
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.36220725,
+        "total_cost_usd": 0.36220725
+      }
+    },
+    "105": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.022596062,
+        "total_cost_usd": 0.022596062
+      },
+      "M2": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.063159986,
+        "total_cost_usd": 0.063159986
+      },
+      "S1": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.1431555,
+        "total_cost_usd": 0.1431555
+      }
+    },
+    "106": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.012995918,
+        "total_cost_usd": 0.012995918
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.032526318,
+        "total_cost_usd": 0.032526318
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.12820925,
+        "total_cost_usd": 0.12820925
+      }
+    },
+    "107": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.015328996,
+        "total_cost_usd": 0.015328996
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.056852398,
+        "total_cost_usd": 0.056852398
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.161023,
+        "total_cost_usd": 0.161023
+      }
+    },
+    "109": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015464448,
+        "total_cost_usd": 0.015464448
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.09693038,
+        "total_cost_usd": 0.09693038
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.1698095,
+        "total_cost_usd": 0.1698095
+      }
+    },
+    "110": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.017227514,
+        "total_cost_usd": 0.017227514
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.07714334,
+        "total_cost_usd": 0.07714334
+      },
+      "S1": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.164471,
+        "total_cost_usd": 0.164471
+      }
+    },
+    "112": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.028908796,
+        "total_cost_usd": 0.028908796
+      },
+      "M2": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.063672048,
+        "total_cost_usd": 0.063672048
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.246936,
+        "total_cost_usd": 0.246936
+      }
+    },
+    "113": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010045876,
+        "total_cost_usd": 0.010045876
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.036382086,
+        "total_cost_usd": 0.036382086
+      },
+      "S1": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.1242875,
+        "total_cost_usd": 0.1242875
+      }
+    }
+  },
+  "complete": false
+}
