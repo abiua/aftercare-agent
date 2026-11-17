@@ -152,6 +152,9 @@ def new_campaign(args):
     if args.scope == "confirm":
         from kernel_e3_protocol import validate_options
         validate_options(args)
+    elif args.scope == "ablate":
+        from kernel_e4_protocol import validate_options
+        validate_options(args)
     hashes, task_ids = load_official_source()
 
     if len(task_ids) != 40 or len(set(task_ids)) != 40:
@@ -161,11 +164,11 @@ def new_campaign(args):
     from aftercare.agent_kernel.contracts import architectures as kernel_architectures
     if not set(names) <= {*ARCHITECTURES, *kernel_architectures()} or "S0" in names:
         raise SystemExit("Unknown or historical-only architecture")
-    if args.scope == "confirm":
+    if args.scope in {"confirm", "ablate"}:
         from kernel_e3_protocol import KERNEL_VERSION, population
         from aftercare.agent_kernel.contracts import VERSION
         if VERSION != KERNEL_VERSION:
-            raise SystemExit("confirm requires aftercare-kernel-v3.1")
+            raise SystemExit(f"{args.scope} requires aftercare-kernel-v3.1")
         split = "train"
         task_ids, excluded = population(SOURCE)
     elif args.scope == "wiring":
@@ -221,11 +224,14 @@ def new_campaign(args):
         "seed_scope": "official orchestrator; Responses does not expose a provider seed",
         "concurrency": args.concurrency,
     }
-    if args.scope in {"wiring", "confirm"}:
+    if args.scope in {"wiring", "confirm", "ablate"}:
         from aftercare.agent_kernel.contracts import VERSION
         manifest["kernel_version"] = VERSION
-    if args.scope == "confirm":
+    if args.scope in {"confirm", "ablate"}:
         manifest["excluded_development_task_ids"] = excluded
+    if args.scope == "ablate":
+        from kernel_e4_protocol import validate_manifest
+        validate_manifest(manifest, task_ids, excluded)
     execute_campaign(args.directory, manifest, tasks, args.live, args.max_usd)
 
 
@@ -322,8 +328,11 @@ def repair_campaign(args):
         raise SystemExit("No unscored technical failures are eligible for repair")
     hashes, official_ids = load_official_source()
     split = "test"
-    if original.get("scope") == "confirm":
-        from kernel_e3_protocol import population, validate_manifest
+    if original.get("scope") in {"confirm", "ablate"}:
+        if original["scope"] == "ablate":
+            from kernel_e4_protocol import population, validate_manifest
+        else:
+            from kernel_e3_protocol import population, validate_manifest
         official_ids, excluded = population(SOURCE)
         validate_manifest(original, official_ids, excluded)
         split = "train"
@@ -353,7 +362,7 @@ def repair_campaign(args):
     limits = dict(original["budget"])
     limits["max_calls"] = len(schedule) * sum(limits[f"max_{role}_calls_per_run"]
                                                for role in ("agent", "user", "review"))
-    if original.get("scope") == "confirm":
+    if original.get("scope") in {"confirm", "ablate"}:
         reservations, _ = call_receipts(source / "calls.jsonl")
         limits["max_calls"] = min(limits["max_calls"], original["budget"]["max_calls"] - len(reservations))
         if limits["max_calls"] <= 0:
@@ -401,7 +410,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     actions = parser.add_subparsers(dest="action", required=True)
     run = actions.add_parser("run")
-    run.add_argument("--scope", choices=("smoke", "full", "wiring", "confirm"), required=True)
+    run.add_argument("--scope", choices=("smoke", "full", "wiring", "confirm", "ablate"), required=True)
     run.add_argument("--architectures", help="comma-separated; default is the first-round three")
     run.add_argument("--task-ids", help="comma-separated training task ids (wiring scope only)")
     run.add_argument("--directory", type=Path, required=True)
