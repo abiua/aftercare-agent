@@ -1,0 +1,977 @@
+{
+  "version": "E4",
+  "status": "frozen",
+  "status_note": "已冻结",
+  "git_head": "f3d9f687033b65ad16c6b3d8b2b6473526bed50f",
+  "git_head_note": "源码提交哈希，冻结于 2026-11-17，早于任何 E4 真实运行。",
+  "kernel_version": "aftercare-kernel-v3.1",
+  "split": "train",
+  "task_ids": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "6",
+    "7",
+    "8",
+    "10",
+    "11",
+    "13",
+    "14",
+    "15",
+    "19",
+    "20",
+    "21",
+    "23",
+    "24",
+    "25",
+    "28",
+    "30",
+    "31",
+    "34",
+    "35",
+    "37",
+    "43",
+    "46",
+    "47",
+    "48",
+    "50",
+    "52",
+    "57",
+    "58",
+    "59",
+    "63",
+    "66",
+    "67",
+    "69",
+    "72",
+    "73",
+    "75",
+    "76",
+    "78",
+    "80",
+    "81",
+    "82",
+    "83",
+    "84",
+    "85",
+    "87",
+    "88",
+    "89",
+    "91",
+    "92",
+    "93",
+    "95",
+    "98",
+    "99",
+    "103",
+    "104",
+    "105",
+    "106",
+    "107",
+    "109",
+    "110",
+    "112",
+    "113"
+  ],
+  "excluded_development_task_ids": [
+    "16",
+    "22",
+    "29",
+    "41",
+    "44",
+    "54",
+    "96"
+  ],
+  "configuration": {
+    "kernel_version": "aftercare-kernel-v3.1",
+    "kernel_sha256": {
+      "__init__.py": "8e178efe57c64b11019949e133317036628e4cae7be40a74858802a80163683e",
+      "amount_arithmetic.py": "43376b183c9e059060d85b16d0a5cba9b34ce6e29d77147e0a5fc369c39cd297",
+      "contracts.py": "9f00a674746faae42ad5b729e178575fa126c958a49fa0c7b2e3ff858b689a70",
+      "dependencies.py": "c629b29373277f78f0036bb2a447fe063894f4850a9bef947d8b798f41990f26",
+      "engine.py": "ea2c193b42a28e78d93d487dbd313e61246ea072666202b5187b2a08bd5b5d60",
+      "experts.py": "1a2b18e00d4ddcaa5bb5814106d1c9c47303f0eee8628ef69792c1d435f4014f",
+      "retail_guards.py": "c7827e561512b5c8303fc61e522fdb9284bdb5a168e04a93c1ab49b610b31414",
+      "review.py": "6ab50dfe0d5f5a925dcbf94f8ba4209dba5abe9a66fce16adc8fbeaeee7e8ab5"
+    },
+    "agent_adapter_sha256": "c43ac0749f7f21a3341a528495a54f714e339b6712979bdb1958b74ecc87fff6",
+    "dataset_sha256": {
+      "db.json": "413a65160adbdb5fde0ffc0015c49b6d70250b10c18128de169b597af7766765",
+      "tasks.json": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+      "split_tasks.json": "ed0580ec52575b63fbf76568af42490da6ee7783ecb4aa81af46961291358f20",
+      "policy.md": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467"
+    },
+    "revision": "da0835f6c67baef58bdda18f2a3b037dfb3a1754",
+    "agent_model": "gpt-6.1-sol",
+    "user_model": "gpt-6.1-terra",
+    "review_model": "gpt-5.4-mini-2026-03-17",
+    "pricing_usd_per_million": {
+      "gpt-6.1-sol": [
+        "2",
+        "10",
+        "0.10"
+      ],
+      "deepseek-flash": [
+        "0.30",
+        "1.20",
+        "0.006"
+      ],
+      "gpt-6.1-terra": [
+        "1",
+        "5",
+        "0.05"
+      ],
+      "gpt-5.4-mini-2026-03-17": [
+        "0.75",
+        "4.50",
+        "0.075"
+      ]
+    }
+  },
+  "architectures": {
+    "S1c": {
+      "name": "S1c",
+      "guards": true,
+      "review": "none",
+      "experts": false,
+      "executor": {
+        "model": "deepseek-flash",
+        "reasoning": "disabled"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "M2r": {
+      "name": "M2r",
+      "guards": true,
+      "review": "none",
+      "experts": true,
+      "executor": {
+        "model": "deepseek-flash",
+        "reasoning": "disabled"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "M2x": {
+      "name": "M2x",
+      "guards": true,
+      "review": "independent",
+      "experts": false,
+      "executor": {
+        "model": "deepseek-flash",
+        "reasoning": "disabled"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    },
+    "M2": {
+      "name": "M2",
+      "guards": true,
+      "review": "independent",
+      "experts": true,
+      "executor": {
+        "model": "deepseek-flash",
+        "reasoning": "disabled"
+      },
+      "reviewer": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "expert": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "low"
+      },
+      "max_agent_calls": 48,
+      "historical_only": false
+    }
+  },
+  "design": {
+    "cells": [
+      "S1c",
+      "M2r",
+      "M2x",
+      "M2"
+    ],
+    "new_arms": [
+      "M2x",
+      "M2r"
+    ],
+    "reused_E3_arms": [
+      "S1c",
+      "M2"
+    ],
+    "factors": {
+      "S1c": {
+        "review": false,
+        "experts": false
+      },
+      "M2r": {
+        "review": false,
+        "experts": true
+      },
+      "M2x": {
+        "review": true,
+        "experts": false
+      },
+      "M2": {
+        "review": true,
+        "experts": true
+      }
+    }
+  },
+  "run": {
+    "max_usd": 8,
+    "max_calls": 29614,
+    "agent_calls": 160,
+    "user_calls": 60,
+    "max_output_tokens": 1500,
+    "concurrency": 6,
+    "run_timeout": 900,
+    "request_timeout": 120,
+    "tasks": 67,
+    "runs": 134,
+    "architectures": [
+      "M2x",
+      "M2r"
+    ],
+    "trials_per_task": 1,
+    "review_calls": 1,
+    "max_steps": 100
+  },
+  "rules": {
+    "denominator": "每组分母始终为 67；未运行、未完成、无得分、预算耗尽均保留，未获成功分数不计成功。",
+    "repair": "仅 error/unknown 且无官方得分可在同级 .repair 目录补跑一次；沿用原题、组和种子，不补跑已有 0 分、超时或预算耗尽项；合并所有尝试费用与事件，原始加补跑受原 $8 余额约束。",
+    "reuse": "S1c、M2 直接复用 E3 汇总（含其补跑），不重跑；读取前核对预注册记录的 SHA256。",
+    "report": "报告四格统计、四个配对比较的独对题数和题号及 McNemar 精确双侧 p、成功题数交互差与机制计数；不输出假设判定。",
+    "descriptive": "本实验为描述性实验，不做假设判定。每组分母固定为 67，每题每组单次运行，功效不足。“约 8 题以内的差距达不到显著”只能作为粗略功效提醒，不能作为固定阈值；McNemar 精确双侧 p 取决于独对题的双向分布，例如 6 对 0 时 p=0.03125。新旧两批运行日期不同，模型服务和时间变化可能混入组间差异。"
+  },
+  "descriptive": true,
+  "schedule": [
+    {
+      "task_id": "0",
+      "architecture": "M2x",
+      "seed": 42
+    },
+    {
+      "task_id": "0",
+      "architecture": "M2r",
+      "seed": 42
+    },
+    {
+      "task_id": "1",
+      "architecture": "M2r",
+      "seed": 43
+    },
+    {
+      "task_id": "1",
+      "architecture": "M2x",
+      "seed": 43
+    },
+    {
+      "task_id": "2",
+      "architecture": "M2x",
+      "seed": 44
+    },
+    {
+      "task_id": "2",
+      "architecture": "M2r",
+      "seed": 44
+    },
+    {
+      "task_id": "3",
+      "architecture": "M2r",
+      "seed": 45
+    },
+    {
+      "task_id": "3",
+      "architecture": "M2x",
+      "seed": 45
+    },
+    {
+      "task_id": "4",
+      "architecture": "M2x",
+      "seed": 46
+    },
+    {
+      "task_id": "4",
+      "architecture": "M2r",
+      "seed": 46
+    },
+    {
+      "task_id": "6",
+      "architecture": "M2r",
+      "seed": 47
+    },
+    {
+      "task_id": "6",
+      "architecture": "M2x",
+      "seed": 47
+    },
+    {
+      "task_id": "7",
+      "architecture": "M2x",
+      "seed": 48
+    },
+    {
+      "task_id": "7",
+      "architecture": "M2r",
+      "seed": 48
+    },
+    {
+      "task_id": "8",
+      "architecture": "M2r",
+      "seed": 49
+    },
+    {
+      "task_id": "8",
+      "architecture": "M2x",
+      "seed": 49
+    },
+    {
+      "task_id": "10",
+      "architecture": "M2x",
+      "seed": 50
+    },
+    {
+      "task_id": "10",
+      "architecture": "M2r",
+      "seed": 50
+    },
+    {
+      "task_id": "11",
+      "architecture": "M2r",
+      "seed": 51
+    },
+    {
+      "task_id": "11",
+      "architecture": "M2x",
+      "seed": 51
+    },
+    {
+      "task_id": "13",
+      "architecture": "M2x",
+      "seed": 52
+    },
+    {
+      "task_id": "13",
+      "architecture": "M2r",
+      "seed": 52
+    },
+    {
+      "task_id": "14",
+      "architecture": "M2r",
+      "seed": 53
+    },
+    {
+      "task_id": "14",
+      "architecture": "M2x",
+      "seed": 53
+    },
+    {
+      "task_id": "15",
+      "architecture": "M2x",
+      "seed": 54
+    },
+    {
+      "task_id": "15",
+      "architecture": "M2r",
+      "seed": 54
+    },
+    {
+      "task_id": "19",
+      "architecture": "M2r",
+      "seed": 55
+    },
+    {
+      "task_id": "19",
+      "architecture": "M2x",
+      "seed": 55
+    },
+    {
+      "task_id": "20",
+      "architecture": "M2x",
+      "seed": 56
+    },
+    {
+      "task_id": "20",
+      "architecture": "M2r",
+      "seed": 56
+    },
+    {
+      "task_id": "21",
+      "architecture": "M2r",
+      "seed": 57
+    },
+    {
+      "task_id": "21",
+      "architecture": "M2x",
+      "seed": 57
+    },
+    {
+      "task_id": "23",
+      "architecture": "M2x",
+      "seed": 58
+    },
+    {
+      "task_id": "23",
+      "architecture": "M2r",
+      "seed": 58
+    },
+    {
+      "task_id": "24",
+      "architecture": "M2r",
+      "seed": 59
+    },
+    {
+      "task_id": "24",
+      "architecture": "M2x",
+      "seed": 59
+    },
+    {
+      "task_id": "25",
+      "architecture": "M2x",
+      "seed": 60
+    },
+    {
+      "task_id": "25",
+      "architecture": "M2r",
+      "seed": 60
+    },
+    {
+      "task_id": "28",
+      "architecture": "M2r",
+      "seed": 61
+    },
+    {
+      "task_id": "28",
+      "architecture": "M2x",
+      "seed": 61
+    },
+    {
+      "task_id": "30",
+      "architecture": "M2x",
+      "seed": 62
+    },
+    {
+      "task_id": "30",
+      "architecture": "M2r",
+      "seed": 62
+    },
+    {
+      "task_id": "31",
+      "architecture": "M2r",
+      "seed": 63
+    },
+    {
+      "task_id": "31",
+      "architecture": "M2x",
+      "seed": 63
+    },
+    {
+      "task_id": "34",
+      "architecture": "M2x",
+      "seed": 64
+    },
+    {
+      "task_id": "34",
+      "architecture": "M2r",
+      "seed": 64
+    },
+    {
+      "task_id": "35",
+      "architecture": "M2r",
+      "seed": 65
+    },
+    {
+      "task_id": "35",
+      "architecture": "M2x",
+      "seed": 65
+    },
+    {
+      "task_id": "37",
+      "architecture": "M2x",
+      "seed": 66
+    },
+    {
+      "task_id": "37",
+      "architecture": "M2r",
+      "seed": 66
+    },
+    {
+      "task_id": "43",
+      "architecture": "M2r",
+      "seed": 67
+    },
+    {
+      "task_id": "43",
+      "architecture": "M2x",
+      "seed": 67
+    },
+    {
+      "task_id": "46",
+      "architecture": "M2x",
+      "seed": 68
+    },
+    {
+      "task_id": "46",
+      "architecture": "M2r",
+      "seed": 68
+    },
+    {
+      "task_id": "47",
+      "architecture": "M2r",
+      "seed": 69
+    },
+    {
+      "task_id": "47",
+      "architecture": "M2x",
+      "seed": 69
+    },
+    {
+      "task_id": "48",
+      "architecture": "M2x",
+      "seed": 70
+    },
+    {
+      "task_id": "48",
+      "architecture": "M2r",
+      "seed": 70
+    },
+    {
+      "task_id": "50",
+      "architecture": "M2r",
+      "seed": 71
+    },
+    {
+      "task_id": "50",
+      "architecture": "M2x",
+      "seed": 71
+    },
+    {
+      "task_id": "52",
+      "architecture": "M2x",
+      "seed": 72
+    },
+    {
+      "task_id": "52",
+      "architecture": "M2r",
+      "seed": 72
+    },
+    {
+      "task_id": "57",
+      "architecture": "M2r",
+      "seed": 73
+    },
+    {
+      "task_id": "57",
+      "architecture": "M2x",
+      "seed": 73
+    },
+    {
+      "task_id": "58",
+      "architecture": "M2x",
+      "seed": 74
+    },
+    {
+      "task_id": "58",
+      "architecture": "M2r",
+      "seed": 74
+    },
+    {
+      "task_id": "59",
+      "architecture": "M2r",
+      "seed": 75
+    },
+    {
+      "task_id": "59",
+      "architecture": "M2x",
+      "seed": 75
+    },
+    {
+      "task_id": "63",
+      "architecture": "M2x",
+      "seed": 76
+    },
+    {
+      "task_id": "63",
+      "architecture": "M2r",
+      "seed": 76
+    },
+    {
+      "task_id": "66",
+      "architecture": "M2r",
+      "seed": 77
+    },
+    {
+      "task_id": "66",
+      "architecture": "M2x",
+      "seed": 77
+    },
+    {
+      "task_id": "67",
+      "architecture": "M2x",
+      "seed": 78
+    },
+    {
+      "task_id": "67",
+      "architecture": "M2r",
+      "seed": 78
+    },
+    {
+      "task_id": "69",
+      "architecture": "M2r",
+      "seed": 79
+    },
+    {
+      "task_id": "69",
+      "architecture": "M2x",
+      "seed": 79
+    },
+    {
+      "task_id": "72",
+      "architecture": "M2x",
+      "seed": 80
+    },
+    {
+      "task_id": "72",
+      "architecture": "M2r",
+      "seed": 80
+    },
+    {
+      "task_id": "73",
+      "architecture": "M2r",
+      "seed": 81
+    },
+    {
+      "task_id": "73",
+      "architecture": "M2x",
+      "seed": 81
+    },
+    {
+      "task_id": "75",
+      "architecture": "M2x",
+      "seed": 82
+    },
+    {
+      "task_id": "75",
+      "architecture": "M2r",
+      "seed": 82
+    },
+    {
+      "task_id": "76",
+      "architecture": "M2r",
+      "seed": 83
+    },
+    {
+      "task_id": "76",
+      "architecture": "M2x",
+      "seed": 83
+    },
+    {
+      "task_id": "78",
+      "architecture": "M2x",
+      "seed": 84
+    },
+    {
+      "task_id": "78",
+      "architecture": "M2r",
+      "seed": 84
+    },
+    {
+      "task_id": "80",
+      "architecture": "M2r",
+      "seed": 85
+    },
+    {
+      "task_id": "80",
+      "architecture": "M2x",
+      "seed": 85
+    },
+    {
+      "task_id": "81",
+      "architecture": "M2x",
+      "seed": 86
+    },
+    {
+      "task_id": "81",
+      "architecture": "M2r",
+      "seed": 86
+    },
+    {
+      "task_id": "82",
+      "architecture": "M2r",
+      "seed": 87
+    },
+    {
+      "task_id": "82",
+      "architecture": "M2x",
+      "seed": 87
+    },
+    {
+      "task_id": "83",
+      "architecture": "M2x",
+      "seed": 88
+    },
+    {
+      "task_id": "83",
+      "architecture": "M2r",
+      "seed": 88
+    },
+    {
+      "task_id": "84",
+      "architecture": "M2r",
+      "seed": 89
+    },
+    {
+      "task_id": "84",
+      "architecture": "M2x",
+      "seed": 89
+    },
+    {
+      "task_id": "85",
+      "architecture": "M2x",
+      "seed": 90
+    },
+    {
+      "task_id": "85",
+      "architecture": "M2r",
+      "seed": 90
+    },
+    {
+      "task_id": "87",
+      "architecture": "M2r",
+      "seed": 91
+    },
+    {
+      "task_id": "87",
+      "architecture": "M2x",
+      "seed": 91
+    },
+    {
+      "task_id": "88",
+      "architecture": "M2x",
+      "seed": 92
+    },
+    {
+      "task_id": "88",
+      "architecture": "M2r",
+      "seed": 92
+    },
+    {
+      "task_id": "89",
+      "architecture": "M2r",
+      "seed": 93
+    },
+    {
+      "task_id": "89",
+      "architecture": "M2x",
+      "seed": 93
+    },
+    {
+      "task_id": "91",
+      "architecture": "M2x",
+      "seed": 94
+    },
+    {
+      "task_id": "91",
+      "architecture": "M2r",
+      "seed": 94
+    },
+    {
+      "task_id": "92",
+      "architecture": "M2r",
+      "seed": 95
+    },
+    {
+      "task_id": "92",
+      "architecture": "M2x",
+      "seed": 95
+    },
+    {
+      "task_id": "93",
+      "architecture": "M2x",
+      "seed": 96
+    },
+    {
+      "task_id": "93",
+      "architecture": "M2r",
+      "seed": 96
+    },
+    {
+      "task_id": "95",
+      "architecture": "M2r",
+      "seed": 97
+    },
+    {
+      "task_id": "95",
+      "architecture": "M2x",
+      "seed": 97
+    },
+    {
+      "task_id": "98",
+      "architecture": "M2x",
+      "seed": 98
+    },
+    {
+      "task_id": "98",
+      "architecture": "M2r",
+      "seed": 98
+    },
+    {
+      "task_id": "99",
+      "architecture": "M2r",
+      "seed": 99
+    },
+    {
+      "task_id": "99",
+      "architecture": "M2x",
+      "seed": 99
+    },
+    {
+      "task_id": "103",
+      "architecture": "M2x",
+      "seed": 100
+    },
+    {
+      "task_id": "103",
+      "architecture": "M2r",
+      "seed": 100
+    },
+    {
+      "task_id": "104",
+      "architecture": "M2r",
+      "seed": 101
+    },
+    {
+      "task_id": "104",
+      "architecture": "M2x",
+      "seed": 101
+    },
+    {
+      "task_id": "105",
+      "architecture": "M2x",
+      "seed": 102
+    },
+    {
+      "task_id": "105",
+      "architecture": "M2r",
+      "seed": 102
+    },
+    {
+      "task_id": "106",
+      "architecture": "M2r",
+      "seed": 103
+    },
+    {
+      "task_id": "106",
+      "architecture": "M2x",
+      "seed": 103
+    },
+    {
+      "task_id": "107",
+      "architecture": "M2x",
+      "seed": 104
+    },
+    {
+      "task_id": "107",
+      "architecture": "M2r",
+      "seed": 104
+    },
+    {
+      "task_id": "109",
+      "architecture": "M2r",
+      "seed": 105
+    },
+    {
+      "task_id": "109",
+      "architecture": "M2x",
+      "seed": 105
+    },
+    {
+      "task_id": "110",
+      "architecture": "M2x",
+      "seed": 106
+    },
+    {
+      "task_id": "110",
+      "architecture": "M2r",
+      "seed": 106
+    },
+    {
+      "task_id": "112",
+      "architecture": "M2r",
+      "seed": 107
+    },
+    {
+      "task_id": "112",
+      "architecture": "M2x",
+      "seed": 107
+    },
+    {
+      "task_id": "113",
+      "architecture": "M2x",
+      "seed": 108
+    },
+    {
+      "task_id": "113",
+      "architecture": "M2r",
+      "seed": 108
+    }
+  ],
+  "schedule_sha256": "ecbfe54964bb7efced06c4fb13cc026ed0e7f7ed8289cef41689ea6d56101fca",
+  "schedule_hash_note": "有序 task_id/architecture/seed 对象列表；键排序，紧凑 JSON UTF-8；不含公开题目摘要。",
+  "sha256": {
+    "backend/src/aftercare/agent_kernel/__init__.py": "8e178efe57c64b11019949e133317036628e4cae7be40a74858802a80163683e",
+    "backend/src/aftercare/agent_kernel/amount_arithmetic.py": "43376b183c9e059060d85b16d0a5cba9b34ce6e29d77147e0a5fc369c39cd297",
+    "backend/src/aftercare/agent_kernel/contracts.py": "9f00a674746faae42ad5b729e178575fa126c958a49fa0c7b2e3ff858b689a70",
+    "backend/src/aftercare/agent_kernel/dependencies.py": "c629b29373277f78f0036bb2a447fe063894f4850a9bef947d8b798f41990f26",
+    "backend/src/aftercare/agent_kernel/engine.py": "ea2c193b42a28e78d93d487dbd313e61246ea072666202b5187b2a08bd5b5d60",
+    "backend/src/aftercare/agent_kernel/experts.py": "1a2b18e00d4ddcaa5bb5814106d1c9c47303f0eee8628ef69792c1d435f4014f",
+    "backend/src/aftercare/agent_kernel/retail_guards.py": "c7827e561512b5c8303fc61e522fdb9284bdb5a168e04a93c1ab49b610b31414",
+    "backend/src/aftercare/agent_kernel/review.py": "6ab50dfe0d5f5a925dcbf94f8ba4209dba5abe9a66fce16adc8fbeaeee7e8ab5",
+    "scripts/tau_official_agents.py": "c43ac0749f7f21a3341a528495a54f714e339b6712979bdb1958b74ecc87fff6",
+    "scripts/tau_official_agents_legacy.py": "cc1846a0e83ed2d0a0de4cded31470c41e5dbce0c00a215b1b7fe68a3742d393",
+    "scripts/run_tau_official_campaign.py": "23d65228a3ff3b08878fbc53e4693ad446adab58cd672e276bbed61ebee9c8ae",
+    "scripts/tau_official_budget.py": "f0a812875406e6ff5c48c445db67f928f9d1d0a18827b3bf16315d999f670589",
+    "scripts/tau_official_summary.py": "289c7dbaf4f330425d50706e6475d8afe7eeeedca6a044c854339df814f6d1a2",
+    "scripts/refactor_baseline.py": "965aa9db9866364cd5f89bb2e49f29449a1a12b35da1927211a859ef1bbc7bfd",
+    "scripts/analyze_kernel_campaign.py": "1653fd94134af9ca7e15aad71997cc952a1c28634bafe5ca5bf4beeb655332bb",
+    "scripts/analyze_kernel_e3.py": "c4f5dd3a321c6bd31b0ed9173b68e960a08cdd2be53d5267e089081440db1975",
+    "scripts/kernel_e3_protocol.py": "ccaac0da44e47a7591718343e126b5febd32cd74ed8c2c6219c415721f8174de",
+    "scripts/kernel_e4_protocol.py": "b6bf60ce81bc7cb8da7109488c33e89bb0077d46ffcbed0dc7337585d4e55d52",
+    "scripts/analyze_kernel_e4.py": "4ec901ee8f6daab6df1e17185506f95a72bf76433bc40bc6a355296e8395df8d",
+    "scripts/freeze_kernel_e4.py": "48ded62d87132df1e06fd614a386e061bd698af1d92d0af80f7ac1b716fb8d9e",
+    "scripts/tests/test_kernel_e4.py": "dbb4c780f166d8af60d8c2aad1289e9b52e09bcdc487e93a60eb1d9545029cf6",
+    "docs/REFACTOR_PREREGISTRATION_E4.md": "63d63929448e33078fd921583e378cbe15cdef68b3c98dc7b781afd8ab034035",
+    "evidence/architecture_refactor/kernel_v3_dev_tasks.json": "263915f38e7dd4842b2a24be66e16e22ea009b82ea75f8997bbf4090bcec9310"
+  },
+  "kernel_e3_results_sha256": "2177c4e236d82738091a012682563c20675599f1244827a089e2fd3b5ed59b9e",
+  "e3_manifest_sha256": "61fa840a2f2942604a51bacdfd80cf569aa22dcd5e25f42f5303d9e09d3b639e"
+}
