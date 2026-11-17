@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 from langgraph.checkpoint.memory import InMemorySaver
 
+from aftercare.agent_kernel.contracts import VERSION as KERNEL_VERSION
 from aftercare.business.rules import digest
 from aftercare.intelligence.models import InvalidOutput
 from aftercare.investigation.contracts import (
@@ -1837,7 +1838,7 @@ def test_authorized_policy_retrieval_preserves_exact_frozen_refs(investigation):
     assert projected["data"]["retrieval"]["status"] == "UNAVAILABLE"
 
 
-_KERNEL_REVIEW = "kernel:aftercare-kernel-v3.1:proposal_review:0"
+_KERNEL_REVIEW = f"kernel:{KERNEL_VERSION}:proposal_review:0"
 
 
 def _kernel_script(review, *, revised_option=None):
@@ -1894,7 +1895,7 @@ def test_kernel_arm_reviews_a_give_up_independently_and_revises_once(investigati
     assert set(model.calls) == set(model.responses) and len(model.calls) == 5
     assert result["output"]["investigation_options"][0]["action"] == "REQUEST_EVIDENCE"
     kernel = result["output"]["kernel"]
-    assert kernel["version"] == "aftercare-kernel-v3.1" and kernel["revised"] is True
+    assert kernel["version"] == KERNEL_VERSION and kernel["revised"] is True
     assert kernel["review"]["verdict"] == "revise"
     assert result["output"]["investigation_unresolved"][-1].startswith("独立审查建议：")
     # Independent context: public statements and read records only, no investigator prompt or claims.
@@ -1930,7 +1931,7 @@ def test_kernel_arm_reviews_a_give_up_independently_and_revises_once(investigati
 def test_kernel_arm_allow_or_invalid_review_publishes_the_first_outcome(investigation, review):
     model, _ = _kernel_script(review)
     if review != {"verdict": "allow"}:
-        model.responses["kernel:aftercare-kernel-v3.1:proposal_review:1"] = model.responses[_KERNEL_REVIEW]
+        model.responses[f"kernel:{KERNEL_VERSION}:proposal_review:1"] = model.responses[_KERNEL_REVIEW]
     result, events = _run(investigation, "SINGLE", model, arm="kernel")
     assert len(model.calls) == (3 if review == {"verdict": "allow"} else 4)
     kernel = result["output"]["kernel"]

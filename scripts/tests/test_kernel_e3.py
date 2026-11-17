@@ -20,6 +20,8 @@ from tau_official_summary import read_json, write_json
 
 @pytest.fixture(autouse=True)
 def offline(monkeypatch):
+    from aftercare.agent_kernel import contracts
+    monkeypatch.setattr(contracts, 'VERSION', 'aftercare-kernel-v3.1')
     def forbidden(*args, **kwargs):
         raise AssertionError('E3 tests must not access the network')
     monkeypatch.setattr(socket.socket, 'connect', forbidden)
@@ -37,7 +39,11 @@ def forbidden(*args, **kwargs):
 socket.socket.connect = forbidden
 socket.socket.connect_ex = forbidden
 sys.argv = sys.argv[1:]
-runpy.run_path(sys.argv[0], run_name='__main__')
+from pytest import MonkeyPatch
+from aftercare.agent_kernel import contracts
+with MonkeyPatch.context() as patch:
+    patch.setattr(contracts, 'VERSION', 'aftercare-kernel-v3.1')
+    runpy.run_path(sys.argv[0], run_name='__main__')
 '''
     return subprocess.run([sys.executable, '-B', '-c', code, *argv, *extra],
                           capture_output=True, text=True)

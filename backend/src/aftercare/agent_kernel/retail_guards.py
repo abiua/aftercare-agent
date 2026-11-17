@@ -4,7 +4,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 from decimal import Decimal
-from .contracts import GuardResult, ToolKind
+from .contracts import GuardResult, ToolCall, ToolKind
 from .dependencies import effect
 from .amount_arithmetic import amount_findings
 
@@ -31,6 +31,7 @@ def parse(value):
 class Facts:
     user_id: str | None = None
     attempted: set = field(default_factory=set)
+    attempted_name_zip: set = field(default_factory=set)
     user: dict = field(default_factory=dict)
     orders: dict = field(default_factory=dict)
     order_sources: dict = field(default_factory=dict)
@@ -44,6 +45,10 @@ def facts(messages):
         for c in message.get('tool_calls') or []:
             fn=c.get('function',c);args=fn.get('arguments',{})
             calls[c['id']]=(fn['name'],parse(args) if isinstance(args,str) else args)
+            if fn['name']=='find_user_id_by_name_zip':
+                lookup=calls[c['id']][1]
+                state.attempted_name_zip.add(tuple(str(lookup.get(k, '')).casefold()
+                    for k in ('first_name','last_name','zip')))
         if message.get('role')!='tool':continue
         name,args=calls.get(message.get('tool_call_id',message.get('id')),('',{}))
         if name in AUTH:state.attempted.add(name)
@@ -63,7 +68,36 @@ def facts(messages):
     return state
 
 
-def reject(rule,feedback,*,soft=False):return GuardResult(allowed=False,rule_ids=(rule,),feedback=feedback,soft=soft)
+def reject(rule,feedback,*,soft=False,prerequisite=None):
+    return GuardResult(allowed=False,rule_ids=(rule,),feedback=feedback,soft=soft,prerequisite=prerequisite)
+
+
+def authentication_routes(text):
+    text=(text or '').lower()
+    return (any(s in text for s in ('email','e-mail','邮箱','电子邮件'))
+        and any(s in text for s in ('name','姓名','名字'))
+        and any(s in text for s in ('zip','postal','邮编')))
+
+
+def safe_prerequisite(messages, call, tools):
+    """Only missing, scoped retail reads can bypass executor regeneration/review."""
+    if not any(t.name==call.name and t.kind==ToolKind.READ for t in tools):
+        return False
+    state=facts(messages)
+    if not state.user_id:
+        return False
+    # One substitution per exact read: a failed read falls back to retry/fallback instead of looping.
+    if any((c.get('function',c).get('name'),parse(c.get('function',c).get('arguments')))==(call.name,call.arguments)
+           for m in messages for c in m.get('tool_calls') or []):
+        return False
+    if call.name=='get_user_details':
+        return not state.user and call.arguments=={'user_id':state.user_id}
+    if call.name=='get_product_details':
+        products={item.get('product_id') for order in state.orders.values() for item in order.get('items',[])}
+        product=call.arguments.get('product_id')
+        return bool(product and product in products and product not in state.products
+                    and call.arguments=={'product_id':product})
+    return False
 
 
 class RetailGuards:
@@ -84,16 +118,15 @@ class RetailGuards:
                 if proposal.calls[0].name not in AUTH:
                     return reject('authentication','First authenticate by email OR first name, last name and ZIP code; do not transfer yet.')
             else:
-                known=None if 'find_user_id_by_name_zip' in state.attempted else name_from_username(messages)
+                known=name_from_username(messages)
+                if known and tuple(v.casefold() for v in known) in state.attempted_name_zip:
+                    known=None
                 if known and not skip_soft:
                     return reject('authentication_username','The customer gave an account username and a ZIP code. '
                         'Do not ask again yet: call find_user_id_by_name_zip with first_name="%s", last_name="%s", '
                         'zip="%s". If that finds no account, then ask for the name.'%known,soft=True)
-                text=proposal.text.lower()
-                email=any(s in text for s in ('email','e-mail','邮箱','电子邮件'))
-                name=any(s in text for s in ('name','姓名','名字'))
-                zipcode=any(s in text for s in ('zip','postal','邮编'))
-                if not known and not(email and name and zipcode):
+                offered=any(m.get('role')=='assistant' and authentication_routes(m.get('content')) for m in messages)
+                if not known and not offered and not authentication_routes(proposal.text):
                     return reject('authentication_reply','Offer BOTH authentication routes: account email OR first and last name plus ZIP code.')
         if state.user_id and not proposal.calls and not skip_soft:
             finding = amount_findings(messages, proposal.text, state.orders)
@@ -114,13 +147,24 @@ class RetailGuards:
             return reject('single_user','Only query or update the authenticated user.')
         order_id=args.get('order_id')
         if order_id and order_id not in state.allowed_orders:
-            return reject('single_user','Read the authenticated user profile to establish order ownership first.')
+            if not state.user:
+                return reject('single_user','Read the authenticated user profile to establish order ownership first.',
+                    prerequisite=ToolCall(id='prerequisite',name='get_user_details',arguments={'user_id':state.user_id}))
+            return reject('single_user',f'Order {order_id} does not belong to authenticated user {state.user_id}. '
+                f"Orders on this account: {', '.join(sorted(state.allowed_orders)) or 'none'}. "
+                'Ask the customer to verify the order ID.')
         if tool.kind!=ToolKind.WRITE:return GuardResult(allowed=True,confirmed_facts={'authenticated_user':state.user_id})
         order=state.orders.get(order_id,{})
         if order_id:
             expected='delivered' if call.name.startswith(('return_','exchange_')) else 'pending'
             if order.get('status')!=expected:
-                return reject('order_status',f'Read current order details; {call.name} requires status {expected}.')
+                status=order.get('status','unknown')
+                direction={'pending':'You may modify the address, payment method or same-product item variants, '
+                    'or cancel; you cannot return or exchange this order.',
+                    'delivered':'You may return or exchange items; you cannot modify or cancel this order.'}
+                return reject('order_status',f'Order {order_id} currently has status {status}; '
+                    f'{call.name} requires status {expected}. '+direction.get(status,
+                    'Tell the customer this operation cannot be handled in the current status.'))
         problem=self.items(call,state,order) or self.payment(call,state,order)
         if problem:return problem
         if call.name=='cancel_pending_order' and args.get('reason') not in {'no longer needed','ordered by mistake'}:
@@ -141,11 +185,22 @@ class RetailGuards:
         if call.name not in SWAPS:return None
         new=args.get('new_item_ids',[])
         if len(old)!=len(new):return reject('item_variant','Replacement lists must have equal lengths.')
+        for previous in old:
+            item=next(i for i in order['items'] if i['item_id']==previous)
+            product_id=item.get('product_id')
+            if product_id and product_id not in state.products:
+                return reject('item_variant','Read product variants and choose a different available variant of the same product.',
+                    prerequisite=ToolCall(id='prerequisite',name='get_product_details',arguments={'product_id':product_id}))
         for previous,replacement in zip(old,new):
             item=next(i for i in order['items'] if i['item_id']==previous)
-            variant=state.products.get(item['product_id'],{}).get('variants',{}).get(replacement)
+            product=state.products.get(item.get('product_id'),{})
+            variant=product.get('variants',{}).get(replacement)
             if previous==replacement or not variant or variant.get('available') is not True:
-                return reject('item_variant','Read product variants and choose a different available variant of the same product.')
+                available_count=sum(v.get('available') is True for v in product.get('variants',{}).values())
+                return reject('item_variant',f'Item {replacement} is not a usable replacement variant of product '
+                    f"{item.get('product_id')} ({product.get('name','unknown name')}). "
+                    f'The product has {available_count} available variants; choose a different available variant '
+                    f'from the original item {previous}.')
         return None
 
     def payment(self,call,state,order):

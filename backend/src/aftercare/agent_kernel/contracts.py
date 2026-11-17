@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Any, Literal, Protocol
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-VERSION = 'aftercare-kernel-v3.1'
+VERSION = 'aftercare-kernel-v3.2'
 Role = Literal['executor','reviewer','self_check','fact_expert','policy_expert','vision_expert','user','judge']
 
 
@@ -62,6 +62,7 @@ class GuardResult(Record):
     feedback: str = ''
     rule_ids: tuple[str, ...] = ()
     confirmed_facts: dict = Field(default_factory=dict)
+    prerequisite: ToolCall | None = None
 
 
 class CustomerRequest(Record):

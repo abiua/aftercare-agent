@@ -6,6 +6,7 @@ from time import monotonic
 from .contracts import Architecture, ModelPort, StepProposal, ToolDefinition, TraceEvent
 from .review import trigger
 from .dependencies import conflict, effect
+from .retail_guards import safe_prerequisite
 
 EXECUTOR_INSTRUCTION = '''Help the customer using only the supplied policy and tools.
 Track all outstanding customer requests. Look up missing facts rather than guessing.
@@ -28,6 +29,8 @@ class ExecutionKernel:
         self.experts=experts
         self.trace: list[TraceEvent]=[]
         self.last_review=None
+        self.guard_fallback_count=0
+        self.guard_read_sequence=0
 
     def step(self, messages: list[dict], tools: tuple[ToolDefinition, ...], policy: str,
              *, historical_prompt: str | None = None) -> StepProposal:
@@ -73,6 +76,21 @@ class ExecutionKernel:
                 output=result.model_dump(mode='json')))
             if attempt == 1 and not result.allowed and result.soft:
                 result = self.accept_soft(result, messages, proposal, tools, 'guard')
+            if not result.allowed and result.prerequisite is not None:
+                read=result.prerequisite
+                if safe_prerequisite(messages, read, tools):
+                    used={c['id'] for m in messages for c in m.get('tool_calls') or []}
+                    while True:
+                        self.guard_read_sequence+=1
+                        ident=f'guard_read_{self.guard_read_sequence}'
+                        if ident not in used and all(c.id!=ident for c in proposal.calls):
+                            break
+                    read=read.model_copy(update={'id':ident})
+                    self.trace.append(TraceEvent(role='executor',stage='guard_prerequisite_read',
+                        input_sha256=self.trace[-1].input_sha256,
+                        output={'proposal':proposal.model_dump(mode='json',exclude={'private_context'}),
+                            'rule_ids':list(result.rule_ids),'prerequisite':read.model_dump(mode='json')}))
+                    return StepProposal(calls=(read,))
             if result.allowed:
                 if self.architecture.review == 'none' or not trigger(proposal,tools,messages):
                     return proposal
@@ -84,9 +102,39 @@ class ExecutionKernel:
                 return self.resolve_review(proposal, messages, tools, inputs)
 
             if attempt:
-                raise GuardRejected(result.feedback)
+                return self.guard_fallback(result, messages, tools, inputs)
             inputs=[*inputs,{'role':'system','content':'Internal validation feedback for this retry only: '+result.feedback}]
         raise AssertionError('Unreachable')
+
+    def guard_fallback(self, rejected, messages, tools, inputs):
+        if self.guard_fallback_count>=3:
+            self.trace.append(TraceEvent(role='executor',stage='guard_fallback_limit',
+                input_sha256=self.trace[-1].input_sha256,
+                output={'fallback_count':self.guard_fallback_count,'limit':3}))
+            raise GuardRejected(rejected.feedback)
+        self.guard_fallback_count+=1
+        inputs=[*inputs,{'role':'system','content':
+            'For this response only, reply to the customer in the customer\'s language using text only. '
+            'Do not call any tools. Explain that this step cannot currently be completed and why, '
+            'and ask the customer to supply or verify the relevant information. '
+            'Validation reason: '+rejected.feedback}]
+        start=monotonic()
+        proposal=self.model.generate(role='executor',assignment=self.architecture.executor,
+            messages=inputs,tools=(),stage='executor_guard_fallback')
+        proposal=proposal.model_copy(update={'calls':()})
+        self.trace.append(TraceEvent(role='executor',stage='executor_guard_fallback',
+            model=self.architecture.executor.model,
+            input_sha256=sha256(json.dumps(inputs,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
+            output={**proposal.model_dump(mode='json',exclude={'private_context'}),
+                'fallback_count':self.guard_fallback_count},elapsed_seconds=monotonic()-start))
+        checked=self.guard.check(messages,proposal,tools)
+        self.trace.append(TraceEvent(role='executor',stage='guard_fallback',
+            input_sha256=self.trace[-1].input_sha256,
+            output={**checked.model_dump(mode='json'),'fallback_count':self.guard_fallback_count}))
+        # No soft bypass for the last-resort reply, and no review regeneration here.
+        if not checked.allowed:
+            raise GuardRejected(rejected.feedback)
+        return proposal
 
     def accept_soft(self, result, messages, proposal, tools, source_stage):
         # Recheck remaining rules when supported; a soft finding cannot hide a hard rejection.

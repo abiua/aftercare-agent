@@ -58,6 +58,7 @@ def test_hash_mismatch_precedes_trajectory_parsing(tmp_path):
 
 
 def test_default_only_prints_manifest(tmp_path, monkeypatch, capsys, official):
+    monkeypatch.setattr(mini, 'VERSION', 'aftercare-kernel-v3.1')
     schedule = mini.samples()
     monkeypatch.setattr(mini, 'ROOT', tmp_path)
     monkeypatch.setattr(mini, 'samples', lambda: schedule)

@@ -21,6 +21,7 @@ from test_conversations import system as _system
 from aftercare.business.rules import digest
 from aftercare.conversations.decisions import ConversationDecisions
 from aftercare.conversations.tables import Conversation, Message
+from aftercare.agent_kernel.contracts import VERSION as KERNEL_VERSION
 from aftercare.decisions.contracts import DecisionScope
 from aftercare.intelligence.api import router
 from aftercare.intelligence.decision_candidate import project_candidate
@@ -329,7 +330,7 @@ def test_actual_frozen_business_candidate_across_checkpointed_arms(configured, a
         assert calls == ["strong_single", "strong_single", "reviewer"]
         assert snapshot["candidate"]["route_version"] == "kernel"
         assert completed["output"]["kernel"] == {
-            "version": "aftercare-kernel-v3.1",
+            "version": KERNEL_VERSION,
             "review": completed["output"]["kernel"]["review"],
             "revised": False,
         }

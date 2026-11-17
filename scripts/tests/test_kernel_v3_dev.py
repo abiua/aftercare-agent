@@ -314,7 +314,11 @@ def audit(event, args):
     if event == 'os.mkdir' and os.path.realpath(args[0]).startswith(runtime + '/'): forbidden()
 sys.addaudithook(audit)
 sys.argv = sys.argv[2:]
-runpy.run_path(sys.argv[0], run_name='__main__')
+from pytest import MonkeyPatch
+from aftercare.agent_kernel import contracts
+with MonkeyPatch.context() as patch:
+    patch.setattr(contracts, 'VERSION', 'aftercare-kernel-v3.1')
+    runpy.run_path(sys.argv[0], run_name='__main__')
 '''
     process = subprocess.run([sys.executable, '-B', '-c', code, str(selection.ROOT / '.runtime'), *argv],
                              check=True, capture_output=True, text=True)

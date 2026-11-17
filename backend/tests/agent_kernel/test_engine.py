@@ -4,13 +4,13 @@ from aftercare.agent_kernel.contracts import StepProposal, GuardResult, architec
 from aftercare.agent_kernel.engine import ExecutionKernel, GuardRejected, KernelNotReady
 
 
-def test_hard_guard_only_one_retry_no_bad_action_escapes():
+def test_hard_guard_retry_and_rejected_fallback_no_bad_action_escapes():
     calls=[]
     model=SimpleNamespace(generate=lambda **kw: calls.append(kw) or StepProposal(text='bad'))
     guard=SimpleNamespace(check=lambda *args:GuardResult(allowed=False,feedback='Must authenticate'))
     kernel=ExecutionKernel(architectures()['S1'],model,guard=guard)
     with pytest.raises(GuardRejected): kernel.step([],(),'policy')
-    assert len(calls)==2 and len(kernel.trace)==4
+    assert len(calls)==3 and len(kernel.trace)==6
     assert 'Must authenticate' in calls[1]['messages'][-1]['content']
     calls.clear()
     with pytest.raises(GuardRejected): kernel.step([],(),'policy')

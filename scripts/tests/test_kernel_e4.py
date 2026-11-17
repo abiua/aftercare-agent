@@ -11,6 +11,7 @@ from types import SimpleNamespace
 import pytest
 
 import freeze_kernel_e4 as freezer
+import analyze_kernel_e4 as analyzer
 import kernel_e4_protocol as protocol
 import run_tau_official_campaign as runner
 from analyze_kernel_campaign import mcnemar, wilson
@@ -22,8 +23,29 @@ from tau_official_summary import read_json, write_json
 from test_kernel_e3 import campaign
 
 
+@pytest.fixture(scope='module', autouse=True)
+def e3_source(tmp_path_factory):
+    """Synthetic E3 fixture for current test code; frozen E3 stays byte-for-byte intact.
+
+    VERSION alone cannot emulate old inputs: E4 also compares actual source hashes.
+    Keep that comparison active against a temporary fixture, including corruption tests.
+    """
+    from aftercare.agent_kernel import contracts
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(contracts, 'VERSION', 'aftercare-kernel-v3.1')
+        original = read_json(protocol.E3_MANIFEST)
+        original['kernel_sha256'] = protocol.current_configuration()['kernel_sha256']
+        path = tmp_path_factory.mktemp('e4-synthetic-e3') / 'manifest.json'
+        write_json(path, original)
+        for module in (protocol, freezer, analyzer):
+            patch.setattr(module, 'E3_MANIFEST', path)
+        yield path
+
+
 @pytest.fixture(autouse=True)
 def offline(monkeypatch):
+    from aftercare.agent_kernel import contracts
+    monkeypatch.setattr(contracts, 'VERSION', 'aftercare-kernel-v3.1')
     def forbidden(*args, **kwargs):
         raise AssertionError('E4 tests must not access the network')
     monkeypatch.setattr(socket.socket, 'connect', forbidden)
@@ -36,18 +58,26 @@ def dry(directory, extra=()):
     for key, value in LIMITS.items():
         argv.extend(['--' + key.replace('_', '-'), str(value)])
     code = '''import runpy, socket, sys
+from pathlib import Path
+e3_manifest = Path(sys.argv.pop(1))
 def forbidden(*args, **kwargs):
     raise AssertionError('No network permitted')
 socket.socket.connect = forbidden
 socket.socket.connect_ex = forbidden
 sys.argv = sys.argv[1:]
-runpy.run_path(sys.argv[0], run_name='__main__')
+from pytest import MonkeyPatch
+from aftercare.agent_kernel import contracts
+import kernel_e4_protocol
+with MonkeyPatch.context() as patch:
+    patch.setattr(contracts, 'VERSION', 'aftercare-kernel-v3.1')
+    patch.setattr(kernel_e4_protocol, 'E3_MANIFEST', e3_manifest)
+    runpy.run_path(sys.argv[0], run_name='__main__')
 '''
-    return subprocess.run([sys.executable, '-B', '-c', code, *argv, *extra], capture_output=True, text=True)
+    return subprocess.run([sys.executable, '-B', '-c', code, str(protocol.E3_MANIFEST), *argv, *extra], capture_output=True, text=True)
 
 
 @pytest.fixture(scope='module')
-def manifest(tmp_path_factory):
+def manifest(tmp_path_factory, e3_source):
     directory = tmp_path_factory.mktemp('e4-dry') / '.runtime/kernel-e4/run-v1'
     process = dry(directory)
     assert process.returncode == 0, process.stderr
@@ -365,6 +395,7 @@ def test_repair_runner_uses_e4_validation_balance_and_single_attempt(fixture_inp
 
 
 def test_freezer_only_creates_draft_in_temporary_directory(tmp_path, manifest, monkeypatch):
+    frozen_before = protocol.PREREGISTRATION.read_bytes() if protocol.PREREGISTRATION.exists() else None
     output = tmp_path / 'preregistration_e4.json'
     monkeypatch.setattr(sys, 'argv', ['freeze_kernel_e4.py', '--output', str(output)])
     freezer.main()
@@ -381,4 +412,4 @@ def test_freezer_only_creates_draft_in_temporary_directory(tmp_path, manifest, m
         assert digest == sha256((runner.ROOT / relative).read_bytes()).hexdigest()
     with pytest.raises(FileExistsError):
         freezer.main()
-    assert not protocol.PREREGISTRATION.exists()
+    assert (protocol.PREREGISTRATION.read_bytes() if protocol.PREREGISTRATION.exists() else None) == frozen_before
