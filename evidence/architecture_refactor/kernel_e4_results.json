@@ -1,0 +1,2257 @@
+{
+  "experiment": "E4",
+  "descriptive": true,
+  "descriptive_note": "本实验为描述性实验，不做假设判定。每组分母固定为 67，每题每组单次运行，功效不足。“约 8 题以内的差距达不到显著”只能作为粗略功效提醒，不能作为固定阈值；McNemar 精确双侧 p 取决于独对题的双向分布，例如 6 对 0 时 p=0.03125。新旧两批运行日期不同，模型服务和时间变化可能混入组间差异。",
+  "directory": "/Users/mbw/Documents/aftercare-agent/.runtime/kernel-e4/run-v1",
+  "split": "train",
+  "tasks": 67,
+  "task_ids": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "6",
+    "7",
+    "8",
+    "10",
+    "11",
+    "13",
+    "14",
+    "15",
+    "19",
+    "20",
+    "21",
+    "23",
+    "24",
+    "25",
+    "28",
+    "30",
+    "31",
+    "34",
+    "35",
+    "37",
+    "43",
+    "46",
+    "47",
+    "48",
+    "50",
+    "52",
+    "57",
+    "58",
+    "59",
+    "63",
+    "66",
+    "67",
+    "69",
+    "72",
+    "73",
+    "75",
+    "76",
+    "78",
+    "80",
+    "81",
+    "82",
+    "83",
+    "84",
+    "85",
+    "87",
+    "88",
+    "89",
+    "91",
+    "92",
+    "93",
+    "95",
+    "98",
+    "99",
+    "103",
+    "104",
+    "105",
+    "106",
+    "107",
+    "109",
+    "110",
+    "112",
+    "113"
+  ],
+  "excluded_development_task_ids": [
+    "16",
+    "22",
+    "29",
+    "41",
+    "44",
+    "54",
+    "96"
+  ],
+  "rules": {
+    "denominator": "每组分母始终为 67；未运行、未完成、无得分、预算耗尽均保留，未获成功分数不计成功。",
+    "repair": "仅 error/unknown 且无官方得分可在同级 .repair 目录补跑一次；沿用原题、组和种子，不补跑已有 0 分、超时或预算耗尽项；合并所有尝试费用与事件，原始加补跑受原 $8 余额约束。",
+    "reuse": "S1c、M2 直接复用 E3 汇总（含其补跑），不重跑；读取前核对预注册记录的 SHA256。",
+    "report": "报告四格统计、四个配对比较的独对题数和题号及 McNemar 精确双侧 p、成功题数交互差与机制计数；不输出假设判定。",
+    "descriptive": "本实验为描述性实验，不做假设判定。每组分母固定为 67，每题每组单次运行，功效不足。“约 8 题以内的差距达不到显著”只能作为粗略功效提醒，不能作为固定阈值；McNemar 精确双侧 p 取决于独对题的双向分布，例如 6 对 0 时 p=0.03125。新旧两批运行日期不同，模型服务和时间变化可能混入组间差异。"
+  },
+  "sources": {
+    "E3": {
+      "path": "/Users/mbw/Documents/aftercare-agent/evidence/architecture_refactor/kernel_e3_results.json",
+      "sha256": "2177c4e236d82738091a012682563c20675599f1244827a089e2fd3b5ed59b9e",
+      "complete": false
+    },
+    "E4": {
+      "directory": "/Users/mbw/Documents/aftercare-agent/.runtime/kernel-e4/run-v1",
+      "preregistration_status": "frozen"
+    }
+  },
+  "arms": {
+    "S1c": {
+      "tasks": 67,
+      "outcomes": {
+        "success": 54,
+        "wrong_write": 5,
+        "handoff": 5,
+        "authentication_failed": 1,
+        "inaction": 1,
+        "unfinished": 1
+      },
+      "success": 54,
+      "success_rate": 0.806,
+      "success_ci95": [
+        0.6958,
+        0.8829
+      ],
+      "give_up_failures": 6,
+      "no_write_failures": 7,
+      "wrong_writes": 5,
+      "calls_by_actor": {
+        "executor": 943,
+        "judge": 25,
+        "user": 458
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.255618918,
+        "judge": 0.09027375,
+        "user": 0.650748
+      },
+      "known_agent_cost_usd": 0.255618918,
+      "known_total_cost_usd": 0.996640668,
+      "agent_cost_usd": 0.255618918,
+      "total_cost_usd": 0.996640668,
+      "unsettled_calls": 0,
+      "cost_complete": true,
+      "agent_cost_per_success_usd": 0.004733683666666667,
+      "total_cost_per_success_usd": 0.018456308666666667,
+      "median_duration_seconds": 28.067,
+      "review": {},
+      "experts": {
+        "consulted": 0,
+        "unavailable": 0
+      },
+      "billing_issues": [],
+      "known_cost_per_task_usd": 0.014875233850746268,
+      "cost_per_task_usd": 0.014875233850746268,
+      "source": "E3"
+    },
+    "M2r": {
+      "tasks": 67,
+      "outcomes": {
+        "success": 55,
+        "wrong_write": 7,
+        "handoff": 0,
+        "authentication_failed": 0,
+        "inaction": 3,
+        "unfinished": 2
+      },
+      "success": 55,
+      "success_rate": 0.8209,
+      "success_ci95": [
+        0.7125,
+        0.8945
+      ],
+      "give_up_failures": 3,
+      "no_write_failures": 3,
+      "wrong_writes": 7,
+      "calls_by_actor": {
+        "executor": 956,
+        "fact_expert": 33,
+        "judge": 23,
+        "policy_expert": 17,
+        "user": 455
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.28966221,
+        "fact_expert": 0.36807,
+        "judge": 0.087279,
+        "policy_expert": 0.285706,
+        "user": 0.642855
+      },
+      "known_agent_cost_usd": 0.94343821,
+      "known_total_cost_usd": 1.67357221,
+      "agent_cost_usd": 0.94343821,
+      "total_cost_usd": 1.67357221,
+      "unsettled_calls": 0,
+      "cost_complete": true,
+      "agent_cost_per_success_usd": 0.017153422,
+      "total_cost_per_success_usd": 0.030428585636363636,
+      "median_duration_seconds": 34.219,
+      "review": {},
+      "experts": {
+        "consulted": 34,
+        "unavailable": 0
+      },
+      "billing_issues": [],
+      "known_cost_per_task_usd": 0.024978689701492536,
+      "cost_per_task_usd": 0.024978689701492536,
+      "source": "E4"
+    },
+    "M2x": {
+      "tasks": 67,
+      "outcomes": {
+        "success": 52,
+        "wrong_write": 6,
+        "handoff": 5,
+        "authentication_failed": 1,
+        "inaction": 2,
+        "unfinished": 1
+      },
+      "success": 52,
+      "success_rate": 0.7761,
+      "success_ci95": [
+        0.6629,
+        0.8594
+      ],
+      "give_up_failures": 7,
+      "no_write_failures": 8,
+      "wrong_writes": 6,
+      "calls_by_actor": {
+        "executor": 991,
+        "judge": 24,
+        "reviewer": 137,
+        "user": 471
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.27046968,
+        "judge": 0.088572,
+        "reviewer": 2.339422,
+        "user": 0.675863
+      },
+      "known_agent_cost_usd": 2.60989168,
+      "known_total_cost_usd": 3.37432668,
+      "agent_cost_usd": 2.60989168,
+      "total_cost_usd": 3.37432668,
+      "unsettled_calls": 0,
+      "cost_complete": true,
+      "agent_cost_per_success_usd": 0.05019022461538462,
+      "total_cost_per_success_usd": 0.06489089769230769,
+      "median_duration_seconds": 43.586,
+      "review": {
+        "triggered": 137,
+        "allow": 121,
+        "fallback": 0,
+        "revise": 16
+      },
+      "experts": {
+        "consulted": 0,
+        "unavailable": 0
+      },
+      "billing_issues": [],
+      "known_cost_per_task_usd": 0.0503630847761194,
+      "cost_per_task_usd": 0.0503630847761194,
+      "source": "E4"
+    },
+    "M2": {
+      "tasks": 67,
+      "outcomes": {
+        "success": 58,
+        "wrong_write": 3,
+        "handoff": 2,
+        "authentication_failed": 1,
+        "inaction": 1,
+        "unfinished": 2
+      },
+      "success": 58,
+      "success_rate": 0.8657,
+      "success_ci95": [
+        0.764,
+        0.9277
+      ],
+      "give_up_failures": 3,
+      "no_write_failures": 4,
+      "wrong_writes": 3,
+      "calls_by_actor": {
+        "executor": 988,
+        "fact_expert": 26,
+        "judge": 24,
+        "policy_expert": 16,
+        "reviewer": 136,
+        "user": 464
+      },
+      "cost_usd_by_actor": {
+        "executor": 0.309802938,
+        "fact_expert": 0.359924,
+        "judge": 0.086835,
+        "policy_expert": 0.276982,
+        "reviewer": 2.354652,
+        "user": 0.667699
+      },
+      "known_agent_cost_usd": 3.301360938,
+      "known_total_cost_usd": 4.055894938,
+      "agent_cost_usd": 3.301360938,
+      "total_cost_usd": 4.055894938,
+      "unsettled_calls": 0,
+      "cost_complete": true,
+      "agent_cost_per_success_usd": 0.056920016172413795,
+      "total_cost_per_success_usd": 0.06992922306896551,
+      "median_duration_seconds": 40.015,
+      "review": {
+        "triggered": 136,
+        "allow": 122,
+        "fallback": 0,
+        "revise": 14
+      },
+      "experts": {
+        "consulted": 34,
+        "unavailable": 0
+      },
+      "billing_issues": [],
+      "known_cost_per_task_usd": 0.06053574534328358,
+      "cost_per_task_usd": 0.06053574534328358,
+      "source": "E3"
+    }
+  },
+  "pairs": {
+    "M2_vs_M2r": {
+      "effect": "review",
+      "difference": 3,
+      "M2_only": [
+        "19",
+        "47",
+        "72",
+        "76",
+        "99",
+        "110"
+      ],
+      "M2r_only": [
+        "67",
+        "95",
+        "112"
+      ],
+      "M2_only_count": 6,
+      "M2r_only_count": 3,
+      "mcnemar_p": 0.5078,
+      "same_run": false
+    },
+    "M2x_vs_S1c": {
+      "effect": "review",
+      "difference": -2,
+      "M2x_only": [
+        "1",
+        "20",
+        "80"
+      ],
+      "S1c_only": [
+        "4",
+        "21",
+        "31",
+        "48",
+        "99"
+      ],
+      "M2x_only_count": 3,
+      "S1c_only_count": 5,
+      "mcnemar_p": 0.7266,
+      "same_run": false
+    },
+    "M2_vs_M2x": {
+      "effect": "expert",
+      "difference": 6,
+      "M2_only": [
+        "0",
+        "4",
+        "31",
+        "48",
+        "69",
+        "99",
+        "107"
+      ],
+      "M2x_only": [
+        "112"
+      ],
+      "M2_only_count": 7,
+      "M2x_only_count": 1,
+      "mcnemar_p": 0.0703,
+      "same_run": false
+    },
+    "M2r_vs_S1c": {
+      "effect": "expert",
+      "difference": 1,
+      "M2r_only": [
+        "0",
+        "1",
+        "20",
+        "67",
+        "69",
+        "80",
+        "95",
+        "107"
+      ],
+      "S1c_only": [
+        "19",
+        "21",
+        "47",
+        "72",
+        "76",
+        "99",
+        "110"
+      ],
+      "M2r_only_count": 8,
+      "S1c_only_count": 7,
+      "mcnemar_p": 1.0,
+      "same_run": false
+    }
+  },
+  "interaction": {
+    "formula": "(M2 - M2r) - (M2x - S1c)",
+    "success_count_difference": 5
+  },
+  "mechanisms": {
+    "M2x": {
+      "expert_consultations": 0,
+      "expert_reads": 0,
+      "self_write_updates": 0,
+      "amount_rule_triggers": 8,
+      "review_revise": 16,
+      "review_fallback": 0,
+      "incomplete_response": 0
+    },
+    "M2r": {
+      "expert_consultations": 34,
+      "expert_reads": 16,
+      "self_write_updates": 36,
+      "amount_rule_triggers": 4,
+      "review_revise": 0,
+      "review_fallback": 0,
+      "incomplete_response": 0
+    }
+  },
+  "anomalies": [],
+  "mechanism_note": "沿用 E3 M2_descriptive 口径，事件为已记录事件；缺失轨迹不视作已验证的零事件。IncompleteResponse 按每次尝试的 call_id 去重，补跑独立累计。官方裁判 judge 不算独立审查 reviewer。",
+  "per_task": {
+    "0": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.011809928,
+        "total_cost_usd": 0.011809928,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.026158584,
+        "total_cost_usd": 0.026158584,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.054955212,
+        "total_cost_usd": 0.054955212,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.032973016,
+        "total_cost_usd": 0.032973016,
+        "source": "E3"
+      }
+    },
+    "1": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.011252296,
+        "total_cost_usd": 0.011252296,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.013291852,
+        "total_cost_usd": 0.013291852,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.034169252,
+        "total_cost_usd": 0.034169252,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.031825492,
+        "total_cost_usd": 0.031825492,
+        "source": "E3"
+      }
+    },
+    "2": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014450174,
+        "total_cost_usd": 0.014450174,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014631238,
+        "total_cost_usd": 0.014631238,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.034546042,
+        "total_cost_usd": 0.034546042,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.032946666,
+        "total_cost_usd": 0.032946666,
+        "source": "E3"
+      }
+    },
+    "3": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.011331548,
+        "total_cost_usd": 0.011331548,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.012126366,
+        "total_cost_usd": 0.012126366,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.029881574,
+        "total_cost_usd": 0.029881574,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.036337548,
+        "total_cost_usd": 0.036337548,
+        "source": "E3"
+      }
+    },
+    "4": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014917276,
+        "total_cost_usd": 0.014917276,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01832684,
+        "total_cost_usd": 0.01832684,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.071456718,
+        "total_cost_usd": 0.071456718,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.056871736,
+        "total_cost_usd": 0.056871736,
+        "source": "E3"
+      }
+    },
+    "6": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.013070424,
+        "total_cost_usd": 0.013070424,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.011298036,
+        "total_cost_usd": 0.011298036,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.030472646,
+        "total_cost_usd": 0.030472646,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.026516304,
+        "total_cost_usd": 0.026516304,
+        "source": "E3"
+      }
+    },
+    "7": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.011828802,
+        "total_cost_usd": 0.011828802,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.011278866,
+        "total_cost_usd": 0.011278866,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.024176392,
+        "total_cost_usd": 0.024176392,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.029110784,
+        "total_cost_usd": 0.029110784,
+        "source": "E3"
+      }
+    },
+    "8": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009790612,
+        "total_cost_usd": 0.009790612,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01414676,
+        "total_cost_usd": 0.01414676,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.028419108,
+        "total_cost_usd": 0.028419108,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02809726,
+        "total_cost_usd": 0.02809726,
+        "source": "E3"
+      }
+    },
+    "10": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00567708,
+        "total_cost_usd": 0.00567708,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.005932408,
+        "total_cost_usd": 0.005932408,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015997608,
+        "total_cost_usd": 0.015997608,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.016742708,
+        "total_cost_usd": 0.016742708,
+        "source": "E3"
+      }
+    },
+    "11": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010997504,
+        "total_cost_usd": 0.010997504,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.064292844,
+        "total_cost_usd": 0.064292844,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.058479112,
+        "total_cost_usd": 0.058479112,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.037439024,
+        "total_cost_usd": 0.037439024,
+        "source": "E3"
+      }
+    },
+    "13": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009142104,
+        "total_cost_usd": 0.009142104,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00948898,
+        "total_cost_usd": 0.00948898,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02146718,
+        "total_cost_usd": 0.02146718,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.037743176,
+        "total_cost_usd": 0.037743176,
+        "source": "E3"
+      }
+    },
+    "14": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.012448832,
+        "total_cost_usd": 0.012448832,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.008253552,
+        "total_cost_usd": 0.008253552,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.038921156,
+        "total_cost_usd": 0.038921156,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.035764752,
+        "total_cost_usd": 0.035764752,
+        "source": "E3"
+      }
+    },
+    "15": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00900778,
+        "total_cost_usd": 0.00900778,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010356552,
+        "total_cost_usd": 0.010356552,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.021945836,
+        "total_cost_usd": 0.021945836,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02417042,
+        "total_cost_usd": 0.02417042,
+        "source": "E3"
+      }
+    },
+    "19": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018603528,
+        "total_cost_usd": 0.018603528,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.037646758,
+        "total_cost_usd": 0.037646758,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.099413512,
+        "total_cost_usd": 0.099413512,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.070567652,
+        "total_cost_usd": 0.070567652,
+        "source": "E3"
+      }
+    },
+    "20": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.014304724,
+        "total_cost_usd": 0.014304724,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.069083884,
+        "total_cost_usd": 0.069083884,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.072433424,
+        "total_cost_usd": 0.072433424,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.232936604,
+        "total_cost_usd": 0.232936604,
+        "source": "E3"
+      }
+    },
+    "21": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.031362252,
+        "total_cost_usd": 0.031362252,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.02458574,
+        "total_cost_usd": 0.02458574,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.02268268,
+        "total_cost_usd": 0.02268268,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.025048424,
+        "total_cost_usd": 0.025048424,
+        "source": "E3"
+      }
+    },
+    "23": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02469736,
+        "total_cost_usd": 0.02469736,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.011596148,
+        "total_cost_usd": 0.011596148,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.088783384,
+        "total_cost_usd": 0.088783384,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.089183764,
+        "total_cost_usd": 0.089183764,
+        "source": "E3"
+      }
+    },
+    "24": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.011446964,
+        "total_cost_usd": 0.011446964,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.011624896,
+        "total_cost_usd": 0.011624896,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01124936,
+        "total_cost_usd": 0.01124936,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010010294,
+        "total_cost_usd": 0.010010294,
+        "source": "E3"
+      }
+    },
+    "25": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007693344,
+        "total_cost_usd": 0.007693344,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.006520868,
+        "total_cost_usd": 0.006520868,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.026037744,
+        "total_cost_usd": 0.026037744,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.019533344,
+        "total_cost_usd": 0.019533344,
+        "source": "E3"
+      }
+    },
+    "28": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.030947592,
+        "total_cost_usd": 0.030947592,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.032704512,
+        "total_cost_usd": 0.032704512,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.0793866,
+        "total_cost_usd": 0.0793866,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.08231343,
+        "total_cost_usd": 0.08231343,
+        "source": "E3"
+      }
+    },
+    "30": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.022121292,
+        "total_cost_usd": 0.022121292,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.025510436,
+        "total_cost_usd": 0.025510436,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.093645004,
+        "total_cost_usd": 0.093645004,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.077279972,
+        "total_cost_usd": 0.077279972,
+        "source": "E3"
+      }
+    },
+    "31": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.020816796,
+        "total_cost_usd": 0.020816796,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.072991088,
+        "total_cost_usd": 0.072991088,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.095050924,
+        "total_cost_usd": 0.095050924,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.15959368,
+        "total_cost_usd": 0.15959368,
+        "source": "E3"
+      }
+    },
+    "34": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00913354,
+        "total_cost_usd": 0.00913354,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009161976,
+        "total_cost_usd": 0.009161976,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.024302636,
+        "total_cost_usd": 0.024302636,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.020231204,
+        "total_cost_usd": 0.020231204,
+        "source": "E3"
+      }
+    },
+    "35": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01906994,
+        "total_cost_usd": 0.01906994,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014557848,
+        "total_cost_usd": 0.014557848,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.074591532,
+        "total_cost_usd": 0.074591532,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.069433052,
+        "total_cost_usd": 0.069433052,
+        "source": "E3"
+      }
+    },
+    "37": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02315372,
+        "total_cost_usd": 0.02315372,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.074369258,
+        "total_cost_usd": 0.074369258,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.043506876,
+        "total_cost_usd": 0.043506876,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.213524594,
+        "total_cost_usd": 0.213524594,
+        "source": "E3"
+      }
+    },
+    "43": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014246902,
+        "total_cost_usd": 0.014246902,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.013043424,
+        "total_cost_usd": 0.013043424,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.051897738,
+        "total_cost_usd": 0.051897738,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.040032996,
+        "total_cost_usd": 0.040032996,
+        "source": "E3"
+      }
+    },
+    "46": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.017778864,
+        "total_cost_usd": 0.017778864,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018059042,
+        "total_cost_usd": 0.018059042,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.063974618,
+        "total_cost_usd": 0.063974618,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.068454158,
+        "total_cost_usd": 0.068454158,
+        "source": "E3"
+      }
+    },
+    "47": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.019501472,
+        "total_cost_usd": 0.019501472,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.009029444,
+        "total_cost_usd": 0.009029444,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.052192642,
+        "total_cost_usd": 0.052192642,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.042990388,
+        "total_cost_usd": 0.042990388,
+        "source": "E3"
+      }
+    },
+    "48": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015046592,
+        "total_cost_usd": 0.015046592,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010609916,
+        "total_cost_usd": 0.010609916,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "authentication_failed",
+        "known_total_cost_usd": 0.00393401,
+        "total_cost_usd": 0.00393401,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.0400011,
+        "total_cost_usd": 0.0400011,
+        "source": "E3"
+      }
+    },
+    "50": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.005946864,
+        "total_cost_usd": 0.005946864,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.005906768,
+        "total_cost_usd": 0.005906768,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018103372,
+        "total_cost_usd": 0.018103372,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.068249576,
+        "total_cost_usd": 0.068249576,
+        "source": "E3"
+      }
+    },
+    "52": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.011448724,
+        "total_cost_usd": 0.011448724,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.020541532,
+        "total_cost_usd": 0.020541532,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.051673872,
+        "total_cost_usd": 0.051673872,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.07098206,
+        "total_cost_usd": 0.07098206,
+        "source": "E3"
+      }
+    },
+    "57": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01023598,
+        "total_cost_usd": 0.01023598,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00870712,
+        "total_cost_usd": 0.00870712,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018030576,
+        "total_cost_usd": 0.018030576,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.028406496,
+        "total_cost_usd": 0.028406496,
+        "source": "E3"
+      }
+    },
+    "58": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01530122,
+        "total_cost_usd": 0.01530122,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.040912748,
+        "total_cost_usd": 0.040912748,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.040309408,
+        "total_cost_usd": 0.040309408,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.05341886,
+        "total_cost_usd": 0.05341886,
+        "source": "E3"
+      }
+    },
+    "59": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.015037282,
+        "total_cost_usd": 0.015037282,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.05890864,
+        "total_cost_usd": 0.05890864,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.060245936,
+        "total_cost_usd": 0.060245936,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.098322662,
+        "total_cost_usd": 0.098322662,
+        "source": "E3"
+      }
+    },
+    "63": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.017056662,
+        "total_cost_usd": 0.017056662,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.049409902,
+        "total_cost_usd": 0.049409902,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.053212514,
+        "total_cost_usd": 0.053212514,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.065289178,
+        "total_cost_usd": 0.065289178,
+        "source": "E3"
+      }
+    },
+    "66": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00851998,
+        "total_cost_usd": 0.00851998,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.026167304,
+        "total_cost_usd": 0.026167304,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.031805988,
+        "total_cost_usd": 0.031805988,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.020455328,
+        "total_cost_usd": 0.020455328,
+        "source": "E3"
+      }
+    },
+    "67": {
+      "S1c": {
+        "outcome": "authentication_failed",
+        "known_total_cost_usd": 0.005814448,
+        "total_cost_usd": 0.005814448,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009236452,
+        "total_cost_usd": 0.009236452,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.027561192,
+        "total_cost_usd": 0.027561192,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "authentication_failed",
+        "known_total_cost_usd": 0.005922266,
+        "total_cost_usd": 0.005922266,
+        "source": "E3"
+      }
+    },
+    "69": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.00738,
+        "total_cost_usd": 0.00738,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.037490512,
+        "total_cost_usd": 0.037490512,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.034319642,
+        "total_cost_usd": 0.034319642,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.039033012,
+        "total_cost_usd": 0.039033012,
+        "source": "E3"
+      }
+    },
+    "72": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.02107416,
+        "total_cost_usd": 0.02107416,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.0205069,
+        "total_cost_usd": 0.0205069,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.08433144,
+        "total_cost_usd": 0.08433144,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.056211312,
+        "total_cost_usd": 0.056211312,
+        "source": "E3"
+      }
+    },
+    "73": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007491224,
+        "total_cost_usd": 0.007491224,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007018508,
+        "total_cost_usd": 0.007018508,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018188008,
+        "total_cost_usd": 0.018188008,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018073056,
+        "total_cost_usd": 0.018073056,
+        "source": "E3"
+      }
+    },
+    "75": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009955148,
+        "total_cost_usd": 0.009955148,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014087112,
+        "total_cost_usd": 0.014087112,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.030184832,
+        "total_cost_usd": 0.030184832,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.04090448,
+        "total_cost_usd": 0.04090448,
+        "source": "E3"
+      }
+    },
+    "76": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.014772628,
+        "total_cost_usd": 0.014772628,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.014570774,
+        "total_cost_usd": 0.014570774,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.059522654,
+        "total_cost_usd": 0.059522654,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.092790336,
+        "total_cost_usd": 0.092790336,
+        "source": "E3"
+      }
+    },
+    "78": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.016158492,
+        "total_cost_usd": 0.016158492,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.11913852,
+        "total_cost_usd": 0.11913852,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.066717044,
+        "total_cost_usd": 0.066717044,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.169429516,
+        "total_cost_usd": 0.169429516,
+        "source": "E3"
+      }
+    },
+    "80": {
+      "S1c": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.007104768,
+        "total_cost_usd": 0.007104768,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.020864296,
+        "total_cost_usd": 0.020864296,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.027736712,
+        "total_cost_usd": 0.027736712,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.043046628,
+        "total_cost_usd": 0.043046628,
+        "source": "E3"
+      }
+    },
+    "81": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007220348,
+        "total_cost_usd": 0.007220348,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009987288,
+        "total_cost_usd": 0.009987288,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.04050124,
+        "total_cost_usd": 0.04050124,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.059575208,
+        "total_cost_usd": 0.059575208,
+        "source": "E3"
+      }
+    },
+    "82": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00899476,
+        "total_cost_usd": 0.00899476,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.027561932,
+        "total_cost_usd": 0.027561932,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.024711496,
+        "total_cost_usd": 0.024711496,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.043568476,
+        "total_cost_usd": 0.043568476,
+        "source": "E3"
+      }
+    },
+    "83": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.008254176,
+        "total_cost_usd": 0.008254176,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00807844,
+        "total_cost_usd": 0.00807844,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.021865744,
+        "total_cost_usd": 0.021865744,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.023533044,
+        "total_cost_usd": 0.023533044,
+        "source": "E3"
+      }
+    },
+    "84": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.008501676,
+        "total_cost_usd": 0.008501676,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.00990392,
+        "total_cost_usd": 0.00990392,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.027426512,
+        "total_cost_usd": 0.027426512,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.023696144,
+        "total_cost_usd": 0.023696144,
+        "source": "E3"
+      }
+    },
+    "85": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009689816,
+        "total_cost_usd": 0.009689816,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015455444,
+        "total_cost_usd": 0.015455444,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.026077272,
+        "total_cost_usd": 0.026077272,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.026310836,
+        "total_cost_usd": 0.026310836,
+        "source": "E3"
+      }
+    },
+    "87": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007417656,
+        "total_cost_usd": 0.007417656,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.007482524,
+        "total_cost_usd": 0.007482524,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.085491816,
+        "total_cost_usd": 0.085491816,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.081060192,
+        "total_cost_usd": 0.081060192,
+        "source": "E3"
+      }
+    },
+    "88": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010740916,
+        "total_cost_usd": 0.010740916,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.009720776,
+        "total_cost_usd": 0.009720776,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.023924212,
+        "total_cost_usd": 0.023924212,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.021736524,
+        "total_cost_usd": 0.021736524,
+        "source": "E3"
+      }
+    },
+    "89": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015552964,
+        "total_cost_usd": 0.015552964,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.091292752,
+        "total_cost_usd": 0.091292752,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.033002976,
+        "total_cost_usd": 0.033002976,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.049635096,
+        "total_cost_usd": 0.049635096,
+        "source": "E3"
+      }
+    },
+    "91": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.019860432,
+        "total_cost_usd": 0.019860432,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.017735602,
+        "total_cost_usd": 0.017735602,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.063729984,
+        "total_cost_usd": 0.063729984,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.060505056,
+        "total_cost_usd": 0.060505056,
+        "source": "E3"
+      }
+    },
+    "92": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015168436,
+        "total_cost_usd": 0.015168436,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01327969,
+        "total_cost_usd": 0.01327969,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.044626078,
+        "total_cost_usd": 0.044626078,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.039119406,
+        "total_cost_usd": 0.039119406,
+        "source": "E3"
+      }
+    },
+    "93": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010530364,
+        "total_cost_usd": 0.010530364,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.012231652,
+        "total_cost_usd": 0.012231652,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.027583364,
+        "total_cost_usd": 0.027583364,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.034927308,
+        "total_cost_usd": 0.034927308,
+        "source": "E3"
+      }
+    },
+    "95": {
+      "S1c": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.013196886,
+        "total_cost_usd": 0.013196886,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.018021804,
+        "total_cost_usd": 0.018021804,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.019614492,
+        "total_cost_usd": 0.019614492,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.017282012,
+        "total_cost_usd": 0.017282012,
+        "source": "E3"
+      }
+    },
+    "98": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.017359352,
+        "total_cost_usd": 0.017359352,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.043324964,
+        "total_cost_usd": 0.043324964,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.158311168,
+        "total_cost_usd": 0.158311168,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.228414596,
+        "total_cost_usd": 0.228414596,
+        "source": "E3"
+      }
+    },
+    "99": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01744714,
+        "total_cost_usd": 0.01744714,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.014048432,
+        "total_cost_usd": 0.014048432,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.060476528,
+        "total_cost_usd": 0.060476528,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.066022472,
+        "total_cost_usd": 0.066022472,
+        "source": "E3"
+      }
+    },
+    "103": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.04365869,
+        "total_cost_usd": 0.04365869,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.038580934,
+        "total_cost_usd": 0.038580934,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.128728718,
+        "total_cost_usd": 0.128728718,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.117521924,
+        "total_cost_usd": 0.117521924,
+        "source": "E3"
+      }
+    },
+    "104": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.041532624,
+        "total_cost_usd": 0.041532624,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.047614764,
+        "total_cost_usd": 0.047614764,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.175350268,
+        "total_cost_usd": 0.175350268,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.17811178,
+        "total_cost_usd": 0.17811178,
+        "source": "E3"
+      }
+    },
+    "105": {
+      "S1c": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.022596062,
+        "total_cost_usd": 0.022596062,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.022314516,
+        "total_cost_usd": 0.022314516,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.045183078,
+        "total_cost_usd": 0.045183078,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "handoff",
+        "known_total_cost_usd": 0.063159986,
+        "total_cost_usd": 0.063159986,
+        "source": "E3"
+      }
+    },
+    "106": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.012995918,
+        "total_cost_usd": 0.012995918,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.01832638,
+        "total_cost_usd": 0.01832638,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.027461938,
+        "total_cost_usd": 0.027461938,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.032526318,
+        "total_cost_usd": 0.032526318,
+        "source": "E3"
+      }
+    },
+    "107": {
+      "S1c": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.015328996,
+        "total_cost_usd": 0.015328996,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015191046,
+        "total_cost_usd": 0.015191046,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "wrong_write",
+        "known_total_cost_usd": 0.061522364,
+        "total_cost_usd": 0.061522364,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.056852398,
+        "total_cost_usd": 0.056852398,
+        "source": "E3"
+      }
+    },
+    "109": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.015464448,
+        "total_cost_usd": 0.015464448,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.03376845,
+        "total_cost_usd": 0.03376845,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.067516864,
+        "total_cost_usd": 0.067516864,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.09693038,
+        "total_cost_usd": 0.09693038,
+        "source": "E3"
+      }
+    },
+    "110": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.017227514,
+        "total_cost_usd": 0.017227514,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "inaction",
+        "known_total_cost_usd": 0.055515798,
+        "total_cost_usd": 0.055515798,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.066027088,
+        "total_cost_usd": 0.066027088,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.07714334,
+        "total_cost_usd": 0.07714334,
+        "source": "E3"
+      }
+    },
+    "112": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.028908796,
+        "total_cost_usd": 0.028908796,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.019532236,
+        "total_cost_usd": 0.019532236,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.115127576,
+        "total_cost_usd": 0.115127576,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "unfinished",
+        "known_total_cost_usd": 0.063672048,
+        "total_cost_usd": 0.063672048,
+        "source": "E3"
+      }
+    },
+    "113": {
+      "S1c": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010045876,
+        "total_cost_usd": 0.010045876,
+        "source": "E3"
+      },
+      "M2r": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.010457662,
+        "total_cost_usd": 0.010457662,
+        "source": "E4"
+      },
+      "M2x": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.040152194,
+        "total_cost_usd": 0.040152194,
+        "source": "E4"
+      },
+      "M2": {
+        "outcome": "success",
+        "known_total_cost_usd": 0.036382086,
+        "total_cost_usd": 0.036382086,
+        "source": "E3"
+      }
+    }
+  },
+  "repair": {
+    "directory": "run-v1.repair",
+    "attempts": {
+      "0-M2x": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "21-M2r": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "error",
+        "score_source": "unscored"
+      },
+      "21-M2x": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "error",
+        "score_source": "unscored"
+      },
+      "47-M2r": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "error",
+        "score_source": "unscored"
+      },
+      "47-M2x": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "67-M2x": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "75-M2r": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "80-M2x": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "110-M2r": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      },
+      "112-M2x": {
+        "original_status": "error",
+        "original_outcome": "unfinished",
+        "repair_status": "completed",
+        "score_source": "repair"
+      }
+    }
+  },
+  "missing_rows": [],
+  "missing_trace_rows": [],
+  "unfinished_rows": [
+    "E4/21-M2r",
+    "E4/21-M2x",
+    "E3/21-M2",
+    "E4/47-M2r",
+    "E3/80-S1c",
+    "E3/112-M2"
+  ],
+  "unsettled_calls": 0,
+  "complete": false
+}
