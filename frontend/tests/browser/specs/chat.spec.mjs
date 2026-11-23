@@ -32,7 +32,9 @@ test('fixture: customer retries one message, confirms the order, adds photos and
   await page.getByRole('button', {name: '查看照片 · front.png'}).click();
   const preview = page.getByRole('dialog', {name: '照片预览 · front.png'});
   await expect(preview.getByRole('img', {name: '原图 · front.png', exact: true})).toHaveAttribute('src', /^blob:/);
-  await preview.getByRole('button', {name: '关闭预览'}).click();
+  await expect(preview.getByText(/原图 1 × 1 像素/)).toBeVisible();
+  await preview.getByRole('button', {name: '关闭预览'}).press('Enter');
+  await expect(preview).toBeHidden();
   expect(fixtureApi.calls.some((call) => call.path.endsWith('/attachments/photo-0/content') && call.role === 'customer')).toBe(true);
 
   await page.getByRole('button', {name: '退出'}).click();

@@ -19,7 +19,9 @@ test('fixture: only support associates a chat original with a manually chosen ma
   await dialog.getByRole('button', {name: '查看照片 · 聊天原图'}).click();
   const preview = page.getByRole('dialog', {name: '照片预览 · 聊天原图'});
   await expect(preview.getByRole('img', {name: '原图 · 聊天原图', exact: true})).toHaveAttribute('src', /^blob:/);
-  await preview.getByRole('button', {name: '关闭预览'}).click();
+  await expect(preview.getByText(/原图 1 × 1 像素/)).toBeVisible();
+  await preview.getByRole('button', {name: '关闭预览'}).press('Enter');
+  await expect(preview).toBeHidden();
   await dialog.getByRole('button', {name: '关联到工单'}).click();
   await expect(page.getByText('已关联 · 商品照片')).toBeVisible();
   await expect(page.getByText('已关联工单。请到工单材料页完成审核。')).toBeVisible();
