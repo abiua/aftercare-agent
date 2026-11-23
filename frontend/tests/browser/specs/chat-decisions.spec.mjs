@@ -12,7 +12,7 @@ test('fixture: support modification preserves the original and customer responds
   await signIn(page, 'support');
   await page.getByRole('button', {name: '客户对话', exact: true}).click();
   await page.locator('.chat-list').getByRole('button').first().click();
-  await expect(page.getByRole('heading', {name: /Agent 原始候选/})).toBeVisible();
+  await expect(page.getByRole('heading', {name: /助手建议/})).toBeVisible();
   await page.getByRole('button', {name: '修改', exact: true}).click();
   await page.getByRole('textbox', {name: /退款金额/}).fill('8.25');
   await page.getByRole('textbox', {name: '客服复核理由'}).fill('内部客服核对说明');
@@ -23,7 +23,7 @@ test('fixture: support modification preserves the original and customer responds
     review: {action: 'MODIFY', reason: '内部客服核对说明', replacement: {lines: [{line_id: 'L01', amount_cents: 825}]}, resolved_items: []},
   }});
   await page.getByRole('button', {name: '查看修改前版本'}).click();
-  await expect(page.getByRole('heading', {name: /Agent 原始候选/})).toBeVisible();
+  await expect(page.getByRole('heading', {name: /助手建议/})).toBeVisible();
   await expect(page.getByText(/12\.00/)).toBeVisible();
 
   await page.getByRole('button', {name: '退出'}).click();
@@ -82,14 +82,14 @@ test('fixture: support browses paginated automatic history read-only and ignores
   fixtureApi.chatDecision = {current, history: [first, second, current], historyPageSize: 2};
   await signIn(page, 'support');
   await page.goto(`/?conversation=${chatId}`);
-  await expect(page.getByRole('heading', {name: 'Agent 原始候选 · 第 3 版'})).toBeVisible();
-  await page.getByRole('button', {name: '查看候选历史'}).click();
-  await page.getByRole('button', {name: '第 2 版 · Agent 原始候选'}).click();
+  await expect(page.getByRole('heading', {name: '助手建议 · 第 3 版'})).toBeVisible();
+  await page.getByRole('button', {name: '查看历史方案'}).click();
+  await page.getByRole('button', {name: '第 2 版 · 助手建议'}).click();
   await expect(page.getByText('自动候选 2 的内部依据')).toBeVisible();
   await expect(page.getByRole('button', {name: '修改', exact: true})).toHaveCount(0);
   await expect(page.getByRole('button', {name: '启动方案调查'})).toHaveCount(0);
   await page.getByRole('button', {name: '更早的版本'}).click();
-  await page.getByRole('button', {name: '第 1 版 · Agent 原始候选'}).click();
+  await page.getByRole('button', {name: '第 1 版 · 助手建议'}).click();
   await expect(page.getByText('自动候选 1 的内部依据')).toBeVisible();
   await page.getByRole('button', {name: '返回当前方案'}).click();
   await expect(page.getByRole('button', {name: '修改', exact: true})).toBeVisible();
@@ -97,13 +97,13 @@ test('fixture: support browses paginated automatic history read-only and ignores
   const {promise, resolve} = Promise.withResolvers();
   fixtureApi.chatDecision.holdHistory = {[first.id]: promise};
   const delayed = page.waitForRequest((request) => request.url().endsWith('/history/auto-1'));
-  await page.getByRole('button', {name: '第 1 版 · Agent 原始候选'}).click();
+  await page.getByRole('button', {name: '第 1 版 · 助手建议'}).click();
   await delayed;
   try {
     Object.assign(fixtureApi.chatDecision, {issueId: 'new-issue', current: snapshot(4),
       conversation: {revision: 2}});
     await page.getByRole('button', {name: '刷新消息'}).click();
-    await expect(page.getByRole('heading', {name: 'Agent 原始候选 · 第 4 版'})).toBeVisible();
+    await expect(page.getByRole('heading', {name: '助手建议 · 第 4 版'})).toBeVisible();
   } finally {
     resolve();
   }
@@ -153,7 +153,7 @@ test('fixture: a failed recheck on a previously checked candidate is visible to 
   await expect(page.getByText('复核已记录，暂未向客户发送方案。')).toBeVisible();
   expect(fixtureApi.chatDecisionPosts[0].body.review.action).toBe('ACCEPT');
   await page.reload();
-  await expect(page.getByText('候选生成时核对通过')).toBeVisible();
+  await expect(page.getByText('规则检查通过，等待客服审核')).toBeVisible();
   await expect(page.getByText('复核已记录，暂未向客户发送方案。')).toBeVisible();
   await expect(page.getByText('方案包含当前售后事项无法使用的材料。')).toBeVisible();
 });

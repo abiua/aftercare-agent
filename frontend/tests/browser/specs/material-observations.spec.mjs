@@ -4,6 +4,7 @@ import {originalCaseId, signIn, test} from './api-fixture.mjs';
 async function openReview(page, fixtureApi) {
   fixtureApi.materialReview = {};
   await signIn(page, 'support', `/?case=${originalCaseId}`);
+  await page.getByRole('tab', {name: '材料与审核'}).click();
   await page.getByRole('button', {name: '记录人工审核'}).click();
   return page.getByRole('dialog', {name: '记录人工审核'});
 }

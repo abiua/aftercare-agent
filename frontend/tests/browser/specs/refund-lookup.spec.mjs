@@ -35,7 +35,9 @@ test('fixture: a single refund is never auto-selected; invalid input stays local
   await expect(input).toHaveValue('');
   await expect(result).toHaveCount(0);
   await expect(page.getByText(/订单历史累计登记退款.*359.00/)).toBeVisible();
-  expect(fixtureApi.calls.every(({method}) => method === 'GET')).toBe(true);
+  expect(fixtureApi.calls.filter(({method}) => method !== 'GET')).toEqual([
+    expect.objectContaining({method: 'POST', path: '/api/auth/demo-role'}),
+  ]);
 });
 
 test('fixture: explicit selection reads exactly one record; a late response cannot replace it', async ({page, fixtureApi}) => {
@@ -61,7 +63,9 @@ test('fixture: explicit selection reads exactly one record; a late response cann
   await expect(result).toHaveCount(0);
   await page.getByRole('button', {name: '查询退款执行记录'}).click();
   await expect(page.getByText('这份工单的订单中未找到该笔退款执行记录。请核对编号。')).toBeVisible();
-  expect(fixtureApi.calls.every(({method}) => method === 'GET')).toBe(true);
+  expect(fixtureApi.calls.filter(({method}) => method !== 'GET')).toEqual([
+    expect.objectContaining({method: 'POST', path: '/api/auth/demo-role'}),
+  ]);
 });
 
 test('fixture: older backend retains the order view without an unsupported lookup request', async ({page, fixtureApi}) => {

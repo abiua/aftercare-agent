@@ -24,7 +24,7 @@ test('fixture: support reads investigation routes, actual references and model d
   ];
   await signIn(page, 'support');
   await page.goto(`/?case=${originalCaseId}`);
-  await page.getByRole('tab', {name: '助手协作'}).click();
+  await page.getByRole('tab', {name: '调查过程与运行记录'}).click();
   await expect(page.getByText('单助手分阶段调查', {exact: false})).toBeVisible();
   await expect(page.getByText(/记录的可退款上限 · ¥8\.25/)).toBeVisible();
   await expect(page.getByText('返回的记录编号 · order-ref')).toBeVisible();
@@ -41,7 +41,7 @@ test('fixture: support reads investigation routes, actual references and model d
   await page.getByRole('button', {name: '退出'}).click();
   await signIn(page, 'customer');
   await page.goto(`/?case=${originalCaseId}`);
-  await expect(page.getByRole('tab', {name: '助手协作'})).toHaveCount(0);
+  await expect(page.getByRole('tab', {name: '调查过程与运行记录'})).toHaveCount(0);
   expect(fixtureApi.calls.some((entry) => entry.role === 'customer' && entry.path.includes('/runs'))).toBe(false);
 });
 

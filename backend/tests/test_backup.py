@@ -338,6 +338,8 @@ def test_restore_writes_new_bucket_and_validates_db_fingerprints(package, monkey
 
 
 def test_subprocess_does_not_pass_password_in_arguments(monkeypatch):
+    password = "fixture-postgres-credential"
+    monkeypatch.setenv("POSTGRES_PASSWORD", password)
     calls = []
 
     def run(arguments, **kwargs):
@@ -350,7 +352,8 @@ def test_subprocess_does_not_pass_password_in_arguments(monkeypatch):
     args, kwargs = calls[0]
     assert "pg-test" in args and "--username=ac_test" in args
     assert args[:3] == ["/example/docker-compose", "--env-file", "/dev/null"]
-    assert "private" not in " ".join(args)
+    assert password not in " ".join(args)
+    assert 'export PGPASSWORD="${POSTGRES_PASSWORD:?}"' in args[args.index("-c") + 1]
     assert kwargs["stderr"] == backup.subprocess.DEVNULL
     assert "env" not in kwargs
 

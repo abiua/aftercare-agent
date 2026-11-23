@@ -28,7 +28,7 @@ build-backend = "hatchling.build"
 packages = ["src/aftercare"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src", "tests"]
+pythonpath = ["src", "tests", "../scripts"]
 markers = ["pg: needs isolated aftercare PostgreSQL"]
 [tool.ruff]
 line-length = 100
