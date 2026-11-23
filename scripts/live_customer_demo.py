@@ -91,6 +91,8 @@ def main():
                 map(str, [ROOT / "scripts", ROOT / "backend/src", ROOT, CACHE / "tau-p4-rag-deps"])
             ),
         }
+        env["AFTERCARE_MONITORING_SCOPE"] = "customer-demo"
+        env["AFTERCARE_PROMETHEUS_URL"] = "http://127.0.0.1:19095"
         env.pop("DOCKER_HOST", None)
         start_storage(env)
         runner = [str(CACHE / "tau-p4-venv/bin/python"), "scripts/tau_p9_runtime.py"]
@@ -104,6 +106,11 @@ await s.listen();"""
         commands.append(
             ("frontend", ["node", "--input-type=module", "-e", vite], ROOT / "frontend")
         )
+        from start_prometheus import executable
+        if executable():
+            commands.append(("prometheus", [sys.executable, "scripts/start_prometheus.py", "live"], ROOT))
+        else:
+            print("系统运行总览缺少采集服务，请安装 Prometheus。", flush=True)
         children = []
 
         def stop(*_):
@@ -119,7 +126,11 @@ await s.listen();"""
             started = time.monotonic()
             announced = False
             while True:
-                for name, child in children:
+                for name, child in list(children):
+                    if name == "prometheus" and child.poll() is not None:
+                        print("Prometheus 已退出，系统运行总览的采集已停止。详见 prometheus.log", flush=True)
+                        children.remove((name, child))
+                        continue
                     if child.poll() is not None:
                         raise RuntimeError(f"{name} 已退出。详见 {work / (name + '.log')}")
                 if not announced:

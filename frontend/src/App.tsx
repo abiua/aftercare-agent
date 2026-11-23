@@ -7,6 +7,7 @@ import { useResource } from './hooks';
 import type { ChatProposalHandoff } from './chatDecisionData';
 import { CustomerChat } from './CustomerChat';
 import { Workbench } from './Workbench';
+import { OperatingOverview } from './OperatingOverview';
 import { Evaluation } from './Evaluation';
 import { Evidence, Feedback, Json, roles } from './ui';
 
@@ -104,10 +105,18 @@ function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: U
   const canChat = user.role === 'customer' || user.role === 'support';
   const [view, setView] = useState(() => {
     const query = new URLSearchParams(location.search);
+    if (user.role === 'tester' && query.get('view') === 'operations') return 'operations';
     if (query.has('case')) return 'workbench';
     if (canChat && (user.role === 'customer' || query.has('conversation'))) return 'chat';
     return user.role === 'tester' ? 'evaluation' : 'workbench';
   });
+  function navigate(next: string) {
+    const url = new URL(location.href);
+    if (next === 'operations') url.searchParams.set('view','operations');
+    else { url.searchParams.delete('view'); url.searchParams.delete('batch'); }
+    history.replaceState(null,'',url);
+    setView(next);
+  }
   const [handoff, setHandoff] = useState<ChatProposalHandoff>();
   function openChat() {
     setHandoff(undefined);
@@ -131,8 +140,9 @@ function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: U
           <Brand />
           <nav aria-label="主导航">
             {canChat && <Button type="text" className={view === 'chat' ? 'nav-active' : ''} onClick={openChat}>{user.role === 'customer' ? '售后聊天' : '客户对话'}</Button>}
-            <Button type="text" className={view === 'workbench' ? 'nav-active' : ''} onClick={() => setView('workbench')}>订单与工单</Button>
-            {user.role === 'tester' && <Button type="text" icon={<ExperimentOutlined />} className={view === 'evaluation' ? 'nav-active' : ''} onClick={() => setView('evaluation')}>测试与评测</Button>}
+            <Button type="text" className={view === 'workbench' ? 'nav-active' : ''} onClick={() => navigate('workbench')}>订单与工单</Button>
+            {user.role === 'tester' && <Button type="text" icon={<ExperimentOutlined />} className={view === 'evaluation' ? 'nav-active' : ''} onClick={() => navigate('evaluation')}>测试与评测</Button>}
+            {user.role === 'tester' && <Button type="text" className={view === 'operations' ? 'nav-active' : ''} onClick={() => navigate('operations')}>系统运行总览</Button>}
           </nav>
           <Space size={10} className="account" wrap>
             <span>{user.display_name}</span><Tag>{roles[user.role]}</Tag>
@@ -144,7 +154,7 @@ function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: U
         {user.role !== 'customer' && runtime.value?.mode === 'offline' && <Alert className="runtime-banner" type="info" showIcon title="当前环境使用离线策略，款项与库存操作均为模拟。" />}
         {user.role === 'customer' && runtime.value?.features?.demo_order && <Alert className="runtime-banner" type="info" showIcon title="对话使用真实模型，订单和退款均为模拟。" />}
         {user.role !== 'customer' && runtime.value?.mode === 'live' && <Alert className="runtime-banner" type="warning" showIcon title="当前环境可调用真实模型。款项与库存操作均为模拟。" />}
-        {view === 'chat' ? <CustomerChat api={api} user={user} demoOrder={runtime.value?.features?.demo_order} onCase={openCase} /> : view === 'workbench' ? <Workbench api={api} user={user} runtime={runtime.value} handoff={handoff} clearHandoff={() => setHandoff(undefined)} /> : <Evaluation api={api} runtime={runtime.value} />}
+        {view === 'chat' ? <CustomerChat api={api} user={user} demoOrder={runtime.value?.features?.demo_order} onCase={openCase} /> : view === 'workbench' ? <Workbench api={api} user={user} runtime={runtime.value} handoff={handoff} clearHandoff={() => setHandoff(undefined)} /> : view === 'operations' ? <OperatingOverview api={api}/> : <Evaluation api={api} runtime={runtime.value} />}
         <footer className="footer"><span>售后协作台 · 操作记录可追溯</span>{user.role !== 'customer' && runtime.value && <Evidence title="运行环境"><Json value={runtime.value} /></Evidence>}</footer>
       </main>
     </div>

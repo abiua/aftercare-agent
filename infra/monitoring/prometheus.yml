@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 5s
+  scrape_timeout: 4s
+
+scrape_configs:
+  - job_name: aftercare-api
+    metrics_path: /internal/metrics
+    static_configs:
+      - targets: ['runtime-api:8000']

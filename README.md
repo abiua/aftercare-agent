@@ -127,3 +127,12 @@ AFTERCARE_RUN_PG=1 ./scripts/check.sh pg
 源码仓库为私有仓库 `abiua/aftercare-agent`。仓库包含源码、锁文件、合成数据、测试和开发文档；`.runtime/`、凭据、模型缓存及 `reports/` 本机运行证据不上传。文档中的 `reports/` 链接需要在原工作目录或运行相应验收脚本后查看，仓库本身不代表这些历史验收已经复现。GitHub Actions 执行离线程序及受控浏览器测试，不注入真实模型凭据，不代表 PostgreSQL/S3、真实模型质量或人工发布审批通过。
 
 [首次完整通过的 GitHub 检查](https://github.com/abiua/aftercare-agent/actions/runs/42945574844)对应提交 `1db1425`：数据测试18项、后端801通过（1跳过、30项数据库测试未选）、前端37项、受控浏览器27项，lint及构建通过。此前缺少本机报告的失败已保留，阅读卡回归现使用入库夹具，不再依赖 `reports/` 目录。
+
+### 系统运行总览
+
+测试员从主导航进入「系统运行总览」。实时视图可选最近 15 分钟至 24 小时，也可选择自己的已启动评测批次。四条曲线共用时间范围和对照游标。「查看批次结果」返回该次评测。历史批次缺少运行边界或对应时段没有采样时，页面会明确显示。
+
+- 本机实时演示由「启动实时售后.command」一起启动 Prometheus。它查找 PATH 中的 `prometheus` 或 `~/.cache/aftercare-agent/monitoring/prometheus`。单独运行本机 app/test API 时，可执行 `python3 scripts/start_prometheus.py app` 或 `python3 scripts/start_prometheus.py test`。三个环境使用独立的本地端口和数据目录。
+- 使用 Compose 时，`infra/compose.yml` 与 `infra/compose.application.yml` 的 app/test 配置各带一个独立 Prometheus 和持久卷。采集周期为 5 秒，保留 15 天。应用对外提供测试员只读查询，Prometheus 不发布宿主机端口。
+- CPU、内存、磁盘和网络反映 API 所在主机或容器可见系统，API 进程内存独立计量。接口 P95 和 5xx 占比按 30 秒窗口统计。Redis 待取消息和数据库待处理任务分别计数。自选评测进程独立于 Celery。
+- 费用曲线显示采样时已记录的累计美元估算。客服来自 Agent、材料分析和意图识别调用账本，自选评测来自批次回执。两类均可切换到未核清调用数。批次时间范围内可能同时有其他任务，本批自身的费用见批次结果页。

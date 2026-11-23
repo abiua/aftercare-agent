@@ -24,12 +24,12 @@ const percent = (n: number, d: number) => d ? (100 * n / d).toFixed(1) + '%' : '
 const measured = (n: number, total: number) => n === total ? `${n} 题` : `覆盖 ${n}/${total} 题`;
 
 export function BenchmarkMetrics({batch, batches, select}: {
-  batch: BenchmarkBatch; batches: BenchmarkBatch[]; select: (id: string) => void;
+  batch: BenchmarkBatch; batches?: BenchmarkBatch[]; select?: (id: string) => void;
 }) {
   return <section aria-label="评测批次指标" className="stack">
-    <div className="section-row"><h2>评测批次</h2>
-      <Select aria-label="选择评测批次" value={batch.id} onChange={select}
-        style={{width: 300, maxWidth: '100%'}} options={batches.map(b => ({value: b.id, label: b.label}))}/>
+    <div className="section-row"><h2>{batches ? '评测批次' : '本批评测结果'}</h2>
+      {batches && <Select aria-label="选择评测批次" value={batch.id} onChange={select}
+        style={{width: 300, maxWidth: '100%'}} options={batches.map(b => ({value: b.id, label: b.label}))}/>}
     </div>
     <Descriptions size="small" column={{xs: 1, sm: 2, md: 2}} items={[
       {key: 'code', label: '被测项目版本', children: <span title={batch.commit ?? undefined}>

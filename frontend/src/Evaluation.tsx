@@ -6,6 +6,7 @@ import { BlindReview } from './BlindReview';
 import type { EvaluationCapabilities, Runtime } from './contracts';
 import { readEvaluationLocation, writeEvaluationLocation, type EvaluationLocation } from './evaluationRoute';
 import { useResource } from './hooks';
+import { CampaignJobs } from './CampaignJobs';
 import { InvestigationCampaigns } from './InvestigationCampaigns';
 import { InvestigationTests } from './InvestigationTests';
 import { Placeholder, Reload } from './ui';
@@ -15,7 +16,7 @@ export function Evaluation({api}: {api: Client; runtime?: Runtime}) {
   const capabilities = useResource<EvaluationCapabilities>(api, '/evaluation/capabilities');
   const blindEnabled = !capabilities.error && capabilities.value?.chat_blind_review === true;
   const blindScope = route.tab === 'blind';
-  const tab = ['bad-cases', 'investigations', 'blind'].includes(route.tab) ? route.tab : 'campaigns';
+  const tab = ['jobs', 'bad-cases', 'investigations', 'blind'].includes(route.tab) ? route.tab : 'campaigns';
 
   useEffect(() => {
     const update = () => setRoute(readEvaluationLocation(window.location.search));
@@ -37,6 +38,7 @@ export function Evaluation({api}: {api: Client; runtime?: Runtime}) {
     <Card className="data-card">
       <Tabs activeKey={tab} onChange={navigate} items={[
         {key:'campaigns', label:'官方 τ²-Bench', children:tab === 'campaigns' && <InvestigationCampaigns api={api}/>},
+        {key:'jobs', label:'运行新评测', children:tab === 'jobs' && <CampaignJobs api={api}/>},
         {key:'bad-cases', label:'问题与回归', children:tab === 'bad-cases' && <BadCases api={api}/>},
         {key:'investigations', label:'工单测试记录', children:tab === 'investigations' && <InvestigationTests api={api}/>},
         ...(blindEnabled || blindScope ? [{key:'blind', label:'独立盲审', children:blindScope && (blindEnabled ?

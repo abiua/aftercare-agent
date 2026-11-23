@@ -45,6 +45,9 @@ def create_app(profile=None, *, dispatch=None):
 
     app = FastAPI(title="Aftercare", version="0.1.0", lifespan=lifespan)
 
+    from aftercare.operations import install
+    install(app)
+
     @app.get('/api/healthz')
     def health():
         return {'status': 'alive'}

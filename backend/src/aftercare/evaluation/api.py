@@ -3,6 +3,7 @@
 import asyncio
 import json
 from typing import Annotated, Literal
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
@@ -14,6 +15,7 @@ from aftercare.auth import bearer, current_user
 from aftercare.business.api import Actor, BusinessRoute, Key, Version
 from aftercare.business.errors import BusinessError
 
+from . import workbench_jobs
 from .chat.api import router as blind_review_router
 from .imports import ImportInput
 from .progress import PAGE_SIZE
@@ -23,7 +25,7 @@ from .service import EvaluationService, ExperimentInput
 class EvaluationRoute(BusinessRoute):
     def get_route_handler(self):
         handler = super().get_route_handler()
-        if "/campaigns" in self.path or "/bad-cases" in self.path or "/investigations" in self.path or "/scenario-metrics" in self.path or self.path.endswith(
+        if "/campaign-jobs" in self.path or "/campaigns" in self.path or "/bad-cases" in self.path or "/investigations" in self.path or "/scenario-metrics" in self.path or self.path.endswith(
             ("/progress", "/progress/stream")
         ):
 
@@ -389,3 +391,24 @@ def campaign_detail(user: Actor, campaign_id: str):
     from aftercare.config import ROOT
     from .campaigns import read_campaign
     return read_campaign(ROOT,user,campaign_id)
+
+
+@router.get("/campaign-jobs/catalog")
+def job_catalog(user: Actor):
+    return workbench_jobs.catalog(user)
+
+
+@router.get("/campaign-jobs")
+def campaign_jobs(user: Actor, request: Request):
+    return workbench_jobs.list_jobs(user, request.app.state.settings.model_enabled)
+
+
+@router.post("/campaign-jobs/preview", status_code=201)
+def preview_job(body: workbench_jobs.Selection, user: Actor, request: Request):
+    return workbench_jobs.preview(user, body, request.app.state.settings.model_enabled)
+
+
+@router.post("/campaign-jobs/{job_id}/start", status_code=202)
+def start_job(job_id: UUID, body: workbench_jobs.LaunchConfirmation, user: Actor, request: Request):
+    settings = request.app.state.settings
+    return workbench_jobs.launch(user, job_id, settings.model_enabled, scope=workbench_jobs.monitoring_scope(settings))

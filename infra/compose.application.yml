@@ -92,6 +92,11 @@ x-redis-health: &redis-health
   timeout: 3s
   retries: 20
 
+x-prometheus: &prometheus
+  image: prom/prometheus:v3.16.0
+  restart: unless-stopped
+  command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.path=/prometheus, --storage.tsdb.retention.time=15d]
+
 services:
   pg-app:
     networks: [app-net]
@@ -127,23 +132,49 @@ services:
       pg-test: {condition: service_healthy}
       objects-test: {condition: service_started}
 
+  prometheus-app:
+    <<: *prometheus
+    profiles: [app]
+    networks: [app-net]
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - monitoring-app:/prometheus
+
   api-app:
     <<: *api
     profiles: [app]
-    networks: [app-net]
-    environment: *app-env
+    networks:
+      app-net:
+        aliases: [runtime-api]
+    environment:
+      <<: *app-env
+      AFTERCARE_PROMETHEUS_URL: http://prometheus-app:9090
     ports: ['127.0.0.1:8020:8000']
     depends_on:
+      prometheus-app: {condition: service_started}
       init-app: {condition: service_completed_successfully}
       redis-app: {condition: service_healthy}
+
+  prometheus-test:
+    <<: *prometheus
+    profiles: [test]
+    networks: [test-net]
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - monitoring-test:/prometheus
 
   api-test:
     <<: *api
     profiles: [test]
-    networks: [test-net]
-    environment: *test-env
+    networks:
+      test-net:
+        aliases: [runtime-api]
+    environment:
+      <<: *test-env
+      AFTERCARE_PROMETHEUS_URL: http://prometheus-test:9090
     ports: ['127.0.0.1:8022:8000']
     depends_on:
+      prometheus-test: {condition: service_started}
       init-test: {condition: service_completed_successfully}
       redis-test: {condition: service_healthy}
 
@@ -206,3 +237,7 @@ services:
 networks:
   app-net:
   test-net:
+
+volumes:
+  monitoring-app:
+  monitoring-test:

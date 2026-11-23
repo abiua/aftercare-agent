@@ -1,5 +1,5 @@
 export type EvaluationLocation = {
-  tab: 'campaigns' | 'bad-cases' | 'investigations' | 'cases' | 'experiments' | 'compare' | 'imports' | 'blind';
+  tab: 'jobs' | 'campaigns' | 'bad-cases' | 'investigations' | 'cases' | 'experiments' | 'compare' | 'imports' | 'blind';
   left?: string;
   right?: string;
   experiment?: string;
@@ -21,7 +21,7 @@ export function readEvaluationLocation(search: string): EvaluationLocation {
   const repetition = Number(params.get('eval_repeat'));
   const hasResult = experiment && caseId && Number.isSafeInteger(repetition) && repetition > 0;
   return {
-    tab: tab === 'campaigns' || tab === 'bad-cases' || tab === 'investigations' || tab === 'experiments' || tab === 'compare' || tab === 'imports' || tab === 'blind' ? tab : 'cases',
+    tab: tab === 'jobs' || tab === 'campaigns' || tab === 'bad-cases' || tab === 'investigations' || tab === 'experiments' || tab === 'compare' || tab === 'imports' || tab === 'blind' ? tab : 'cases',
     left: identifier(params.get('eval_left')),
     right: identifier(params.get('eval_right')),
     experiment,

@@ -126,3 +126,17 @@ ul { margin: 8px 0; padding-inline-start: 20px; }
 
 [aria-label="评测批次指标"] td { font-variant-numeric: tabular-nums; }
 [aria-label="评测批次指标"] td small { display: block; color: #53616a; }
+
+.ops-controls,.ops-track-head,.ops-period,.ops-axis {display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ops-controls {align-items:flex-end;margin-bottom:10px}
+.ops-controls label {display:grid;gap:5px}
+.ops-period,.ops-axis {justify-content:space-between}
+.ops-period h2 {margin:0}
+.ops-meta,.ops-axis,.ops-empty {color:#546471;font-size:13px}
+.ops-meta {margin:8px 0 16px}
+.ops-track {padding:12px 0 6px;border-top:1px solid #e5e9ed}
+.ops-track-head b {margin-left:auto;font-variant-numeric:tabular-nums}
+.ops-track > svg,.ops-empty {display:block;width:100%;height:52px;margin-top:8px}
+.ops-empty {padding-top:12px}
+.ops-cursor {display:grid;gap:6px;margin-top:14px}
+.ops-cursor input {width:100%;margin:0;accent-color:#25756a}

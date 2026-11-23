@@ -90,6 +90,9 @@ def selection(rows, target, *, starting=False):
         return [row for row in rows if owned(row)], []
     if target == "app":
         names = [f"aftercare-v2-{role}-app-1" for role in (*ROLES, "beat")]
+        monitor = "aftercare-v2-prometheus-app-1"
+        if any(row["Name"].lstrip("/") == monitor for row in rows):
+            names.append(monitor)
         urls = ["http://127.0.0.1:5186"]
     else:
         names, urls = [], []
@@ -122,14 +125,14 @@ def selection(rows, target, *, starting=False):
 def role(row):
     name = row["Name"].lstrip("/")
     return next(
-        (item for item in (*ROLES, "beat") if re.search(rf"-{item}(?:-app-1)?$", name)), "other"
+        (item for item in (*ROLES, "beat", "prometheus") if re.search(rf"-{item}(?:-app-1)?$", name)), "other"
     )
 
 
 def start(target):
     start_vm()
     rows, urls = selection(inventory(), target, starting=True)
-    for group in (("pg", "redis", "objects"), ("api", "worker"), ("frontend",), ("beat",)):
+    for group in (("pg", "redis", "objects", "prometheus"), ("api", "worker"), ("frontend",), ("beat",)):
         chosen = [row for row in rows if role(row) in group]
         stopped = [row["Id"] for row in chosen if not row["State"]["Running"]]
         paused = [row["Id"] for row in chosen if row["State"]["Paused"]]
@@ -138,7 +141,7 @@ def start(target):
             docker("start", *stopped)
         if paused:
             docker("unpause", *paused)
-        if group == ("pg", "redis", "objects"):
+        if group == ("pg", "redis", "objects", "prometheus"):
             for row in chosen:
                 if role(row) == "pg":
                     wait_command(row["Id"], ["pg_isready", "-h", "127.0.0.1"])
@@ -182,7 +185,7 @@ def stop(target):
         print("虚拟机或 Docker 已关闭，无需停止容器。")
         return
     selected, _ = selection(inventory(), target)
-    for group in (("beat",), ("frontend", "api"), ("worker",), ("redis", "objects", "pg", "other")):
+    for group in (("beat",), ("frontend", "api"), ("worker",), ("redis", "objects", "pg", "prometheus", "other")):
         ids = [row["Id"] for row in selected if role(row) in group and row["State"]["Running"]]
         if ids:
             print("停止：" + "、".join(group), flush=True)
