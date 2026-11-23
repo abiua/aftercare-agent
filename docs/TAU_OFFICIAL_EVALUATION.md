@@ -69,3 +69,9 @@ scripts/aftercare-eval.sh official summarize .runtime/tau-official-new --publish
 机器报告：[最终汇总](../reports/tau-official-final.json)、[首轮独立审计](../reports/tau-official-primary-audit.json)、[补跑独立审计](../reports/tau-official-repair-audit.json)。原始行、官方评分与调用账本核对一致。三组表格及首次报告/补跑报告可在测试中台查看和下载。
 
 [官方失败记录](TAU_OFFICIAL_BAD_CASES.md)保留具体对话与评分差异；[工程验证记录](TAU_OFFICIAL_ENGINEERING_REVIEW.md)保留本项目另有5项聊天回归尚未解决的事实。官方适配层成绩不等同于当前售后产品完整端到端验收。
+
+## 测试中台批次指标
+
+在「官方 τ²-Bench」中选择批次查看六组历史运行记录（首轮、E2、E3、E4、v3.2 双组回归、v3.2 弱单补测）。展开「指标口径与版本依据」可查看计数规则。首轮补跑下载和逐题成绩在首轮批次下。版本指被测项目，数据集另标官方版本。E4 只列本批新运行的两个实验组。
+
+部署读取 `evidence/tau_official/dashboard.json`。在保留历史运行目录和 v3.2 完整轨迹归档的机器上执行 `python3 scripts/build_campaign_dashboard.py` 可从既有清单、逐题结果、轨迹和调用回执重建摘要。支持 `--output` 指定核对用的临时文件。该命令只做离线汇总。发布摘要仅含批次元数据、架构计数和指标，不包含会话或工具输入输出。

@@ -192,7 +192,7 @@ for (const fails of [false, true]) {
     expect(fixtureApi.calls.slice(before).filter(({path}) => path.startsWith('/api/evaluation/')).map(({path}) => path))
       .toEqual(['/api/evaluation/capabilities']);
     await page.getByRole('tab', {name: '官方 τ²-Bench'}).click();
-    await expect(page.getByText('τ²-Bench Retail 官方测试集', {exact: true})).toBeVisible();
+    await expect(page.getByText('尚无已发布的官方评测报告', {exact: true})).toBeVisible();
     await expect(page).toHaveURL(/\?eval=campaigns$/);
     await expect.poll(() => fixtureApi.calls.slice(before).some(({path}) => path === '/api/evaluation/campaigns')).toBe(true);
     expect(fixtureApi.calls.slice(before).some(({path}) => path.includes('blind-must-not-open'))).toBe(false);

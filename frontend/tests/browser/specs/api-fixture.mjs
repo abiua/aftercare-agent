@@ -455,7 +455,7 @@ export const test = base.extend({
           chat_blind_review: !!state.blindReview});
       }
       if (method === 'GET' && path === '/api/evaluation/campaigns') {
-        return json(route, {items: state.officialReport ? [officialReport(state.officialReport)] : []});
+        return json(route, {items: state.officialReport ? [officialReport(state.officialReport)] : [], batches: state.benchmarkBatches});
       }
       if (method === 'GET' && path === '/api/evaluation/campaigns/tau-official-primary') {
         return json(route, officialReport('primary'));

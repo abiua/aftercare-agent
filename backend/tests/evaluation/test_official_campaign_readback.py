@@ -143,3 +143,41 @@ def test_project_case_endpoints_are_retired():
         response = client.get(f"/evaluation/{path}")
         assert response.status_code == 410
         assert response.json()["detail"]["code"] == "EVALUATION_RETIRED"
+
+
+def test_published_dashboard_keeps_frozen_versions_and_known_missing_cost():
+    from aftercare.config import ROOT
+
+    batches = {batch["id"]: batch for batch in campaigns(ROOT, TESTER)["batches"]}
+    latest = batches["v32"]
+    assert latest["commit"].startswith("1d8a966") and latest["patched"]
+    assert batches["e3"]["split"] == "train" and batches["e3"]["tasks"] == 67
+    assert batches["original"]["commit"] is None
+    groups = {g["architecture"]: g for g in latest["groups"]}
+    assert groups["M2"]["passed"] == 37 and groups["M2"]["scheduled"] == 40
+    assert groups["M2"]["input_tokens"] == 4924894
+    assert groups["M2"]["cost_per_success"] == pytest.approx(.061053, abs=.000001)
+    original = next(g for g in batches["original"]["groups"] if g["architecture"] == "strong_single")
+    assert original["cost_per_success"] is None
+    assert original["calls"] - original["metered"] == 1
+
+
+def test_dashboard_groups_retries_and_reports_incomplete_observations():
+    from build_campaign_dashboard import summarize
+
+    call = dict(actual_usd='0.25', input_tokens=10, cached_input_tokens=4, output_tokens=2)
+    tool = dict(role='tool', requestor='assistant', execution_status='executed', error=True)
+    def attempt(duration, score, messages, receipts):
+        row = dict(official_reward=score, duration_seconds=duration, agent_calls=len(receipts),
+                   user_calls=0, review_calls=0, status='completed')
+        return {}, row, receipts, messages, False
+
+    original = attempt(1, None, [{'role': 'assistant'}, tool], [call])
+    repair = attempt(3, 1, [{'role': 'assistant'}], [call])
+    missing = attempt(None, 0, None, [None])
+    g = summarize('S1', [[original, repair], [missing]])
+    assert (g['scheduled'], g['passed'], g['p95_seconds'], g['latency_n']) == (2, 1, 4, 1)
+    assert (g['avg_steps'], g['steps_n'], g['errors'], g['tools']) == (2, 1, 1, 1)
+    assert (g['calls'], g['metered'], g['input_tokens'], g['output_tokens']) == (3, 2, 20, 4)
+    assert g['cost_per_success'] is None
+    assert summarize('S1', [[original, repair]])['cost_per_success'] == .50

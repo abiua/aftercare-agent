@@ -12,7 +12,9 @@ try {
  await page.goto('http://127.0.0.1:5225/?eval=campaigns');
  await page.getByRole('button',{name:'以测试员身份进入',exact:true}).click();
  await page.getByRole('tab',{name:'官方 τ²-Bench',exact:true}).click();
- await page.getByText('τ²-Bench Retail 官方测试集',{exact:true}).waitFor();
+ await page.getByRole('columnheader',{name:'平均执行步数'}).waitFor();
+ await page.getByRole('combobox',{name:'选择评测批次'}).click();
+ await page.getByText('首轮三组对照 · 11 月 12 日',{exact:true}).click();
  await page.getByText('完整测试集 · 40 道任务 · 每组每题 1 次',{exact:true}).waitFor();
  assert.equal(await page.getByRole('tab',{name:'用例库',exact:true}).count(),0);
  assert.equal(await page.getByRole('tab',{name:'实验记录',exact:true}).count(),0);

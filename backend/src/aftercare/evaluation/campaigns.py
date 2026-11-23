@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 
 from aftercare.business.errors import BusinessError
 
@@ -100,6 +100,50 @@ class Campaign(BaseModel):
     billing: Billing | None = None
 
 
+class ArchitectureMetrics(BaseModel):
+    architecture: str
+    scheduled: int
+    passed: int
+    attempts: int
+    traces: int
+    partial: int
+    tools: int
+    errors: int
+    unknown_tools: int
+    steps_n: int
+    avg_steps: float | None
+    latency_n: int
+    p95_seconds: float | None
+    calls: int
+    priced: int
+    metered: int
+    ledger_gaps: int
+    input_tokens: int
+    output_tokens: int
+    cached_input_tokens: int
+    cost_per_success: float | None
+
+
+class BenchmarkBatch(BaseModel):
+    id: str
+    label: str
+    note: str
+    revision: str
+    split: Literal["train", "test"]
+    tasks: int
+    trials: int
+    commit: str | None
+    kernel: str | None
+    patched: bool
+    adapter: str | None
+    snapshot: str | None = None
+    repairs: int
+    groups: list[ArchitectureMetrics]
+
+
+BATCHES = TypeAdapter(list[BenchmarkBatch])
+
+
 def _read(root: Path, name: str, relative_path: Path):
     path = root / relative_path
     if path.is_symlink() or path.resolve() != root.resolve() / relative_path or not path.is_file():
@@ -115,7 +159,14 @@ def _read(root: Path, name: str, relative_path: Path):
 def campaigns(root: Path, user):
     authorize(user)
     report = _read(root, "tau-official", REPORT_PATH)
-    return {"items": [report] if report else []}
+    result = {"items": [report] if report else []}
+    path = root / REPORT_PATH.with_name("dashboard.json")
+    if path.is_file() and path.resolve() == root.resolve() / REPORT_PATH.with_name("dashboard.json"):
+        try:
+            result["batches"] = [batch.model_dump() for batch in BATCHES.validate_json(path.read_bytes())]
+        except (OSError, ValueError) as exc:
+            raise BusinessError("CAMPAIGN_INVALID", "评测批次指标暂时无法读取。", 503) from exc
+    return result
 
 
 def read_campaign(root: Path, user, name: str):

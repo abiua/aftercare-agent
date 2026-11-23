@@ -32,7 +32,7 @@ export function Evaluation({api}: {api: Client; runtime?: Runtime}) {
 
   return <div className="stack">
     <section className="hero">
-      <div><div className="eyebrow">测试与评测 / 质量工作台</div><h1>测试中台</h1><p>比较三种 Agent 在官方零售任务上的表现，查看工单调查和复核记录。</p></div>
+      <div><div className="eyebrow">测试与评测 / 质量工作台</div><h1>测试中台</h1><p>按评测批次比较 Agent 的任务表现、执行效率和费用，查看工单调查与复核记录。</p></div>
     </section>
     <Card className="data-card">
       <Tabs activeKey={tab} onChange={navigate} items={[

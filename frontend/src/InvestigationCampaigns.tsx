@@ -4,6 +4,8 @@ import { errorMessage, type Client } from './api';
 import { useResource } from './hooks';
 import { Feedback, Reload } from './ui';
 
+import { BenchmarkMetrics, type BenchmarkBatch } from './BenchmarkMetrics';
+
 const arms = {
   strong_single: '强单 Agent',
   staged_single: '单 Agent 三阶段',
@@ -96,14 +98,17 @@ function duration(seconds: number | null) {
 }
 
 export function InvestigationCampaigns({api}: {api: Client}) {
+  const [batchId, setBatchId] = useState<string>();
   const [download, setDownload] = useState<'primary' | 'repair'>();
   const [downloadError, setDownloadError] = useState('');
-  const {value, error, loading, refresh} = useResource<{items: Campaign[]}>(api, '/evaluation/campaigns');
+  const {value, error, loading, refresh} = useResource<{items: Campaign[]; batches?: BenchmarkBatch[]}>(api, '/evaluation/campaigns');
   useEffect(() => {
     const timer = setInterval(refresh, 5000);
     return () => clearInterval(timer);
   }, [refresh]);
   const report = value?.items[0];
+  const batches = value?.batches ?? [];
+  const batch = batches.find(item => item.id === batchId) ?? batches[0];
   const budget = report?.budget;
   const repairs = report?.rows.filter(row => row.attempt_count === 2) ?? [];
 
@@ -126,11 +131,13 @@ export function InvestigationCampaigns({api}: {api: Client}) {
   }
 
   return <div className="stack">
-    <Alert showIcon type="info" title="τ²-Bench Retail 官方测试集" description="官方得 1 分算成功。失败、未完成和未运行的任务仍计入总数。"/>
     <div className="section-row"><Reload refresh={refresh} loading={loading}/></div>
     <Feedback error={error || downloadError}/>
-    {!report && !loading && !error && <Empty description="尚无已发布的官方评测报告"/>}
-    {report && <>
+    {batch && <BenchmarkMetrics batch={batch} batches={batches} select={setBatchId}/>}
+    {!report && !batch && !loading && !error && <Empty description="尚无已发布的官方评测报告"/>}
+    {report && (!batch || batch.id === 'original') && <>
+      <h3>首轮官方测试集运行明细</h3>
+      {!batch && <Alert type="info" showIcon title="扩展指标摘要缺失" description="以下为现有官方报告。未记录的指标无法核算。"/>}
       {repairs.length > 0 && <Alert showIcon type="warning"
         title={`含 ${repairs.length} 条 API 异常后的补跑，首次异常记录保留`}
         description="只补跑未取得分数的 API 异常，费用包含首次尝试。已评分的任务不重跑。"/>}
