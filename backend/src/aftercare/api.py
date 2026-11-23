@@ -79,6 +79,7 @@ def create_app(profile=None, *, dispatch=None):
                       for m in agent.model.registry.models]
         return {"schema_version": "ac-v1", "mode": "live" if agent.model else "offline",
                 "models": models, "features": {"multi_agent": True,
+                "demo_order": bool(getattr(app.state.settings, "chat_demo_product_id", None) and app.state.settings.profile == "test" and app.state.settings.demo_role_login_enabled),
                 "persistent_checkpoints": True, "simulated_payments": True}}
 
     from aftercare.business.api import router as business_router

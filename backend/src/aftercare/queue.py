@@ -139,10 +139,18 @@ def make_queue(profile):
             for run_id, cycle in rows:
                 journal.ensure('agent', run_id, cycle)
             from aftercare.evaluation.service import EvaluationService
-            if profile == 'test':
+            chat_demo = bool(getattr(settings, 'chat_demo_product_id', None))
+            if profile == 'test' and not chat_demo:
                 for experiment_id in EvaluationService(engine, settings).pending():
                     journal.ensure('evaluation', experiment_id)
-            for job_id in journal.due():
+            due = journal.due()
+            if chat_demo and due:
+                from aftercare.dispatch import DispatchJob
+                with Session(engine) as session:
+                    due = session.scalars(select(DispatchJob.id).where(
+                        DispatchJob.id.in_(due), DispatchJob.kind == 'agent'
+                    )).all()
+            for job_id in due:
                 publish(app, journal, job_id)
             reconcile_failed(engine, settings)
             if getattr(settings, "chat_decisions_enabled", False):

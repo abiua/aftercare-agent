@@ -20,6 +20,7 @@ from .decisions import ConversationDecisions
 from .tables import Conversation, InvestigationRequest
 
 PROFILE = "chat-investigation-v1"
+FINANCIAL_STATES = ("RESOLVED", "APPROVED", "EXECUTION_PENDING", "EXECUTION_FAILED")
 
 
 def enabled(settings):
@@ -127,6 +128,7 @@ def pending(business, *, limit=50):
             .outerjoin(request, request.turn_id == turn.id)
             .where(
                 request.turn_id.is_(None),
+                Case.status.notin_(FINANCIAL_STATES),
                 turn.state == "PUBLISHED",
                 turn.quiet_until <= business.clock(),
                 Conversation.status == "OPEN",
@@ -197,7 +199,9 @@ def _stage(business, turn_id):
         request = db.get(InvestigationRequest, turn_id, with_for_update=True)
         if request is not None and (request.state != "PENDING" or _complete_existing(db, request)):
             return None
-        if not _current(db, row, turn) or utc(turn.quiet_until) > utc(business.clock()):
+        case = db.get(Case, row.active_case_id) if row.active_case_id else None
+        closed = case is None or case.status in FINANCIAL_STATES
+        if closed or not _current(db, row, turn) or utc(turn.quiet_until) > utc(business.clock()):
             if request is not None:
                 request.state, request.reason = "CANCELED", "INVESTIGATION_TURN_STALE"
             return None

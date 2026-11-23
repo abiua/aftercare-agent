@@ -197,7 +197,17 @@ function ReviewEditor({api, path, order, snapshot, reviewId, action, stale, clos
   action: ReviewAction; stale: boolean; close: () => void; refresh: () => void; onSaved: (review: {id: string; program_check: ProgramCheck | null}) => void;
 }) {
   const actions = useActions(api);
-  const options = action === 'ACCEPT' ? snapshot.candidate.options.filter((option) => canAcceptOption(snapshot, option)) : snapshot.candidate.options;
+  const candidates = snapshot.candidate.options;
+  const eligibility = snapshot.input.frozen_context?.eligibility;
+  const policies = eligibility?.policy_ids_by_action?.REFUND ?? [];
+  const refunds: DecisionOption[] = action === 'MODIFY' && eligibility?.actions.includes('REFUND') && policies.length ?
+    eligibility.lines.filter(line => snapshot.input.line_ids.includes(line.line_id) && line.available_cents > 0).map(line => ({
+      id: 'support-refund-' + line.line_id, action: 'REFUND', lines: [{line_id: line.line_id, amount_cents: line.available_cents}],
+      policy_ids: policies, evidence_ids: snapshot.input.input_refs.filter(ref =>
+        (ref.kind === 'FACT' || (ref.kind === 'POLICY' && policies.includes(ref.id.split(':')[0]))) &&
+        (!snapshot.input.line_ids.includes(ref.id) || ref.id === line.line_id) && snapshot.input.evidence_ids.includes(ref.id)).map(ref => ref.id), rationale: '',
+    })) : [];
+  const options = action === 'ACCEPT' ? snapshot.candidate.options.filter((option) => canAcceptOption(snapshot, option)) : [...candidates, ...refunds];
   const [selected, select] = useState<DecisionOption | undefined>(options[0]);
   const [reason, setReason] = useState('');
   const [rationale, setRationale] = useState(selected?.rationale ?? '');
@@ -244,7 +254,7 @@ function ReviewEditor({api, path, order, snapshot, reviewId, action, stale, clos
     <Space orientation="vertical" style={{width: '100%'}}>
       {stale && <Alert type="warning" title="候选方案或复核记录已更新，请关闭并重新打开。" />}
       {choosesOption && <Select aria-label="选择候选" value={selected?.id} onChange={choose}
-        options={options.map((item, index) => ({value: item.id, label: `${index + 1}. ${decisionActions[item.action]}`}))} />}
+        options={options.map((item, index) => ({value: item.id, label: refunds.includes(item) && isExecutionOption(item) ? `客服拟定退款 · ${orderLineName(order, item.lines[0].line_id)}` : `${index + 1}. ${decisionActions[item.action]}`}))} />}
       {selected && action === 'MODIFY' && <>
         {isExecutionOption(selected) && selected.lines.map((line) => {
           const label = `${orderLineName(order, line.line_id)} ${selected.action === 'REFUND' ? '退款金额（元）' : '换发数量（件）'}`;

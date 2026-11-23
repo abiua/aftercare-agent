@@ -9,7 +9,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from aftercare.business.errors import BusinessError
-from aftercare.business.models import Case, Customer, Execution, Order
+from aftercare.business.models import Case, Customer, Execution, Order, OrderLine, Product
 from aftercare.business.refund_lookup import locate_refund, resolve_refund_text, targeted_refund
 from aftercare.business.rules import digest, utc
 from aftercare.business.storage import MAX_BYTES, validate_image, verify_object
@@ -181,9 +181,33 @@ class ConversationService:
             result["features"] = {"chat_decisions": True, "chat_material_bridge": True}
         return result
 
-    def create(self, user, key):
+    def _demo_order(self, db, row, stamp):
+        settings = self.business.settings
+        product_id = getattr(settings, "chat_demo_product_id", None)
+        if not product_id or settings.profile != "test" or not getattr(settings, "demo_role_login_enabled", False):
+            raise BusinessError("DEMO_DISABLED", "此环境未启用模拟订单。", 403)
+        product = db.get(Product, product_id)
+        if product is None:
+            raise BusinessError("DEMO_PRODUCT_MISSING", "演示商品尚未准备好。", 503)
+        order_id = f"O{uuid4().int % 10**12:012d}"
+        cents = product.data["unit_price_cents"]
+        created = stamp - timedelta(days=2)
+        data = dict(id=order_id, customer_id=row.customer_id, status="DELIVERED", payment_status="CONFIRMED",
+                    subtotal_cents=cents, discount_cents=0, payable_cents=cents, paid_cents=cents,
+                    refunded_cents=0, created_at=created.isoformat(), paid_at=created.isoformat(),
+                    shipped_at=(stamp - timedelta(days=1)).isoformat(), delivered_at=stamp.isoformat(),
+                    cancelled_at=None, shipment=None)
+        db.add(Order(id=order_id, customer_id=row.customer_id, data=data))
+        db.flush()
+        line = dict(line_id="L01", product_id=product.id, quantity=1, paid_cents=cents, refunded_cents=0)
+        db.add(OrderLine(order_id=order_id, **line, data={**line, "unit_price_cents": cents,
+                                                       "discount_cents": 0, "payable_cents": cents}))
+        row.active_order_id, row.line_ids = order_id, ["L01"]
+        self._reply(db, row, f"已选择模拟订单 {order_id}，{product.data['name']} 1 件，实付 {cents / 100:.2f} 元。请说说你想办理什么售后。", [])
+
+    def create(self, user, key, *, demo_order=False):
         _customer(user)
-        scope, signature = "chat:create", digest({})
+        scope, signature = "chat:create", digest({"demo_order": True} if demo_order else {})
         with Session(self.engine) as db, db.begin():
             customer = db.get(Customer, user.customer_id, with_for_update=True)
             if customer is None:
@@ -204,6 +228,8 @@ class ConversationService:
                 updated_at=stamp,
             )
             db.add(row)
+            if demo_order:
+                self._demo_order(db, row, stamp)
             return self.business._remember(db, user, scope, key, signature, _conversation(row))
 
     def list(self, user, *, limit, offset):
@@ -585,6 +611,7 @@ class ConversationService:
                     row.status = "HUMAN_HANDOFF"
                     chat_analysis.invalidate(self.analysis, db, row)
                 elif row.status == "OPEN":
+                    agent_handles_reply = False
                     if self.analysis and chat_analysis.wants_handoff(row, message):
                         row.status = "HUMAN_HANDOFF"
                         chat_analysis.invalidate(self.analysis, db, row)
@@ -616,10 +643,21 @@ class ConversationService:
                                 and not chat_memory.correction(db, row)
                                 and not chat_memory.pending_scope(db, row)
                             ):
-                                chat_analysis.stage(self.analysis, db, row)
+                                turn = chat_analysis.stage(self.analysis, db, row)
+                                agent_handles_reply = (
+                                    turn is not None
+                                    and getattr(self.business.settings, "chat_text_enabled", False)
+                                    and not photos
+                                    and all(
+                                        card["data"].get("code") == "CLARIFICATION_REQUIRED"
+                                        or card["type"] == "order_candidates"
+                                        for card in cards
+                                    )
+                                )
                             else:
                                 chat_analysis.invalidate(self.analysis, db, row)
-                    self._reply(db, row, reply, cards, reply_to=message.id)
+                    if not agent_handles_reply:
+                        self._reply(db, row, reply, cards, reply_to=message.id)
             return self.business._remember(
                 db, user, scope, key, signature, self._message_response(db, row, message, user)
             )

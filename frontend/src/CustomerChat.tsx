@@ -34,7 +34,7 @@ function refundLabel(status: string, receiptConfirmed?: boolean) {
   return refundStatus[status] ?? '状态待核对';
 }
 
-export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCase: (id: string, proposal?: ChatProposalHandoff) => void}) {
+export function CustomerChat({api, user, onCase, demoOrder}: {demoOrder?: boolean; api: Client; user: User; onCase: (id: string, proposal?: ChatProposalHandoff) => void}) {
   const [id, setId] = useState(() => new URLSearchParams(location.search).get('conversation') || '');
   const [offset, setOffset] = useState(0);
   const [drafts] = useState(() => new Map<string, ComposeDraft>());
@@ -56,8 +56,8 @@ export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCa
     history.replaceState(null, '', url);
     setId(next);
   }
-  async function start() {
-    const created = await create.submit<Conversation>('/conversations', {}, {success: ''});
+  async function start(withOrder = false) {
+    const created = await create.submit<Conversation>('/conversations', withOrder ? {demo_order: true} : {}, {success: ''});
     if (created) {
       setOffset(0);
       refresh();
@@ -66,7 +66,7 @@ export function CustomerChat({api, user, onCase}: {api: Client; user: User; onCa
   }
   const rows = listing.value?.items ?? [];
   return <div className="chat-layout">
-    <Card title="售后对话" extra={user.role === 'customer' && <Button type="primary" loading={create.busy} onClick={() => void start()}>新对话</Button>}>
+    <Card title="售后对话" extra={user.role === 'customer' && <Space wrap><Button loading={create.busy} onClick={() => void start()}>新对话</Button>{demoOrder && <Button type="primary" loading={create.busy} onClick={() => void start(true)}>新建模拟订单并咨询</Button>}</Space>}>
       <Feedback error={listing.error || create.error || unfinished.error} />
       {!!unfinished.value?.items.length && <Card size="small" title="继续之前的售后">
         <p>回到原对话，之前的说明和照片都在。</p>
@@ -229,7 +229,7 @@ function ChatThread({api, id, user, drafts, refreshList, onCase}: {api: Client; 
         issueId={analysis?.issue_id} conversationId={id} caseId={conversation.active_case_id} onCase={onCase} revision={conversation.revision} refreshChat={load} />}
     <div className="chat-messages" aria-label="对话消息">
       {state?.messages.map((row) => <article key={row.id} className={`chat-message chat-${row.role}`}>
-        <div className="chat-byline">{row.role === 'customer' ? '客户' : row.role === 'support' ? '客服' : row.cards.some((card) => card.type === 'photo_observation') ? '售后助手（照片观察）' : '售后助手（程序回复）'} · {time(row.created_at)}</div>
+        <div className="chat-byline">{row.role === 'customer' ? '客户' : row.role === 'support' ? '客服' : row.cards.some(card => card.type === 'status' && card.data.code === 'AGENT_CHAT_REPLY') ? '售后 Agent' : row.cards.some((card) => card.type === 'photo_observation') ? '售后助手（照片观察）' : '售后助手（程序回复）'} · {time(row.created_at)}</div>
         {row.text && <p>{row.text}</p>}
         {!!row.attachments.length && <div className="chat-photos">{row.attachments.map((attachment) =>
           <div key={attachment.id} id={`chat-photo-${attachment.id}`}><ChatPhoto api={api} base={base} attachment={attachment} /></div>)}</div>}

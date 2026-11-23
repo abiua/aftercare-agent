@@ -64,7 +64,8 @@ def _authorized(session, actor_id, customer_id):
 
 
 class IntakeAuditFactory:
-    def __init__(self, engine, *, provider_limiter=None):
+    def __init__(self, engine, *, provider_limiter=None, logical_id="intake:classify"):
+        self.logical_id = logical_id
         self.engine = engine
         self.provider_limiter = (
             provider_limiter if provider_limiter is not None else ProviderLimiter(engine)
@@ -94,11 +95,12 @@ class IntakeAuditFactory:
                 )
             elif row.message_digest != message_digest or row.customer_id != customer_id:
                 raise BusinessError("IDEMPOTENCY_CONFLICT", "同一分类请求键已用于不同文字或账户。")
-        return _IntakeAudit(self.engine, self.provider_limiter, identity)
+        return _IntakeAudit(self.engine, self.provider_limiter, identity, self.logical_id)
 
 
 class _IntakeAudit:
-    def __init__(self, engine, limiter, identity):
+    def __init__(self, engine, limiter, identity, logical_id="intake:classify"):
+        self.logical_id = logical_id
         self.engine, self.limiter, self.identity = engine, limiter, identity
 
     def _row(self, db, *, lock=False, authorize=True):
@@ -111,10 +113,13 @@ class _IntakeAudit:
         # The shared provider limiter enforces account-level cooldown before admission.
         return set()
 
-    def replay(self, _logical_id):
+    def replay(self, _logical_id, *, expected_output_reserve=None):
         with Session(self.engine) as db, db.begin():
             row = self._row(db, lock=True)
             if row.status == "SUCCEEDED":
+                evidence = row.metadata_json.get("transport_evidence", {})
+                if expected_output_reserve is not None and evidence.get("max_output_tokens") != expected_output_reserve:
+                    raise ModelFailure("REPLAY_OUTPUT_BUDGET_CHANGED")
                 return row.result
             if row.status == "PENDING":
                 return None
@@ -177,7 +182,7 @@ class _IntakeAudit:
             remaining = _seconds(bounded_deadline)
             if row.status != "PENDING":
                 raise ModelFailure("INTAKE_ALREADY_STARTED")
-            if remaining <= 0 or logical_id != "intake:classify" or ordinal != 1:
+            if remaining <= 0 or logical_id != self.logical_id or ordinal != 1:
                 raise ModelFailure("INTAKE_BUDGET_EXHAUSTED")
             if reserve is None or reserve > min(registry.max_usd, registry.max_run_usd):
                 raise ModelFailure("MODEL_COST_BUDGET_EXHAUSTED")

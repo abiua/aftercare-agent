@@ -11,6 +11,8 @@ export type ProgramCheck = {status: 'PASSED' | 'BLOCKED' | 'NON_EXECUTING'; code
 export type DecisionSnapshot = DecisionRef & {
   origin: 'AGENT' | 'SUPPORT_MODIFICATION'; parent_id: string | null; original_run_id: string;
   input: {issue_id: string; case_id: string; order_id: string; line_ids: string[]; input_through_seq: number;
+    frozen_context?: {eligibility?: {actions: string[]; lines: {line_id: string; available_cents: number}[];
+      policy_ids_by_action?: {REFUND?: string[]}}};
     evidence_ids: string[]; input_refs: {kind: string; id: string; sha256: string}[]; business_versions: Record<string, string | number>};
   candidate: {options: DecisionOption[]; unresolved: string[]};
   checks: Record<string, ProgramCheck>; expires_at: string;

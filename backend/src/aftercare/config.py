@@ -31,6 +31,8 @@ class Settings(BaseModel):
     embedding_model_path: Path | None = None
     embedding_enabled: bool = False
     container: bool = False
+    chat_demo_product_id: str | None = None
+    chat_text_enabled: bool = False
     chat_analysis_enabled: bool = False
     chat_decisions_enabled: bool = False
     chat_investigation_enabled: bool = False

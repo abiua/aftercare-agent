@@ -366,3 +366,90 @@ def test_same_order_new_intent_waits_for_confirmation_and_keeps_old_photos(clien
         assert db.scalar(select(func.count()).select_from(Attachment)) == 1
     detail = client.get(url, headers=headers()).json()
     assert detail["messages"][0]["attachments"] == [old_attachment]
+
+
+def test_demo_order_is_opt_in_owned_and_replayable(client, system):
+    path = "/api/conversations"
+    body = {"demo_order": True}
+    assert client.post(path, headers=headers(), json=body).status_code == 403
+    system.settings.demo_role_login_enabled = True
+    system.settings.chat_demo_product_id = "P001"
+    assert client.post(path, headers=headers(SUPPORT), json=body).status_code == 403
+    key = headers()
+    result = client.post(path, headers=key, json=body)
+    assert result.status_code == 201
+    created = result.json()
+    assert client.post(path, headers=key, json=body).json() == created
+    order = system.service.order(created["active_order_id"], OWNER)
+    assert order["customer_id"] == OWNER.customer_id and len(order["items"]) == 1
+    assert order["items"][0]["refunded_cents"] == 0
+    assert client.get(f"{path}/{created['id']}", headers=headers(OTHER)).status_code == 404
+
+
+def test_customer_reply_keeps_conversation_and_defers_payment_claims():
+    from aftercare.conversations.customer_reply import conversational_text
+
+    assert conversational_text("你说你叫小林。49 元已处理到账。") == "你说你叫小林。"
+    assert conversational_text("退款已经成功。") == ""
+    assert conversational_text("请问杯口哪里破损？") == "请问杯口哪里破损？"
+
+
+def test_live_chat_only_defers_generic_reply_when_agent_is_scheduled(client, system):
+    from aftercare.conversation_analysis.service import AnalysisLimits, AnalysisService
+
+    chat = client.app.state.conversations
+    system.settings.chat_text_enabled = True
+    url = create(client)
+    assert cards(send(client, url, "你好").json())[0]["type"] == "order_candidates"
+    chat.analysis = AnalysisService(system.engine, AnalysisLimits(max_calls=2, max_microusd=5000))
+    greeting = send(client, url, "你好").json()
+    assert [msg["role"] for msg in greeting["messages"]] == ["customer"]
+    change(client, url, greeting["conversation"]["revision"], lines=("L01",)).raise_for_status()
+    request = send(client, url, "我的杯子进蟑螂了，我想换一个杯子").json()
+    assert [msg["role"] for msg in request["messages"]] == ["customer"]
+    assert request["conversation"]["active_case_id"] is None
+    status = send(client, url, "查这单退款进度").json()
+    assert cards(status)[0]["data"]["code"] == "REFUND_NOT_FOUND"
+
+
+def test_chat_policy_lookup_uses_selected_line_owner_and_inclusive_window(system):
+    from datetime import datetime
+
+    from aftercare.conversations.customer_reply import _order_context
+
+    conversation = SimpleNamespace(
+        active_order_id="ORDER", line_ids=["L02"], customer_id=OWNER.customer_id
+    )
+    cutoff = datetime.fromisoformat(system.seed["orders"][0]["delivered_at"]) + timedelta(hours=168)
+    with Session(system.engine) as db:
+
+        def lookup(at):
+            return _order_context(system.service, db, conversation, None, at)
+
+        (line,) = lookup(cutoff)["lines"]
+        assert line["line_id"] == "L02" and line["within_return_window"] is True
+        assert {p["id"] for p in line["policies"]["return"]} == {"POL05", "POL07"}
+        assert [p["id"] for p in line["policies"]["wrong_item"]] == ["POL13"]
+        assert (
+            lookup(cutoff + timedelta(microseconds=1))["lines"][0]["within_return_window"] is False
+        )
+        conversation.customer_id = OTHER.customer_id
+        assert lookup(cutoff) is None
+
+
+def test_ambiguous_exchange_and_topic_change_do_not_inherit_photo_requests():
+    from aftercare.conversations.customer_reply import _ground_photo_request
+
+    context = {
+        "latest_message": "我想换杯子",
+        "case": None,
+        "order": {"item_selected": True, "lines": [{"policies": {"damaged": []}}]},
+    }
+    assert _ground_photo_request("是拆封时发现的吗？请上传照片。", context) == "是拆封时发现的吗？"
+    assert _ground_photo_request("暂时不需要您上传照片。", context) == "暂时不需要您上传照片。"
+    context.update(case={"intent": "damaged"}, latest_message="杯子会飞适合宣传吗")
+    assert (
+        _ground_photo_request("可以当作夸张创意。请上传包裹照片。", context) == "可以当作夸张创意。"
+    )
+    context["latest_message"] = "这件破损商品需要什么材料？"
+    assert _ground_photo_request("请上传损坏位置的照片。", context) == "请上传损坏位置的照片。"

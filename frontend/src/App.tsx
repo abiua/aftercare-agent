@@ -123,7 +123,7 @@ function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: U
     history.replaceState(null, '', url);
     setView('workbench');
   }
-  const runtime = useResource<Runtime>(api, user.role === 'customer' ? null : '/runtime');
+  const runtime = useResource<Runtime>(api, '/runtime');
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -142,8 +142,9 @@ function Workspace({api, user, logout}: {api: ReturnType<typeof client>; user: U
       </header>
       <main className="page">
         {user.role !== 'customer' && runtime.value?.mode === 'offline' && <Alert className="runtime-banner" type="info" showIcon title="当前环境使用离线策略，款项与库存操作均为模拟。" />}
+        {user.role === 'customer' && runtime.value?.features?.demo_order && <Alert className="runtime-banner" type="info" showIcon title="对话使用真实模型，订单和退款均为模拟。" />}
         {user.role !== 'customer' && runtime.value?.mode === 'live' && <Alert className="runtime-banner" type="warning" showIcon title="当前环境可调用真实模型。款项与库存操作均为模拟。" />}
-        {view === 'chat' ? <CustomerChat api={api} user={user} onCase={openCase} /> : view === 'workbench' ? <Workbench api={api} user={user} runtime={runtime.value} handoff={handoff} clearHandoff={() => setHandoff(undefined)} /> : <Evaluation api={api} runtime={runtime.value} />}
+        {view === 'chat' ? <CustomerChat api={api} user={user} demoOrder={runtime.value?.features?.demo_order} onCase={openCase} /> : view === 'workbench' ? <Workbench api={api} user={user} runtime={runtime.value} handoff={handoff} clearHandoff={() => setHandoff(undefined)} /> : <Evaluation api={api} runtime={runtime.value} />}
         <footer className="footer"><span>售后协作台 · 操作记录可追溯</span>{user.role !== 'customer' && runtime.value && <Evidence title="运行环境"><Json value={runtime.value} /></Evidence>}</footer>
       </main>
     </div>

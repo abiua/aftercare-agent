@@ -114,7 +114,7 @@ def stage(service, db, row):
     start = row.analysis_from_seq
     if start > row.sequence:
         return
-    service.stage(db, row, input_from_seq=start)
+    return service.stage(db, row, input_from_seq=start)
 
 
 def wants_handoff(row, message):
@@ -386,6 +386,11 @@ def process(chat, turn_id, settings, model):
                 service.publish_status(
                     lease, lambda db, row: chat._reply(db, row, text, cards, reply_to=request_id)
                 )
+                return
+        if getattr(settings, "chat_text_enabled", False) and model is not None:
+            from .customer_reply import respond_to_text
+
+            if respond_to_text(chat, lease, binding, model):
                 return
         if not binding["attachments"] or not settings.chat_vision_enabled:
             with Session(chat.engine) as db:

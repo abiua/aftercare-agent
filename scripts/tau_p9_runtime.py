@@ -35,7 +35,7 @@ def task_registry():
 
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('action',choices=['models','api','worker']);parser.add_argument('--live',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('action',choices=['models','api','worker','beat']);parser.add_argument('--live',action='store_true');parser.add_argument('--customer-demo', action='store_true');args=parser.parse_args()
     model=task_registry()
     encoded=model.model_dump_json(indent=2)
     if DESTINATION.exists() and DESTINATION.read_text()!=encoded:
@@ -51,6 +51,10 @@ def main():
     def settings(profile='test'):
         result=previous(profile)
         return config.Settings.model_validate({**result.model_dump(),
+            'chat_text_enabled':args.customer_demo and args.live,
+            'chat_demo_product_id':'TAU-P5-2-1' if args.customer_demo else None,
+            'chat_investigation_kernel_review':args.customer_demo,
+            'redis_url':result.redis_url.rsplit('/', 1)[0] + '/1' if args.customer_demo else result.redis_url,
             'model_enabled':args.live, 'model_config_path':DESTINATION,
             'chat_vision_enabled':args.live, 'chat_vision_alias':'economy',
             'chat_analysis_max_microusd':100000,
@@ -64,9 +68,15 @@ def main():
         os.environ['AFTERCARE_OPENAI_KEY']=json.loads((ROOT/'.runtime/model-secret.json').read_text())['api_key']
         if any(m.provider == 'deepseek' for m in model.models):
             os.environ['AFTERCARE_DEEPSEEK_KEY']=json.loads((ROOT/'.runtime/deepseek-secret.json').read_text())['api_key']
+    if args.action=='beat':
+        from aftercare.queue import make_queue
+        make_queue('test').Beat(loglevel='WARNING',schedule=str(ROOT/'.runtime/customer-demo-beat')).run()
+        return
     if args.action=='worker':
         from aftercare.queue import make_queue
-        make_queue('test').worker_main(['worker','--pool=solo','--loglevel=INFO'])
+        worker_options = ['--pool=threads','--concurrency=4'] if args.customer_demo else ['--pool=solo']
+        loglevel = '--loglevel=WARNING' if args.customer_demo else '--loglevel=INFO'
+        make_queue('test').worker_main(['worker',*worker_options,loglevel])
         return
     import uvicorn
     from aftercare.api import create_app

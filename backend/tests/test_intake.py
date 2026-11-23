@@ -400,3 +400,21 @@ def test_interrupted_intake_reservation_cannot_restart_and_auth_revocation_is_ch
         db.get_one(User, "u1").enabled = False
     with pytest.raises(ModelFailure, match="INTAKE_ACTOR_REVOKED"):
         factory("u1", "C001", KEY, "fixture-digest")
+
+
+def test_customer_text_replay_requires_same_output_budget():
+    from aftercare.intake_audit import IntakeAuditFactory, IntakeModelAudit
+    from sqlalchemy.orm import Session
+
+    engine, _, _ = _audit_fixture()
+    factory = IntakeAuditFactory(engine, logical_id="chat:reply")
+    audit = factory(CUSTOMER.user_id, CUSTOMER.customer_id, "chat-reply:turn-1", "0" * 64)
+    assert audit.replay("chat:reply", expected_output_reserve=900) is None
+    with Session(engine) as db, db.begin():
+        row = db.get_one(IntakeModelAudit, (CUSTOMER.user_id, "chat-reply:turn-1"))
+        row.status = "SUCCEEDED"
+        row.metadata_json = {"transport_evidence": {"max_output_tokens": 900}}
+        row.result = {"result": {"text": "请描述商品问题。"}}
+    assert audit.replay("chat:reply", expected_output_reserve=900)["result"]["text"] == "请描述商品问题。"
+    with pytest.raises(ModelFailure, match="REPLAY_OUTPUT_BUDGET_CHANGED"):
+        audit.replay("chat:reply", expected_output_reserve=1800)

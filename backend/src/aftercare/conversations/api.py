@@ -92,9 +92,13 @@ class Context(Handoff):
     new_issue: bool = False
 
 
+class CreateConversation(Empty):
+    demo_order: bool = False
+
+
 @router.post("", status_code=201)
-def create(_body: Empty, service: Service, user: Actor, key: Key):
-    return service.create(user, key)
+def create(body: CreateConversation, service: Service, user: Actor, key: Key):
+    return service.create(user, key, demo_order=True) if body.demo_order else service.create(user, key)
 
 
 @router.get("")

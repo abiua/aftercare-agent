@@ -488,25 +488,37 @@ class BusinessService:
         with Session(self.engine) as db:
             return self._all_policy_versions(db)
 
-    def _case_policies(
-        self, db: Session, case: Case, order_data: dict, *, policy_documents=None, decision_at=None
-    ) -> tuple[dict, list[dict]]:
+    def resolve_order_policies(
+        self, order_data, line_ids, intent, policy_documents, *, decision_at, case_created_at
+    ):
         sku_ids = {
-            item["product_id"] for item in order_data["items"] if item["line_id"] in case.line_ids
+            item["product_id"] for item in order_data["items"] if item["line_id"] in line_ids
         }
         by_id = {item["id"]: item for item in order_data["products"]}
         products = [by_id.get(sku, {"id": sku}) for sku in sorted(sku_ids)]
-        resolution = resolve_policies(
-            self._all_policy_versions(db) if policy_documents is None else policy_documents,
-            intent=case.intent,
+        return resolve_policies(
+            policy_documents,
+            intent=intent,
             products=products,
             timestamps={
-                "decision_at": self.clock() if decision_at is None else decision_at,
-                "case_created_at": utc(case.created_at),
+                "decision_at": decision_at,
+                "case_created_at": case_created_at,
                 "order_created_at": order_data.get("created_at"),
                 "paid_at": order_data.get("paid_at"),
                 "delivered_at": order_data.get("delivered_at"),
             },
+        )
+
+    def _case_policies(
+        self, db: Session, case: Case, order_data: dict, *, policy_documents=None, decision_at=None
+    ) -> tuple[dict, list[dict]]:
+        resolution = self.resolve_order_policies(
+            order_data,
+            case.line_ids,
+            case.intent,
+            self._all_policy_versions(db) if policy_documents is None else policy_documents,
+            decision_at=self.clock() if decision_at is None else decision_at,
+            case_created_at=utc(case.created_at),
         ).to_dict()
         documents = scoped_policy_documents(resolution, case.intent, order_data["status"])
         resolution["blockers"] = sorted(set(resolution["blockers"]))
@@ -722,6 +734,7 @@ class BusinessService:
             )
             if user.role in {"support", "approver", "tester"}:
                 from .decision_summary import agent_advice
+
                 data["agent_advice"] = agent_advice(db, case)
             if user.role == "support" and case.decision_conversation_id is not None:
                 data["chat_proposal"] = ConversationDecisions(self).proposal_preview(
